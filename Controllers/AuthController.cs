@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers
 {
-    public class AccountController : Controller
+    public class AuthController : Controller
     {
         public IActionResult Login()
         {

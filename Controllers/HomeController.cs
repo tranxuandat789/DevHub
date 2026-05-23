@@ -18,7 +18,18 @@ namespace DevHub.Controllers
             return View();
         }
 
+        public IActionResult Employer()
+        {
+            return View();
+        }
+
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [Route("Home/Error404")]
+        public IActionResult Error404()
         {
             return View();
         }

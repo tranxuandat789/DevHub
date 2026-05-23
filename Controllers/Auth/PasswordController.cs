@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace DevHub.Controllers.Auth;
-
-[Route("Auth/[action]")]
-public class PasswordController : Controller
+namespace DevHub.Controllers.Auth
 {
-    public IActionResult ForgotPassword() => View();
-    public IActionResult ResetPassword() => View();
+    [Route("auth/password")]
+    public class PasswordController : Controller
+    {
+    }
 }

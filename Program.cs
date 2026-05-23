@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using DevHub.Data;
 using DevHub.Repositories.Interfaces;
@@ -13,6 +15,30 @@ builder.Services.AddControllersWithViews();
 // Register DbContext
 builder.Services.AddDbContext<ItrecruitmentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath         = "/auth/login";
+        options.LogoutPath        = "/auth/logout";
+        options.AccessDeniedPath  = "/auth/access-denied";
+        options.ExpireTimeSpan    = TimeSpan.FromDays(7);
+        options.SlidingExpiration = true;
+    });
+
+// Configure View Locations for Role-based folders
+builder.Services.Configure<RazorViewEngineOptions>(options =>
+{
+    // Role-based locations — thêm trước fallback để ưu tiên tìm theo role
+    options.ViewLocationFormats.Add("/Views/Candidate/{1}/{0}.cshtml");
+    options.ViewLocationFormats.Add("/Views/Recruiter/{1}/{0}.cshtml");
+    options.ViewLocationFormats.Add("/Views/Moderator/{1}/{0}.cshtml");
+    options.ViewLocationFormats.Add("/Views/Admin/{1}/{0}.cshtml");
+    // Fallback chuẩn: Auth, Home, Job, Company, Blog
+    options.ViewLocationFormats.Add("/Views/{1}/{0}.cshtml");
+    options.ViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
+});
 
 // Register Repositories
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
@@ -66,7 +92,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -75,11 +100,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

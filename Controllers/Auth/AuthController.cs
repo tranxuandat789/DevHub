@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace DevHub.Controllers.Auth;
-
-[Route("Auth/[action]")]
-public class AuthController : Controller
+namespace DevHub.Controllers.Auth
 {
-    public IActionResult Login() => View();
-    public IActionResult Register() => View();
-    public IActionResult RegisterCandidate() => View();
-    public IActionResult RegisterRecruiter() => View();
+    [Route("auth")]
+    public class AuthController : Controller
+    {
+    }
 }

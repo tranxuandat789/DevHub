@@ -1,26 +1,26 @@
-﻿@{
-    ViewData["Title"] = "Đăng ký";
+@{
+    ViewData["Title"] = "Đăng ký Nhà tuyển dụng";
 }
 
-<div class="bg-[#F7F5FC] min-h-screen py-12 md:py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="relative min-h-screen py-12 md:py-20 overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 25% 65%, rgba(139, 92, 246, 0.15), transparent 45%);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="flex justify-center">
             
             <!-- Center Column: Form -->
-            <div class="w-full max-w-lg bg-white rounded-[20px] p-8 md:p-10 shadow-[0_15px_40px_rgba(70,64,222,0.14)]">
-                <h1 class="text-2xl md:text-[32px] font-bold text-dark mb-3">Tạo tài khoản mới</h1>
-                <p class="text-muted text-[15px] mb-8 leading-relaxed">
-                    Cùng xây dựng một hồ sơ nổi bật và nhận được các cơ hội sự nghiệp lý tưởng
+            <div class="w-full max-w-lg bg-white rounded-[20px] p-8 md:p-10 shadow-[0_15px_40px_rgba(70,64,222,0.14)] relative z-20">
+                <h1 class="text-2xl md:text-[32px] font-bold text-dark mb-3 text-center">Đăng ký Nhà tuyển dụng</h1>
+                <p class="text-muted text-[15px] mb-8 leading-relaxed text-center">
+                    Tạo tài khoản nhà tuyển dụng để bắt đầu tìm kiếm những ứng viên tài năng nhất.
                 </p>
 
-                <form onsubmit="event.preventDefault(); document.cookie = 'IsLoggedIn=true; path=/'; document.cookie = 'UserRole=Candidate; path=/'; window.location.href = '/';">
+                <form onsubmit="event.preventDefault(); document.cookie = 'IsLoggedIn=true; path=/'; document.cookie = 'UserRole=Employer; path=/'; window.location.href = '/Home/Employer';">
                     <div class="mb-4">
                         <input type="text" placeholder="Họ và tên" 
                                class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" required />
                     </div>
 
                     <div class="mb-4">
-                        <input type="email" placeholder="Email" 
+                        <input type="email" placeholder="Email công ty hoặc cá nhân" 
                                class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" required />
                     </div>
 
@@ -56,7 +56,7 @@
                             <input id="terms" type="checkbox" class="w-4 h-4 text-primary bg-white border-bordercolor rounded focus:ring-primary focus:ring-2" required>
                         </div>
                         <label for="terms" class="text-[14px] text-muted leading-snug">
-                            Tôi đồng ý với <a href="#" class="text-primary hover:underline">quy chế hoạt động</a> và <a href="#" class="text-primary hover:underline">chính sách bảo mật thông tin</a> của JobHuntly
+                            Tôi đồng ý với <a href="#" class="text-primary hover:underline">quy chế hoạt động</a> và <a href="#" class="text-primary hover:underline">chính sách bảo mật thông tin</a> của JobHuntly dành cho nhà tuyển dụng
                         </label>
                     </div>
 
@@ -82,7 +82,7 @@
                 </button>
 
                 <p class="text-center text-muted mt-8 text-[15px]">
-                    Bạn đã có tài khoản? <a href="/Auth/Login" class="text-primary font-medium hover:underline">Đăng nhập ngay</a>
+                    Bạn đã có tài khoản tuyển dụng? <a href="/Auth/EmployerLogin" class="text-primary font-medium hover:underline">Đăng nhập ngay</a>
                 </p>
             </div>
             

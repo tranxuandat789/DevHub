@@ -1,15 +1,253 @@
 ﻿@{
-    ViewData["Title"] = "Company Details";
-    Layout = "_Layout";
+    ViewData["Title"] = "Chi Tiết Công Ty";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="card-title text-primary">Company Details</h2>
-            <hr />
-            <p class="card-text text-muted">This is a placeholder page for the Company Details view in the recruitment platform.</p>
+<!-- Top Header Section -->
+<div class="border-b border-gray-200 relative overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 75% 35%, rgba(139, 92, 246, 0.18), transparent 35%);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
+        <!-- Breadcrumb -->
+        <div class="text-sm text-gray-500 flex items-center space-x-2">
+            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <a href="/" class="hover:text-blue-600">Trang chủ</a>
+            <span>&rsaquo;</span>
+            <a href="/Jobs" class="hover:text-blue-600">Việc làm</a>
+            <span>&rsaquo;</span>
+            <span class="text-gray-800 font-medium">Chi tiết công ty</span>
+        </div>
+    </div>
+
+    <!-- Company Header Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 relative z-10">
+        <div class="flex flex-col md:flex-row items-center gap-10 mt-6">
+            <!-- Logo Box with Glow -->
+            <div class="w-44 h-44 bg-white border border-gray-200 flex items-center justify-center rounded-2xl flex-shrink-0"
+                 style="box-shadow: 0 0 70px 10px rgba(70, 64, 222, 0.15);">
+                <span class="text-blue-600 font-black italic" style="font-size: 3.5rem;">F<span class="text-orange-500">P</span><span class="text-green-500">T</span></span>
+            </div>
+            <!-- Company Info -->
+            <div class="text-center md:text-left">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Công Ty Cổ Phần Việt Nam</h1>
+                <div class="flex items-center justify-center md:justify-start text-gray-500 text-lg">
+                    <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Revolut • Madrid, Spain
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Main Content Area -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex flex-col lg:flex-row gap-12">
+        <!-- Left Sidebar Navigation -->
+        <div class="w-full lg:w-1/4">
+            <ul class="space-y-4">
+                <li>
+                    <a href="#vitri" class="block border-l-4 border-transparent pl-4 py-2 text-gray-800 font-bold hover:text-blue-600 hover:border-blue-600 transition-colors">
+                        Vị trí đang tuyển 10
+                    </a>
+                </li>
+                <li>
+                    <a href="#gioithieu" class="block border-l-4 border-blue-600 pl-4 py-2 text-blue-600 font-bold">
+                        Giới thiệu doanh nghiệp
+                    </a>
+                </li>
+                <li>
+                    <a href="#lienhe" class="block border-l-4 border-transparent pl-4 py-2 text-gray-800 font-bold hover:text-blue-600 hover:border-blue-600 transition-colors">
+                        Thông tin liên hệ
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Right Content Area -->
+        <div class="w-full lg:w-3/4 space-y-12">
+            
+            <!-- Vị trí đang tuyển -->
+            <div id="vitri">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Vị trí đang tuyển</h2>
+                <div class="space-y-4">
+                    <!-- Job 1 -->
+                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-600 hover:shadow-md transition-all rounded-[20px] p-5 bg-white group">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">Nhân Viên Content Marketing - Đi Làm Ngay Khi Đạt Phỏng Vấn</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm mb-4">
+                            <div class="flex items-center text-blue-600 font-medium">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                8 - 10 triệu
+                            </div>
+                            <div class="flex items-center text-gray-500">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                Hà Nội
+                            </div>
+                        </div>
+                        <div class="flex justify-end text-sm text-gray-500">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Còn 14 ngày
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Job 2 -->
+                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-600 hover:shadow-md transition-all rounded-[20px] p-5 bg-white group">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">Nhân Viên Thiết Kế Nội Thất - Lương Từ 15 - 20 Triệu - Đi Làm Ngay</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm mb-4">
+                            <div class="flex items-center text-blue-600 font-medium">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                15 - 20 triệu
+                            </div>
+                            <div class="flex items-center text-gray-500">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                Hà Nội
+                            </div>
+                        </div>
+                        <div class="flex justify-end text-sm text-gray-500">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Còn 14 ngày
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Job 3 -->
+                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-600 hover:shadow-md transition-all rounded-[20px] p-5 bg-white group">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">(Nữ) - Nhân Viên Kinh Doanh Sales Nội Thất + Data Nóng Từ Marketing - Thu Nhập Lên Đến...</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm mb-4">
+                            <div class="flex items-center text-blue-600 font-medium">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                20 - 50 triệu
+                            </div>
+                            <div class="flex items-center text-gray-500">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                </svg>
+                                TPHCM, +1
+                            </div>
+                        </div>
+                        <div class="flex justify-end text-sm text-gray-500">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Còn 1 ngày
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Giới thiệu doanh nghiệp -->
+            <div id="gioithieu" class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-8 bg-white">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Giới thiệu doanh nghiệp</h2>
+                
+                <h3 class="font-bold text-gray-800 uppercase mb-3">1. HÀNH TRÌNH GOVI VƯƠN MÌNH KHẲNG ĐỊNH THƯƠNG HIỆU SỐ 1 VIỆT NAM</h3>
+                <p class="text-gray-600 leading-relaxed text-justify">
+                    Thành lập năm 2011, Govi mang khát vọng xây dựng một thương hiệu Việt Nam uy tín số 1 lĩnh vực nội thất văn phòng phân khúc trung & cao cấp - nơi chất lượng được đề cao, thẩm mỹ và đổi mới luôn song hành. Chúng tôi tin rằng, một không gian làm việc hiện đại không chỉ nâng cao hiệu suất công việc, bảo vệ sức khỏe, mà còn truyền cảm hứng và phản ánh bản sắc riêng của từng cá nhân, doanh nghiệp.
+                    <br><br>
+                    Trải qua 13+ năm hình thành và phát triển, Govi không ngừng lớn mạnh, mở rộng quy mô và năng lực sản xuất. Mỗi sản phẩm ra đời đều là kết tinh của tư duy sáng tạo, sự chỉn chu trong từng chi tiết và cam kết hướng đến trải nghiệm người dùng. Bởi: "Người Việt xứng đáng được làm việc trong những không gian hiện đại, sang trọng và tiện nghi".
+                </p>
+            </div>
+
+            <!-- Liên hệ -->
+            <div id="lienhe" class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-8 bg-white">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Liên hệ</h2>
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Google Maps Placeholder Image -->
+                    <div class="w-full md:w-5/12 bg-gray-100 rounded-md overflow-hidden relative border border-gray-200 min-h-[250px]">
+                        <!-- Mimicking map UI -->
+                        <div class="absolute inset-0 bg-blue-50/50 flex items-center justify-center">
+                            <div class="absolute top-2 left-2 bg-white px-3 py-1 shadow-sm rounded text-blue-600 text-xs font-medium cursor-pointer">
+                                Mở trong Maps
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <svg class="w-8 h-8 text-red-500 drop-shadow-md" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                <span class="bg-white text-red-600 font-bold text-xs px-2 py-1 shadow mt-1 rounded">Tổng kho nội thất Govi</span>
+                            </div>
+                            <div class="absolute bottom-2 right-2 bg-white p-1 rounded shadow">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                </svg>
+                            </div>
+                            <div class="absolute bottom-2 left-2 w-12 h-12 bg-gray-300 border border-white shadow-sm rounded"></div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Details -->
+                    <div class="w-full md:w-7/12 space-y-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <div class="text-gray-600 text-sm">
+                                <span class="font-bold text-gray-700">Địa chỉ:</span> 
+                                Trụ sở : D04, số 44-45 KĐT Geleximco, đường Lê Trọng Tấn, P. Dương Nội, Hà Đông | 
+                                IN Showroom HN/HCM: Số 5 Nguyễn Khang, Yên Hòa, Hà Nội 
+                                -----&&---- Số 53 Đinh Thị Thi, KĐT Vạn Phúc, Thủ Đức, HCM
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <div class="text-gray-600 text-sm">
+                                <span class="font-bold text-gray-700">Quy mô:</span> 150 - 300 nhân viên
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <div class="text-gray-600 text-sm">
+                                <span class="font-bold text-gray-700">Lĩnh vực:</span> Sản xuất và kinh doanh nội thất và các sản phẩm đồ gỗ
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

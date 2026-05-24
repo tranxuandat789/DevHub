@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Chi Tiết Việc Làm";
 }
 
@@ -58,7 +58,7 @@
             </div>
             
             <div class="flex flex-col sm:flex-row gap-4">
-                <button class="bg-primary text-white font-bold py-3 px-8 rounded-md hover:bg-opacity-90 transition-all flex-1 text-center shadow-md">
+                <button onclick="openApplyModal()" class="bg-primary text-white font-bold py-3 px-8 rounded-md hover:bg-opacity-90 transition-all flex-1 text-center shadow-md">
                     Ứng tuyển ngay
                 </button>
                 <button class="border-2 border-primary text-primary font-bold py-3 px-8 rounded-md hover:bg-primary/5 transition-colors flex items-center justify-center gap-2">
@@ -223,6 +223,16 @@
                 </div>
             </div>
             
+            <div class="flex items-center gap-2 mb-6">
+                <div class="flex text-yellow-400 gap-0.5">
+                    @for (int s = 0; s < 5; s++) {
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    }
+                </div>
+                <span class="text-[13px] font-semibold text-dark">4.8</span>
+                <span class="text-[13px] text-muted">(124 đánh giá)</span>
+            </div>
+            
             <a href="/Companies/Details/1" class="text-primary font-medium hover:underline flex items-center justify-center gap-2">
                 Xem trang công ty &rarr;
             </a>
@@ -235,7 +245,7 @@
             <div class="space-y-4">
                 @for (int i = 0; i < 4; i++)
                 {
-                    <a href="/Jobs/Details/2" class="block border border-transparent hover:border-primary shadow-[0_4px_6px_rgba(0,0,0,0.06)] rounded-[20px] p-4 transition-colors group relative">
+                    <a href="/Jobs/Details/2" class="block border border-transparent hover:border-primary shadow-[0_4px_6px_rgba(0,0,0,0.06)] rounded-[20px] p-4 transition-colors group relative overflow-hidden">
                         <button class="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -279,3 +289,114 @@
     </div>
 </section>
 
+<!-- Apply Modal -->
+<div id="apply-modal" class="fixed inset-0 z-[9999] overflow-y-auto hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div onclick="closeApplyModal()" class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+    <!-- Scroll wrapper -->
+    <div class="flex min-h-full items-center justify-center p-4 py-8">
+    <!-- Modal Box -->
+    <div class="relative bg-white rounded-[24px] w-full max-w-xl flex flex-col" style="max-height: 90vh;">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+            <div>
+                <h2 class="text-[22px] font-bold text-dark">Ứng tuyển vào vị trí</h2>
+                <p class="text-muted text-[13px] mt-1">Kỹ Sư Hiện Trường &mdash; Công Ty Cổ Phần Ssd Việt Nam</p>
+            </div>
+            <button onclick="closeApplyModal()" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0">
+                <svg class="w-5 h-5 text-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Scrollable body -->
+        <div class="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+            <!-- Thông tin ứng tuyển -->
+            <div>
+                <h3 class="text-[15px] font-bold text-dark mb-4">Thông tin ứng tuyển</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[12px] font-medium text-dark mb-1">Họ và tên <span class="text-red-500">*</span></label>
+                        <input type="text" placeholder="Nguyễn Văn A" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-[12px] font-medium text-dark mb-1">Email <span class="text-red-500">*</span></label>
+                        <input type="email" placeholder="example@email.com" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-[12px] font-medium text-dark mb-1">Số điện thoại <span class="text-red-500">*</span></label>
+                        <input type="tel" placeholder="0912 345 678" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- CV ứng tuyển -->
+            <div>
+                <h3 class="text-[15px] font-bold text-dark mb-4">📄 CV ứng tuyển</h3>
+
+                <!-- CV có sẵn (mock) -->
+                <label class="flex items-center gap-3 p-3 border-2 border-primary rounded-xl cursor-pointer bg-primary/5 mb-2">
+                    <input type="radio" name="cv-choice" value="saved" checked class="accent-primary w-4 h-4" />
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[13px] font-semibold text-dark truncate">CV_NguyenVanA_2024.pdf</p>
+                        <p class="text-[12px] text-muted">Cập nhật 01/01/2024</p>
+                        <a href="#" class="text-[12px] text-primary hover:underline">Xem hồ sơ</a>
+                    </div>
+                    <svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </label>
+
+                <!-- Tải CV mới -->
+                <label class="block cursor-pointer">
+                    <div class="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center hover:border-primary hover:bg-primary/5 transition-all">
+                        <svg class="w-8 h-8 text-primary mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <p class="text-[12px] font-medium text-primary">Tải lên CV có sẵn</p>
+                        <p class="text-[11px] text-muted mt-0.5">Hỗ trợ: doc, docx, pdf, tối đa 5MB</p>
+                        <input type="file" accept=".doc,.docx,.pdf" class="hidden" />
+                    </div>
+                </label>
+
+                <p class="text-[11px] text-muted mt-2 leading-relaxed">
+                    Bằng việc nhấn nút nộp hồ sơ, tôi đồng ý chia sẻ thông tin cá nhân của mình với nhà tuyển dụng.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 pb-5">
+            <button onclick="submitApply()" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-opacity-90 transition-all text-[14px]">
+                Ứng tuyển ngay
+            </button>
+        </div>
+    </div><!-- end modal box -->
+    </div><!-- end scroll wrapper -->
+</div><!-- end apply-modal -->
+
+@section Scripts {
+    <script>
+        function openApplyModal() {
+            const modal = document.getElementById('apply-modal');
+            modal.classList.remove('hidden');
+        }
+
+        function closeApplyModal() {
+            const modal = document.getElementById('apply-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function submitApply() {
+            closeApplyModal();
+            // TODO: submit form
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeApplyModal();
+        });
+    </script>
+}

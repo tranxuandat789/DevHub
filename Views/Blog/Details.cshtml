@@ -1,6 +1,131 @@
-﻿@{
-    ViewData["Title"] = "Chi Tiet Bai Blog";
+@{
+    ViewData["Title"] = "Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Chi Tiet Bai Blog</h1>
+<div class="bg-white min-h-screen pt-8 pb-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8 text-sm text-muted">
+            <a href="/" class="hover:text-primary transition">Trang chủ</a>
+            <span class="mx-2">/</span>
+            <a href="/CareerHandbook" class="hover:text-primary transition">Cẩm nang nghề nghiệp</a>
+            <span class="mx-2">/</span>
+            <span class="text-dark font-medium line-clamp-1">Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026</span>
+        </nav>
+
+        <!-- Article Header -->
+        <header class="mb-10">
+            <div class="flex items-center gap-3 text-sm mb-6">
+                <span class="bg-blue-50 text-[#26A4FF] px-3 py-1 rounded-full font-medium uppercase tracking-wide text-xs">Xu hướng công nghệ</span>
+                <span class="text-muted">•</span>
+                <span class="text-muted">24 Thg 5, 2026</span>
+                <span class="text-muted">•</span>
+                <span class="text-muted">5 phút đọc</span>
+            </div>
+            <h1 class="font-epilogue font-bold text-4xl md:text-5xl leading-tight text-dark mb-8">
+                Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026
+            </h1>
+            
+            <div class="flex items-center justify-between border-y border-bordercolor py-6">
+                <div class="flex items-center gap-4">
+                    <img src="https://i.pravatar.cc/150?img=12" alt="Author" class="w-14 h-14 rounded-full object-cover" />
+                    <div>
+                        <p class="font-bold text-dark text-lg">Nguyễn Văn A</p>
+                        <p class="text-sm text-muted">Chuyên gia Nhân sự, TechCorp</p>
+                    </div>
+                </div>
+                <!-- Social Share -->
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-muted mr-2">Chia sẻ:</span>
+                    <button class="w-10 h-10 rounded-full border border-bordercolor flex items-center justify-center text-muted hover:text-[#26A4FF] hover:border-[#26A4FF] transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                    </button>
+                    <button class="w-10 h-10 rounded-full border border-bordercolor flex items-center justify-center text-muted hover:text-blue-700 hover:border-blue-700 transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </button>
+                    <button class="w-10 h-10 rounded-full border border-bordercolor flex items-center justify-center text-muted hover:text-blue-600 hover:border-blue-600 transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Image -->
+        <figure class="mb-12">
+            <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop" alt="Bí quyết xây dựng CV hoàn hảo" class="w-full h-auto rounded-2xl object-cover" />
+            <figcaption class="text-center text-sm text-gray-500 mt-4 italic">Ảnh minh họa: Tối ưu hóa CV lập trình viên (Nguồn: Unsplash)</figcaption>
+        </figure>
+
+        <!-- Article Content -->
+        <article class="prose prose-lg max-w-none text-muted mb-16">
+            <p class="lead text-xl text-dark font-medium mb-8">Năm 2026 đánh dấu sự lên ngôi của AI trong quy trình tuyển dụng. Để CV của bạn lọt qua các vòng lọc tự động (ATS) và tạo ấn tượng mạnh mẽ với nhà tuyển dụng (Human Recruiter), bạn cần nắm vững những nguyên tắc cốt lõi mới.</p>
+            
+            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">1. Viết CV tối ưu cho Hệ thống Theo dõi Ứng viên (ATS)</h2>
+            <p class="mb-6">Hầu hết các công ty công nghệ hiện nay sử dụng ATS (Applicant Tracking System) tích hợp AI để lọc hồ sơ ban đầu. Điều này có nghĩa là người đọc CV đầu tiên của bạn không phải là con người mà là một thuật toán.</p>
+            <ul class="list-disc pl-6 mb-8 space-y-2">
+                <li><strong>Sử dụng từ khóa chính xác:</strong> Đọc kỹ mô tả công việc (JD) và sử dụng đúng các thuật ngữ công nghệ, kỹ năng được yêu cầu. Nếu JD yêu cầu "ReactJS", đừng chỉ viết "React".</li>
+                <li><strong>Bố cục đơn giản:</strong> Tránh các thiết kế CV quá phức tạp, nhiều cột, đồ họa rườm rà. AI thích các định dạng văn bản chuẩn, dễ parse. Định dạng PDF là tốt nhất, nhưng đôi khi Word (DOCX) lại được ATS đọc dễ dàng hơn.</li>
+                <li><strong>Tránh dùng thanh kỹ năng (Skill bars):</strong> Việc bạn tự đánh giá "JavaScript: 4/5 sao" không có ý nghĩa với ATS và cũng rất chủ quan đối với nhà tuyển dụng. Thay vào đó, hãy liệt kê cụ thể các project đã làm với JavaScript.</li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">2. Tập trung vào "Impact" (Tác động) thay vì "Duties" (Nhiệm vụ)</h2>
+            <p class="mb-4">Cách viết liệt kê nhiệm vụ như "Chịu trách nhiệm bảo trì website" đã lỗi thời. Năm 2026, nhà tuyển dụng tìm kiếm những lập trình viên có thể tạo ra giá trị kinh doanh. Hãy sử dụng công thức XYZ của Google:</p>
+            <blockquote class="border-l-4 border-[#26A4FF] pl-4 py-2 my-6 bg-blue-50/50 rounded-r-lg text-dark italic">
+                "Tôi đã hoàn thành [X] được đo lường bởi [Y], bằng cách thực hiện [Z]."
+            </blockquote>
+            <p class="mb-6"><strong>Ví dụ:</strong> Thay vì viết "Tối ưu hóa database", hãy viết "Giảm 40% thời gian tải trang (Y) thông qua việc tái cấu trúc các truy vấn chậm và áp dụng Redis caching (Z), giúp tăng tỷ lệ chuyển đổi người dùng lên 15% (X)."</p>
+
+            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">3. Làm nổi bật Portfolio và Open Source</h2>
+            <p class="mb-6">Link GitHub và trang Portfolio cá nhân của bạn hiện nay quan trọng không kém gì chiếc CV. Thực tế, nhiều nhà tuyển dụng kỹ thuật (Technical Recruiters) sẽ click thẳng vào link GitHub của bạn trước khi đọc chi tiết CV.</p>
+            <ul class="list-disc pl-6 mb-8 space-y-2">
+                <li>Ghim (Pin) những repository tốt nhất của bạn lên đầu trang GitHub.</li>
+                <li>Đảm bảo các project có README.md rõ ràng: Hướng dẫn cài đặt, công nghệ sử dụng, giải quyết vấn đề gì, và link demo trực tiếp.</li>
+                <li>Đóng góp vào Open Source, dù chỉ là những bug fix nhỏ, cũng là điểm cộng cực lớn thể hiện kỹ năng làm việc nhóm và sử dụng Git.</li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">4. Cập nhật Kỹ năng AI và Automation</h2>
+            <p class="mb-6">Là một developer năm 2026, bạn không thể không nhắc đến khả năng làm việc với AI. Việc biết cách sử dụng GitHub Copilot, ChatGPT, hoặc các công cụ AI khác để tăng hiệu suất làm việc không còn là lợi thế cạnh tranh, mà đang dần trở thành kỹ năng bắt buộc.</p>
+
+            <div class="bg-gray-50 rounded-xl p-8 my-10 border border-bordercolor">
+                <h3 class="text-xl font-bold text-dark mb-3">Tóm lại</h3>
+                <p class="mb-0">Một CV hoàn hảo năm 2026 là một tài liệu rõ ràng, có dữ liệu chứng minh thành tựu, thân thiện với ATS và liên kết mạnh mẽ đến các bằng chứng thực tế (Portfolio/GitHub). Hãy dành thời gian review lại CV của bạn sau mỗi dự án lớn để luôn sẵn sàng cho những cơ hội mới.</p>
+            </div>
+        </article>
+
+        <!-- Tags -->
+        <div class="flex flex-wrap gap-2 mb-16 pb-8 border-b border-bordercolor">
+            <span class="text-sm font-medium text-dark mr-2 py-1">Tags:</span>
+            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">CV</a>
+            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">Tuyển dụng</a>
+            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">Xu hướng 2026</a>
+            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">Lập trình viên</a>
+        </div>
+
+        <!-- Related Articles -->
+        <div>
+            <h3 class="text-2xl font-bold text-dark mb-8">Bài viết liên quan</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Related 1 -->
+                <a href="/CareerHandbook/Details/2" class="group flex gap-4 bg-white rounded-xl hover:bg-gray-50 transition p-2 -ml-2">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" alt="Article" class="w-24 h-24 rounded-lg object-cover" />
+                    <div>
+                        <div class="text-xs text-[#26A4FF] font-semibold mb-1 uppercase">Kinh nghiệm phỏng vấn</div>
+                        <h4 class="text-base font-bold text-dark mb-1 group-hover:text-[#26A4FF] transition line-clamp-2">5 câu hỏi thường gặp khi phỏng vấn Senior Developer</h4>
+                        <p class="text-xs text-muted">22 Thg 5, 2026</p>
+                    </div>
+                </a>
+                
+                <!-- Related 2 -->
+                <a href="/CareerHandbook/Details/3" class="group flex gap-4 bg-white rounded-xl hover:bg-gray-50 transition p-2 -ml-2">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=200&auto=format&fit=crop" alt="Article" class="w-24 h-24 rounded-lg object-cover" />
+                    <div>
+                        <div class="text-xs text-[#26A4FF] font-semibold mb-1 uppercase">Kỹ năng mềm</div>
+                        <h4 class="text-base font-bold text-dark mb-1 group-hover:text-[#26A4FF] transition line-clamp-2">Nghệ thuật giao tiếp hiệu quả trong môi trường Agile</h4>
+                        <p class="text-xs text-muted">20 Thg 5, 2026</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

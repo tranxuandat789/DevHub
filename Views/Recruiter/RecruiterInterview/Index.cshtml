@@ -1,6 +1,195 @@
-﻿@{
-    ViewData["Title"] = "Lich Phong Van";
-    Layout = "~/Views/Shared/_RecruiterLayout.cshtml";
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Quản lý lịch phỏng vấn";
+    ViewData["ActiveMenu"] = "Interviews";
 }
 
-<h1>Lich Phong Van</h1>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-dark">Quản lý lịch phỏng vấn</h1>
+            <p class="text-muted text-sm mt-1">Sắp xếp lịch hẹn và đánh giá kết quả phỏng vấn ứng viên</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <select class="appearance-none pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium text-dark cursor-pointer shadow-sm">
+                    <option value="">Tất cả bài tuyển dụng</option>
+                    <option value="1">Senior .NET Core Backend Engineer</option>
+                    <option value="2">Business Analyst (Banking Domain)</option>
+                    <option value="3">ReactJS Frontend Engineer (Fresher/Junior)</option>
+                </select>
+                <svg class="w-4 h-4 text-gray-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+            <a href="/Recruiter/RecruiterInterview/Create" class="inline-flex items-center justify-center px-4 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm whitespace-nowrap">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tạo lịch phỏng vấn
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs & Filters -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Tabs -->
+        <div class="flex items-center space-x-1 border-b md:border-b-0 border-gray-100 overflow-x-auto pb-2 md:pb-0">
+            <button class="px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Sắp tới (5)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đã qua (12)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Trúng tuyển (3)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Trượt (8)</button>
+        </div>
+        
+        <!-- Search -->
+        <div class="relative min-w-[250px]">
+            <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm transition-colors" placeholder="Tìm tên ứng viên...">
+            <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-sm font-medium text-muted uppercase tracking-wider">
+                        <th class="p-4 whitespace-nowrap font-bold">Ứng viên</th>
+                        <th class="p-4 whitespace-nowrap font-bold">Vị trí ứng tuyển</th>
+                        <th class="p-4 whitespace-nowrap font-bold">Lịch hẹn</th>
+                        <th class="p-4 whitespace-nowrap font-bold">Trạng thái</th>
+                        <th class="p-4 whitespace-nowrap font-bold text-right">Đánh giá/Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <img src="https://i.pravatar.cc/150?img=12" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                                <div>
+                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Trần Thị B</h3>
+                                    <p class="text-sm text-muted mt-0.5">1 năm kinh nghiệm</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-sm font-medium text-dark">Business Analyst (Banking Domain)</div>
+                            <div class="text-xs text-muted mt-0.5">ID: JOB-5678</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-sm font-bold text-dark">09:00 - 10:00</div>
+                            <div class="text-sm text-muted mt-0.5">Thứ 4, 25/05/2026</div>
+                            <div class="flex items-center gap-1 mt-1 text-xs text-blue-600">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <span>Google Meet</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 whitespace-nowrap">Đã lên lịch</span>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex items-center justify-end gap-2 dropdown-container relative">
+                                <a href="/Recruiter/RecruiterInterview/Details" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
+                                    Chi tiết
+                                </a>
+                                <button onclick="toggleDropdown(this)" class="p-1.5 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                                </button>
+                                <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                                    <div class="px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Đánh giá</div>
+                                    <button class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors font-medium">Trúng tuyển (Hired)</button>
+                                    <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors font-medium">Trượt (Failed)</button>
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <div class="px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Quản lý lịch</div>
+                                    <a href="/Recruiter/RecruiterInterview/Edit" class="block w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors">Chỉnh sửa lịch</a>
+                                    <button class="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50 transition-colors">Gửi lại email</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <img src="https://i.pravatar.cc/150?img=33" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                                <div>
+                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Nguyễn Văn A</h3>
+                                    <p class="text-sm text-muted mt-0.5">3 năm kinh nghiệm</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-sm font-medium text-dark">Senior .NET Core Backend Engineer</div>
+                            <div class="text-xs text-muted mt-0.5">ID: JOB-1234</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-sm font-bold text-dark">14:00 - 15:30</div>
+                            <div class="text-sm text-muted mt-0.5">Thứ 6, 27/05/2026</div>
+                            <div class="flex items-center gap-1 mt-1 text-xs text-muted">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                <span>Tầng 4, Tòa nhà ABC</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Trúng tuyển</span>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex items-center justify-end gap-2 dropdown-container relative">
+                                <a href="/Recruiter/RecruiterInterview/Details" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
+                                    Chi tiết
+                                </a>
+                                <button onclick="toggleDropdown(this)" class="p-1.5 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                                </button>
+                                <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                                    <div class="px-3 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Đánh giá</div>
+                                    <button class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors font-medium">Trúng tuyển (Hired)</button>
+                                    <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors font-medium">Trượt (Failed)</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="border-t border-gray-100 p-4 flex items-center justify-between">
+            <span class="text-sm text-muted">Hiển thị 1 đến 2 trong số 17 lịch phỏng vấn</span>
+            <div class="flex items-center gap-1">
+                <button class="p-1.5 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <button class="w-8 h-8 rounded-lg bg-primary text-white font-medium text-sm flex items-center justify-center">1</button>
+                <button class="w-8 h-8 rounded-lg text-dark hover:bg-gray-100 font-medium text-sm flex items-center justify-center transition-colors">2</button>
+                <button class="p-1.5 rounded-lg border border-gray-200 text-dark hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleDropdown(button) {
+            // Close all other open dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== button.nextElementSibling) {
+                    menu.classList.add('hidden');
+                }
+            });
+            // Toggle the current dropdown
+            const menu = button.nextElementSibling;
+            menu.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown-container')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,121 @@
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Tạo lịch phỏng vấn";
+    ViewData["ActiveMenu"] = "Interviews";
+}
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a href="/Recruiter/RecruiterInterview" class="p-2 bg-gray-50 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-dark">Tạo lịch phỏng vấn</h1>
+            <p class="text-muted text-sm mt-1">Lên lịch hẹn và gửi thông báo tự động đến ứng viên</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm p-6 md:p-8">
+        <form action="/Recruiter/RecruiterInterview/Create" method="POST" class="space-y-8">
+            
+            <!-- Section 1: Đối tượng phỏng vấn -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">1. Thông tin ứng viên</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Chọn bài tuyển dụng -->
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2">Bài tuyển dụng <span class="text-red-500">*</span></label>
+                        <select required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none">
+                            <option value="">-- Chọn bài tuyển dụng --</option>
+                            <option value="1">Senior .NET Core Backend Engineer</option>
+                            <option value="2">Business Analyst (Banking Domain)</option>
+                        </select>
+                    </div>
+
+                    <!-- Chọn ứng viên -->
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2">Ứng viên <span class="text-red-500">*</span></label>
+                        <select required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none">
+                            <option value="">-- Chọn ứng viên (đã duyệt) --</option>
+                            <option value="1">Trần Thị B - CV_TranThiB.pdf</option>
+                            <option value="2">Lê Văn C - LeVanC_Profile.pdf</option>
+                        </select>
+                        <p class="text-xs text-muted mt-1.5">* Chỉ những ứng viên ở trạng thái "Đang chờ" hoặc "Phù hợp" mới hiển thị.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Thời gian & Hình thức -->
+            <div class="space-y-4 pt-4">
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">2. Chi tiết cuộc gọi/gặp mặt</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Thời gian bắt đầu -->
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2">Thời gian phỏng vấn <span class="text-red-500">*</span></label>
+                        <input type="datetime-local" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                        <p class="text-xs text-muted mt-1.5">Nên thiết lập thời gian tối thiểu 24h từ hiện tại để ứng viên chuẩn bị.</p>
+                    </div>
+
+                    <!-- Thời lượng -->
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2">Thời lượng dự kiến</label>
+                        <select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none">
+                            <option value="30">30 phút</option>
+                            <option value="45">45 phút</option>
+                            <option value="60" selected>1 giờ (60 phút)</option>
+                            <option value="90">1.5 giờ (90 phút)</option>
+                            <option value="120">2 giờ (120 phút)</option>
+                        </select>
+                    </div>
+
+                    <!-- Hình thức -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-dark mb-2">Hình thức phỏng vấn</label>
+                        <div class="flex flex-wrap gap-4 mt-2">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="InterviewType" value="Online" checked class="w-4 h-4 text-primary bg-gray-100 border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-medium text-dark">Trực tuyến (Online)</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="InterviewType" value="Offline" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-medium text-dark">Trực tiếp (Offline)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Link / Địa điểm -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-dark mb-2">Link Meeting hoặc Địa điểm <span class="text-red-500">*</span></label>
+                        <input type="text" required placeholder="Ví dụ: https://meet.google.com/abc-xyz hoặc Tầng 4, Tòa nhà ABC..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Ghi chú -->
+            <div class="space-y-4 pt-4">
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">3. Ghi chú (Gửi kèm email)</h3>
+                
+                <div>
+                    <label class="block text-sm font-bold text-dark mb-2">Nội dung ghi chú cho ứng viên</label>
+                    <textarea rows="4" placeholder="Ví dụ: Bạn vui lòng chuẩn bị máy tính có kết nối mạng ổn định và trang phục lịch sự..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm text-dark resize-y"></textarea>
+                    <p class="text-xs text-muted mt-1.5">Nội dung này sẽ được đính kèm trong email mời phỏng vấn tự động.</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
+                <a href="/Recruiter/RecruiterInterview" class="px-6 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    Tạo lịch & Gửi Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

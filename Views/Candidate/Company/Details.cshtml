@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Chi Tiết Công Ty";
 }
 
@@ -12,7 +12,7 @@
             </svg>
             <a href="/" class="hover:text-blue-600">Trang chủ</a>
             <span>&rsaquo;</span>
-            <a href="/Jobs" class="hover:text-blue-600">Việc làm</a>
+            <a href="/Companies" class="hover:text-blue-600">Công ty</a>
             <span>&rsaquo;</span>
             <span class="text-gray-800 font-medium">Chi tiết công ty</span>
         </div>
@@ -28,7 +28,17 @@
             </div>
             <!-- Company Info -->
             <div class="text-center md:text-left">
-                <h1 class="text-4xl font-bold text-gray-800 mb-4">Công Ty Cổ Phần Việt Nam</h1>
+                <h1 class="text-4xl font-bold text-gray-800 mb-3">Công Ty Cổ Phần Việt Nam</h1>
+                <!-- Rating tổng quát -->
+                <div class="flex items-center justify-center md:justify-start gap-2 mb-3">
+                    <div class="flex items-center gap-0.5">
+                        @for (int s = 1; s <= 5; s++) {
+                            <svg class="w-5 h-5 @(s <= 4 ? "text-yellow-400" : "text-yellow-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        }
+                    </div>
+                    <span class="text-lg font-bold text-gray-800">4.2</span>
+                    <span class="text-gray-500 text-sm">(128 đánh giá)</span>
+                </div>
                 <div class="flex items-center justify-center md:justify-start text-gray-500 text-lg">
                     <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -55,6 +65,11 @@
                 <li>
                     <a href="#gioithieu" class="block border-l-4 border-blue-600 pl-4 py-2 text-blue-600 font-bold">
                         Giới thiệu doanh nghiệp
+                    </a>
+                </li>
+                <li>
+                    <a href="#danhgia" class="block border-l-4 border-transparent pl-4 py-2 text-gray-800 font-bold hover:text-blue-600 hover:border-blue-600 transition-colors">
+                        Đánh giá công ty
                     </a>
                 </li>
                 <li>
@@ -186,6 +201,76 @@
                     <br><br>
                     Trải qua 13+ năm hình thành và phát triển, Govi không ngừng lớn mạnh, mở rộng quy mô và năng lực sản xuất. Mỗi sản phẩm ra đời đều là kết tinh của tư duy sáng tạo, sự chỉn chu trong từng chi tiết và cam kết hướng đến trải nghiệm người dùng. Bởi: "Người Việt xứng đáng được làm việc trong những không gian hiện đại, sang trọng và tiện nghi".
                 </p>
+            </div>
+
+            <!-- Đánh giá công ty -->
+            <div id="danhgia" class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-8 bg-white">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Đánh giá công ty</h2>
+                <!-- Tổng quan -->
+                <div class="flex flex-col sm:flex-row gap-6 mb-8 pb-6 border-b border-gray-100">
+                    <div class="flex flex-col items-center justify-center bg-blue-50 rounded-2xl px-8 py-6 min-w-[140px]">
+                        <span class="text-5xl font-bold text-blue-600 mb-1">4.2</span>
+                        <div class="flex gap-0.5 mb-1">
+                            @for (int s = 1; s <= 5; s++) {
+                                <svg class="w-4 h-4 @(s <= 4 ? "text-yellow-400" : "text-yellow-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            }
+                        </div>
+                        <span class="text-gray-500 text-sm">128 đánh giá</span>
+                    </div>
+                    <div class="flex-1 space-y-2">
+                        @{
+                            var starDist = new[] { (5, 58), (4, 42), (3, 18), (2, 7), (1, 3) };
+                        }
+                        @foreach (var (star, count) in starDist)
+                        {
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm text-gray-500 w-3">@star</span>
+                                <svg class="w-4 h-4 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <div class="flex-1 bg-gray-100 rounded-full h-2">
+                                    <div class="bg-yellow-400 h-2 rounded-full" style="width: @(count * 100 / 128)%"></div>
+                                </div>
+                                <span class="text-sm text-gray-400 w-6 text-right">@count</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Danh sách review -->
+                <div class="space-y-5">
+                    @{
+                        var reviews = new[] {
+                            new { Name="Nguyễn Minh Tú",   Role="Software Engineer",    Rating=5, Date="15/05/2025", Content="Môi trường làm việc rất chuyên nghiệp, đồng nghiệp thân thiện và hỗ trợ nhau tốt. Chính sách đãi ngộ cạnh tranh, có nhiều cơ hội phát triển bản thân." },
+                            new { Name="Trần Thị Hương",    Role="UI/UX Designer",        Rating=4, Date="02/05/2025", Content="Công ty có văn hóa tốt và sản phẩm thú vị. Quy trình đôi khi hơi chậm nhưng nhìn chung là môi trường lành mạnh để làm việc và học hỏi." },
+                            new { Name="Lê Văn Đức",        Role="Data Analyst",          Rating=4, Date="20/04/2025", Content="Lương thưởng hợp lý, được làm việc với công nghệ hiện đại. Ban lãnh đạo cởi mở với ý kiến đóng góp từ nhân viên." },
+                            new { Name="Phạm Quốc Bảo",     Role="DevOps Engineer",       Rating=3, Date="10/04/2025", Content="Áp lực công việc đôi khi cao, deadline gấp. Nhưng được cái học được nhiều, đặc biệt về hệ thống phân tán và cloud infrastructure." },
+                        };
+                    }
+                    @foreach (var r in reviews)
+                    {
+                        <div class="border border-gray-300 rounded-2xl p-5 hover:border-blue-300 transition-colors">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        @r.Name[0]
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-800 text-sm">@r.Name</p>
+                                        <p class="text-gray-400 text-xs">@r.Role</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end gap-1">
+                                    <div class="flex gap-0.5">
+                                        @for (int s = 1; s <= 5; s++) {
+                                            <svg class="w-4 h-4 @(s <= r.Rating ? "text-yellow-400" : "text-gray-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                        }
+                                    </div>
+                                    <span class="text-gray-400 text-xs">@r.Date</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm leading-relaxed">@r.Content</p>
+                        </div>
+                    }
+                </div>
             </div>
 
             <!-- Liên hệ -->

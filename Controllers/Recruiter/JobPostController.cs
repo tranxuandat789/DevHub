@@ -18,5 +18,11 @@ namespace DevHub.Controllers.Recruiter
         {
             return View();
         }
+
+        [HttpGet("Edit")]
+        public IActionResult Edit()
+        {
+            return View();
+        }
     }
 }

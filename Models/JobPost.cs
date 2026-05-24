@@ -41,7 +41,7 @@ public partial class JobPost
 
     public int? PriorityScore { get; set; }
 
-    public int? ViewCount { get; set; }
+    public int? HiringQuota { get; set; }
 
     public int? ApplicationCount { get; set; }
 

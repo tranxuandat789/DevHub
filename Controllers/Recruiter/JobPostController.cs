@@ -1,11 +1,22 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Recruiter
 {
-    [Route("recruiter/jobs")]
-    [Authorize(Roles = "Recruiter")]
+    [Route("Recruiter/[controller]")]
+    // [Authorize(Roles = "Employer,Recruiter")]
     public class JobPostController : Controller
     {
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet("Create")]
+        public IActionResult Create()
+        {
+            return View();
+        }
     }
 }

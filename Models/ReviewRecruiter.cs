@@ -25,7 +25,17 @@ public partial class ReviewRecruiter
 
     public DateTime? UpdatedAt { get; set; }
 
+    public string Status { get; set; } = "pending"; 
+
+    public string? RejectionReason { get; set; }
+
+    public int? ModeratorId { get; set; } 
+
+    public DateTime? ModeratedAt { get; set; }
+
     public virtual Candidate Candidate { get; set; } = null!;
 
     public virtual Recruiter Recruiter { get; set; } = null!;
+
+    public virtual Admin? Moderator { get; set; }
 }

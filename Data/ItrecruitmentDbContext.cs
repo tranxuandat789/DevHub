@@ -542,9 +542,8 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
-            entity.Property(e => e.ViewCount)
-                .HasDefaultValue(0)
-                .HasColumnName("view_count");
+            entity.Property(e => e.HiringQuota)
+                    .HasColumnName("hiring_quota");
             entity.Property(e => e.WorkingModel)
                 .HasMaxLength(50)
                 .HasColumnName("working_model");
@@ -831,7 +830,21 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
-
+            entity.Property(e => e.Status)
+                  .HasColumnName("status")
+                  .HasMaxLength(20)
+                  .HasDefaultValue("pending");
+            entity.Property(e => e.RejectionReason)
+                  .HasColumnName("rejection_reason")
+                  .HasMaxLength(500);
+            entity.Property(e => e.ModeratorId)
+                  .HasColumnName("moderator_id");
+            entity.Property(e => e.ModeratedAt)
+                  .HasColumnName("moderated_at");
+            entity.HasOne(d => d.Moderator)
+                  .WithMany()
+                  .HasForeignKey(d => d.ModeratorId)
+                  .OnDelete(DeleteBehavior.ClientSetNull);
             entity.HasOne(d => d.Candidate).WithMany(p => p.ReviewRecruiters)
                 .HasForeignKey(d => d.CandidateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

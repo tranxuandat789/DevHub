@@ -6,12 +6,12 @@ namespace DevHub.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            return View("~/Views/Candidate/Job/Index.cshtml");
         }
 
         public IActionResult Details(int id = 1)
         {
-            return View();
+            return View("~/Views/Candidate/Job/Details.cshtml");
         }
     }
 }

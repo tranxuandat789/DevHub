@@ -1,6 +1,174 @@
-﻿@{
-    ViewData["Title"] = "Thong Bao";
-    Layout = "~/Views/Shared/_RecruiterLayout.cshtml";
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Quản lý thông báo";
 }
 
-<h1>Thong Bao</h1>
+<div class="p-6 sm:px-10 sm:pt-4 sm:pb-10">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Thông báo hệ thống</h1>
+                <p class="text-gray-500 text-sm mt-1">Quản lý và xem chi tiết các thông báo từ hệ thống DevHub</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="markAllAsRead()" class="text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors shadow-sm flex items-center gap-2">
+                    <i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Mức độ quan trọng</label>
+                <select id="filterSeverity" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[180px]">
+                    <option value="">Tất cả</option>
+                    <option value="critical">Quan trọng (Đỏ)</option>
+                    <option value="warning">Cảnh báo (Vàng)</option>
+                    <option value="info">Thông tin (Xanh)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Trạng thái</label>
+                <select id="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[150px]">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="unread">Chưa đọc</option>
+                    <option value="read">Đã đọc</option>
+                </select>
+            </div>
+
+            <button onclick="applyFilters()" class="bg-[#4640DE] text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors shadow-sm">
+                <i class="fas fa-filter mr-1"></i> Lọc
+            </button>
+        </div>
+
+        <!-- Notification List -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" id="notificationList">
+            
+            <!-- Quan trọng (Đỏ) - Chưa đọc -->
+            <a href="/recruiter/notifications/details/1" class="notification-item block p-5 border-b border-gray-100 hover:bg-red-50/50 transition-colors bg-red-50/20" data-severity="critical" data-status="unread">
+                <div class="flex items-start gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <h3 class="font-bold text-gray-900 text-base">Cảnh báo: Tài khoản của bạn sắp hết hạn đăng bài</h3>
+                            <span class="text-[10px] uppercase tracking-wide font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded whitespace-nowrap">Mới</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1.5 line-clamp-2 leading-relaxed">Gói dịch vụ "Gói Đồng" của bạn sẽ hết hạn trong 3 ngày tới. Vui lòng gia hạn để không bị gián đoạn việc tuyển dụng và tiếp cận ứng viên.</p>
+                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 font-medium">
+                            <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> 2 giờ trước</span>
+                            <span class="flex items-center gap-1.5 text-red-600"><i class="fas fa-circle text-[6px]"></i> Quan trọng</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Cảnh báo (Vàng) - Chưa đọc -->
+            <a href="/recruiter/notifications/details/2" class="notification-item block p-5 border-b border-gray-100 hover:bg-yellow-50/50 transition-colors bg-yellow-50/20" data-severity="warning" data-status="unread">
+                <div class="flex items-start gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <h3 class="font-bold text-gray-900 text-base">Cần cập nhật: Bổ sung thông tin giấy phép kinh doanh</h3>
+                            <span class="text-[10px] uppercase tracking-wide font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded whitespace-nowrap">Mới</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1.5 line-clamp-2 leading-relaxed">Hồ sơ công ty của bạn hiện đang thiếu bản scan Giấy phép Đăng ký Kinh doanh. Việc bổ sung giúp tăng độ tin cậy của nhà tuyển dụng.</p>
+                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 font-medium">
+                            <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> Hôm qua, 14:30</span>
+                            <span class="flex items-center gap-1.5 text-yellow-600"><i class="fas fa-circle text-[6px]"></i> Cảnh báo</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Thông tin (Xanh) - Đã đọc -->
+            <a href="/recruiter/notifications/details/3" class="notification-item block p-5 border-b border-gray-100 hover:bg-gray-50 transition-colors opacity-75" data-severity="info" data-status="read">
+                <div class="flex items-start gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <h3 class="font-medium text-gray-800 text-base">Hệ thống: Tính năng AI Matching đã ra mắt!</h3>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-1.5 line-clamp-2 leading-relaxed">Khám phá tính năng AI Matching hoàn toàn mới, giúp bạn chấm điểm và phân tích mức độ phù hợp của CV ứng viên một cách tự động và chính xác.</p>
+                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-400 font-medium">
+                            <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> 20/05/2026</span>
+                            <span class="flex items-center gap-1.5 text-blue-500"><i class="fas fa-circle text-[6px]"></i> Thông tin</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Empty state -->
+            <div id="noNotifications" class="hidden p-12 text-center text-gray-500">
+                <i class="far fa-bell-slash text-5xl mb-4 text-gray-300"></i>
+                <p class="text-lg font-medium text-gray-700">Không có thông báo nào</p>
+                <p class="text-sm mt-1">Không tìm thấy thông báo phù hợp với bộ lọc của bạn.</p>
+            </div>
+            
+        </div>
+        
+        <!-- Pagination -->
+        <div class="mt-6 flex justify-between items-center" id="paginationControls">
+            <span class="text-sm text-gray-500">Hiển thị <span class="font-medium text-gray-900">1</span> đến <span class="font-medium text-gray-900">3</span> trong số <span class="font-medium text-gray-900">3</span> thông báo</span>
+            <div class="flex gap-1.5">
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 cursor-not-allowed shadow-sm">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#4640DE] text-white font-bold text-sm shadow-sm border border-[#4640DE]">
+                    1
+                </button>
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 font-bold text-sm transition-colors shadow-sm">
+                    <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function applyFilters() {
+            const severity = $('#filterSeverity').val();
+            const status = $('#filterStatus').val();
+
+            let visibleCount = 0;
+
+            $('.notification-item').each(function() {
+                const item = $(this);
+                const itemSeverity = item.data('severity');
+                const itemStatus = item.data('status');
+                
+                let show = true;
+
+                if (severity && itemSeverity !== severity) show = false;
+                if (status && itemStatus !== status) show = false;
+
+                if (show) {
+                    item.show();
+                    visibleCount++;
+                } else {
+                    item.hide();
+                }
+            });
+
+            if (visibleCount === 0) {
+                $('#noNotifications').removeClass('hidden');
+                $('#paginationControls').hide();
+            } else {
+                $('#noNotifications').addClass('hidden');
+                $('#paginationControls').show();
+            }
+        }
+        
+        function markAllAsRead() {
+            $('.notification-item').removeClass('bg-red-50/20 bg-yellow-50/20 opacity-100 hover:bg-red-50/50 hover:bg-yellow-50/50')
+                .addClass('opacity-75 hover:bg-gray-50')
+                .data('status', 'read');
+            $('.notification-item').find('.text-red-700.bg-red-100').remove();
+            
+            // Cập nhật lại số lượng thông báo ở sidebar
+            $('.sidebar-item[data-menu="notifications"] .absolute.top-0.right-0').remove();
+            
+            applyFilters();
+        }
+    </script>
+}

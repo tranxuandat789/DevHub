@@ -12,12 +12,12 @@ namespace DevHub.Controllers
                 SavedJobsCount = 15,
                 InterviewsCount = 3
             };
-            return View(model);
+            return View("~/Views/Candidate/CandidateDashboard/Index.cshtml", model);
         }
 
         public IActionResult Profile()
         {
-            return View();
+            return View("~/Views/Candidate/CandidateProfile/Index.cshtml");
         }
 
         [HttpPost]
@@ -25,9 +25,6 @@ namespace DevHub.Controllers
         {
             if (avatar != null && avatar.Length > 0)
             {
-                // In a real application, you would save the file to a cloud storage or wwwroot
-                // For now, we'll just simulate a successful upload and return the image URL
-                // e.g. var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", avatar.FileName);
                 return Json(new { success = true, message = "Avatar uploaded successfully" });
             }
             return Json(new { success = false, message = "No file selected" });
@@ -35,33 +32,33 @@ namespace DevHub.Controllers
 
         public IActionResult AppliedJobs()
         {
-            return View();
+            return View("~/Views/Candidate/CandidateApplication/AppliedJobs.cshtml");
         }
 
         public IActionResult SavedJobs()
         {
-            return View();
+            return View("~/Views/Candidate/Bookmark/Index.cshtml");
         }
 
         public IActionResult Interviews()
         {
-            return View();
+            return View("~/Views/Candidate/CandidateInterview/Index.cshtml");
         }
 
         public IActionResult Notifications()
         {
-            return View();
+            return View("~/Views/Candidate/CandidateNotification/Index.cshtml");
         }
 
         public IActionResult NotificationDetails(int id)
         {
             ViewBag.NotificationId = id;
-            return View();
+            return View("~/Views/Candidate/CandidateNotification/Details.cshtml");
         }
 
         public IActionResult ChangePassword()
         {
-            return View();
+            return View("~/Views/Candidate/CandidateProfile/ChangePassword.cshtml");
         }
     }
 }

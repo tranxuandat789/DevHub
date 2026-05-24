@@ -20,7 +20,7 @@ namespace DevHub.Controllers
 
         public IActionResult Employer()
         {
-            return View();
+            return View("~/Views/Recruiter/Home/Index.cshtml");
         }
 
         public IActionResult Privacy()

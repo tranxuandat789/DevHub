@@ -1,6 +1,117 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
-    Layout = "~/Views/Shared/_CandidateLayout.cshtml";
+<meta charset="utf-8" />
+@model DevHub.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan";
+    ViewData["IsCandidate"] = "true";
+    ViewData["ActiveMenu"] = "Dashboard";
 }
 
-<h1>Dashboard</h1>
+<div class="bg-[#F8F9FA] min-h-screen py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Sidebar -->
+            <div class="lg:w-[280px] flex-shrink-0">
+                @await Html.PartialAsync("~/Views/Candidate/_Sidebar.cshtml")
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col gap-6">
+                
+                <!-- Profile Card -->
+                <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+                    <div class="flex items-center gap-6">
+                        <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
+                            <!-- Placeholder avatar, replace with real user avatar -->
+                            <img src="https://i.pravatar.cc/150?img=65" alt="Avatar" class="w-full h-full object-cover" />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-1">Phong Hoang</h2>
+                            <div class="flex items-center gap-2 text-gray-500 mb-1">
+                                <svg class="w-4 h-4 text-center" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                <span class="text-[15px]">Cập nhật chức danh</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <svg class="w-4 h-4 text-center" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                <span class="text-[15px]">hoangphongbq123@gmail.com</span>
+                            </div>
+                            <a href="#" class="text-[#4F46E5] font-semibold hover:underline flex items-center gap-1 mt-2 text-sm">
+                                Cập nhật hồ sơ <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumes Card -->
+                <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+                    <h3 class="text-[18px] font-bold text-dark mb-5">Hồ sơ đính kèm của bạn</h3>
+                    <div class="bg-[#F8F9FA] rounded-[8px] p-8 border border-[#D6DDEB] flex flex-col items-center justify-center text-center">
+                        <div class="w-12 h-12 mb-4 text-gray-300">
+                            <svg fill="currentColor" viewBox="0 0 24 24" class="w-full h-full">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2.5L17.5 9H13V4.5zM6 20V4h5v6h6v10H6z"/>
+                            </svg>
+                        </div>
+                        <p class="text-[14.5px] text-dark font-medium max-w-md mb-5 leading-relaxed">
+                            Tải lên CV của bạn để ứng tuyển nhanh chóng và thu hút sự chú ý của nhà tuyển dụng.
+                        </p>
+                        <button class="bg-[#4640DE] text-white px-8 py-2.5 rounded-[5px] text-[15px] font-semibold hover:bg-opacity-90 transition-all">
+                            Tải lên ngay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Activities Card -->
+                <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+                    <h3 class="text-[18px] font-bold text-dark mb-5">Hoạt động của bạn</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Applied Jobs -->
+                        <div class="bg-[#EEF4FF] rounded-md p-6 relative overflow-hidden h-[130px] transition-transform hover:-translate-y-1">
+                            <div class="relative z-10 flex flex-col h-full justify-center gap-2">
+                                <h4 class="text-gray-800 font-medium text-[16px]">Việc làm đã ứng tuyển</h4>
+                                <p class="text-[48px] font-bold text-[#2563EB] counter-number leading-none" data-target="@Model.AppliedJobsCount">@Model.AppliedJobsCount</p>
+                            </div>
+                            <img src="/images/plane.png" class="absolute bottom-0 right-2 w-[100px] h-[100px] object-contain" alt="Việc làm đã ứng tuyển" />
+                        </div>
+
+                        <!-- Saved Jobs -->
+                        <div class="bg-[#FFF0F2] rounded-md p-6 relative overflow-hidden h-[130px] transition-transform hover:-translate-y-1">
+                            <div class="relative z-10 flex flex-col h-full justify-center gap-2">
+                                <h4 class="text-gray-800 font-medium text-[16px]">Việc làm đã lưu</h4>
+                                <p class="text-[48px] font-bold text-[#E11D48] counter-number leading-none" data-target="@Model.SavedJobsCount">@Model.SavedJobsCount</p>
+                            </div>
+                            <img src="/images/heart.png" class="absolute bottom-0 right-2 w-[100px] h-[100px] object-contain" alt="Việc làm đã lưu" />
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const counters = document.querySelectorAll('.counter-number');
+            const speed = 200;
+
+            counters.forEach(counter => {
+                const animate = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const increment = target / speed;
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + increment);
+                        setTimeout(animate, 1);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                animate();
+            });
+        });
+    </script>
+}

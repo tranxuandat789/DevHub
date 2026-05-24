@@ -1,6 +1,128 @@
-﻿@{
-    ViewData["Title"] = "Sua Lich Phong Van";
-    Layout = "~/Views/Shared/_RecruiterLayout.cshtml";
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Chỉnh sửa lịch phỏng vấn";
+    ViewData["ActiveMenu"] = "Interviews";
 }
 
-<h1>Sua Lich Phong Van</h1>
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a href="/Recruiter/RecruiterInterview" class="p-2 bg-gray-50 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-dark">Chỉnh sửa lịch phỏng vấn</h1>
+            <p class="text-muted text-sm mt-1">Cập nhật thời gian/địa điểm và tự động gửi email thông báo</p>
+        </div>
+    </div>
+
+    <!-- Alert / Rule info -->
+    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+        <div class="text-blue-600 mt-0.5">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div>
+            <h4 class="text-sm font-bold text-blue-900">Quy định đổi lịch</h4>
+            <ul class="text-sm text-blue-800 mt-1 list-disc pl-4 space-y-1">
+                <li>Chỉ được phép đổi lịch trước <strong>ít nhất 12 tiếng</strong> so với lịch cũ.</li>
+                <li>Thời gian phỏng vấn mới phải cách thời điểm hiện tại <strong>ít nhất 24 tiếng</strong>.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm p-6 md:p-8">
+        <form action="/Recruiter/RecruiterInterview/Edit/1" method="POST" class="space-y-8">
+            
+            <!-- Section 1: Thông tin cố định -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">1. Thông tin ứng viên (Không thể sửa)</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <div>
+                        <span class="block text-xs font-medium text-muted uppercase tracking-wider mb-1">Ứng viên</span>
+                        <div class="font-bold text-dark">Trần Thị B</div>
+                        <div class="text-sm text-muted mt-0.5">tran.thi.b@example.com</div>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-medium text-muted uppercase tracking-wider mb-1">Vị trí ứng tuyển</span>
+                        <div class="font-bold text-dark">Business Analyst (Banking Domain)</div>
+                        <div class="text-sm text-muted mt-0.5">Mã tin: JOB-5678</div>
+                    </div>
+                    <div class="md:col-span-2 pt-2 border-t border-gray-200">
+                        <span class="block text-xs font-medium text-muted uppercase tracking-wider mb-1">Lịch cũ</span>
+                        <div class="text-sm font-medium text-dark">09:00 - 10:00 | Thứ 4, 25/05/2026 (Google Meet)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Thời gian & Hình thức MỚI -->
+            <div class="space-y-4 pt-4">
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">2. Cập nhật chi tiết cuộc hẹn</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Thời gian bắt đầu -->
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2">Thời gian phỏng vấn mới <span class="text-red-500">*</span></label>
+                        <input type="datetime-local" required value="2026-05-27T09:00" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                    </div>
+
+                    <!-- Thời lượng -->
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2">Thời lượng dự kiến</label>
+                        <select class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none">
+                            <option value="30">30 phút</option>
+                            <option value="45">45 phút</option>
+                            <option value="60" selected>1 giờ (60 phút)</option>
+                            <option value="90">1.5 giờ (90 phút)</option>
+                            <option value="120">2 giờ (120 phút)</option>
+                        </select>
+                    </div>
+
+                    <!-- Hình thức -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-dark mb-2">Hình thức phỏng vấn</label>
+                        <div class="flex flex-wrap gap-4 mt-2">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="InterviewType" value="Online" checked class="w-4 h-4 text-primary bg-gray-100 border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-medium text-dark">Trực tuyến (Online)</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="InterviewType" value="Offline" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-medium text-dark">Trực tiếp (Offline)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Link / Địa điểm -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-dark mb-2">Link Meeting hoặc Địa điểm <span class="text-red-500">*</span></label>
+                        <input type="text" required value="https://meet.google.com/abc-xyz" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Lý do đổi lịch -->
+            <div class="space-y-4 pt-4">
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">3. Lời nhắn (Bắt buộc)</h3>
+                
+                <div>
+                    <label class="block text-sm font-bold text-dark mb-2">Lý do thay đổi lịch hẹn <span class="text-red-500">*</span></label>
+                    <textarea rows="3" required placeholder="Nhập lý do để ứng viên thông cảm (VD: Xin lỗi bạn do quản lý có lịch họp đột xuất...)" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm text-dark resize-y"></textarea>
+                    <p class="text-xs text-muted mt-1.5">Nội dung này sẽ được làm nổi bật trong email thông báo đổi lịch.</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
+                <a href="/Recruiter/RecruiterInterview" class="px-6 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Cập nhật & Gửi Email
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -59,6 +59,8 @@
     <!-- Global Spotlight Effect -->
     
     <!-- Header -->
+    @if (ViewData["HideHeaderFooter"] as bool? != true)
+    {
     <header class="bg-white relative z-[100] shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-[90px]">
@@ -213,14 +215,17 @@
             </div>
         </div>
     </header>
+    }
 
-    <div>
-        <main role="main">
+    <div class="h-full">
+        <main role="main" class="h-full">
             @RenderBody()
         </main>
     </div>
 
     <!-- Footer -->
+    @if (ViewData["HideHeaderFooter"] as bool? != true)
+    {
     <footer class="bg-[#202430] text-[#D6DDEB] pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 mb-16">
@@ -314,6 +319,7 @@
             </div>
         </div>
     </footer>
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
 

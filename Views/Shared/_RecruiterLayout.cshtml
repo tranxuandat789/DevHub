@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -344,16 +345,36 @@
 
             function highlightActiveLinks() {
                 const currentPath = window.location.pathname.toLowerCase();
+                let currentSearch = window.location.search.toLowerCase();
+                if (currentPath === '/recruiter/settings' && !currentSearch) {
+                    currentSearch = '?tab=account';
+                }
                 const links = Array.from(secondaryContent.querySelectorAll('a'));
                 
                 let matchedLink = null;
-                let longestMatch = 0;
+                let maxScore = -1;
 
                 links.forEach(link => {
                     const href = link.getAttribute('href')?.toLowerCase() || "";
-                    if (href !== '#' && (currentPath === href || currentPath.startsWith(href + '/'))) {
-                        if (href.length > longestMatch) {
-                            longestMatch = href.length;
+                    if (href !== '#') {
+                        let score = 0;
+                        const urlParts = href.split('?');
+                        const pathPart = urlParts[0];
+                        const queryPart = urlParts[1] || "";
+
+                        if (currentPath === pathPart) {
+                            score += 1;
+                            if (queryPart && currentSearch.includes(queryPart)) {
+                                score += 10;
+                            } else if (!queryPart && !currentSearch) {
+                                score += 5;
+                            }
+                        } else if (currentPath.startsWith(pathPart + '/')) {
+                            score += 0.5;
+                        }
+
+                        if (score > 0 && score > maxScore) {
+                            maxScore = score;
                             matchedLink = link;
                         }
                     }

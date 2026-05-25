@@ -59,13 +59,13 @@
                                     .N
                                 </div>
                                 <div>
-                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Senior .NET Core Backend Engineer</h3>
+                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">Senior .NET Core Backend Engineer</a>
                                     <p class="text-sm text-muted mt-0.5">Developer • Full-time Onsite</p>
                                 </div>
                             </div>
                         </td>
                         <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Đang hiển thị</span>
+                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Đang hiển thị</span>
                         </td>
                         <td class="p-4 text-sm text-dark font-medium">10/05/2026</td>
                         <td class="p-4 text-sm text-dark font-medium">10/06/2026</td>
@@ -76,15 +76,22 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
+                                <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
+                                </a>
                                 <button class="p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Tạm dừng">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 </button>
-                                <button class="p-1.5 text-gray-400 hover:text-dark transition-colors" title="Thêm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                </button>
+                                <div class="relative inline-block text-left dropdown-container">
+                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
+                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -97,13 +104,13 @@
                                     BA
                                 </div>
                                 <div>
-                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Business Analyst (Banking Domain)</h3>
+                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">Business Analyst (Banking Domain)</a>
                                     <p class="text-sm text-muted mt-0.5">BA • Hybrid</p>
                                 </div>
                             </div>
                         </td>
                         <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Chờ duyệt</span>
+                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Chờ duyệt</span>
                         </td>
                         <td class="p-4 text-sm text-dark font-medium">12/05/2026</td>
                         <td class="p-4 text-sm text-dark font-medium">12/06/2026</td>
@@ -114,15 +121,22 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
+                                <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
+                                </a>
                                 <button class="p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Tạm dừng">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 </button>
-                                <button class="p-1.5 text-gray-400 hover:text-dark transition-colors" title="Thêm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                </button>
+                                <div class="relative inline-block text-left dropdown-container">
+                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
+                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -135,13 +149,13 @@
                                     Re
                                 </div>
                                 <div>
-                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">ReactJS Frontend Engineer (Fresher/Junior)</h3>
+                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">ReactJS Frontend Engineer (Fresher/Junior)</a>
                                     <p class="text-sm text-muted mt-0.5">Developer • Full-time Onsite</p>
                                 </div>
                             </div>
                         </td>
                         <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">Đã đóng</span>
+                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">Đã đóng</span>
                         </td>
                         <td class="p-4 text-sm text-dark font-medium">01/04/2026</td>
                         <td class="p-4 text-sm text-dark font-medium">01/05/2026</td>
@@ -155,9 +169,16 @@
                                 <button class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Mở lại">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 </button>
-                                <button class="p-1.5 text-gray-400 hover:text-dark transition-colors" title="Thêm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                </button>
+                                <div class="relative inline-block text-left dropdown-container">
+                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
+                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -182,3 +203,62 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownBtns = document.querySelectorAll('.btn-dropdown');
+    
+    dropdownBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== btn.nextElementSibling) {
+                    menu.classList.add('hidden');
+                }
+            });
+            const menu = btn.nextElementSibling;
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        });
+    });
+
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    });
+
+    const statusButtons = document.querySelectorAll('.btn-status');
+    statusButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const status = btn.getAttribute('data-status');
+            const row = btn.closest('tr');
+            const badge = row.querySelector('.status-badge');
+            
+            if (badge) {
+                badge.className = 'status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap';
+                
+                if (status === 'duyet') {
+                    badge.textContent = 'Đang hiển thị';
+                    badge.classList.add('bg-green-100', 'text-green-700');
+                } else if (status === 'tuchoi') {
+                    badge.textContent = 'Từ chối';
+                    badge.classList.add('bg-red-100', 'text-red-700');
+                } else if (status === 'choxemxet') {
+                    badge.textContent = 'Chờ xem xét';
+                    badge.classList.add('bg-amber-100', 'text-amber-700');
+                }
+            }
+            
+            const menu = btn.closest('.dropdown-menu');
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+        });
+    });
+});
+</script>

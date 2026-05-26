@@ -172,6 +172,8 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.Author)
                 .HasMaxLength(100)
                 .HasColumnName("author");
+            entity.Property(e => e.AuthorId)
+                .HasColumnName("author_id");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -198,6 +200,10 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasForeignKey(d => d.PublisherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__blog_post__publi__395884C4");
+            entity.HasOne(d => d.AuthorRecruiter)
+                .WithMany(p => p.BlogPosts)
+                .HasForeignKey(d => d.AuthorId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Bookmark>(entity =>

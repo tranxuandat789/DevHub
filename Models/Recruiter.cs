@@ -58,4 +58,6 @@ public partial class Recruiter
     public virtual ICollection<RecruiterPackageHistory> RecruiterPackageHistories { get; set; } = new List<RecruiterPackageHistory>();
 
     public virtual ICollection<ReviewRecruiter> ReviewRecruiters { get; set; } = new List<ReviewRecruiter>();
+
+    public virtual ICollection<BlogPost> BlogPosts { get; set; } = new List<BlogPost>();
 }

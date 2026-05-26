@@ -15,9 +15,11 @@ public partial class BlogPost
 
     public string? ThumbnailUrl { get; set; }
 
-    public string? Author { get; set; }
+    public string? Author { get; set; } 
 
-    public int PublisherId { get; set; }
+    public int? AuthorId { get; set; }
+
+    public int PublisherId { get; set; } 
 
     public bool? IsPublished { get; set; }
 
@@ -26,4 +28,5 @@ public partial class BlogPost
     public DateTime? CreatedAt { get; set; }
 
     public virtual Admin Publisher { get; set; } = null!;
+    public virtual Recruiter? AuthorRecruiter { get; set; }
 }

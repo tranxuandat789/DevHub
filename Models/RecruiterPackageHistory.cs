@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -11,11 +11,13 @@ public partial class RecruiterPackageHistory
 
     public int ServiceId { get; set; }
 
-    public int CreditGranted { get; set; }
+    public int TransactionId { get; set; }
 
-    public int CreditRemaining { get; set; }
+    public int PostsGranted { get; set; }
 
     public int PostsRemaining { get; set; }
+
+    public int PromotionsRemaining { get; set; }
 
     public DateTime? StartDate { get; set; }
 
@@ -28,4 +30,8 @@ public partial class RecruiterPackageHistory
     public virtual Recruiter Recruiter { get; set; } = null!;
 
     public virtual ServicePackage Service { get; set; } = null!;
+
+    public virtual PackageTransaction Transaction { get; set; } = null!;
+
+    public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
 }

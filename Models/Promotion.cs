@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -24,8 +24,6 @@ public partial class Promotion
     public bool? IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public virtual ICollection<CoinTransaction> CoinTransactions { get; set; } = new List<CoinTransaction>();
 
     public virtual ICollection<PackageTransaction> PackageTransactions { get; set; } = new List<PackageTransaction>();
 }

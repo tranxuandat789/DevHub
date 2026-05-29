@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -49,6 +49,8 @@ public partial class JobPost
 
     public int? ModeratorId { get; set; }
 
+    public int RecruiterPackageHistoryId { get; set; }
+
     public string? RejectedReason { get; set; }
 
     public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
@@ -57,7 +59,9 @@ public partial class JobPost
 
     public virtual Admin? Moderator { get; set; }
 
-    public virtual ICollection<PackageTransaction> PackageTransactions { get; set; } = new List<PackageTransaction>();
+    public virtual Recruiter Recruiter { get; set; } = null!;
+
+    public virtual RecruiterPackageHistory RecruiterPackageHistory { get; set; } = null!;
 
     public virtual CommonJobPosition Position { get; set; } = null!;
 

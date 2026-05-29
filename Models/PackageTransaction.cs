@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -11,11 +11,21 @@ public partial class PackageTransaction
 
     public int? ServiceId { get; set; }
 
-    public int? JobId { get; set; }
+    public decimal AmountVnd { get; set; }
 
-    public int CreditUsed { get; set; }
+    public decimal DiscountAmount { get; set; }
 
-    public int RemainingCredit { get; set; }
+    public decimal FinalAmount { get; set; }
+
+    public string PaymentMethod { get; set; } = null!;
+
+    public string? VnpayTxnRef { get; set; }
+
+    public string? VnpayTransactionNo { get; set; }
+
+    public string? VnpayBankCode { get; set; }
+
+    public string Status { get; set; } = null!;
 
     public string TransactionType { get; set; } = null!;
 
@@ -25,11 +35,13 @@ public partial class PackageTransaction
 
     public DateTime? TransactionDate { get; set; }
 
-    public virtual JobPost? Job { get; set; }
+    public DateTime? CompletedAt { get; set; }
 
     public virtual Promotion? Promotion { get; set; }
 
     public virtual Recruiter Recruiter { get; set; } = null!;
 
     public virtual ServicePackage? Service { get; set; }
+
+    public virtual ICollection<RecruiterPackageHistory> RecruiterPackageHistories { get; set; } = new List<RecruiterPackageHistory>();
 }

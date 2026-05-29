@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -31,12 +31,6 @@ public partial class Recruiter
 
     public string? AdditionalDocumentsUrl { get; set; }
 
-    public int? PostCredit { get; set; }
-
-    public int? TotalCoinTopup { get; set; }
-
-    public DateTime? LastTopupDate { get; set; }
-
     public decimal? TotalSpent { get; set; }
 
     public decimal? AverageRating { get; set; }
@@ -46,8 +40,6 @@ public partial class Recruiter
     public bool? IsVerified { get; set; }
 
     public int? ProfileCompletion { get; set; }
-
-    public virtual ICollection<CoinTransaction> CoinTransactions { get; set; } = new List<CoinTransaction>();
 
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 

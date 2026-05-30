@@ -1,417 +1,49 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DevHub</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4640DE',
-                        dark: '#25324B',
-                        muted: '#515B6F',
-                        bordercolor: '#D6DDEB',
-                        lightbg: '#F7F5FC'
-                    },
-                    fontFamily: {
-                        epilogue: ['Epilogue', 'sans-serif'],
-                        inter: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DevHub.styles.css" asp-append-version="true" />
 </head>
-@using System.Security.Claims
-@using DevHub.Services.Interfaces
-@inject IAuthService AuthService
-@{
-    var path = Context.Request.Path.Value?.ToLower() ?? "";
-
-    bool isEmployer = path.Contains("employer") || path.Contains("recruiter");
-    bool isLoggedIn = User.Identity?.IsAuthenticated == true;
-    string userRole = User.FindFirstValue(ClaimTypes.Role) ?? "";
-
-    if (isLoggedIn)
-    {
-        if (isEmployer && userRole != "BUSINESS")
-        {
-            isLoggedIn = false;
-        }
-        else if (!isEmployer && userRole == "BUSINESS")
-        {
-            isLoggedIn = false;
-        }
-    }
-
-    string fullName = User.FindFirstValue("FullName") ?? User.FindFirstValue(ClaimTypes.Email) ?? "";
-    string claimAvatar = User.FindFirstValue("AvatarUrl") ?? "";
-
-    string avatarUrl = claimAvatar;
-    if (isLoggedIn)
-    {
-        var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
-        if (!string.IsNullOrEmpty(email))
-        {
-            var dbUser = await AuthService.FindUserByEmailAsync(email);
-            if (dbUser != null)
-            {
-                var dbAvatar = dbUser.Candidate?.ImageUrl ?? dbUser.Recruiter?.CompanyLogoUrl ?? "";
-                if (!string.IsNullOrEmpty(dbAvatar))
-                    avatarUrl = dbAvatar;
-            }
-        }
-    }
-
-    bool isEmployerHome = path == "/home/employer";
-}
-<body class="bg-white text-muted m-0 p-0">
-    <!-- Global Spotlight Effect -->
-    
-    <!-- Header -->
-    @if (ViewData["HideHeaderFooter"] as bool? != true)
-    {
-    <header class="bg-white relative z-[100] shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-[90px]">
-                
-                <!-- Left Section: Logo & Nav -->
-                <div class="flex items-center space-x-12">
-                    <!-- Logo -->
-                    <a href="@(isEmployer ? "/Home/Employer" : "/")" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none">
-                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden">
-                            <!-- DevHub Logo Icon Approximation -->
-                            <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
-                            <div class="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
-                        <span class="text-[28px] font-bold text-dark tracking-tight">DevHub</span>
-                    </a>
-
-                    <!-- Desktop Nav -->
-                    <nav class="hidden md:flex space-x-8">
-                        @if (isEmployer)
-                        {
-                            <a href="/Home/Employer" class="@(isEmployerHome ? "text-primary font-bold" : "text-muted font-medium") hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
-                            @if (isLoggedIn)
-                            {
-                                <a href="/recruiter/dashboard" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Dashboard</a>
-                                <a href="/Recruiter/RecruiterService" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Bảng giá</a>
-                            }
-                        }
-                        else
-                        {
-                            <a href="/Jobs" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Tìm việc</a>
-                            <a href="/CareerHandbook" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Cẩm nang nghề nghiệp</a>
-                        }
-                    </nav>
-                </div>
-
-                <!-- Right Section: Auth Buttons / User Profile -->
-                @if (isLoggedIn)
-                {
-                    <div class="hidden md:flex items-center space-x-6">
-                        <!-- Notification Bell Dropdown -->
-                        <div class="relative group">
-                            <button class="text-muted hover:text-primary transition-colors relative">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-white">3</span>
-                            </button>
-                            <!-- Notification Dropdown -->
-                            <div class="absolute top-full right-0 pt-2 w-80 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <div class="bg-white border border-[#D6DDEB] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] overflow-hidden">
-                                    <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-                                        <span class="font-bold text-dark text-[15px]">Thông báo</span>
-                                        <span class="text-xs text-primary font-medium">3 thông báo mới</span>
-                                    </div>
-                                    @{ var notifBase = isEmployer ? "/recruiter/notifications" : "/candidate/notifications"; }
-                                    <a href="@notifBase/details/1" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                        <div class="w-9 h-9 bg-[#EEF2FF] rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[13px] font-semibold text-dark">Đơn ứng tuyển được xem xét</p>
-                                            <p class="text-[12px] text-muted mt-0.5 line-clamp-1">FPT Software đã xem hồ sơ của bạn</p>
-                                            <p class="text-[11px] text-gray-400 mt-1">2 giờ trước</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>
-                                    </a>
-                                    <a href="@notifBase/details/2" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                        <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[13px] font-semibold text-dark">Lịch phỏng vấn đã xác nhận</p>
-                                            <p class="text-[12px] text-muted mt-0.5 line-clamp-1">Phỏng vấn với VNG Corporation</p>
-                                            <p class="text-[11px] text-gray-400 mt-1">5 giờ trước</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1.5"></div>
-                                    </a>
-                                    <a href="@notifBase/details/3" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-                                        <div class="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[13px] font-semibold text-dark">Việc làm phù hợp mới</p>
-                                            <p class="text-[12px] text-muted mt-0.5 line-clamp-1">3 công việc mới phù hợp với bạn</p>
-                                            <p class="text-[11px] text-gray-400 mt-1">1 ngày trước</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-orange-400 rounded-full flex-shrink-0 mt-1.5"></div>
-                                    </a>
-                                    <div class="border-t border-gray-100 px-4 py-2.5 text-center">
-                                        <a href="@notifBase" class="text-primary text-[13px] font-bold hover:underline">Xem tất cả thông báo</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 cursor-pointer relative group py-2">
-                            @{
-                            var displayAvatar = !string.IsNullOrEmpty(avatarUrl)
-                                ? avatarUrl
-                                : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(fullName)}&background=4640DE&color=fff&size=128";
-                        }
-                        <img src="@displayAvatar" alt="Avatar" class="w-10 h-10 rounded-full object-cover"
-                             onerror="this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(fullName)&background=4640DE&color=fff&size=128'" />
-                            <span class="font-bold text-dark text-[15px]">@fullName</span>
-                            <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>                            
-                            <!-- Dropdown Menu -->
-                            <div class="absolute top-full right-0 pt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <div class="bg-white border border-[#D6DDEB] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.08)] py-2 overflow-hidden">
-                                    @if (userRole == "BUSINESS")
-                                    {
-                                        <a href="/recruiter/dashboard" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Dashboard</a>
-                                        <a href="/Recruiter/JobPost" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Quản lý tin tuyển dụng</a>
-                                        <a href="/Recruiter/Settings" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
-                                    }
-                                    else
-                                    {
-                                        <a href="/Candidate/Profile" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Hồ sơ cá nhân</a>
-                                        <a href="/Candidate/Dashboard" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Bảng điều khiển</a>
-                                        <a href="/Candidate/SavedJobs" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Việc làm đã lưu</a>
-                                        <a href="/Candidate/ChangePassword" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
-                                    }
-                                    <div class="w-full h-[1px] bg-gray-100 my-1"></div>
-                                    @if (userRole == "BUSINESS")
-                                    {
-                                        <a href="/Auth/EmployerLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
-                                    }
-                                    else
-                                    {
-                                        <a href="/Auth/Logout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="hidden md:flex items-center space-x-4">
-                        @if (isEmployer)
-                        {
-                            <a href="/Auth/EmployerLogin" class="text-primary font-bold hover:text-primary/80 transition-colors px-2 text-[16px]">Đăng nhập</a>
-                            <div class="w-[1px] h-10 bg-bordercolor mx-2"></div>
-                            <a href="/Auth/EmployerRegister" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px]">Đăng ký</a>
-                            <a href="/" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px] flex items-center gap-2">
-                                Trang ứng viên <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                            </a>
-                        }
-                        else
-                        {
-                            <a href="/Auth/Login" class="text-primary font-bold hover:text-primary/80 transition-colors px-2 text-[16px]">Đăng nhập</a>
-                            <div class="w-[1px] h-10 bg-bordercolor mx-2"></div>
-                            <a href="/Auth/Register" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px]">Đăng ký</a>
-                            <a href="/Home/Employer" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px] flex items-center gap-2">
-                                Nhà tuyển dụng <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                            </a>
-                        }
-                    </div>
-                }
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button class="text-dark hover:text-primary focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        </svg>
-                    </button>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">DevHub</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </nav>
     </header>
-    }
-
-    <div class="h-full">
-        <main role="main" class="h-full">
+    <div class="container">
+        <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <!-- Footer -->
-    @if (ViewData["HideHeaderFooter"] as bool? != true)
-    {
-    <footer class="bg-[#202430] text-[#D6DDEB] pt-16 pb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 mb-16">
-                <!-- Brand & Description -->
-                <div class="md:col-span-12 lg:col-span-5">
-                    <a href="@(isEmployer ? "/Home/Employer" : "/")" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none mb-6">
-                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden">
-                            <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
-                            <div class="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
-                        <span class="text-[28px] font-bold text-white tracking-tight">DevHub</span>
-                    </a>
-                    <p class="text-[#D6DDEB] text-[16px] leading-[26px] opacity-80 max-w-[320px]">
-                        Nền tảng tuyệt vời dành cho những người tìm việc đam mê các startup. Giúp bạn tìm được công việc mơ ước dễ dàng hơn.
-                    </p>
-                </div>
-
-                <!-- Links: Về chúng tôi -->
-                <div class="md:col-span-4 lg:col-span-2">
-                    <h4 class="text-white text-[18px] font-bold mb-6">Về chúng tôi</h4>
-                    <ul class="space-y-4">
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Công ty</a></li>
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Giá cả</a></li>
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Điều khoản</a></li>
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Tư vấn</a></li>
-                    </ul>
-                </div>
-
-                <!-- Links: Tài nguyên -->
-                <div class="md:col-span-4 lg:col-span-2">
-                    <h4 class="text-white text-[18px] font-bold mb-6">Tài nguyên</h4>
-                    <ul class="space-y-4">
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Tài liệu</a></li>
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Hướng dẫn</a></li>
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Cập nhật</a></li>
-                        <li><a href="#" class="text-[#D6DDEB] hover:text-white transition-colors opacity-80 hover:opacity-100">Liên hệ chúng tôi</a></li>
-                    </ul>
-                </div>
-
-                <!-- Newsletter -->
-                <div class="md:col-span-4 lg:col-span-3">
-                    <h4 class="text-white text-[18px] font-bold mb-6">Nhận thông báo</h4>
-                    <p class="text-[#D6DDEB] text-[16px] leading-[26px] opacity-80 mb-6">
-                        "Những tin tức và bài viết việc làm mới nhất được gửi đến hộp thư của bạn hằng tuần."
-                    </p>
-                    <form class="flex w-full">
-                        <input type="email" placeholder="Email của bạn" class="w-full px-4 py-3 bg-white text-dark placeholder-gray-400 focus:outline-none flex-grow" required>
-                        <button type="submit" class="bg-primary text-white font-bold px-6 py-3 hover:bg-opacity-90 transition-all whitespace-nowrap">Đăng ký</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Divider -->
-            <div class="w-full h-[1px] bg-white opacity-10 mb-8"></div>
-
-            <!-- Bottom Footer -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-[#D6DDEB] text-[16px] opacity-80">2021 &copy; DevHub. All rights reserved.</p>
-                <div class="flex space-x-4">
-                    <!-- Facebook Icon -->
-                    <a href="#" class="w-8 h-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center text-white hover:bg-opacity-20 transition-all">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <!-- Instagram Icon -->
-                    <a href="#" class="w-8 h-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center text-white hover:bg-opacity-20 transition-all">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <!-- Dribbble Icon -->
-                    <a href="#" class="w-8 h-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center text-white hover:bg-opacity-20 transition-all">
-                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c5.51 0 10-4.48 10-10S17.51 2 12 2zm6.605 4.61a8.502 8.502 0 011.93 5.314c-.281-.054-3.101-.629-5.943-.271-.065-.156-.131-.316-.2-.476-2.023-4.887-4.148-7.558-4.303-7.747a8.423 8.423 0 018.516 3.18zM12 3.5c1.685 0 3.256.49 4.588 1.332-.132.164-2.115 2.666-4.062 7.283-2.602-1.309-4.81-3.69-4.993-3.897A8.497 8.497 0 0112 3.5zm-5.942 5.92c.164.195 2.298 2.502 4.793 3.73-1.077 2.92-2.348 5.67-2.441 5.867-2.42-1.423-4.02-4.048-4.02-7.017 0-1.01.182-1.977.514-2.871a25.327 25.327 0 011.154.291zm.557 9.873a8.493 8.493 0 005.385 1.207c.07-.156 1.285-2.81 2.308-5.632 2.535.803 4.298 2.378 4.417 2.485A8.487 8.487 0 0112 21.5c-2.012 0-3.856-.704-5.327-1.897.078-.17 1.314-2.868 2.417-5.748 1.492-.476 3.093-.847 4.747-.954-1.03-2.316-2.124-4.22-2.81-5.304-.265.257-2.736 2.876-5.59 4.316-.231.116-.473.23-.72.336z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <!-- LinkedIn Icon -->
-                    <a href="#" class="w-8 h-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center text-white hover:bg-opacity-20 transition-all">
-                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    <!-- Twitter/X Icon -->
-                    <a href="#" class="w-8 h-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center text-white hover:bg-opacity-20 transition-all">
-                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2026 - DevHub - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
-    }
-
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
-    <script>
-        // Number counter animation for badges
-        document.addEventListener("DOMContentLoaded", () => {
-            const counters = document.querySelectorAll('.counter-number');
-            const speed = 200; // The lower the slower
-
-            counters.forEach(counter => {
-                const updateCount = () => {
-                    const target = +counter.getAttribute('data-target');
-                    const count = +counter.innerText;
-                    const inc = target / speed;
-
-                    if (count < target) {
-                        counter.innerText = Math.ceil(count + inc);
-                        setTimeout(updateCount, 10);
-                    } else {
-                        counter.innerText = target;
-                    }
-                };
-                updateCount();
-            });
-        });
-    </script>
-@{
-    var toastSuccess = TempData["SuccessMsg"]?.ToString();
-}
-@if (!string.IsNullOrEmpty(toastSuccess))
-{
-    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
-        <div class="toast flex items-start gap-3 bg-white border border-green-200 rounded-xl shadow-lg px-5 py-4">
-            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <div class="flex-1">
-                <p class="text-[14px] font-semibold text-green-800">Thành công</p>
-                <p class="text-[13px] text-green-700 mt-0.5">@toastSuccess</p>
-            </div>
-            <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-gray-600 ml-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    </div>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => {
-                t.style.transition = 'opacity 0.4s, transform 0.4s';
-                t.style.opacity = '0';
-                t.style.transform = 'translateY(-10px)';
-                setTimeout(() => t.remove(), 400);
-            });
-        }, 4000);
-    </script>
-}
 </body>
 </html>
-

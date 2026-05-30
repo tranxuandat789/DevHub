@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Moderator
@@ -7,5 +7,11 @@ namespace DevHub.Controllers.Moderator
     [Authorize(Roles = "Moderator")]
     public class BlogController : Controller
     {
+        [HttpGet("")]
+        [HttpGet("/ModeratorBlog")]
+        public IActionResult Index()
+        {
+            return View("~/Views/Moderator/Blog/Index.cshtml");
+        }
     }
 }

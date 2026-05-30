@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DevHub.Controllers.Recruiter
 {
     [Route("Recruiter/[controller]")]
-    // [Authorize(Roles = "Employer,Recruiter")]
+    [Authorize(Roles = "BUSINESS")]
     public class JobPostController : Controller
     {
         [HttpGet]

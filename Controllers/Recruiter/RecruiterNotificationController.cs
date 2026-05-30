@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DevHub.Controllers.Recruiter
 {
     [Route("recruiter/notifications")]
-    // [Authorize(Roles = "Recruiter")]
+    [Authorize(Roles = "BUSINESS")]
     public class RecruiterNotificationController : Controller
     {
         [HttpGet("")]

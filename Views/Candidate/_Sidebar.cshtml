@@ -1,3 +1,18 @@
+@using System.Security.Claims
+@using DevHub.Services.Interfaces
+@inject IAuthService AuthService
+@{
+    var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+    string displayName = email;
+    if (!string.IsNullOrEmpty(email))
+    {
+        var dbUser = await AuthService.FindUserByEmailAsync(email);
+        if (dbUser != null)
+        {
+            displayName = dbUser.Candidate?.FullName ?? dbUser.Email;
+        }
+    }
+}
 <div class="w-full lg:w-[280px] flex-shrink-0 font-inter">
     <!-- User summary card -->
     <div class="bg-white rounded-[20px] p-5 mb-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] text-left">
@@ -7,7 +22,7 @@
             </svg>
             Xin chào
         </p>
-        <h3 class="font-bold text-dark text-[18px]">Phong Hoang</h3>
+        <h3 class="font-bold text-dark text-[18px]">@displayName</h3>
     </div>
 
     <!-- Navigation Menu -->

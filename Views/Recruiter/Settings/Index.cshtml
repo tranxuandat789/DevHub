@@ -1,3 +1,4 @@
+@model DevHub.Models.Recruiter
 @{
     ViewData["Title"] = "Cài đặt";
     Layout = "~/Views/Shared/_RecruiterLayout.cshtml";
@@ -33,7 +34,7 @@
         <div class="p-6">
             @if (activeTab == "account")
             {
-                @await Html.PartialAsync("_AccountTab")
+                @await Html.PartialAsync("_AccountTab", Model)
             }
             else if (activeTab == "password")
             {

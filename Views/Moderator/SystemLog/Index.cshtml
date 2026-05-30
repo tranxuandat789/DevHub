@@ -1,0 +1,152 @@
+@{
+    ViewData["Title"] = "System Log";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Track System Log</h1>
+        <p class="text-muted">Lịch sử các thao tác và thay đổi quan trọng trên hệ thống (Chỉ đọc).</p>
+    </div>
+    <button class="border border-[#D6DDEB] text-dark font-bold px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Xuất File CSV
+    </button>
+</div>
+
+<!-- Filters & Sort -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end" onsubmit="event.preventDefault();">
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Người thực hiện</label>
+            <input type="text" placeholder="Tìm theo ID, Tên..." class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary text-muted text-sm">
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Loại thao tác</label>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary text-muted text-sm">
+                <option value="">Tất cả (All)</option>
+                <option value="job_approve">Duyệt/Từ chối Bài đăng</option>
+                <option value="package_edit">Chỉnh sửa Gói dịch vụ</option>
+                <option value="blog_status">Thay đổi trạng thái Blog</option>
+                <option value="payment">Thanh toán Package</option>
+            </select>
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Từ ngày</label>
+            <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary text-muted text-sm">
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Đến ngày</label>
+            <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary text-muted text-sm">
+        </div>
+        <div>
+            <button type="button" class="w-full bg-primary text-white font-bold px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-all text-sm">Lọc</button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-40">Thời gian <svg class="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-48">Người thực hiện</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-40">Loại Thao tác</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Nội dung thay đổi</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-32">Địa chỉ IP</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                <!-- Log 1: Approve Job -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium whitespace-nowrap">24/05/2026<br><span class="text-xs text-gray-400">14:32:05</span></td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-dark">Admin Vũ</div>
+                        <div class="text-xs text-muted mt-1">ID: #M01 • Moderator</div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                            Job Approve
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-dark">
+                        Duyệt thành công bài đăng tuyển dụng <span class="font-bold text-primary cursor-pointer hover:underline">#1023 (Senior .NET)</span> của công ty FPT Software.
+                    </td>
+                    <td class="py-4 px-6 text-muted text-xs font-mono">192.168.1.45</td>
+                </tr>
+                
+                <!-- Log 2: Reject Job -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium whitespace-nowrap">24/05/2026<br><span class="text-xs text-gray-400">14:15:22</span></td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-dark">Admin Tiên</div>
+                        <div class="text-xs text-muted mt-1">ID: #M02 • Moderator</div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                            Job Reject
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-dark">
+                        Từ chối bài đăng <span class="font-bold cursor-pointer hover:underline">#1024</span>. Lý do: "Nội dung tuyển dụng không rõ ràng, thiếu mức lương cơ bản."
+                    </td>
+                    <td class="py-4 px-6 text-muted text-xs font-mono">113.161.42.10</td>
+                </tr>
+
+                <!-- Log 3: Package Edit -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors bg-blue-50/30">
+                    <td class="py-4 px-6 text-muted font-medium whitespace-nowrap">23/05/2026<br><span class="text-xs text-gray-400">09:05:11</span></td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-dark">Super Admin</div>
+                        <div class="text-xs text-muted mt-1">ID: #A01 • Admin</div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                            Package Edit
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-dark">
+                        Thay đổi giá gói dịch vụ <span class="font-bold text-primary">Gói Premium (#11)</span>. <br/>
+                        <span class="text-xs text-gray-500">Old value: 2000 Coin -> New value: 2500 Coin.</span>
+                    </td>
+                    <td class="py-4 px-6 text-muted text-xs font-mono">10.0.0.1</td>
+                </tr>
+
+                <!-- Log 4: Payment -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium whitespace-nowrap">22/05/2026<br><span class="text-xs text-gray-400">16:45:00</span></td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-dark">VNG Corporation</div>
+                        <div class="text-xs text-muted mt-1">ID: #R05 • Recruiter</div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">
+                            Payment
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-dark">
+                        Thanh toán thành công gói dịch vụ <span class="font-bold">Premium (#11)</span> bằng 2,500 Coin. Mã giao dịch: <span class="font-mono text-xs">TXN98127391</span>.
+                    </td>
+                    <td class="py-4 px-6 text-muted text-xs font-mono">203.113.15.2</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+        <div class="text-sm text-muted">
+            Hiển thị 1 đến 4 của 1,024 bản ghi log
+        </div>
+        <div class="flex space-x-1">
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
+            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">3</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">...</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
+        </div>
+    </div>
+</div>

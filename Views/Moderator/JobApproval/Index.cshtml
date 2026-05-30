@@ -1,0 +1,173 @@
+@{
+    ViewData["Title"] = "Duyet Bai Dang";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+}
+
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Duyệt danh sách bài đăng</h1>
+        <p class="text-muted">Quản lý và xét duyệt các bài đăng tuyển dụng đang chờ (Pending).</p>
+    </div>
+</div>
+
+<!-- Filters & Sort -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form class="flex flex-col md:flex-row gap-4 items-end" onsubmit="event.preventDefault();">
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Từ ngày</label>
+            <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Đến ngày</label>
+            <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp theo</label>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="newest">Ngày tạo (Mới nhất)</option>
+                <option value="oldest">Ngày tạo (Cũ nhất)</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm">ID</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Tiêu đề công việc</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Nhà tuyển dụng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Ngày đăng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Trạng thái</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                <!-- Mock Row 1 -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium">#1023</td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-dark">Senior .NET Developer</div>
+                        <div class="text-xs text-muted mt-1">Hà Nội • Full-time</div>
+                    </td>
+                    <td class="py-4 px-6 text-muted">FPT Software</td>
+                    <td class="py-4 px-6 text-muted">24/05/2026</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Pending
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-2">
+                        <button onclick="approveJob(1023)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                        <button onclick="openRejectModal(1023)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                <!-- Mock Row 2 -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium">#1024</td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-dark">Frontend Developer (ReactJS)</div>
+                        <div class="text-xs text-muted mt-1">Hồ Chí Minh • Remote</div>
+                    </td>
+                    <td class="py-4 px-6 text-muted">VNG Corporation</td>
+                    <td class="py-4 px-6 text-muted">23/05/2026</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Pending
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-2">
+                        <button onclick="approveJob(1024)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                        <button onclick="openRejectModal(1024)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+        <div class="text-sm text-muted">
+            Hiển thị 1 đến 2 của 2 kết quả
+        </div>
+        <div class="flex space-x-1">
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
+            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-lg p-6 relative">
+        <button onclick="closeRejectModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <h3 class="text-2xl font-bold text-dark mb-2">Từ chối bài đăng</h3>
+        <p class="text-muted text-sm mb-6">Vui lòng cung cấp lý do từ chối bài đăng <span id="rejectJobId" class="font-bold"></span>. Lý do này sẽ được ghi log và gửi thông báo cho nhà tuyển dụng.</p>
+        
+        <div class="mb-6">
+            <label class="block text-dark font-medium mb-2">Lý do từ chối <span class="text-red-500">*</span></label>
+            <textarea id="rejectReason" rows="4" class="w-full border border-[#D6DDEB] rounded-lg p-3 focus:outline-none focus:border-primary text-dark placeholder-gray-400" placeholder="Nhập lý do cụ thể..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeRejectModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
+            <button onclick="submitReject()" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-sm">Xác nhận Từ chối</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentRejectId = null;
+
+        function approveJob(id) {
+            if (confirm(`Bạn có chắc chắn muốn duyệt bài đăng #${id}? Hành động này sẽ được ghi log và gửi thông báo.`)) {
+                // Simulate success
+                alert(`Đã duyệt bài đăng #${id} thành công!`);
+            }
+        }
+
+        function openRejectModal(id) {
+            currentRejectId = id;
+            document.getElementById('rejectJobId').innerText = `#${id}`;
+            document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            currentRejectId = null;
+        }
+
+        function submitReject() {
+            const reason = document.getElementById('rejectReason').value.trim();
+            if (!reason) {
+                alert('Vui lòng nhập lý do từ chối.');
+                return;
+            }
+            
+            // Simulate success
+            alert(`Đã từ chối bài đăng #${currentRejectId} với lý do: "${reason}". Log đã được lưu và thông báo đã được gửi.`);
+            closeRejectModal();
+        }
+    </script>
+}

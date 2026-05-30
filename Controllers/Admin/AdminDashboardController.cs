@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Admin
@@ -7,5 +7,10 @@ namespace DevHub.Controllers.Admin
     [Authorize(Roles = "Admin")]
     public class AdminDashboardController : Controller
     {
+        [HttpGet("")]
+        public IActionResult Index()
+        {
+            return View();
+        }
     }
 }

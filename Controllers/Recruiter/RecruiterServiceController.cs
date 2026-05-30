@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Recruiter
 {
-    // [Authorize(Roles = "Recruiter")]
+    [Authorize(Roles = "BUSINESS")]
     [Route("Recruiter/[controller]")]
     public class RecruiterServiceController : Controller
     {

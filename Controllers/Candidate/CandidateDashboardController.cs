@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Candidate
 {
     [Route("candidate/dashboard")]
-    [Authorize(Roles = "Candidate")]
+    [Authorize(Roles = "CANDIDATE,Candidate")]
     public class CandidateDashboardController : Controller
     {
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DevHub.Models;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +29,6 @@ public partial class ItrecruitmentDbContext : DbContext
     public virtual DbSet<Candidate> Candidates { get; set; }
 
     public virtual DbSet<CandidateSkill> CandidateSkills { get; set; }
-
-    public virtual DbSet<CoinTransaction> CoinTransactions { get; set; }
 
     public virtual DbSet<CommonJobPosition> CommonJobPositions { get; set; }
 
@@ -305,60 +303,6 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasConstraintName("FK__candidate__tech___693CA210");
         });
 
-        modelBuilder.Entity<CoinTransaction>(entity =>
-        {
-            entity.HasKey(e => e.TransactionId).HasName("PK__coin_tra__85C600AFAA393EC5");
-
-            entity.ToTable("coin_transaction");
-
-            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
-            entity.Property(e => e.AmountVnd)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("amount_vnd");
-            entity.Property(e => e.BonusCoin)
-                .HasDefaultValue(0)
-                .HasColumnName("bonus_coin");
-            entity.Property(e => e.CoinAmount).HasColumnName("coin_amount");
-            entity.Property(e => e.CoinRate)
-                .HasDefaultValue(1000.00m)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("coin_rate");
-            entity.Property(e => e.Description)
-                .HasMaxLength(500)
-                .HasColumnName("description");
-            entity.Property(e => e.PaymentMethod)
-                .HasMaxLength(50)
-                .HasColumnName("payment_method");
-            entity.Property(e => e.ProcessedBy).HasColumnName("processed_by");
-            entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
-            entity.Property(e => e.Status)
-                .HasMaxLength(30)
-                .HasDefaultValue("pending")
-                .HasColumnName("status");
-            entity.Property(e => e.TotalCoinReceived).HasColumnName("total_coin_received");
-            entity.Property(e => e.TransactionDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("transaction_date");
-            entity.Property(e => e.VnpayCode)
-                .HasMaxLength(100)
-                .HasColumnName("vnpay_code");
-
-            entity.HasOne(d => d.ProcessedByNavigation).WithMany(p => p.CoinTransactions)
-                .HasForeignKey(d => d.ProcessedBy)
-                .HasConstraintName("FK__coin_tran__proce__1F98B2C1");
-
-            entity.HasOne(d => d.Promotion).WithMany(p => p.CoinTransactions)
-                .HasForeignKey(d => d.PromotionId)
-                .HasConstraintName("FK__coin_tran__promo__208CD6FA");
-
-            entity.HasOne(d => d.Recruiter).WithMany(p => p.CoinTransactions)
-                .HasForeignKey(d => d.RecruiterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__coin_tran__recru__1EA48E88");
-        });
-
         modelBuilder.Entity<CommonJobPosition>(entity =>
         {
             entity.HasKey(e => e.PositionId).HasName("PK__common_j__99A0E7A487B920C3");
@@ -524,6 +468,7 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasColumnName("location");
             entity.Property(e => e.ModeratorId).HasColumnName("moderator_id");
             entity.Property(e => e.PositionId).HasColumnName("position_id");
+            entity.Property(e => e.RecruiterPackageHistoryId).HasColumnName("recruiter_package_history_id");
             entity.Property(e => e.PriorityScore)
                 .HasDefaultValue(0)
                 .HasColumnName("priority_score");
@@ -562,6 +507,16 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasForeignKey(d => d.PositionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__job_post__positi__60A75C0F");
+
+            entity.HasOne(d => d.Recruiter).WithMany()
+                .HasForeignKey(d => d.RecruiterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__job_post__recruiter");
+
+            entity.HasOne(d => d.RecruiterPackageHistory).WithMany(p => p.JobPosts)
+                .HasForeignKey(d => d.RecruiterPackageHistoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__job_post__package_history");
 
             entity.HasMany(d => d.Teches).WithMany(p => p.Jobs)
                 .UsingEntity<Dictionary<string, object>>(
@@ -629,39 +584,62 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.ToTable("package_transaction");
 
             entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
-            entity.Property(e => e.CreditUsed).HasColumnName("credit_used");
+            entity.Property(e => e.AmountVnd)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("amount_vnd");
+            entity.Property(e => e.DiscountAmount)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("discount_amount")
+                .HasDefaultValue(0m);
+            entity.Property(e => e.FinalAmount)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("final_amount");
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(50)
+                .HasColumnName("payment_method")
+                .HasDefaultValue("vnpay");
+            entity.Property(e => e.VnpayTxnRef)
+                .HasMaxLength(100)
+                .HasColumnName("vnpay_txn_ref");
+            entity.Property(e => e.VnpayTransactionNo)
+                .HasMaxLength(100)
+                .HasColumnName("vnpay_transaction_no");
+            entity.Property(e => e.VnpayBankCode)
+                .HasMaxLength(20)
+                .HasColumnName("vnpay_bank_code");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasColumnName("status")
+                .HasDefaultValue("pending");
+            entity.Property(e => e.TransactionType)
+                .HasMaxLength(50)
+                .HasColumnName("transaction_type");
+            entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
+            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
+            entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.Description)
                 .HasMaxLength(500)
                 .HasColumnName("description");
-            entity.Property(e => e.JobId).HasColumnName("job_id");
-            entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
-            entity.Property(e => e.RemainingCredit).HasColumnName("remaining_credit");
-            entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.TransactionDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("transaction_date");
-            entity.Property(e => e.TransactionType)
-                .HasMaxLength(50)
-                .HasColumnName("transaction_type");
-
-            entity.HasOne(d => d.Job).WithMany(p => p.PackageTransactions)
-                .HasForeignKey(d => d.JobId)
-                .HasConstraintName("FK__package_t__job_i__160F4887");
+            entity.Property(e => e.CompletedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("completed_at");
 
             entity.HasOne(d => d.Promotion).WithMany(p => p.PackageTransactions)
                 .HasForeignKey(d => d.PromotionId)
-                .HasConstraintName("FK__package_t__promo__17036CC0");
+                .HasConstraintName("FK__package_transaction__promotion");
 
             entity.HasOne(d => d.Recruiter).WithMany(p => p.PackageTransactions)
                 .HasForeignKey(d => d.RecruiterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__package_t__recru__14270015");
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__package_transaction__recruiter");
 
             entity.HasOne(d => d.Service).WithMany(p => p.PackageTransactions)
                 .HasForeignKey(d => d.ServiceId)
-                .HasConstraintName("FK__package_t__servi__151B244E");
+                .HasConstraintName("FK__package_transaction__service");
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -735,27 +713,18 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.IsVerified)
                 .HasDefaultValue(false)
                 .HasColumnName("is_verified");
-            entity.Property(e => e.LastTopupDate)
-                .HasColumnType("datetime")
-                .HasColumnName("last_topup_date");
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .HasColumnName("phone");
             entity.Property(e => e.Position)
                 .HasMaxLength(100)
                 .HasColumnName("position");
-            entity.Property(e => e.PostCredit)
-                .HasDefaultValue(0)
-                .HasColumnName("post_credit");
             entity.Property(e => e.ProfileCompletion)
                 .HasDefaultValue(0)
                 .HasColumnName("profile_completion");
             entity.Property(e => e.TaxCode)
                 .HasMaxLength(50)
                 .HasColumnName("tax_code");
-            entity.Property(e => e.TotalCoinTopup)
-                .HasDefaultValue(0)
-                .HasColumnName("total_coin_topup");
             entity.Property(e => e.TotalReviews)
                 .HasDefaultValue(0)
                 .HasColumnName("total_reviews");
@@ -780,18 +749,22 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.ToTable("recruiter_package_history");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreditGranted).HasColumnName("credit_granted");
-            entity.Property(e => e.CreditRemaining).HasColumnName("credit_remaining");
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
+            entity.Property(e => e.PostsGranted).HasColumnName("posts_granted");
+            entity.Property(e => e.PostsRemaining).HasColumnName("posts_remaining");
+            entity.Property(e => e.PromotionsRemaining)
+                .HasDefaultValue(0)
+                .HasColumnName("promotions_remaining");
             entity.Property(e => e.EndDate)
                 .HasColumnType("datetime")
                 .HasColumnName("end_date");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
-            entity.Property(e => e.PostsRemaining).HasColumnName("posts_remaining");
             entity.Property(e => e.PriceAtPurchase)
                 .HasColumnType("decimal(18, 2)")
-                .HasColumnName("price_at_purchase");
+                .HasColumnName("price_at_purchase")
+                .HasDefaultValue(0m);
             entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
             entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.StartDate)
@@ -801,13 +774,18 @@ public partial class ItrecruitmentDbContext : DbContext
 
             entity.HasOne(d => d.Recruiter).WithMany(p => p.RecruiterPackageHistories)
                 .HasForeignKey(d => d.RecruiterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__recruiter__recru__0E6E26BF");
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__recruiter_history__recruiter");
 
             entity.HasOne(d => d.Service).WithMany(p => p.RecruiterPackageHistories)
                 .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__recruiter_history__service");
+
+            entity.HasOne(d => d.Transaction).WithMany(p => p.RecruiterPackageHistories)
+                .HasForeignKey(d => d.TransactionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__recruiter__servi__0F624AF8");
+                .HasConstraintName("FK__recruiter_history__transaction");
         });
 
         modelBuilder.Entity<ReviewRecruiter>(entity =>
@@ -936,6 +914,12 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
                 .HasColumnName("password_hash");
+            entity.Property(e => e.ResetPasswordToken)
+                .HasMaxLength(100)
+                .HasColumnName("reset_password_token");
+            entity.Property(e => e.ResetPasswordExpiresAt)
+                .HasColumnType("datetime")
+                .HasColumnName("reset_password_expires_at");
             entity.Property(e => e.UserType)
                 .HasMaxLength(20)
                 .HasColumnName("user_type");

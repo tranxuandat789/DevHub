@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -16,8 +16,6 @@ public partial class Admin
     public virtual UserAccount AdminNavigation { get; set; } = null!;
 
     public virtual ICollection<BlogPost> BlogPosts { get; set; } = new List<BlogPost>();
-
-    public virtual ICollection<CoinTransaction> CoinTransactions { get; set; } = new List<CoinTransaction>();
 
     public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
 }

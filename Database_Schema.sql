@@ -1,6 +1,8 @@
+
 -- =====================================================
 -- DevHub Database Schema  SQL Server 
 -- =====================================================
+-- CREATE DATABASE ITRecruitmentDB
 USE ITRecruitmentDB;
 -- =====================================================
 -- Create User Account Table (Base Table)
@@ -10,7 +12,8 @@ CREATE TABLE [user_account] (
     [email] NVARCHAR(255) NOT NULL UNIQUE,
     [password_hash] NVARCHAR(255) NULL,
     [google_id] NVARCHAR(255),
-    [user_type] NVARCHAR(20) NOT NULL,
+    [user_type] NVARCHAR(20) NOT NULL
+        CHECK ([user_type] IN ('ADMIN', 'RECRUITER', 'MODERATOR', 'CANDIDATE')),
     [is_active] BIT DEFAULT 1,
     [created_at] DATETIME DEFAULT GETDATE(),
     [last_login] DATETIME NULL,
@@ -29,7 +32,8 @@ CREATE TABLE [admin] (
     [admin_id] INT PRIMARY KEY NOT NULL,
     [username] NVARCHAR(100) NOT NULL UNIQUE,
     [full_name] NVARCHAR(255) NULL,
-    [role] NVARCHAR(50) NULL,
+    [role] NVARCHAR(50) NULL
+    CHECK ([role] IN ('ADMIN', 'MODERATOR')),
     CONSTRAINT [FK__admin__admin_id] FOREIGN KEY ([admin_id]) 
         REFERENCES [user_account]([user_id]) ON DELETE NO ACTION
 );
@@ -185,8 +189,8 @@ CREATE TABLE [package_transaction] (
     [vnpay_txn_ref] NVARCHAR(100) NULL,
     [vnpay_transaction_no] NVARCHAR(100) NULL,
     [vnpay_bank_code] NVARCHAR(20) NULL,
-    [status] NVARCHAR(30) DEFAULT 'pending' 
-        CHECK ([status] IN ('pending', 'success', 'failed', 'cancelled', 'refunded')),
+    [status] NVARCHAR(30) DEFAULT 'PENDING' 
+        CHECK ([status] IN ('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED', 'REFUNDED')),
     [transaction_type] NVARCHAR(50) NOT NULL, 
     [promotion_id] INT NULL,
     [description] NVARCHAR(500),
@@ -249,8 +253,8 @@ CREATE TABLE [job_post] (
     [salary_max] DECIMAL(18, 2) NULL,
     [hiring_quota] INT NULL,
     [deadline] DATE NULL,
-    [status] NVARCHAR(20) DEFAULT 'pending',
-    [is_promoted] BIT DEFAULT 0,
+    [status] NVARCHAR(20) DEFAULT 'PENDING'
+        CHECK ([status] IN ('PENDING', 'APPROVED', 'REJECTED', 'FINISHED', 'CLOSED', 'EXPIRED')),
     [priority_score] INT DEFAULT 0,
     [application_count] INT DEFAULT 0,
     [approved_at] DATETIME NULL,
@@ -296,7 +300,8 @@ CREATE TABLE [application] (
     [cv_id] INT NOT NULL,
     [cover_letter] NVARCHAR(MAX) NULL,
     [notes] NVARCHAR(MAX) NULL,
-    [status] NVARCHAR(30) DEFAULT 'pending',
+    [status] NVARCHAR(30) DEFAULT 'PENDING'
+        CHECK ([status] IN ('PENDING', 'APPROVED', 'REJECTED', 'FINISHED', 'HIRED', 'CANCELLED', 'FAILED')),
     [applied_at] DATETIME DEFAULT GETDATE(),
     CONSTRAINT [FK__application__job] FOREIGN KEY ([job_id]) 
         REFERENCES [job_post]([job_id]) ON DELETE CASCADE,
@@ -322,7 +327,8 @@ CREATE TABLE [interview] (
     [meeting_link] NVARCHAR(500) NULL,
     [scheduled_time] DATETIME NULL,
     [notes] NVARCHAR(MAX) NULL,
-    [status] NVARCHAR(20) DEFAULT 'scheduled',
+    [status] NVARCHAR(20) DEFAULT 'SCHEDULED'
+        CHECK ([status] IN ('SCHEDULED', 'PENDING', 'FINISHED', 'EXPIRED', 'CANCELLED')),
     [created_at] DATETIME DEFAULT GETDATE(),
     [updated_at] DATETIME DEFAULT GETDATE(),
     CONSTRAINT [FK__interview__application] FOREIGN KEY ([application_id]) 
@@ -360,7 +366,8 @@ CREATE TABLE [review_recruiter] (
     [cons] NVARCHAR(MAX) NULL,
     [description] NVARCHAR(MAX) NULL,
     [is_anonymous] BIT DEFAULT 0,
-    [status] NVARCHAR(20) DEFAULT 'pending',
+    [status] NVARCHAR(20) DEFAULT 'PENDING'
+        CHECK ([status] IN ('PENDING', 'APPROVED', 'REJECTED')),
     [rejection_reason] NVARCHAR(500) NULL,
     [created_at] DATETIME DEFAULT GETDATE(),
     [updated_at] DATETIME DEFAULT GETDATE(),
@@ -397,6 +404,18 @@ CREATE TABLE [blog_post] (
 
 -- Create index for blog_post slug
 CREATE NONCLUSTERED INDEX [idx_blog_post_slug] ON [blog_post]([slug]);
+
+-- =====================================================
+-- Data normalization: uppercase enum-like fields
+-- =====================================================
+UPDATE [user_account] SET [user_type] = UPPER([user_type]) WHERE [user_type] IS NOT NULL;
+UPDATE [admin] SET [role] = UPPER([role]) WHERE [role] IS NOT NULL;
+UPDATE [package_transaction] SET [status] = UPPER([status]) WHERE [status] IS NOT NULL;
+UPDATE [job_post] SET [status] = UPPER([status]) WHERE [status] IS NOT NULL;
+UPDATE [application] SET [status] = UPPER([status]) WHERE [status] IS NOT NULL;
+UPDATE [interview] SET [status] = UPPER([status]) WHERE [status] IS NOT NULL;
+UPDATE [review_recruiter] SET [status] = UPPER([status]) WHERE [status] IS NOT NULL;
+
 
 -- =====================================================
 -- Create Notification Table

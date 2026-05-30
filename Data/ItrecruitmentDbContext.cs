@@ -914,6 +914,12 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
                 .HasColumnName("password_hash");
+            entity.Property(e => e.ResetPasswordToken)
+                .HasMaxLength(100)
+                .HasColumnName("reset_password_token");
+            entity.Property(e => e.ResetPasswordExpiresAt)
+                .HasColumnType("datetime")
+                .HasColumnName("reset_password_expires_at");
             entity.Property(e => e.UserType)
                 .HasMaxLength(20)
                 .HasColumnName("user_type");

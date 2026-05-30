@@ -10,6 +10,8 @@ using DevHub.Services.Interfaces;
 using DevHub.Services.Implementations;
 using System.Security.Claims;
 
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();

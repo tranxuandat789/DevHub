@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace DevHub.Controllers.Recruiter
 {
     [Route("recruiter/dashboard")]
+    [Authorize(Roles = "BUSINESS")]
     public class RecruiterDashboardController : Controller
     {
         public RecruiterDashboardController()

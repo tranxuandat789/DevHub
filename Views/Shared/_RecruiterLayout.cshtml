@@ -84,7 +84,7 @@
             <nav class="hidden md:flex space-x-8">
                 <a href="/Home/Employer" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
                 <a href="/recruiter/dashboard" class="text-primary font-bold hover:text-primary transition-colors text-[16px]">Dashboard</a>
-                <a href="/Employer/Pricing" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Bảng giá</a>
+                <a href="/Recruiter/RecruiterService" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Bảng giá</a>
             </nav>
         </div>
         
@@ -149,10 +149,35 @@
                 </div>
             </div>
 
+@using System.Security.Claims
+@using DevHub.Services.Interfaces
+@inject IAuthService AuthService
+@{
+    bool isLoggedIn = User.Identity?.IsAuthenticated == true;
+    string displayName = "Nhà tuyển dụng";
+    string avatarUrl = "";
+    if (isLoggedIn)
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+        if (!string.IsNullOrEmpty(email))
+        {
+            var dbUser = await AuthService.FindUserByEmailAsync(email);
+            if (dbUser != null)
+            {
+                displayName = dbUser.Recruiter?.CompanyName ?? dbUser.Recruiter?.FullName ?? dbUser.Email;
+                avatarUrl = dbUser.Recruiter?.CompanyLogoUrl ?? "";
+            }
+        }
+    }
+    var finalAvatar = !string.IsNullOrEmpty(avatarUrl)
+        ? avatarUrl
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(displayName)}&background=4640DE&color=fff&size=128";
+}
             <!-- Dropdown Menu / Avatar -->
             <div class="flex items-center gap-2 cursor-pointer relative group py-2">
-                <img src="https://i.pravatar.cc/150?img=11" alt="Avatar" class="w-10 h-10 rounded-full object-cover">
-                <span class="font-bold text-dark text-[15px]">Nhà tuyển dụng</span>
+                <img src="@finalAvatar" alt="Avatar" class="w-10 h-10 rounded-full object-cover"
+                     onerror="this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(displayName)&background=4640DE&color=fff&size=128'">
+                <span class="font-bold text-dark text-[15px]">@displayName</span>
                 <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>                            
                 
                 <div class="absolute top-full right-0 pt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
@@ -161,7 +186,7 @@
                         <a href="/Recruiter/JobPost" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Quản lý tin tuyển dụng</a>
                         <a href="/Recruiter/RecruiterProfile" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
                         <div class="w-full h-[1px] bg-gray-100 my-1"></div>
-                        <a href="javascript:void(0)" onclick="document.cookie = 'IsLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; document.cookie = 'UserRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; window.location.href='/Home/Employer';" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
+                        <a href="/Auth/EmployerLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
                     </div>
                 </div>
             </div>
@@ -432,5 +457,36 @@
         });
     </script>
     @RenderSection("Scripts", required: false)
+
+    @{
+        var toastSuccess = TempData["SuccessMsg"]?.ToString();
+    }
+    @if (!string.IsNullOrEmpty(toastSuccess))
+    {
+        <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
+            <div class="toast flex items-start gap-3 bg-white border border-green-200 rounded-xl shadow-lg px-5 py-4">
+                <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[14px] font-semibold text-green-800">Thành công</p>
+                    <p class="text-[13px] text-green-700 mt-0.5">@toastSuccess</p>
+                </div>
+                <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-gray-600 ml-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                document.querySelectorAll('.toast').forEach(t => {
+                    t.style.transition = 'opacity 0.4s, transform 0.4s';
+                    t.style.opacity = '0';
+                    t.style.transform = 'translateY(-10px)';
+                    setTimeout(() => t.remove(), 400);
+                });
+            }, 4000);
+        </script>
+    }
 </body>
 </html>

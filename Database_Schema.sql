@@ -17,7 +17,9 @@ CREATE TABLE [user_account] (
     [is_active] BIT DEFAULT 1,
     [created_at] DATETIME DEFAULT GETDATE(),
     [last_login] DATETIME NULL,
-    [last_updated] DATETIME DEFAULT GETDATE()
+    [last_updated] DATETIME DEFAULT GETDATE(), 
+    [reset_password_token] NVARCHAR(255) NULL, 
+    [reset_password_expires_at] DATETIME NULL
 );
 
 -- GOOGLE ID IS NOT REQUIRED, BUT HAS TO BE UNIQUE

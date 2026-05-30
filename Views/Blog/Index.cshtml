@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Cẩm nang nghề nghiệp";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="relative overflow-hidden py-16 mb-8" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 70% 50%, rgba(38,164,255,0.18), transparent 45%), radial-gradient(circle at 25% 60%, rgba(139,92,246,0.12), transparent 40%);">
+    <!-- Blob decorators -->
+    <div class="absolute top-0 right-0 w-72 h-72 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, rgba(38,164,255,0.5), transparent 70%); transform: translate(30%, -30%);"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-15 blur-3xl" style="background: radial-gradient(circle, rgba(139,92,246,0.5), transparent 70%); transform: translate(-30%, 30%);"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="font-epilogue font-bold text-[48px] leading-tight text-dark mb-4">
+                Bài viết <span style="color: #26A4FF;">nổi bật</span>
+            </h1>
+            <p class="text-muted text-lg max-w-2xl mx-auto">
+                Khám phá những góc nhìn mới, mẹo hay và xu hướng nghề nghiệp từ các chuyên gia để phát triển sự nghiệp của bạn.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <!-- Categories & Search -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+            <div class="flex flex-wrap gap-3">
+                <a href="#" class="px-5 py-2.5 rounded-full bg-[#26A4FF] text-white font-medium text-sm transition hover:bg-opacity-90">Tất cả</a>
+                <a href="#" class="px-5 py-2.5 rounded-full bg-gray-100 text-gray-600 font-medium text-sm transition hover:bg-gray-200">Kỹ năng mềm</a>
+                <a href="#" class="px-5 py-2.5 rounded-full bg-gray-100 text-gray-600 font-medium text-sm transition hover:bg-gray-200">Kinh nghiệm phỏng vấn</a>
+                <a href="#" class="px-5 py-2.5 rounded-full bg-gray-100 text-gray-600 font-medium text-sm transition hover:bg-gray-200">Xu hướng công nghệ</a>
+                <a href="#" class="px-5 py-2.5 rounded-full bg-gray-100 text-gray-600 font-medium text-sm transition hover:bg-gray-200">Bí quyết xin việc</a>
+            </div>
+            
+            <div class="relative w-full md:w-80">
+                <input type="text" placeholder="Tìm kiếm bài viết..." class="w-full pl-10 pr-4 py-3 rounded-lg border border-bordercolor focus:outline-none focus:border-[#26A4FF] focus:ring-1 focus:ring-[#26A4FF] transition" />
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </div>
+
+        <!-- Featured Article -->
+        <div class="mb-16">
+            <a href="/CareerHandbook/Details/1" class="group grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition duration-300">
+                <div class="h-64 md:h-full w-full relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1000&auto=format&fit=crop" alt="Featured Article" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                    <div class="absolute top-4 left-4">
+                        <span class="bg-[#26A4FF] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Mới nhất</span>
+                    </div>
+                </div>
+                <div class="p-8 md:pr-12 md:py-12">
+                    <div class="flex items-center gap-3 text-sm text-muted mb-4">
+                        <span class="font-medium text-[#26A4FF]">Xu hướng công nghệ</span>
+                        <span>•</span>
+                        <span>24 Thg 5, 2026</span>
+                        <span>•</span>
+                        <span>5 phút đọc</span>
+                    </div>
+                    <h2 class="text-3xl font-bold text-dark mb-4 group-hover:text-[#26A4FF] transition">Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026</h2>
+                    <p class="text-muted mb-6 line-clamp-3">
+                        Năm 2026 đánh dấu sự lên ngôi của AI trong quy trình tuyển dụng. Để CV của bạn lọt qua các vòng lọc tự động và tạo ấn tượng với nhà tuyển dụng, bạn cần nắm vững những nguyên tắc cốt lõi mới.
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="https://i.pravatar.cc/150?img=12" alt="Author" class="w-10 h-10 rounded-full" />
+                            <div>
+                                <p class="text-sm font-bold text-dark">Nguyễn Văn A</p>
+                                <p class="text-xs text-muted">Chuyên gia Nhân sự</p>
+                            </div>
+                        </div>
+                        <span class="text-[#26A4FF] font-medium flex items-center gap-1">
+                            Đọc tiếp <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Article Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Article 1 -->
+            <a href="/CareerHandbook/Details/2" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="h-48 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Kinh nghiệm phỏng vấn</div>
+                    <h3 class="text-xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">5 câu hỏi thường gặp khi phỏng vấn Senior Developer</h3>
+                    <p class="text-muted text-sm mb-6 line-clamp-3 flex-grow">Chuẩn bị kỹ lưỡng cho những câu hỏi hóc búa về system design, quản lý team và xử lý xung đột trong công việc.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2">
+                            <img src="https://i.pravatar.cc/150?img=33" alt="Author" class="w-8 h-8 rounded-full" />
+                            <span class="text-sm font-medium text-dark">Trần Thị B</span>
+                        </div>
+                        <span class="text-xs text-muted">22 Thg 5</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Article 2 -->
+            <a href="/CareerHandbook/Details/3" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="h-48 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600&auto=format&fit=crop" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Kỹ năng mềm</div>
+                    <h3 class="text-xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">Nghệ thuật giao tiếp hiệu quả trong môi trường làm việc Agile</h3>
+                    <p class="text-muted text-sm mb-6 line-clamp-3 flex-grow">Làm thế nào để truyền đạt ý tưởng rõ ràng, nhận feedback tích cực và làm việc nhóm hiệu quả trong các dự án phát triển phần mềm.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2">
+                            <img src="https://i.pravatar.cc/150?img=15" alt="Author" class="w-8 h-8 rounded-full" />
+                            <span class="text-sm font-medium text-dark">Lê Văn C</span>
+                        </div>
+                        <span class="text-xs text-muted">20 Thg 5</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Article 3 -->
+            <a href="/CareerHandbook/Details/4" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="h-48 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600&auto=format&fit=crop" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Bí quyết xin việc</div>
+                    <h3 class="text-xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">Làm sao để Deal Lương thành công cho Fresher?</h3>
+                    <p class="text-muted text-sm mb-6 line-clamp-3 flex-grow">Những chiến thuật đàm phán lương hiệu quả dành cho người mới ra trường mà không làm mất điểm trong mắt nhà tuyển dụng.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2">
+                            <img src="https://i.pravatar.cc/150?img=47" alt="Author" class="w-8 h-8 rounded-full" />
+                            <span class="text-sm font-medium text-dark">Phạm Minh D</span>
+                        </div>
+                        <span class="text-xs text-muted">18 Thg 5</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Article 4 -->
+            <a href="/CareerHandbook/Details/5" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="h-48 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=600&auto=format&fit=crop" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Xu hướng công nghệ</div>
+                    <h3 class="text-xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">Tương lai của AI và ảnh hưởng đến nghề lập trình</h3>
+                    <p class="text-muted text-sm mb-6 line-clamp-3 flex-grow">Liệu AI có thay thế lập trình viên? Hay chỉ là công cụ hỗ trợ mạnh mẽ giúp chúng ta làm việc hiệu quả hơn? Cùng tìm hiểu.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2">
+                            <img src="https://i.pravatar.cc/150?img=60" alt="Author" class="w-8 h-8 rounded-full" />
+                            <span class="text-sm font-medium text-dark">Hoàng Tuấn E</span>
+                        </div>
+                        <span class="text-xs text-muted">15 Thg 5</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Article 5 -->
+            <a href="/CareerHandbook/Details/6" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="h-48 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1488190211105-8b0e74b0522f?q=80&w=600&auto=format&fit=crop" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Kỹ năng mềm</div>
+                    <h3 class="text-xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">Cách quản lý thời gian hiệu quả cho Developer</h3>
+                    <p class="text-muted text-sm mb-6 line-clamp-3 flex-grow">Phương pháp Pomodoro, Time Blocking và các công cụ giúp lập trình viên tránh xao nhãng và hoàn thành dự án đúng hạn.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2">
+                            <img src="https://i.pravatar.cc/150?img=22" alt="Author" class="w-8 h-8 rounded-full" />
+                            <span class="text-sm font-medium text-dark">Ngô Thị F</span>
+                        </div>
+                        <span class="text-xs text-muted">12 Thg 5</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Article 6 -->
+            <a href="/CareerHandbook/Details/7" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="h-48 overflow-hidden relative">
+                    <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=600&auto=format&fit=crop" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                    <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Kinh nghiệm phỏng vấn</div>
+                    <h3 class="text-xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">Hướng dẫn viết Cover Letter thu hút nhà tuyển dụng IT</h3>
+                    <p class="text-muted text-sm mb-6 line-clamp-3 flex-grow">Cover Letter vẫn rất quan trọng. Học cách viết thư xin việc thể hiện đam mê công nghệ và sự phù hợp với văn hóa công ty.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2">
+                            <img src="https://i.pravatar.cc/150?img=68" alt="Author" class="w-8 h-8 rounded-full" />
+                            <span class="text-sm font-medium text-dark">Vũ Quang G</span>
+                        </div>
+                        <span class="text-xs text-muted">10 Thg 5</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-12 flex justify-center">
+            <nav class="flex items-center gap-2">
+                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-muted hover:bg-gray-50 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </a>
+                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#26A4FF] text-white font-medium transition">1</a>
+                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-dark font-medium hover:bg-gray-50 transition">2</a>
+                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-dark font-medium hover:bg-gray-50 transition">3</a>
+                <span class="w-10 h-10 flex items-center justify-center text-muted">...</span>
+                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-dark font-medium hover:bg-gray-50 transition">8</a>
+                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-muted hover:bg-gray-50 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+            </nav>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,141 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Lịch sử Giao dịch";
+}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Lịch sử Nạp tiền & Giao dịch</h1>
+        <p class="text-muted">Theo dõi lịch sử mua gói dịch vụ và tổng chi tiêu của các Nhà tuyển dụng.</p>
+    </div>
+</div>
+
+<!-- Filters & Sort -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onsubmit="event.preventDefault();">
+        <div class="w-full md:col-span-2">
+            <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm Nhà tuyển dụng</label>
+            <input type="text" placeholder="Nhập tên công ty hoặc email HR..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Lọc theo Tổng Chi tiêu</label>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="highest">Chi tiêu Cao nhất</option>
+                <option value="lowest">Chi tiêu Thấp nhất</option>
+                <option value="recent">Giao dịch Gần nhất</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
+                Lọc kết quả
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-16">Mã GD</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-64">Nhà tuyển dụng / Công ty</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Gói Dịch vụ Đã mua</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-right">Giá trị Nạp</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-right">Tổng Chi tiêu (Lũy kế)</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-32">Ngày giao dịch</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                <!-- Transaction 1: Highest spender -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 font-mono text-muted">#TXN8912</td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-primary text-base mb-0.5">VNG Corporation</div>
+                        <div class="text-xs text-muted flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            quan.hr@vng.com.vn
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-dark font-medium">
+                        Gói Premium (12 Tháng)
+                        <span class="block text-xs text-gray-400 font-normal mt-0.5">Áp dụng Voucher: SUMMER26</span>
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-green-600">
+                        +24,000,000đ
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-dark">
+                        125,500,000đ
+                    </td>
+                    <td class="py-4 px-6 text-muted text-sm">
+                        24/05/2026<br><span class="text-xs">08:15 AM</span>
+                    </td>
+                </tr>
+                
+                <!-- Transaction 2 -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 font-mono text-muted">#TXN8911</td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-primary text-base mb-0.5">FPT Software</div>
+                        <div class="text-xs text-muted flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            tuyendung@fsoft.com.vn
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-dark font-medium">
+                        Gói Tiêu chuẩn (3 Tháng)
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-green-600">
+                        +1,500,000đ
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-dark">
+                        45,000,000đ
+                    </td>
+                    <td class="py-4 px-6 text-muted text-sm">
+                        23/05/2026<br><span class="text-xs">14:22 PM</span>
+                    </td>
+                </tr>
+
+                <!-- Transaction 3 -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 font-mono text-muted">#TXN8910</td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-primary text-base mb-0.5">Momo E-Wallet</div>
+                        <div class="text-xs text-muted flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            hr@momo.vn
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-dark font-medium">
+                        Gói VIP Đặc biệt (1 Tháng)
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-green-600">
+                        +5,000,000đ
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-dark">
+                        80,000,000đ
+                    </td>
+                    <td class="py-4 px-6 text-muted text-sm">
+                        22/05/2026<br><span class="text-xs">09:45 AM</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+        <div class="text-sm text-muted">
+            Hiển thị 1 đến 3 của 8,912 giao dịch
+        </div>
+        <div class="flex space-x-1">
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
+            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">3</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">...</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
+        </div>
+    </div>
+</div>

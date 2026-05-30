@@ -1,0 +1,94 @@
+<meta charset="utf-8" />
+@{
+    ViewData["Title"] = "Chi tiết thông báo";
+    ViewData["IsCandidate"] = "true";
+    ViewData["ActiveMenu"] = "Notifications";
+}
+
+<div class="bg-[#F8F9FA] min-h-screen py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Sidebar -->
+            <div class="lg:w-[280px] flex-shrink-0">
+                @await Html.PartialAsync("~/Views/Candidate/_Sidebar.cshtml")
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <div class="bg-white rounded-[10px] p-8 shadow-sm border border-[#D6DDEB]">
+                    <!-- Back Button & Header -->
+                    <div class="mb-8">
+                        <a href="/candidate/notifications" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary transition-colors mb-6">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Quay lại danh sách
+                        </a>
+                        
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-full flex items-center justify-center bg-red-100 text-red-600 flex-shrink-0 mt-1">
+                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-3 mb-2">
+                                    <h1 class="text-[22px] font-bold text-dark">Lịch phỏng vấn sắp tới</h1>
+                                    <span class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200">Quan trọng</span>
+                                </div>
+                                <p class="text-[14px] text-gray-500 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    10 phút trước &bull; 24 Tháng 5, 2026
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-[#D6DDEB] mb-8" />
+
+                    <!-- Content -->
+                    <div class="prose prose-sm sm:prose max-w-none text-gray-700">
+                        <p>Chào <strong>Phong Hoang</strong>,</p>
+                        <p>Bạn đã vượt qua vòng sơ loại hồ sơ và chúng tôi trân trọng mời bạn tham gia vòng phỏng vấn cho vị trí <strong>Frontend Developer</strong> tại công ty <strong>Tech Solutions</strong>.</p>
+                        
+                        <div class="bg-gray-50 rounded-lg p-5 border border-[#D6DDEB] my-6">
+                            <h3 class="text-[16px] font-bold text-dark mb-4 mt-0">Thông tin phỏng vấn:</h3>
+                            <ul class="space-y-3 m-0 list-none p-0">
+                                <li class="flex items-start">
+                                    <span class="font-semibold w-32 text-gray-800 flex-shrink-0">Thời gian:</span>
+                                    <span>09:00 AM, Ngày 25 Tháng 5, 2026</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="font-semibold w-32 text-gray-800 flex-shrink-0">Hình thức:</span>
+                                    <span>Phỏng vấn trực tuyến (Online qua Google Meet)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="font-semibold w-32 text-gray-800 flex-shrink-0">Link tham gia:</span>
+                                    <a href="#" class="text-primary hover:underline font-medium">https://meet.google.com/abc-xyz-def</a>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="font-semibold w-32 text-gray-800 flex-shrink-0">Người PV:</span>
+                                    <span>Nguyễn Văn A (Technical Manager)</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <p>Vui lòng chuẩn bị sẵn sàng môi trường yên tĩnh, microphone và camera hoạt động tốt. Xin hãy đăng nhập vào link trước 5 phút để đảm bảo kết nối.</p>
+                        <p>Nếu bạn có bất kỳ câu hỏi nào hoặc cần thay đổi thời gian phỏng vấn, vui lòng phản hồi lại email hoặc thông báo này ít nhất 24 giờ trước thời gian phỏng vấn.</p>
+                        <p>Trân trọng,<br>Đội ngũ tuyển dụng Tech Solutions</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="mt-10 flex flex-wrap gap-4 pt-6 border-t border-[#D6DDEB]">
+                        <button class="bg-[#4640DE] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-colors shadow-sm">Xác nhận tham gia</button>
+                        <button class="bg-white text-gray-700 border border-[#D6DDEB] px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Yêu cầu đổi lịch</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

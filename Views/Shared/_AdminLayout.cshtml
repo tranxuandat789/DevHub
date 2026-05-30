@@ -1,0 +1,63 @@
+@{
+    Layout = "_Layout";
+    ViewData["HideHeaderFooter"] = true;
+}
+<div class="flex h-screen bg-[#F7F5FC]">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-[#D6DDEB] hidden md:flex flex-col">
+        <!-- Logo -->
+        <a href="/" class="p-6 border-b border-[#D6DDEB] flex items-center gap-2 text-decoration-none hover:opacity-80 transition-opacity">
+            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden flex-shrink-0">
+                <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
+                <div class="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full"></div>
+            </div>
+            <span class="text-[24px] font-bold text-dark tracking-tight">JobHuntly</span>
+        </a>
+        
+        <div class="p-6 flex-1 overflow-y-auto">
+            <h5 class="text-xs uppercase tracking-wider text-muted font-bold mb-4">Admin Panel</h5>
+            <nav class="space-y-2">
+                <a href="/AdminDashboard" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value == "/AdminDashboard" || Context.Request.Path.Value == "/Admin" ? "text-primary bg-blue-50 font-bold" : "")">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    Dashboard
+                </a>
+                <a href="/AdminUser" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("AdminUser") == true ? "text-primary bg-blue-50 font-bold" : "")">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    Quản lý Người dùng
+                </a>
+                
+                <a href="/AdminTransaction" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("AdminTransaction") == true ? "text-primary bg-blue-50 font-bold" : "")">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Lịch sử Giao dịch
+                </a>
+
+                <a href="/AdminSubscription" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("AdminSubscription") == true ? "text-primary bg-blue-50 font-bold" : "")">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Gói đăng ký
+                </a>
+
+                <a href="/AdminModerator" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("AdminModerator") == true ? "text-primary bg-blue-50 font-bold" : "")">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Quản lý Moderator
+                </a>
+            </nav>
+        </div>
+        <!-- Logout Button -->
+        <div class="p-6 border-t border-[#D6DDEB]">
+            <a href="/Auth/AdminLogout" class="flex items-center gap-3 px-4 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium text-decoration-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        @RenderBody()
+    </main>
+</div>
+
+@await RenderSectionAsync("Scripts", required: false)
+

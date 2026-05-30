@@ -1,0 +1,204 @@
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Thanh toán dịch vụ";
+}
+
+<div class="p-6 sm:px-10 sm:pt-4 sm:pb-10">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Thanh toán giao dịch</h1>
+                <p class="text-gray-500 text-sm mt-1">Xác nhận thông tin và tiến hành thanh toán qua VNPay</p>
+            </div>
+            <button onclick="window.location.href='/Recruiter/RecruiterService'" class="text-[#4640DE] hover:text-indigo-800 font-medium text-sm flex items-center gap-2">
+                ← Quay lại các gói
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Chi tiết thanh toán -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Thông tin gói -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h2 class="font-bold text-gray-800">Thông tin gói dịch vụ</h2>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center text-orange-500 text-xl" id="packageIconWrapper">
+                                    <i class="fas fa-crown" id="packageIcon"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-900" id="packageName">Đang tải...</h3>
+                                    <p class="text-gray-500 text-sm mt-1" id="packageDesc">Chi tiết gói dịch vụ</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xl font-bold text-[#4640DE]" id="packagePrice">0 VNĐ</p>
+                                <p class="text-sm font-medium text-amber-600 mt-1" id="packageCoin">+0 Coin</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phương thức thanh toán -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50">
+                        <h2 class="font-bold text-gray-800">Phương thức thanh toán</h2>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <label class="flex items-center justify-between p-4 border border-[#4640DE] bg-indigo-50/30 rounded-lg cursor-pointer transition-all">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="paymentMethod" value="vnpay" class="w-4 h-4 text-[#4640DE]" checked />
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded bg-white shadow-sm flex items-center justify-center text-blue-600 font-bold text-xs border border-gray-100">
+                                        VNP
+                                    </div>
+                                    <span class="font-medium text-gray-900">Thanh toán tự động qua VNPay</span>
+                                </div>
+                            </div>
+                            <i class="fas fa-check-circle text-[#4640DE]"></i>
+                        </label>
+                        <p class="text-xs text-gray-500 ml-8 mt-2">Hệ thống sẽ chuyển hướng bạn đến trang thanh toán của VNPay. Hệ thống tự động xử lý và cộng token/coin sau khi chi trả thành công.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng quan đơn hàng -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sticky top-6">
+                    <h2 class="font-bold text-gray-800 mb-4 pb-4 border-b border-gray-100">Tổng quan đơn hàng</h2>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-gray-600 text-sm">
+                            <span>Tạm tính</span>
+                            <span class="font-medium text-gray-900" id="subtotalPrice">0 VNĐ</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600 text-sm">
+                            <span>Giảm giá</span>
+                            <span class="font-medium text-green-600" id="discountPrice">0 VNĐ</span>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
+                            <span class="font-bold text-gray-800">Tổng cộng</span>
+                            <span class="text-2xl font-bold text-[#4640DE]" id="totalPrice">0 VNĐ</span>
+                        </div>
+                    </div>
+
+                    <!-- Voucher -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mã giảm giá (có giới hạn)</label>
+                        <div class="flex items-stretch gap-1.5 h-10 w-full">
+                            <input type="text" id="voucherCode" placeholder="Nhập mã voucher" class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none" />
+                            <button onclick="applyVoucher()" class="bg-[#4640DE] text-white px-3.5 border border-transparent rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
+                                Áp dụng
+                            </button>
+                        </div>
+                        <p id="voucherMessage" class="text-xs mt-2 hidden"></p>
+                    </div>
+
+                    <button onclick="processPayment(this)" class="w-full bg-[#4640DE] text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+                        Thanh toán VNPay <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <p class="text-xs text-center text-gray-500 mt-4">Bằng việc thanh toán, bạn đồng ý với Điều khoản dịch vụ của DevHub.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Lấy package từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const packageId = urlParams.get('package');
+
+        // Thông tin gói mock
+        const packages = {
+            'coin': { name: 'Nạp Coin lẻ', desc: 'Mua số lượng coin tùy chọn', price: 100000, coin: 100, icon: 'fa-coins', color: 'text-amber-500', bg: 'bg-amber-100' },
+            'single': { name: 'Đăng bài lẻ', desc: '1 lượt đăng bài (10 Coin)', price: 10000, coin: 10, icon: 'fa-file-alt', color: 'text-[#4640DE]', bg: 'bg-indigo-100' },
+            'bronze': { name: 'Gói Đồng', desc: 'Đăng 5 bài / 1 tháng', price: 40000, coin: 40, icon: 'fa-medal', color: 'text-orange-500', bg: 'bg-orange-100' },
+            'silver': { name: 'Gói Bạc', desc: 'Đăng 20 bài / 3 tháng, đẩy bài', price: 120000, coin: 120, icon: 'fa-gem', color: 'text-gray-500', bg: 'bg-gray-100' },
+            'gold': { name: 'Gói Vàng', desc: 'Đăng 50 bài / 6 tháng, đẩy bài + AI chatbot', price: 200000, coin: 200, icon: 'fa-crown', color: 'text-yellow-500', bg: 'bg-yellow-100' }
+        };
+
+        let currentPrice = 0;
+        let discount = 0;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        $(document).ready(function() {
+            if (packageId && packages[packageId]) {
+                const pkg = packages[packageId];
+                currentPrice = pkg.price;
+                
+                $('#packageName').text(pkg.name);
+                $('#packageDesc').text(pkg.desc);
+                $('#packagePrice').text(formatCurrency(pkg.price));
+                $('#packageCoin').text('+' + pkg.coin + ' Coin');
+                
+                // Cập nhật icon
+                $('#packageIconWrapper').attr('class', `w-12 h-12 rounded-lg ${pkg.bg} flex items-center justify-center ${pkg.color} text-xl`);
+                $('#packageIcon').attr('class', `fas ${pkg.icon}`);
+
+                updateTotal();
+            } else {
+                window.location.href = '/Recruiter/RecruiterService';
+            }
+        });
+
+        function updateTotal() {
+            const total = Math.max(0, currentPrice - discount);
+            $('#subtotalPrice').text(formatCurrency(currentPrice));
+            $('#discountPrice').text('-' + formatCurrency(discount));
+            $('#totalPrice').text(formatCurrency(total));
+        }
+
+        function applyVoucher() {
+            const code = $('#voucherCode').val().trim().toUpperCase();
+            const msg = $('#voucherMessage');
+            
+            if (!code) {
+                msg.text('Vui lòng nhập mã voucher').removeClass('hidden text-green-600').addClass('text-red-500');
+                discount = 0;
+                updateTotal();
+                return;
+            }
+
+            // Mock voucher logic
+            if (code === 'GIAM20K') {
+                discount = 20000;
+                msg.text('Áp dụng voucher thành công! Giảm 20.000đ').removeClass('hidden text-red-500').addClass('text-green-600');
+            } else if (code === 'DevHub') {
+                // Giới hạn giảm giá tối đa 50k
+                let calcDiscount = currentPrice * 0.1;
+                if(calcDiscount > 50000) calcDiscount = 50000;
+
+                discount = calcDiscount;
+                msg.text(`Áp dụng thành công! Giảm 10% (tối đa 50k)`).removeClass('hidden text-red-500').addClass('text-green-600');
+            } else {
+                discount = 0;
+                msg.text('Mã voucher không hợp lệ hoặc đã hết lượt sử dụng').removeClass('hidden text-green-600').addClass('text-red-500');
+            }
+            updateTotal();
+        }
+
+        function processPayment(btn) {
+            const total = Math.max(0, currentPrice - discount);
+            
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo URL thanh toán VNPay...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert(`Redirecting to VNPay url... Amount: ${formatCurrency(total)}`);
+                // Giả lập sau khi thanh toán thành công và gọi return url
+                alert('Return URL: Thanh toán hóa đơn thành công! Coin đã được tự động cộng vào tài khoản.');
+                window.location.href = '/Recruiter/RecruiterService/History';
+            }, 1500);
+        }
+    </script>
+}

@@ -1,0 +1,153 @@
+@{
+    ViewData["Title"] = "Quan Ly Nguoi Dung";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Quản lý Người dùng (Toàn quyền)</h1>
+        <p class="text-muted">Kiểm soát tất cả người tìm việc và nhà tuyển dụng trên hệ thống.</p>
+    </div>
+</div>
+
+<!-- Filters & Sort -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onsubmit="event.preventDefault();">
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm</label>
+            <input type="text" placeholder="Tên hoặc Doanh nghiệp..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Vai trò</label>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="">Tất cả vai trò</option>
+                <option value="candidate">Người tìm việc (Candidate)</option>
+                <option value="recruiter">Nhà tuyển dụng (Recruiter)</option>
+            </select>
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp theo</label>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="role">Vai trò</option>
+                <option value="name_asc">Tên (A-Z)</option>
+                <option value="company">Tên Doanh nghiệp</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-16">ID</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-56">Người dùng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-40">Vai trò</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Doanh nghiệp</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-32">Trạng thái</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center w-40">Thao tác Admin</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                <!-- Row 1: Candidate -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium">#105</td>
+                    <td class="py-4 px-6 flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/150?img=15" alt="Avatar" class="w-10 h-10 object-cover rounded-full border border-gray-200" />
+                        <div>
+                            <div class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1">Phạm Ngọc Ánh</div>
+                            <div class="text-xs text-muted mt-0.5">anhpham@gmail.com</div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-semibold">Người tìm việc</span>
+                    </td>
+                    <td class="py-4 px-6 text-muted italic">-</td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Hoạt động
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-1">
+                        <button onclick="adminAction(105, 'reset_password')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Reset Mật khẩu">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                        </button>
+                        <button onclick="adminAction(105, 'lock')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Khóa tài khoản">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                
+                <!-- Row 2: Recruiter -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 text-muted font-medium">#201</td>
+                    <td class="py-4 px-6 flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/150?img=32" alt="Avatar" class="w-10 h-10 object-cover rounded-full border border-gray-200" />
+                        <div>
+                            <div class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1">Trần Minh Quân</div>
+                            <div class="text-xs text-muted mt-0.5">quan.hr@vng.com.vn</div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="bg-purple-50 text-purple-700 px-2.5 py-1 rounded-md text-xs font-semibold">Nhà tuyển dụng</span>
+                    </td>
+                    <td class="py-4 px-6 font-bold text-dark">
+                        VNG Corporation
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Bị Khóa
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-1">
+                        <button onclick="adminAction(201, 'reset_password')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Reset Mật khẩu">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                        </button>
+                        <button onclick="adminAction(201, 'unlock')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Mở khóa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+        <div class="text-sm text-muted">
+            Hiển thị 1 đến 2 của 1,024 người dùng
+        </div>
+        <div class="flex space-x-1">
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
+            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">3</button>
+            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function adminAction(id, action) {
+            if (action === 'lock') {
+                if (confirm(`ADMIN: Bạn có chắc chắn muốn KHÓA tài khoản #${id}? Hệ thống sẽ ghi log.`)) {
+                    alert(`Đã khóa thành công tài khoản #${id}!`);
+                }
+            } else if (action === 'unlock') {
+                if (confirm(`ADMIN: Xác nhận MỞ KHÓA tài khoản #${id}?`)) {
+                    alert(`Đã mở khóa tài khoản #${id}!`);
+                }
+            } else if (action === 'reset_password') {
+                if (confirm(`ADMIN: Xác nhận gửi email yêu cầu Đặt Lại Mật Khẩu cho người dùng #${id}?`)) {
+                    alert(`Đã gửi email Reset Password cho người dùng #${id}!`);
+                }
+            }
+        }
+    </script>
+}

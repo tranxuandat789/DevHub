@@ -9,4 +9,5 @@ public interface IUserAccountRepository
     Task<UserAccount> AddAsync(UserAccount user);
     Task UpdateLastLoginAsync(int userId);
     Task UpdateGoogleIdAsync(int userId, string googleId);
+    Task UpdatePasswordAsync(int userId, string passwordHash);
 }

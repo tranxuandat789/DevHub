@@ -390,13 +390,6 @@ public class AuthController : Controller
         string scheme;
         switch (userTypeLower)
         {
-<<<<<<< Updated upstream
-            "Recruiter" => ("BUSINESS",  "EmployerCookies"),
-            "Admin"     => ("ADMIN",     "AdminCookies"),
-            "Moderator" => ("MODERATOR", "AdminCookies"),
-            _           => ("CANDIDATE", CookieAuthenticationDefaults.AuthenticationScheme)
-        };
-=======
             case "recruiter":
                 roleClaim = "RECRUITER";
                 scheme = "EmployerCookies";
@@ -414,7 +407,6 @@ public class AuthController : Controller
                 scheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 break;
         }
->>>>>>> Stashed changes
 
         var claims = new List<Claim>
         {

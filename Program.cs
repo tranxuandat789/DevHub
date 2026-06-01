@@ -196,11 +196,8 @@ builder.Services.AddScoped<IReviewRecruiterService, ReviewRecruiterService>();
 builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-<<<<<<< Updated upstream
-=======
 builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
 builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
->>>>>>> Stashed changes
 
 var app = builder.Build();
 

@@ -18,13 +18,7 @@
                 <img src="@displayAvatar" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-2 border-white shadow-sm" id="avatarPreview"
                      onerror="this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(displayName)&background=4640DE&color=fff&size=128'">
                 <div>
-                    <div class="flex items-center gap-3">
-                        <label class="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-sm transition-colors cursor-pointer border border-blue-100">
-                            Thay đổi ảnh
-                            <input type="file" class="hidden" accept="image/*" onchange="previewImage(this, 'avatarPreview')">
-                        </label>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">Định dạng JPG, GIF hoặc PNG. Tối đa 2MB.</p>
+                    <p class="text-sm text-gray-600">Ảnh đại diện được quản lý trong mục <a href="/Recruiter/Settings?tab=company" class="text-blue-600">Thông tin công ty</a>. Vui lòng cập nhật logo công ty ở đó.</p>
                 </div>
             </div>
         </div>

@@ -1,5 +1,11 @@
-﻿namespace DevHub.Services.Interfaces;
+﻿using DevHub.Models;
+using DevHub.ViewModels.Recruiter;
+
+namespace DevHub.Services.Interfaces;
 
 public interface IRecruiterService
 {
+    Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId);
+    Task UpdateProfileAsync(Recruiter recruiter, RecruiterProfileViewModel updateVm);
+    Task SendVerificationRequestAsync(int recruiterId);
 }

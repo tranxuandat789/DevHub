@@ -6,7 +6,8 @@
         </div>
     </div>
 
-    <form class="space-y-6">
+    <form asp-action="UploadLicense" asp-controller="Settings" method="post" enctype="multipart/form-data" class="space-y-6">
+        @Html.AntiForgeryToken()
         <!-- Upload Area -->
         <div class="w-full">
             <label class="flex justify-center w-full h-48 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-blue-400 focus:outline-none hover:bg-blue-50/50 relative overflow-hidden group" id="dropzone">
@@ -14,10 +15,10 @@
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <svg class="w-10 h-10 mb-3 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                         <p class="mb-2 text-sm text-gray-500"><span class="font-semibold text-blue-600">Nhấn để chọn file</span> hoặc kéo thả vào đây</p>
-                        <p class="text-xs text-gray-400">PDF, JPG hoặc PNG (Tối đa 5MB)</p>
+                            <p class="text-xs text-gray-400">PDF, DOC, JPG hoặc PNG (Tối đa 10MB)</p>
                     </div>
                 </span>
-                <input type="file" name="file_upload" class="hidden" accept=".pdf,image/png,image/jpeg" id="fileInput" onchange="handleFileSelect(this)">
+                <input type="file" name="file_upload" class="hidden" accept=".pdf,.doc,.docx,image/png,image/jpeg" id="fileInput" onchange="handleFileSelect(this)">
                 
                 <!-- Preview Overlay (Hidden by default) -->
                 <div id="filePreview" class="hidden absolute inset-0 bg-white flex items-center justify-between px-6 border-2 border-blue-400 rounded-xl">
@@ -108,9 +109,9 @@
         if (files.length > 0) {
             const file = files[0];
             
-            // Check size (5MB = 5 * 1024 * 1024 bytes)
-            if (file.size > 5242880) {
-                alert("File quá lớn. Vui lòng chọn file dưới 5MB.");
+            // Check size (10MB = 10 * 1024 * 1024 bytes)
+            if (file.size > 10485760) {
+                alert("File quá lớn. Vui lòng chọn file dưới 10MB.");
                 return;
             }
 

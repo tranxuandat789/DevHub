@@ -12,6 +12,9 @@ public partial class UserAccount
     public string Email { get; set; } = null!;
 
     public string? PasswordHash { get; set; }
+    public string? OtpVerification { get; set; }
+
+    public DateTime? OtpExpiresAt { get; set; } 
     public string? ResetPasswordToken { get; set; }
 
     public DateTime? ResetPasswordExpiresAt { get; set; }

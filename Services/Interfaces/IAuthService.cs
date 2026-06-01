@@ -13,4 +13,5 @@ public interface IAuthService
     Task LinkGoogleIdAsync(int userId, string googleId);
     Task SyncCandidateAvatarAsync(int candidateId, string avatarUrl);
     Task SyncRecruiterAvatarAsync(int recruiterId, string avatarUrl);
+    Task UpdatePasswordAsync(int userId, string passwordHash);
 }

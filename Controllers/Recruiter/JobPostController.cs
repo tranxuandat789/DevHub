@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace DevHub.Controllers.Recruiter
 {
     [Route("Recruiter/[controller]")]
-    [Authorize(Roles = "BUSINESS")]
+    [Authorize(Roles = "RECRUITER")]
     public class JobPostController : Controller
     {
         private readonly IAuthService _authService;

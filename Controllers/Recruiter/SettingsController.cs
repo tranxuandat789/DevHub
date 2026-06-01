@@ -7,7 +7,7 @@ using DevHub.Services.Interfaces;
 namespace DevHub.Controllers.Recruiter
 {
     [Route("Recruiter/Settings")]
-    [Authorize(Roles = "BUSINESS")]
+    [Authorize(Roles = "RECRUITER")]
     public class SettingsController : Controller
     {
         private readonly IAuthService _authService;

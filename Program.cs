@@ -199,6 +199,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
 builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
 
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

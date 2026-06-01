@@ -917,6 +917,12 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.ResetPasswordToken)
                 .HasMaxLength(100)
                 .HasColumnName("reset_password_token");
+            entity.Property(e => e.OtpVerification)
+                .HasMaxLength(255)
+                .HasColumnName("otp_verification");
+            entity.Property(e => e.OtpExpiresAt)
+                .HasColumnType("datetime")
+                .HasColumnName("otp_expires_at");
             entity.Property(e => e.ResetPasswordExpiresAt)
                 .HasColumnType("datetime")
                 .HasColumnName("reset_password_expires_at");

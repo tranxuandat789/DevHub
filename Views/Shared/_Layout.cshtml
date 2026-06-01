@@ -47,11 +47,11 @@
 
     if (isLoggedIn)
     {
-        if (isEmployer && userRole != "BUSINESS")
+        if (isEmployer && userRole != "RECRUITER")
         {
             isLoggedIn = false;
         }
-        else if (!isEmployer && userRole == "BUSINESS")
+        else if (!isEmployer && userRole == "RECRUITER")
         {
             isLoggedIn = false;
         }
@@ -189,7 +189,7 @@
                             <!-- Dropdown Menu -->
                             <div class="absolute top-full right-0 pt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                                 <div class="bg-white border border-[#D6DDEB] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.08)] py-2 overflow-hidden">
-                                    @if (userRole == "BUSINESS")
+                                    @if (userRole == "RECRUITER")
                                     {
                                         <a href="/recruiter/dashboard" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Dashboard</a>
                                         <a href="/Recruiter/JobPost" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Quản lý tin tuyển dụng</a>
@@ -203,7 +203,7 @@
                                         <a href="/Candidate/ChangePassword" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
                                     }
                                     <div class="w-full h-[1px] bg-gray-100 my-1"></div>
-                                    @if (userRole == "BUSINESS")
+                                    @if (userRole == "RECRUITER")
                                     {
                                         <a href="/Auth/EmployerLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
                                     }
@@ -387,7 +387,7 @@
 }
 @if (!string.IsNullOrEmpty(toastSuccess))
 {
-    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
+    <div id="toast-container" class="fixed top-20 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
         <div class="toast flex items-start gap-3 bg-white border border-green-200 rounded-xl shadow-lg px-5 py-4">
             <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -409,7 +409,7 @@
                 t.style.transform = 'translateY(-10px)';
                 setTimeout(() => t.remove(), 400);
             });
-        }, 4000);
+        }, 2500);
     </script>
 }
 </body>

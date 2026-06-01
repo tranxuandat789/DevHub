@@ -45,4 +45,11 @@ public class UserAccountRepository : IUserAccountRepository
               .ExecuteUpdateAsync(s => s
                   .SetProperty(u => u.GoogleId, googleId)
                   .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
+
+    public Task UpdatePasswordAsync(int userId, string passwordHash)
+        => _db.UserAccounts
+              .Where(u => u.UserId == userId)
+              .ExecuteUpdateAsync(s => s
+                  .SetProperty(u => u.PasswordHash, passwordHash)
+                  .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
 }

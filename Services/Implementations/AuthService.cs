@@ -96,4 +96,7 @@ public class AuthService : IAuthService
 
     public Task SyncRecruiterAvatarAsync(int recruiterId, string avatarUrl)
         => _recruiterRepo.UpdateCompanyLogoAsync(recruiterId, avatarUrl);
+
+    public Task UpdatePasswordAsync(int userId, string passwordHash)
+        => _userRepo.UpdatePasswordAsync(userId, passwordHash);
 }

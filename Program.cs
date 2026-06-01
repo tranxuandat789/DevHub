@@ -195,6 +195,7 @@ builder.Services.AddScoped<IReviewRecruiterService, ReviewRecruiterService>();
 builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
 
 var app = builder.Build();
 

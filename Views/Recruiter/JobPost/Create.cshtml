@@ -18,7 +18,8 @@
 
     <!-- Form Container -->
     <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 md:p-8 shadow-sm">
-        <form action="/Recruiter/JobPost/Create" method="post" class="space-y-8">
+        <form asp-action="Create" asp-controller="JobPost" method="post" class="space-y-8">
+            @Html.AntiForgeryToken()
             
             <!-- 1. Thông tin chung -->
             <div>
@@ -31,15 +32,15 @@
 
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Vị trí (Job Position) <span class="text-red-500">*</span></label>
-                        <select name="JobPosition" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" required>
+                        <select name="PositionId" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" required>
                             <option value="">Chọn vị trí...</option>
-                            <option value="Dev">Developer (Backend/Frontend/Fullstack)</option>
-                            <option value="BA">Business Analyst (BA)</option>
-                            <option value="Tester">Tester / QC / QA</option>
-                            <option value="PM">Project Manager (PM)</option>
-                            <option value="DevOps">DevOps Engineer</option>
-                            <option value="Data">Data Engineer / Data Scientist</option>
-                            <option value="UIUX">UI/UX Designer</option>
+                            @if (ViewBag.Positions != null)
+                            {
+                                foreach (var p in (List<DevHub.Models.CommonJobPosition>)ViewBag.Positions)
+                                {
+                                    <option value="@p.PositionId">@p.PositionName</option>
+                                }
+                            }
                         </select>
                     </div>
 
@@ -84,11 +85,49 @@
             <div>
                 <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">2. Yêu cầu chuyên môn & Kỹ năng</h2>
                 <div class="grid grid-cols-1 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-dark mb-2">Công nghệ sử dụng (Tech Stack) <span class="text-red-500">*</span></label>
-                        <input type="text" name="TechStack" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="VD: .NET, Java, C++, ReactJS..." required>
-                        <p class="text-xs text-muted mt-2">Ngăn cách các công nghệ bằng dấu phẩy (,)</p>
-                    </div>
+                <div class="form-group">
+                    <label class="text-sm font-bold text-dark block mb-2">Công nghệ / Tech Stack <span class="text-red-500">*</span></label>
+                    <select id="tech-dropdown" name="TechnologyIds" class="form-select w-full border border-gray-200 rounded-lg p-3" multiple required>
+                        <option value="">Chọn công nghệ...</option>
+                        @if (ViewBag.Techs != null)
+                        {
+                            foreach (var tech in (List<DevHub.Models.CommonTechnology>)ViewBag.Techs)
+                            {
+                                <option value="@tech.TechId">@tech.TechName</option>
+                            }
+                        }
+                    </select>
+                    <small class="text-muted block mt-1">Chỉ chọn từ danh sách hệ thống. Có thể chọn nhiều công nghệ, không trùng lặp.</small>
+                </div>
+
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const techDropdown = document.getElementById('tech-dropdown');
+                    if (!techDropdown) return;
+
+                    // Initialize Choices.js if available
+                    if (window.Choices) {
+                        new Choices(techDropdown, {
+                            removeItemButton: true,
+                            duplicateItemsAllowed: false,
+                            placeholderValue: 'Chọn công nghệ...',
+                            searchPlaceholderValue: 'Tìm công nghệ...',
+                            shouldSort: false,
+                            itemSelectText: 'Nhấn để chọn',
+                            classNames: {
+                                containerOuter: 'choices w-full',
+                                input: 'choices__input w-full px-3 py-2 border border-gray-200 rounded-lg',
+                                list: 'choices__list w-full',
+                                listItems: 'choices__list--multiple',
+                                listSingle: 'choices__list--single',
+                                listDropdown: 'choices__list--dropdown w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg'
+                            }
+                        });
+                    } else {
+                        console.warn('Choices.js không được tải. Sẽ sử dụng dropdown bình thường.');
+                    }
+                });
+                </script>
 
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Kỹ năng mềm (Skills)</label>

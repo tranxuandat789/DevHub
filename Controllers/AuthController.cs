@@ -387,13 +387,28 @@ public class AuthController : Controller
         }
         avatarUrl ??= "";
 
-        var (roleClaim, scheme) = user.UserType switch
+        var userTypeLower = (user.UserType ?? string.Empty).ToLowerInvariant();
+        string roleClaim;
+        string scheme;
+        switch (userTypeLower)
         {
-            "Recruiter" => ("RECRUITER",  "EmployerCookies"),
-            "Admin"     => ("ADMIN",     "AdminCookies"),
-            "Moderator" => ("MODERATOR", "AdminCookies"),
-            _           => ("CANDIDATE", CookieAuthenticationDefaults.AuthenticationScheme)
-        };
+            case "recruiter":
+                roleClaim = "RECRUITER";
+                scheme = "EmployerCookies";
+                break;
+            case "admin":
+                roleClaim = "ADMIN";
+                scheme = "AdminCookies";
+                break;
+            case "moderator":
+                roleClaim = "MODERATOR";
+                scheme = "AdminCookies";
+                break;
+            default:
+                roleClaim = "CANDIDATE";
+                scheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                break;
+        }
 
         var claims = new List<Claim>
         {

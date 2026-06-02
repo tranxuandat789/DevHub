@@ -172,6 +172,7 @@ builder.Services.AddScoped<IRecruiterPackageHistoryRepository, RecruiterPackageH
 builder.Services.AddScoped<IReviewRecruiterRepository, ReviewRecruiterRepository>();
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -196,6 +197,8 @@ builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
+builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
+
 
 var app = builder.Build();
 
@@ -207,6 +210,19 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute("/Home/Error404");
 app.UseHttpsRedirection();
+
+// Legacy URL compatibility: rewrite /uploads/company-logos/... to /uploads/companylogo/...
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "";
+    if (path.StartsWith("/uploads/company-logos/", StringComparison.OrdinalIgnoreCase))
+    {
+        var newPath = "/uploads/companylogo/" + path.Substring("/uploads/company-logos/".Length);
+        context.Request.Path = new PathString(newPath);
+    }
+    await next();
+});
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();           // ← phải trước Authentication

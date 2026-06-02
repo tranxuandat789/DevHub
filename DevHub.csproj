@@ -6,6 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- User-uploaded files live under wwwroot/uploads. Exclude them from the build's
+       Content set and from the dotnet-watch file watcher, otherwise every upload creates
+       a new file that makes `dotnet watch` restart the app mid-request (process exits
+       with 0xffffffff right after the upload, with no exception). -->
+  <ItemGroup>
+    <Content Remove="wwwroot\uploads\**" />
+    <Watch Remove="wwwroot\uploads\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="DotNetEnv" Version="3.2.0" />

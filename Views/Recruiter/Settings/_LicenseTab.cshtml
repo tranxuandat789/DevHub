@@ -1,140 +1,363 @@
-<div>
-    <div class="flex items-start justify-between mb-6">
-        <div>
-            <h2 class="text-lg font-medium text-gray-900">Giấy phép kinh doanh</h2>
-            <p class="text-sm text-gray-500 mt-1">Cập nhật Giấy phép đăng ký kinh doanh để được xác thực tài khoản.</p>
-        </div>
-    </div>
+@model DevHub.Models.Recruiter
+@{
+    bool hasLicense = !string.IsNullOrEmpty(Model.BusinessLicenseUrl);
+    bool hasAdditional = !string.IsNullOrEmpty(Model.AdditionalDocumentsUrl);
 
-    <form asp-action="UploadLicense" asp-controller="Settings" method="post" enctype="multipart/form-data" class="space-y-6">
-        @Html.AntiForgeryToken()
-        <!-- Upload Area -->
-        <div class="w-full">
-            <label class="flex justify-center w-full h-48 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-blue-400 focus:outline-none hover:bg-blue-50/50 relative overflow-hidden group" id="dropzone">
-                <span class="flex items-center space-x-2">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg class="w-10 h-10 mb-3 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <p class="mb-2 text-sm text-gray-500"><span class="font-semibold text-blue-600">Nhấn để chọn file</span> hoặc kéo thả vào đây</p>
-                            <p class="text-xs text-gray-400">PDF, DOC, JPG hoặc PNG (Tối đa 10MB)</p>
-                    </div>
-                </span>
-                <input type="file" name="file_upload" class="hidden" accept=".pdf,.doc,.docx,image/png,image/jpeg" id="fileInput" onchange="handleFileSelect(this)">
-                
-                <!-- Preview Overlay (Hidden by default) -->
-                <div id="filePreview" class="hidden absolute inset-0 bg-white flex items-center justify-between px-6 border-2 border-blue-400 rounded-xl">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900" id="fileName">giay-phep-kinh-doanh.pdf</p>
-                            <p class="text-xs text-gray-500" id="fileSize">1.2 MB</p>
-                        </div>
-                    </div>
-                    <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeFile(event)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-            </label>
-        </div>
+    string LicenseFileName(string? url) =>
+        string.IsNullOrEmpty(url) ? "" : System.IO.Path.GetFileName(url);
+}
 
-        <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-4 flex gap-3">
-            <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <div class="text-sm text-blue-800">
-                <p class="font-medium mb-1">Lưu ý quan trọng:</p>
-                <ul class="list-disc list-inside space-y-1 text-blue-700/80">
-                    <li>Bản scan màu Giấy phép kinh doanh gốc hoặc bản sao y có công chứng (không quá 6 tháng).</li>
-                    <li>Hình ảnh/tài liệu phải rõ nét, đọc được toàn bộ nội dung.</li>
-                </ul>
+<div class="space-y-10">
+
+    <!--SECTION 1 — Business License -->
+    <div>
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h2 class="text-lg font-medium text-gray-900">Giấy phép kinh doanh</h2>
+                <p class="text-sm text-gray-500 mt-1">Cập nhật Giấy phép đăng ký kinh doanh để được xác thực tài khoản.</p>
             </div>
         </div>
 
-        <div class="pt-4 flex justify-end border-t border-gray-100">
-            <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm shadow-blue-500/20" id="submitBtn" disabled>
-                Tải lên
-            </button>
+        {{!-- File đã upload --}}
+        @if (hasLicense)
+        {
+            <div class="mb-4 flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                <div class="w-9 h-9 bg-green-100 text-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">@LicenseFileName(Model.BusinessLicenseUrl)</p>
+                    <p class="text-xs text-green-600">Đã tải lên — <a href="@Model.BusinessLicenseUrl" target="_blank" class="underline hover:text-green-800">Xem file</a></p>
+                </div>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Hiện tại</span>
+            </div>
+        }
+
+        <form asp-action="UploadLicense" asp-controller="Settings" method="post"
+              enctype="multipart/form-data" class="space-y-4">
+            @Html.AntiForgeryToken()
+
+            <div class="w-full">
+                <label class="flex justify-center w-full h-44 px-4 transition bg-white border-2 border-gray-300
+                              border-dashed rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50
+                              relative overflow-hidden group" id="dropzone">
+                    <span class="flex items-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-9 h-9 mb-2 text-gray-400 group-hover:text-blue-500 transition-colors"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="mb-1 text-sm text-gray-500">
+                                <span class="font-semibold text-blue-600">Nhấn để chọn file</span> hoặc kéo thả vào đây
+                            </p>
+                            <p class="text-xs text-gray-400">PDF, DOC, JPG hoặc PNG (Tối đa 10MB)</p>
+                            @if (hasLicense)
+                            {
+                                <p class="text-xs text-amber-500 mt-1">Tải file mới sẽ thay thế giấy phép hiện tại</p>
+                            }
+                        </div>
+                    </span>
+                    <input type="file" name="file_upload" class="hidden" accept=".pdf,.doc,.docx,image/png,image/jpeg"
+                           id="licenseFileInput" onchange="handleFileSelect(this, 'licensePreview', 'licenseFileName', 'licenseFileSize', 'licenseSubmitBtn')">
+
+                    <div id="licensePreview" class="hidden absolute inset-0 bg-white flex items-center
+                                                     justify-between px-6 border-2 border-blue-400 rounded-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-11 h-11 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900" id="licenseFileName"></p>
+                                <p class="text-xs text-gray-500" id="licenseFileSize"></p>
+                            </div>
+                        </div>
+                        <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2"
+                                onclick="removeFile(event, 'licenseFileInput', 'licensePreview', 'licenseSubmitBtn')">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </label>
+            </div>
+
+            <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-4 flex gap-3">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="text-sm text-blue-800">
+                    <p class="font-medium mb-1">Lưu ý quan trọng:</p>
+                    <ul class="list-disc list-inside space-y-1 text-blue-700/80">
+                        <li>Bản scan màu Giấy phép kinh doanh gốc hoặc bản sao y có công chứng (không quá 6 tháng).</li>
+                        <li>Hình ảnh/tài liệu phải rõ nét, đọc được toàn bộ nội dung.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-4 flex justify-end border-t border-gray-100">
+                <button type="submit" id="licenseSubmitBtn" disabled
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
+                               transition-colors shadow-sm shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    @(hasLicense ? "Cập nhật giấy phép" : "Tải lên")
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!--SECTION 1 — Additional document -->
+    <div class="border-t border-gray-100 pt-8">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h2 class="text-lg font-medium text-gray-900">Tài liệu bổ sung</h2>
+                <p class="text-sm text-gray-500 mt-1">Tài liệu khác hỗ trợ quá trình xác thực (giấy tờ thuế, xác nhận hoạt động, v.v.).</p>
+            </div>
         </div>
-    </form>
+
+        {{!-- File đã upload --}}
+        @if (hasAdditional)
+        {
+            <div class="mb-4 flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
+                <div class="w-9 h-9 bg-green-100 text-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">@LicenseFileName(Model.AdditionalDocumentsUrl)</p>
+                    <p class="text-xs text-green-600">Đã tải lên — <a href="@Model.AdditionalDocumentsUrl" target="_blank" class="underline hover:text-green-800">Xem file</a></p>
+                </div>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Hiện tại</span>
+            </div>
+        }
+
+        <form asp-action="UploadAdditionalDoc" asp-controller="Settings" method="post"
+              enctype="multipart/form-data" class="space-y-4">
+            @Html.AntiForgeryToken()
+
+            <div class="w-full">
+                <label class="flex justify-center w-full h-44 px-4 transition bg-white border-2 border-gray-300
+                              border-dashed rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50
+                              relative overflow-hidden group" id="addDropzone">
+                    <span class="flex items-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-9 h-9 mb-2 text-gray-400 group-hover:text-blue-500 transition-colors"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="mb-1 text-sm text-gray-500">
+                                <span class="font-semibold text-blue-600">Nhấn để chọn file</span> hoặc kéo thả vào đây
+                            </p>
+                            <p class="text-xs text-gray-400">PDF, DOC, JPG hoặc PNG (Tối đa 10MB)</p>
+                            @if (hasAdditional)
+                            {
+                                <p class="text-xs text-amber-500 mt-1">Tải file mới sẽ thay thế tài liệu hiện tại</p>
+                            }
+                        </div>
+                    </span>
+                    <input type="file" name="additional_file" class="hidden" accept=".pdf,.doc,.docx,image/png,image/jpeg"
+                           id="addFileInput" onchange="handleFileSelect(this, 'addPreview', 'addFileName', 'addFileSize', 'addSubmitBtn')">
+
+                    <div id="addPreview" class="hidden absolute inset-0 bg-white flex items-center
+                                                 justify-between px-6 border-2 border-blue-400 rounded-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-11 h-11 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900" id="addFileName"></p>
+                                <p class="text-xs text-gray-500" id="addFileSize"></p>
+                            </div>
+                        </div>
+                        <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2"
+                                onclick="removeFile(event, 'addFileInput', 'addPreview', 'addSubmitBtn')">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </label>
+            </div>
+
+            <div class="pt-4 flex justify-end border-t border-gray-100">
+                <button type="submit" id="addSubmitBtn" disabled
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
+                               transition-colors shadow-sm shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    @(hasAdditional ? "Cập nhật tài liệu" : "Tải lên")
+                </button>
+            </div>
+        </form>
+    </div>
+    @{
+        int completeness = Model.ProfileCompletion ?? 0;
+        bool isVerified = Model.IsVerified == true;
+        bool canRequestVerify = completeness > 95 && hasLicense && !isVerified;
+    }
+
+    <!--SECTION 3 — Send Company verification request-->
+    <div class="border-t border-gray-100 pt-8">
+        <div class="mb-4">
+            <h2 class="text-lg font-medium text-gray-900">Xác minh công ty</h2>
+            <p class="text-sm text-gray-500 mt-1">Tài khoản đã xác minh sẽ được hiển thị huy hiệu uy tín, tăng độ tin cậy với ứng viên.</p>
+        </div>
+
+        {{-- Progress bar --}}
+        <div class="mb-5">
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-gray-700">Mức độ hoàn thiện hồ sơ</span>
+                <span class="text-sm font-semibold @(completeness > 95 ? "text-green-600" : "text-amber-600")">@completeness%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500
+                        @(completeness > 95 ? "bg-green-500" : completeness > 60 ? "bg-amber-400" : "bg-red-400")"
+                     style="width: @(Math.Min(completeness, 100))%"></div>
+            </div>
+        </div>
+
+        @if (isVerified)
+        {
+            <!--Company got verified-->
+            <div class="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl">
+                <div class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-green-800">Công ty đã được xác minh</p>
+                    <p class="text-xs text-green-600">Tài khoản của bạn đã được hệ thống xác thực thành công.</p>
+                </div>
+            </div>
+        }
+        else if (canRequestVerify)
+        {
+            <!--reach profile completeness condition, be able to senbd request-->
+            <div class="flex items-center gap-3 px-5 py-4 bg-blue-50 border border-blue-200 rounded-xl mb-4">
+                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <p class="text-sm text-blue-800">Hồ sơ đã đủ điều kiện xác minh. Nhấn nút bên dưới để gửi yêu cầu.</p>
+            </div>
+
+            <form asp-action="RequestVerification" asp-controller="Settings" method="post">
+                @Html.AntiForgeryToken()
+                <div class="flex justify-end">
+                    <button type="submit"
+                            class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg
+                                   transition-colors shadow-sm shadow-green-500/20 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Gửi yêu cầu xác minh
+                    </button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <!--do not profile completeness condition, can not send request-->
+            <div class="flex items-start gap-3 px-5 py-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div class="text-sm text-amber-800">
+                    <p class="font-medium mb-1">Chưa đủ điều kiện xác minh</p>
+                    <ul class="space-y-1 text-amber-700/80">
+                        @if (!hasLicense)
+                        {
+                            <li>• Cần tải lên Giấy phép kinh doanh</li>
+                        }
+                        @if (completeness <= 95)
+                        {
+                            <li>• Hoàn thiện hồ sơ công ty trên 95% (hiện tại @completeness%)</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
 </div>
 
 <script>
-    // Drag & Drop functionality
-    const dropzone = document.getElementById('dropzone');
-    const fileInput = document.getElementById('fileInput');
-    const filePreview = document.getElementById('filePreview');
-    const fileName = document.getElementById('fileName');
-    const fileSize = document.getElementById('fileSize');
-    const submitBtn = document.getElementById('submitBtn');
+    //Generic helpers (use for 2 dropzone) 
 
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropzone.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, unhighlight, false);
-    });
-
-    function highlight(e) {
-        dropzone.classList.add('border-blue-400', 'bg-blue-50/50');
-    }
-
-    function unhighlight(e) {
-        dropzone.classList.remove('border-blue-400', 'bg-blue-50/50');
-    }
-
-    dropzone.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-        let dt = e.dataTransfer;
-        let files = dt.files;
-        handleFiles(files);
-    }
-
-    function handleFileSelect(input) {
-        if (input.files) {
-            handleFiles(input.files);
+    function handleFileSelect(input, previewId, fileNameId, fileSizeId, submitBtnId) {
+        if (input.files && input.files.length > 0) {
+            handleFiles(input.files, previewId, fileNameId, fileSizeId, submitBtnId);
         }
     }
 
-    function handleFiles(files) {
-        if (files.length > 0) {
-            const file = files[0];
-            
-            // Check size (10MB = 10 * 1024 * 1024 bytes)
-            if (file.size > 10485760) {
-                alert("File quá lớn. Vui lòng chọn file dưới 10MB.");
-                return;
+    function handleFiles(files, previewId, fileNameId, fileSizeId, submitBtnId) {
+        if (files.length === 0) return;
+        const file = files[0];
+        if (file.size > 10 * 1024 * 1024) {
+            alert("File quá lớn. Vui lòng chọn file dưới 10MB.");
+            return;
+        }
+        document.getElementById(fileNameId).textContent = file.name;
+        document.getElementById(fileSizeId).textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        document.getElementById(previewId).classList.remove('hidden');
+        const btn = document.getElementById(submitBtnId);
+        btn.disabled = false;
+    }
+
+    function removeFile(e, inputId, previewId, submitBtnId) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById(inputId).value = '';
+        document.getElementById(previewId).classList.add('hidden');
+        const btn = document.getElementById(submitBtnId);
+        btn.disabled = true;
+    }
+
+    // ── Drag & drop: License ─────────────────────────────────────────────────────
+    setupDropzone(
+        document.getElementById('dropzone'),
+        document.getElementById('licenseFileInput'),
+        'licensePreview', 'licenseFileName', 'licenseFileSize', 'licenseSubmitBtn'
+    );
+
+    // ── Drag & drop: Additional ──────────────────────────────────────────────────
+    setupDropzone(
+        document.getElementById('addDropzone'),
+        document.getElementById('addFileInput'),
+        'addPreview', 'addFileName', 'addFileSize', 'addSubmitBtn'
+    );
+
+    function setupDropzone(dropzone, fileInput, previewId, fileNameId, fileSizeId, submitBtnId) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev =>
+            dropzone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false)
+        );
+        ['dragenter', 'dragover'].forEach(ev =>
+            dropzone.addEventListener(ev, () => dropzone.classList.add('border-blue-400', 'bg-blue-50/50'))
+        );
+        ['dragleave', 'drop'].forEach(ev =>
+            dropzone.addEventListener(ev, () => dropzone.classList.remove('border-blue-400', 'bg-blue-50/50'))
+        );
+        dropzone.addEventListener('drop', e => {
+            handleFiles(e.dataTransfer.files, previewId, fileNameId, fileSizeId, submitBtnId);
+            // sync to <input> để form submit đúng file
+            const dt = e.dataTransfer;
+            if (dt.files.length) {
+                const dummyTransfer = new DataTransfer();
+                dummyTransfer.items.add(dt.files[0]);
+                fileInput.files = dummyTransfer.files;
             }
-
-            // Show preview
-            fileName.textContent = file.name;
-            fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-            filePreview.classList.remove('hidden');
-            
-            // Enable submit button
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-    }
-
-    function removeFile(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        fileInput.value = '';
-        filePreview.classList.add('hidden');
-        
-        // Disable submit button
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
     }
 </script>

@@ -1,3 +1,4 @@
+//AnhPT-02/06/2026
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
@@ -13,6 +14,7 @@ public class UserAccountRepository : IUserAccountRepository
 
     public Task<UserAccount?> GetByEmailAsync(string email)
         => _db.UserAccounts
+              .AsNoTracking()
               .Include(u => u.Candidate)
               .Include(u => u.Recruiter)
               .Include(u => u.Admin)
@@ -20,6 +22,7 @@ public class UserAccountRepository : IUserAccountRepository
 
     public Task<UserAccount?> GetByGoogleIdAsync(string googleId)
         => _db.UserAccounts
+              .AsNoTracking()
               .Include(u => u.Candidate)
               .Include(u => u.Recruiter)
               .Include(u => u.Admin)

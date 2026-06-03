@@ -1,3 +1,4 @@
+//03/06/2026 DatTX
 namespace DevHub.DTOs.Candidate
 {
     public class LangDto

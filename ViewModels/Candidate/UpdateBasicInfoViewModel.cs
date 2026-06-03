@@ -1,3 +1,4 @@
+//03/06/2026 DatTX
 using System.ComponentModel.DataAnnotations;
 
 namespace DevHub.ViewModels.Candidate

@@ -1,3 +1,4 @@
+<!--AnhPT-03/06/2026-->
 @model DevHub.Models.Recruiter
 @{
     bool hasLicense = !string.IsNullOrEmpty(Model.BusinessLicenseUrl);
@@ -18,7 +19,7 @@
             </div>
         </div>
 
-        {{!-- File đã upload --}}
+        <!--Uploaded files-->
         @if (hasLicense)
         {
             <div class="mb-4 flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
@@ -121,7 +122,8 @@
             </div>
         </div>
 
-        {{!-- File đã upload --}}
+
+        <!--Uploaded files-->
         @if (hasAdditional)
         {
             <div class="mb-4 flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
@@ -213,7 +215,6 @@
             <p class="text-sm text-gray-500 mt-1">Tài khoản đã xác minh sẽ được hiển thị huy hiệu uy tín, tăng độ tin cậy với ứng viên.</p>
         </div>
 
-        {{-- Progress bar --}}
         <div class="mb-5">
             <div class="flex items-center justify-between mb-1.5">
                 <span class="text-sm font-medium text-gray-700">Mức độ hoàn thiện hồ sơ</span>

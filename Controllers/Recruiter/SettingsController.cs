@@ -1,5 +1,4 @@
 //AnhPT-02/06/2026
-
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -44,18 +43,29 @@ namespace DevHub.Controllers.Recruiter
 
         [HttpPost("account")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateAccount(string? fullName, string? phone, string? position)
+        public async Task<IActionResult> UpdateAccount(RecruiterProfileViewModel model)
         {
+            ViewData["ActiveMenu"] = "Settings";
+            ViewBag.ActiveTab = "account";
+
             var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
             var dbUser = await _authService.FindUserByEmailAsync(email);
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
+            //remove validation state for company fields (do not in the request form) so they don't block the save.
+            ModelState.Remove(nameof(model.CompanyName));
+            ModelState.Remove(nameof(model.TaxCode));
+            ModelState.Remove(nameof(model.Website));
+
+            if (!ModelState.IsValid)
+                return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+
             var vm = new DevHub.ViewModels.Recruiter.RecruiterProfileViewModel
             {
-                FullName = fullName ?? dbUser.Recruiter.FullName,
-                Position = position,
-                Phone = phone,
+                FullName = model.FullName ?? dbUser.Recruiter.FullName,
+                Position = model.Position,
+                Phone = model.Phone,
                 // preserve other fields of recruiter entity
                 CompanyName = dbUser.Recruiter.CompanyName,
                 CompanyAddress = dbUser.Recruiter.CompanyAddress,

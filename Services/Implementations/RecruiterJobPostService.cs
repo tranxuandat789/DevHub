@@ -41,6 +41,9 @@ private const int MinProfileCompletion = 90;
         return (canPost, true, package.PostsRemaining, completion);
     }
 
+    public Task<List<JobPost>> GetJobPostsByRecruiterAsync(int recruiterId)
+        => _jobPostRepo.GetJobPostsByRecruiterAsync(recruiterId);
+
     public async Task<int> CreateJobPostAsync(int recruiterId, JobPostCreateViewModel dto)
     {
         var recruiter = await _profileRepo.GetProfileAsync(recruiterId);

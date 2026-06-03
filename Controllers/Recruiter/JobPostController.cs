@@ -25,9 +25,15 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var email = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser == null || dbUser.Recruiter == null)
+                return NotFound();
+
+            var jobs = await _jobPostService.GetJobPostsByRecruiterAsync(dbUser.Recruiter.RecruiterId);
+            return View(jobs);
         }
 
         [HttpGet("Create")]

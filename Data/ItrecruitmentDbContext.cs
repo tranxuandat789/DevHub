@@ -460,9 +460,6 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.ExperienceLevel)
                 .HasMaxLength(50)
                 .HasColumnName("experience_level");
-            entity.Property(e => e.IsPromoted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_promoted");
             entity.Property(e => e.Location)
                 .HasMaxLength(100)
                 .HasColumnName("location");

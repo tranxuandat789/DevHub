@@ -1,7 +1,29 @@
+<!--AnhPT-03/06/2026-->
+@model List<DevHub.Models.JobPost>
 @{
     Layout = "_RecruiterLayout";
     ViewData["Title"] = "Quản lý tin tuyển dụng";
     ViewData["ActiveMenu"] = "Jobs";
+
+    var jobs = Model ?? new List<DevHub.Models.JobPost>();
+
+    bool IsActive(string? s) => (s ?? "").ToLower() is "approved" or "active" or "open" or "published";
+    bool IsClosed(string? s) => (s ?? "").ToLower() is "closed" or "expired";
+
+    (string Cls, string Label) StatusBadge(string? status)
+    {
+        var s = (status ?? "").ToLower();
+        if (IsActive(s)) return ("bg-green-100 text-green-700", "Đang hiển thị");
+        if (s == "pending") return ("bg-amber-100 text-amber-700", "Chờ duyệt");
+        if (s == "rejected") return ("bg-red-100 text-red-700", "Từ chối");
+        if (IsClosed(s)) return ("bg-gray-100 text-gray-600", "Đã đóng");
+        return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "Không rõ" : status);
+    }
+
+    int cntAll = jobs.Count;
+    int cntActive = jobs.Count(j => IsActive(j.Status));
+    int cntPending = jobs.Count(j => (j.Status ?? "").ToLower() == "pending");
+    int cntClosed = jobs.Count(j => IsClosed(j.Status));
 }
 
 <div class="space-y-6">
@@ -23,10 +45,10 @@
     <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <!-- Tabs -->
         <div class="flex items-center space-x-1 border-b md:border-b-0 border-gray-100 overflow-x-auto pb-2 md:pb-0">
-            <button class="px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Tất cả tin (12)</button>
-            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đang hiển thị (8)</button>
-            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Chờ duyệt (2)</button>
-            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đã đóng (2)</button>
+            <button class="px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Tất cả tin (@cntAll)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đang hiển thị (@cntActive)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Chờ duyệt (@cntPending)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đã đóng (@cntClosed)</button>
         </div>
         
         <!-- Search -->
@@ -51,155 +73,57 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <!-- Row 1 -->
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold">
-                                    .N
-                                </div>
-                                <div>
-                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">Senior .NET Core Backend Engineer</a>
-                                    <p class="text-sm text-muted mt-0.5">Developer • Full-time Onsite</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Đang hiển thị</span>
-                        </td>
-                        <td class="p-4 text-sm text-dark font-medium">10/05/2026</td>
-                        <td class="p-4 text-sm text-dark font-medium">10/06/2026</td>
-                        <td class="p-4 text-center">
-                            <a href="#" class="inline-flex items-center justify-center px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-colors text-sm">
-                                42
-                            </a>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </a>
-                                <button class="p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Tạm dừng">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </button>
-                                <div class="relative inline-block text-left dropdown-container">
-                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
-                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
-                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
-                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                    @if (jobs.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="p-10 text-center text-muted text-sm">
+                                Chưa có tin tuyển dụng nào. Nhấn “Tạo tin tuyển dụng mới” để bắt đầu.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var j in jobs)
+                    {
+                        var badge = StatusBadge(j.Status);
+                        var title = j.Title ?? "";
+                        var initials = string.IsNullOrWhiteSpace(title)
+                            ? "?"
+                            : (title.Trim().Length >= 2 ? title.Trim().Substring(0, 2) : title.Trim());
+                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold uppercase">
+                                        @initials
+                                    </div>
+                                    <div>
+                                        <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">@title</a>
+                                        <p class="text-sm text-muted mt-0.5">@j.Position?.PositionName • @j.WorkingModel</p>
                                     </div>
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Row 2 -->
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold">
-                                    BA
+                            </td>
+                            <td class="p-4">
+                                <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold @badge.Cls whitespace-nowrap">@badge.Label</span>
+                            </td>
+                            <td class="p-4 text-sm text-dark font-medium">@(j.CreatedAt?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td class="p-4 text-sm text-dark font-medium">@(j.Deadline?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td class="p-4 text-center">
+                                <span class="inline-flex items-center justify-center px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg text-sm">@(j.ApplicationCount ?? 0)</span>
+                            </td>
+                            <td class="p-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </a>
                                 </div>
-                                <div>
-                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">Business Analyst (Banking Domain)</a>
-                                    <p class="text-sm text-muted mt-0.5">BA • Hybrid</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Chờ duyệt</span>
-                        </td>
-                        <td class="p-4 text-sm text-dark font-medium">12/05/2026</td>
-                        <td class="p-4 text-sm text-dark font-medium">12/06/2026</td>
-                        <td class="p-4 text-center">
-                            <span class="inline-flex items-center justify-center px-3 py-1 bg-gray-100 text-muted font-bold rounded-lg text-sm">
-                                0
-                            </span>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </a>
-                                <button class="p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Tạm dừng">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </button>
-                                <div class="relative inline-block text-left dropdown-container">
-                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
-                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
-                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
-                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Row 3 -->
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold">
-                                    Re
-                                </div>
-                                <div>
-                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">ReactJS Frontend Engineer (Fresher/Junior)</a>
-                                    <p class="text-sm text-muted mt-0.5">Developer • Full-time Onsite</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">Đã đóng</span>
-                        </td>
-                        <td class="p-4 text-sm text-dark font-medium">01/04/2026</td>
-                        <td class="p-4 text-sm text-dark font-medium">01/05/2026</td>
-                        <td class="p-4 text-center">
-                            <a href="#" class="inline-flex items-center justify-center px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-colors text-sm">
-                                128
-                            </a>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <button class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Mở lại">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                </button>
-                                <div class="relative inline-block text-left dropdown-container">
-                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
-                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
-                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
-                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
         
         <!-- Pagination -->
         <div class="p-4 border-t border-gray-100 flex items-center justify-between">
-            <p class="text-sm text-muted">Hiển thị <span class="font-bold text-dark">1</span> đến <span class="font-bold text-dark">3</span> trong số <span class="font-bold text-dark">12</span> tin</p>
-            <div class="flex items-center gap-1">
-                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-primary hover:border-primary transition-colors" disabled>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium text-sm">1</button>
-                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium">2</button>
-                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium">3</button>
-                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-primary hover:border-primary transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
-            </div>
+            <p class="text-sm text-muted">Hiển thị <span class="font-bold text-dark">@cntAll</span> trong số <span class="font-bold text-dark">@cntAll</span> tin</p>
         </div>
     </div>
 </div>

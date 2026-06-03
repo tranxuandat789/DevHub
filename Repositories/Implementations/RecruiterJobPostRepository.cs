@@ -40,6 +40,16 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         }
     }
 
+    public async Task<List<JobPost>> GetJobPostsByRecruiterAsync(int recruiterId)
+    {
+        return await _context.JobPosts
+            .AsNoTracking()
+            .Include(j => j.Position)
+            .Where(j => j.RecruiterId == recruiterId)
+            .OrderByDescending(j => j.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task NotifyModeratorsAsync(string title, string message, string referenceType, int referenceId)
     {
         var moderators = await _context.UserAccounts.Where(u => u.UserType == "MODERATOR" && u.IsActive == true).ToListAsync();

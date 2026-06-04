@@ -213,25 +213,47 @@ INSERT INTO dbo.recruiter_package_history (id, recruiter_id, service_id, transac
 SET IDENTITY_INSERT dbo.recruiter_package_history OFF;
 
 -- =============================================
--- 8. JOB POST (Đã sửa đổi: Map trường recruiter_package_history_id)
+-- 8. JOB POST (Da dang Working Model + Experience Level)
 -- =============================================
 SET IDENTITY_INSERT dbo.job_post ON;
 INSERT INTO dbo.job_post (job_id, recruiter_id, title, position_id, recruiter_package_history_id, location, skill, working_model, salary_min, salary_max, experience_level, description, requirement, benefit, deadline, status, priority_score, moderator_id) VALUES 
-(1, 4, N'Senior Java Backend Developer', 1, 1, N'Hà Nội', N'Microservices', N'Full-time', 18000000, 28000000, N'Senior', N'Tham gia phát triển các dự án lớn cho khách hàng nước ngoài.', N'4+ năm kinh nghiệm Java Spring Boot', N'Thưởng dự án, bảo hiểm sức khỏe cao cấp', '2026-06-30', 'APPROVED', 85, 8),
-(2, 5, N'ReactJS Frontend Developer', 3, 2, N'Hồ Chí Minh', N'Redux, Tailwind', N'Hybrid', 13000000, 21000000, N'Mid', N'Làm việc trên các sản phẩm công nghệ cao.', N'Thành thạo ReactJS và TypeScript', N'Môi trường năng động, phúc lợi tốt', '2026-06-20', 'APPROVED', 70, 8);
+(1,  4,  N'Senior Java Backend Developer',       1,  1, N'Hà Nội',       N'Microservices, Docker',     N'Full-time', 18000000, 28000000, N'Senior',  N'Tham gia phát triển các dự án lớn cho khách hàng nước ngoài tại FPT Software.', N'4+ năm kinh nghiệm Java Spring Boot, hiểu biết về Microservices', N'Thưởng dự án, bảo hiểm sức khỏe cao cấp, du lịch hàng năm',                '2026-07-30', 'APPROVED', 85, 8),
+(2,  5,  N'ReactJS Frontend Developer',          3,  2, N'Hồ Chí Minh',  N'Redux, Tailwind, TypeScript',N'Hybrid',    13000000, 21000000, N'Mid',     N'Làm việc trên các sản phẩm công nghệ cao của Viettel.', N'2+ năm kinh nghiệm ReactJS và TypeScript, hiểu biết về Redux',  N'Môi trường năng động, phúc lợi tốt, đào tạo định kỳ',                       '2026-06-20', 'APPROVED', 70, 8),
+(3,  18, N'Intern .NET Developer',               2,  1, N'Hồ Chí Minh',  N'C#, ASP.NET Core',          N'Onsite',    4000000,  6000000,  N'Intern',  N'Cơ hội thực tập tại VNG, học hỏi từ đội ngũ kỹ sư giàu kinh nghiệm.', N'Sinh viên năm 3-4 CNTT, biết cơ bản C# hoặc .NET, chăm chỉ học hỏi', N'Phụ cấp ăn trưa, mentoring từ senior, cơ hội chuyển chính thức', '2026-07-15', 'APPROVED', 60, 8),
+(4,  19, N'Fresher Frontend Developer',          3,  2, N'Hà Nội',       N'HTML, CSS, JavaScript',     N'Full-time', 7000000,  12000000, N'Fresher', N'Gia nhập đội ngũ phát triển web tại VinGroup.', N'Tốt nghiệp đại học CNTT, biết HTML/CSS/JS cơ bản, ham học hỏi',        N'Lương cạnh tranh, bảo hiểm đầy đủ, môi trường hiện đại',                    '2026-08-01', 'APPROVED', 55, 8),
+(5,  20, N'Junior Python Developer',             5,  1, N'Hồ Chí Minh',  N'Python, Django, REST API',  N'Remote',    10000000, 15000000, N'Junior',  N'Phát triển các API backend cho hệ thống thương mại điện tử tại NashTech.', N'1+ năm kinh nghiệm Python, biết Django hoặc FastAPI, hiểu REST API', N'Làm việc từ xa 100%, thiết bị hỗ trợ, team quốc tế',                       '2026-07-20', 'APPROVED', 65, 8),
+(6,  21, N'DevOps Engineer - Docker & K8s',      8,  1, N'Hà Nội',       N'Docker, Kubernetes, AWS',   N'Hybrid',    25000000, 40000000, N'Senior',  N'Xây dựng và vận hành hạ tầng CI/CD cho hệ thống quy mô lớn tại CMC.', N'3+ năm DevOps, thành thạo Docker/K8s, kinh nghiệm AWS hoặc Azure', N'Phúc lợi cao cấp, cổ phần công ty, đào tạo chứng chỉ cloud',               '2026-08-10', 'APPROVED', 80, 8),
+(7,  22, N'Mobile Developer - Flutter',          7,  1, N'Hồ Chí Minh',  N'Flutter, Dart, Firebase',   N'Remote',    14000000, 22000000, N'Mid',     N'Phát triển ứng dụng mobile đa nền tảng cho khách hàng Bosch Vietnam.', N'2+ năm Flutter, biết Dart, kinh nghiệm tích hợp Firebase',             N'Remote toàn thời gian, team quốc tế, thưởng hiệu quả dự án',               '2026-07-25', 'APPROVED', 72, 8),
+(8,  4,  N'QA Engineer - Automation Testing',   13,  1, N'Hà Nội',       N'Selenium, Python, TestNG',  N'Full-time', 12000000, 18000000, N'Junior',  N'Kiểm thử tự động cho các hệ thống phần mềm lớn tại FPT Software.', N'1+ năm automation testing, biết Selenium, Python hoặc Java, hiểu Agile', N'Học 50 chứng chỉ ISTQB, môi trường chuyên nghiệp, thăng tiến nhanh',      '2026-07-10', 'APPROVED', 58, 8),
+(9,  5,  N'Project Manager IT',                 16,  2, N'Hà Nội',       N'PMP, Agile, Scrum',         N'Onsite',    30000000, 50000000, N'Manager', N'Quản lý dự án công nghệ quy mô lớn tại Viettel Group.', N'5+ năm quản lý dự án IT, chứng chỉ PMP hoặc PMI, tiếng Anh tốt',      N'Thu nhập cạnh tranh, xe công ty, bảo hiểm cao cấp, cổ phần',               '2026-08-15', 'APPROVED', 90, 8),
+(10, 18, N'Data Engineer - Big Data',           18,  1, N'Hồ Chí Minh',  N'Python, Spark, Hadoop',     N'Hybrid',    20000000, 32000000, N'Senior',  N'Xây dựng pipeline dữ liệu lớn phục vụ phân tích kinh doanh tại VNG.', N'3+ năm Data Engineering, thành thạo Spark/Hadoop, biết SQL nâng cao', N'Môi trường dữ liệu thú vị, lương cao, đãi ngộ top đầu thị trường',        '2026-07-28', 'APPROVED', 78, 8);
 SET IDENTITY_INSERT dbo.job_post OFF;
 
 -- =============================================
 -- 9. JOB TECH STACK 
 -- =============================================
 INSERT INTO dbo.job_tech_stack (job_id, tech_id) VALUES
-(1, 1),  
-(1, 2),  
-(2, 7),  
-(2, 10); 
+(1, 1),   -- job 1: Java
+(1, 2),   -- job 1: Spring Boot
+(1, 13),  -- job 1: Docker
+(2, 7),   -- job 2: ReactJS
+(2, 10),  -- job 2: TypeScript
+(3, 3),   -- job 3: .NET
+(3, 4),   -- job 3: C#
+(4, 7),   -- job 4: ReactJS (Frontend)
+(5, 5),   -- job 5: Python
+(6, 13),  -- job 6: Docker
+(6, 14),  -- job 6: Kubernetes
+(6, 15),  -- job 6: AWS
+(7, 11),  -- job 7: Flutter
+(8, 29),  -- job 8: Selenium
+(8, 5),   -- job 8: Python
+(9, 30),  -- job 9: SQL
+(10, 5),  -- job 10: Python
+(10, 18); -- job 10: PostgreSQL
 
 PRINT '=============================================';
 PRINT 'SUCCESS: Seed data completed cleanly!';
 PRINT 'Default Account Password for testing: Ab@123456';
 PRINT '=============================================';
-GO
+GO

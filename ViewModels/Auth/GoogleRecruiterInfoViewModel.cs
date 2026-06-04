@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace DevHub.ViewModels.Auth;
 
-public class GoogleEmployerInfoViewModel
+public class GoogleRecruiterInfoViewModel
 {
     [Required]
     public string Email { get; set; } = "";      // readonly — lấy từ session
@@ -13,3 +13,4 @@ public class GoogleEmployerInfoViewModel
     [RegularExpression(@"^0\d{9}$", ErrorMessage = "SĐT Việt Nam phải bắt đầu bằng 0 và đủ 10 chữ số")]
     public string Phone { get; set; } = "";
 }
+

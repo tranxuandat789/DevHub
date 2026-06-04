@@ -7,5 +7,10 @@ namespace DevHub.Controllers.Candidate
     [Authorize(Roles = "CANDIDATE,Candidate")]
     public class BookmarkController : Controller
     {
+        [HttpGet("")]
+        public IActionResult SavedJobs()
+        {
+            return View("~/Views/Candidate/Bookmark/Index.cshtml");
+        }
     }
 }

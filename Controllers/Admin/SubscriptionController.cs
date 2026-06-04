@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Admin
 {
-    [Route("admin/transactions")]
+    [Route("admin/subscriptions")]
     [Authorize(Roles = "Admin")]
-    public class TransactionController : Controller
+    public class SubscriptionController : Controller
     {
         [HttpGet("")]
-        [HttpGet("/AdminTransaction")]
+        [HttpGet("/AdminSubscription")]
         public IActionResult Index()
         {
-            return View("~/Views/Admin/AdminTransaction/Index.cshtml");
+            return View("~/Views/Admin/AdminSubscription/Index.cshtml");
         }
     }
 }

@@ -41,17 +41,17 @@
 @{
     var path = Context.Request.Path.Value?.ToLower() ?? "";
 
-    bool isEmployer = path.Contains("employer") || path.Contains("recruiter");
+    bool isRecruiter = path.Contains("recruiter");
     bool isLoggedIn = User.Identity?.IsAuthenticated == true;
     string userRole = User.FindFirstValue(ClaimTypes.Role) ?? "";
 
     if (isLoggedIn)
     {
-        if (isEmployer && userRole != "RECRUITER")
+        if (isRecruiter && userRole != "RECRUITER")
         {
             isLoggedIn = false;
         }
-        else if (!isEmployer && userRole == "RECRUITER")
+        else if (!isRecruiter && userRole == "RECRUITER")
         {
             isLoggedIn = false;
         }
@@ -76,7 +76,7 @@
         }
     }
 
-    bool isEmployerHome = path == "/home/employer";
+    bool isRecruiterHome = path == "/recruiter/home";
 }
 <body class="bg-white text-muted m-0 p-0">
     <!-- Global Spotlight Effect -->
@@ -91,7 +91,7 @@
                 <!-- Left Section: Logo & Nav -->
                 <div class="flex items-center space-x-12">
                     <!-- Logo -->
-                    <a href="@(isEmployer ? "/Home/Employer" : "/")" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none">
+                    <a href="@(isRecruiter ? "/recruiter/home" : "/")" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none">
                         <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden">
                             <!-- DevHub Logo Icon Approximation -->
                             <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
@@ -102,9 +102,9 @@
 
                     <!-- Desktop Nav -->
                     <nav class="hidden md:flex space-x-8">
-                        @if (isEmployer)
+                        @if (isRecruiter)
                         {
-                            <a href="/Home/Employer" class="@(isEmployerHome ? "text-primary font-bold" : "text-muted font-medium") hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
+                            <a href="/recruiter/home" class="@(isRecruiterHome ? "text-primary font-bold" : "text-muted font-medium") hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
                             @if (isLoggedIn)
                             {
                                 <a href="/recruiter/dashboard" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Dashboard</a>
@@ -136,7 +136,7 @@
                                         <span class="font-bold text-dark text-[15px]">Thông báo</span>
                                         <span class="text-xs text-primary font-medium">3 thông báo mới</span>
                                     </div>
-                                    @{ var notifBase = isEmployer ? "/recruiter/notifications" : "/candidate/notifications"; }
+                                    @{ var notifBase = isRecruiter ? "/recruiter/notifications" : "/candidate/notifications"; }
                                     <a href="@notifBase/details/1" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
                                         <div class="w-9 h-9 bg-[#EEF2FF] rounded-full flex items-center justify-center flex-shrink-0">
                                             <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
@@ -205,7 +205,7 @@
                                     <div class="w-full h-[1px] bg-gray-100 my-1"></div>
                                     @if (userRole == "RECRUITER")
                                     {
-                                        <a href="/Auth/EmployerLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
+                                        <a href="/Auth/RecruiterLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
                                     }
                                     else
                                     {
@@ -219,11 +219,11 @@
                 else
                 {
                     <div class="hidden md:flex items-center space-x-4">
-                        @if (isEmployer)
+                        @if (isRecruiter)
                         {
-                            <a href="/Auth/EmployerLogin" class="text-primary font-bold hover:text-primary/80 transition-colors px-2 text-[16px]">Đăng nhập</a>
+                            <a href="/Auth/RecruiterLogin" class="text-primary font-bold hover:text-primary/80 transition-colors px-2 text-[16px]">Đăng nhập</a>
                             <div class="w-[1px] h-10 bg-bordercolor mx-2"></div>
-                            <a href="/Auth/EmployerRegister" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px]">Đăng ký</a>
+                            <a href="/Auth/RecruiterRegister" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px]">Đăng ký</a>
                             <a href="/" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px] flex items-center gap-2">
                                 Trang ứng viên <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </a>
@@ -233,7 +233,7 @@
                             <a href="/Auth/Login" class="text-primary font-bold hover:text-primary/80 transition-colors px-2 text-[16px]">Đăng nhập</a>
                             <div class="w-[1px] h-10 bg-bordercolor mx-2"></div>
                             <a href="/Auth/Register" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px]">Đăng ký</a>
-                            <a href="/Home/Employer" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px] flex items-center gap-2">
+                            <a href="/recruiter/home" class="bg-primary text-white font-bold px-6 py-3 rounded-[20px] hover:bg-opacity-90 transition-all shadow-sm text-[16px] flex items-center gap-2">
                                 Nhà tuyển dụng <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </a>
                         }
@@ -267,7 +267,7 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 mb-16">
                 <!-- Brand & Description -->
                 <div class="md:col-span-12 lg:col-span-5">
-                    <a href="@(isEmployer ? "/Home/Employer" : "/")" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none mb-6">
+                    <a href="@(isRecruiter ? "/recruiter/home" : "/")" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none mb-6">
                         <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden">
                             <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
                             <div class="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full"></div>

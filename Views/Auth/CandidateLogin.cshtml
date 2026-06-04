@@ -1,16 +1,16 @@
-@model DevHub.ViewModels.Auth.LoginViewModel
+﻿@model DevHub.ViewModels.Auth.LoginViewModel
 @{
-    ViewData["Title"] = "Đăng nhập Nhà tuyển dụng";
+    ViewData["Title"] = "Đăng nhập";
 }
 
-<div class="relative min-h-screen py-12 md:py-20 overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 75% 35%, rgba(139, 92, 246, 0.15), transparent 45%);">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+<div class="bg-[#F7F5FC] min-h-screen py-12 md:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row items-start gap-12 lg:gap-24">
 
-            <div class="w-full lg:w-5/12 bg-white rounded-[20px] p-8 md:p-10 shadow-[0_15px_40px_rgba(70,64,222,0.14)] relative z-20">
-                <h1 class="text-2xl md:text-[32px] font-bold text-dark mb-3">Đăng nhập Nhà tuyển dụng</h1>
+            <div class="w-full lg:w-5/12 bg-white rounded-[20px] p-8 md:p-10 shadow-[0_15px_40px_rgba(70,64,222,0.14)]">
+                <h1 class="text-2xl md:text-[32px] font-bold text-dark mb-3">Đăng nhập trở lại</h1>
                 <p class="text-muted text-[15px] mb-8 leading-relaxed">
-                    Đăng nhập để tìm kiếm và kết nối với hàng ngàn ứng viên tiềm năng cho doanh nghiệp của bạn.
+                    Cùng xây dựng một hồ sơ nổi bật và nhận được các cơ hội sự nghiệp lý tưởng
                 </p>
 
                 @if (TempData["GeneralError"] is string genErr)
@@ -21,7 +21,7 @@
                     </div>
                 }
 
-                <form asp-action="EmployerLogin" asp-controller="Auth" method="post">
+                <form asp-action="CandidateLogin" asp-controller="Auth" method="post">
                     @Html.AntiForgeryToken()
 
                     <div class="mb-5">
@@ -72,7 +72,7 @@
                     <div class="flex-grow h-px bg-bordercolor"></div>
                 </div>
 
-                <a href="/Auth/GoogleLogin?from=employer"
+                <a href="/Auth/GoogleLogin?from=candidate"
                    class="w-full bg-white border border-bordercolor text-dark font-medium py-3.5 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 text-[15px]">
                     <svg class="w-5 h-5" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -84,39 +84,46 @@
                 </a>
 
                 <p class="text-center text-muted mt-8 text-[15px]">
-                    Lần đầu tuyển dụng? <a href="/Auth/EmployerRegister" class="text-primary font-medium hover:underline">Đăng ký ngay</a>
+                    Bạn sử dụng lần đầu? <a href="/Auth/CandidateRegister" class="text-primary font-medium hover:underline">Đăng ký ngay</a>
                 </p>
             </div>
 
-            <div class="w-full lg:w-7/12 pt-0 lg:-mt-20 text-center lg:text-left">
-                <h2 class="text-[36px] md:text-[48px] font-bold text-dark leading-[1.2] mb-10 max-w-[600px] mx-auto lg:mx-0">
-                    Tìm kiếm nhân tài <br class="hidden md:block"/>
-                    nhanh chóng & <span class="text-[#26A4FF]">hiệu quả</span>
+            <div class="w-full lg:w-7/12 pt-8 lg:pt-16">
+                <h2 class="text-[28px] md:text-[36px] font-bold text-dark leading-[1.3] mb-10 max-w-[600px]">
+                    Đăng nhập để truy cập ngay vào hàng ngàn đánh giá và dữ liệu lương thị trường IT
                 </h2>
-                <div class="space-y-6 max-w-[500px] mx-auto lg:mx-0">
-                    <div class="flex items-start gap-4 text-left">
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
                         <div class="mt-1 flex-shrink-0 text-green-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Tiếp cận nguồn ứng viên chất lượng cao, đa dạng lĩnh vực.</p>
+                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Xem trước mức lương để có thể lợi thế khi thoả thuận lương</p>
                     </div>
-                    <div class="flex items-start gap-4 text-left">
+                    <div class="flex items-start gap-4">
                         <div class="mt-1 flex-shrink-0 text-green-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Đăng tin tuyển dụng dễ dàng, quản lý hồ sơ ứng viên thông minh.</p>
+                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Tìm hiểu về phúc lợi, con người, văn hóa công ty qua các đánh giá chân thật</p>
                     </div>
-                    <div class="flex items-start gap-4 text-left">
+                    <div class="flex items-start gap-4">
                         <div class="mt-1 flex-shrink-0 text-green-500">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Công cụ AI hỗ trợ gợi ý và ghép nối ứng viên phù hợp nhất.</p>
+                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Dễ dàng ứng tuyển chỉ với một thao tác</p>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="mt-1 flex-shrink-0 text-green-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <p class="text-[16px] md:text-[18px] text-dark font-medium">Quản lý hồ sơ và quyền riêng tư của bạn</p>
                     </div>
                 </div>
             </div>
@@ -140,3 +147,4 @@
         }
     }
 </script>
+

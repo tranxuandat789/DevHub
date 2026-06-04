@@ -1,4 +1,4 @@
-@model DevHub.ViewModels.Auth.GoogleEmployerInfoViewModel
+﻿@model DevHub.ViewModels.Auth.GoogleRecruiterInfoViewModel
 @{
     ViewData["Title"] = "Hoàn tất đăng ký - DevHub";
     ViewData["HideHeaderFooter"] = false;
@@ -29,7 +29,7 @@
             </div>
         }
 
-        <form asp-action="GoogleEmployerInfo" asp-controller="Auth" method="post">
+        <form asp-action="GoogleRecruiterInfo" asp-controller="Auth" method="post">
             @Html.AntiForgeryToken()
 
             <div class="mb-5">
@@ -57,10 +57,11 @@
                     class="w-full bg-primary text-white font-bold py-3.5 rounded-lg hover:bg-opacity-90 transition-all text-[16px] shadow-md mb-3">
                 Hoàn tất đăng ký
             </button>
-            <a href="/Auth/EmployerLogin"
+            <a href="/Auth/RecruiterLogin"
                class="block text-center text-[14px] text-muted hover:text-primary transition-colors">
                 ← Quay lại đăng nhập
             </a>
         </form>
     </div>
 </div>
+

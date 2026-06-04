@@ -8,6 +8,7 @@ namespace DevHub.Controllers.Admin
     public class AdminDashboardController : Controller
     {
         [HttpGet("")]
+        [HttpGet("/AdminDashboard")]
         public IActionResult Index()
         {
             return View();

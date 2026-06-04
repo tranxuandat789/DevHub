@@ -72,7 +72,7 @@
     <header class="h-[90px] bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0 z-30">
         <div class="flex items-center space-x-12">
             <!-- Logo -->
-            <a href="/Home/Employer" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none">
+            <a href="/recruiter/home" class="flex-shrink-0 flex items-center gap-2 cursor-pointer text-decoration-none">
                 <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden">
                     <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
                     <div class="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -82,7 +82,7 @@
 
             <!-- Desktop Nav -->
             <nav class="hidden md:flex space-x-8">
-                <a href="/Home/Employer" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
+                <a href="/recruiter/home" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
                 <a href="/recruiter/dashboard" class="text-primary font-bold hover:text-primary transition-colors text-[16px]">Dashboard</a>
                 <a href="/Recruiter/RecruiterService" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Bảng giá</a>
             </nav>
@@ -186,7 +186,7 @@
                         <a href="/Recruiter/JobPost" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Quản lý tin tuyển dụng</a>
                         <a href="/Recruiter/RecruiterProfile" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
                         <div class="w-full h-[1px] bg-gray-100 my-1"></div>
-                        <a href="/Auth/EmployerLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
+                        <a href="/Auth/RecruiterLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
                     </div>
                 </div>
             </div>
@@ -463,7 +463,7 @@
     }
     @if (!string.IsNullOrEmpty(toastSuccess))
     {
-        <div id="toast-container" class="fixed top-20 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
+        <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
             <div class="toast flex items-start gap-3 bg-white border border-green-200 rounded-xl shadow-lg px-5 py-4">
                 <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -485,7 +485,7 @@
                     t.style.transform = 'translateY(-10px)';
                     setTimeout(() => t.remove(), 400);
                 });
-            }, 2500);
+            }, 4000);
         </script>
     }
 </body>

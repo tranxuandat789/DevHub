@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @using DevHub.Services.Interfaces
 @inject  IAuthService AuthService
 @{
@@ -441,7 +441,7 @@
             const formData = new FormData();
             formData.append('avatar', e.target.files[0]);
 
-            fetch('/Candidate/UploadAvatar', {
+            fetch('/candidate/profile/avatar', {
                 method: 'POST',
                 body: formData
             })
@@ -464,4 +464,5 @@
         }
     });
 </script>
+
 

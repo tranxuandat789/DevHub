@@ -1,6 +1,148 @@
-@{
-    ViewData["Title"] = "Viet Danh Gia";
-    Layout = "~/Views/Shared/_CandidateLayout.cshtml";
+﻿@{
+    ViewData["Title"] = "Đánh giá công ty";
+    // We are assuming a shared layout exists or we just use default _Layout
 }
 
-<h1>Viet Danh Gia</h1>
+<!-- Top Header Section -->
+<section class="py-12 border-b border-bordercolor relative overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 75% 35%, rgba(139, 92, 246, 0.18), transparent 35%);">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <!-- Title -->
+        <h1 class="text-[32px] md:text-[40px] font-bold text-dark mb-4">
+            Đánh giá <span class="text-[#26A4FF]">công ty</span>
+        </h1>
+        <p class="text-muted text-[16px]">
+            Chia sẻ trải nghiệm làm việc của bạn để giúp cộng đồng đưa ra những quyết định nghề nghiệp tốt hơn. Đánh giá của bạn sẽ được ẩn danh hoàn toàn.
+        </p>
+    </div>
+</section>
+
+<!-- Main Form Section -->
+<section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB]">
+        <form action="#" method="POST" class="space-y-8">
+            <!-- Company Info -->
+            <div class="flex items-center gap-4 pb-6 border-b border-gray-100">
+                <div class="w-16 h-16 rounded-2xl border border-gray-200 p-2 flex items-center justify-center bg-white shadow-sm">
+                    <svg class="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-dark">Tên công ty</h3>
+                    <p class="text-muted text-sm mt-1">Vui lòng chọn công ty bạn muốn đánh giá</p>
+                </div>
+            </div>
+
+            <!-- Select Company -->
+            <div>
+                <label class="block text-[15px] font-bold text-dark mb-2">Công ty bạn muốn đánh giá <span class="text-red-500">*</span></label>
+                <select class="w-full border border-gray-200 rounded-xl p-3.5 text-[15px] text-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none bg-white cursor-pointer" required>
+                    <option value="" disabled selected>Chọn công ty...</option>
+                    <option value="1">Google Vietnam</option>
+                    <option value="2">Microsoft</option>
+                    <option value="3">FPT Software</option>
+                    <option value="4">VNG Corporation</option>
+                </select>
+            </div>
+
+            <!-- Overall Rating -->
+            <div>
+                <label class="block text-[15px] font-bold text-dark mb-3">Đánh giá tổng quan <span class="text-red-500">*</span></label>
+                <div class="flex items-center gap-2 group cursor-pointer w-fit" id="starRating">
+                    <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400 transition-colors cursor-pointer star" data-value="1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400 transition-colors cursor-pointer star" data-value="2" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400 transition-colors cursor-pointer star" data-value="3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400 transition-colors cursor-pointer star" data-value="4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400 transition-colors cursor-pointer star" data-value="5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <input type="hidden" name="rating" id="ratingInput" required>
+            </div>
+
+            <!-- Pros & Cons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Pros -->
+                <div>
+                    <label class="block text-[15px] font-bold text-dark mb-2">Ưu điểm <span class="text-red-500">*</span></label>
+                    <textarea class="w-full border border-gray-200 rounded-xl p-4 text-[15px] text-dark focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors min-h-[120px]" placeholder="Điều gì khiến bạn thích làm việc tại đây?" required></textarea>
+                </div>
+                <!-- Cons -->
+                <div>
+                    <label class="block text-[15px] font-bold text-dark mb-2">Nhược điểm <span class="text-red-500">*</span></label>
+                    <textarea class="w-full border border-gray-200 rounded-xl p-4 text-[15px] text-dark focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-colors min-h-[120px]" placeholder="Công ty cần cải thiện điều gì?" required></textarea>
+                </div>
+            </div>
+
+            <!-- Review Summary -->
+            <div>
+                <label class="block text-[15px] font-bold text-dark mb-2">Tiêu đề đánh giá <span class="text-red-500">*</span></label>
+                <input type="text" class="w-full border border-gray-200 rounded-xl p-3.5 text-[15px] text-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors" placeholder="Tóm tắt đánh giá của bạn trong 1 câu" required>
+            </div>
+
+            <!-- Detailed Review -->
+            <div>
+                <label class="block text-[15px] font-bold text-dark mb-2">Trải nghiệm chi tiết (Tùy chọn)</label>
+                <textarea class="w-full border border-gray-200 rounded-xl p-4 text-[15px] text-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors min-h-[160px]" placeholder="Chia sẻ thêm về môi trường làm việc, chế độ đãi ngộ, văn hóa công ty..."></textarea>
+            </div>
+
+            <!-- Anonymous Option -->
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <input type="checkbox" id="anonymous" class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer" checked>
+                <label for="anonymous" class="text-[14px] text-dark cursor-pointer font-medium">Giữ ẩn danh danh tính của tôi khi đăng đánh giá này</label>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
+                <button type="button" class="px-6 py-3 font-medium text-muted hover:text-dark hover:bg-gray-50 rounded-full transition-colors">Hủy bỏ</button>
+                <button type="button" onclick="submitReview()" class="px-8 py-3 bg-primary text-white font-bold rounded-full hover:bg-opacity-90 shadow-[0_4px_14px_0_rgba(139,92,246,0.39)] transition-all transform hover:-translate-y-0.5">Đăng đánh giá</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Star Rating Logic
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('ratingInput');
+        let currentRating = 0;
+
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                const value = parseInt(this.getAttribute('data-value'));
+                highlightStars(value);
+            });
+
+            star.addEventListener('mouseout', function() {
+                highlightStars(currentRating);
+            });
+
+            star.addEventListener('click', function() {
+                currentRating = parseInt(this.getAttribute('data-value'));
+                ratingInput.value = currentRating;
+                highlightStars(currentRating);
+            });
+        });
+
+        function highlightStars(value) {
+            stars.forEach(s => {
+                const sValue = parseInt(s.getAttribute('data-value'));
+                if (sValue <= value) {
+                    s.classList.remove('text-gray-300');
+                    s.classList.add('text-yellow-400');
+                } else {
+                    s.classList.add('text-gray-300');
+                    s.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        function submitReview() {
+            // Validation
+            if (currentRating === 0) {
+                alert('Vui lòng chọn mức điểm đánh giá.');
+                return;
+            }
+            alert('Cảm ơn bạn! Đánh giá của bạn đã được gửi thành công.');
+            window.location.href = '/candidate/dashboard';
+        }
+    </script>
+}
+

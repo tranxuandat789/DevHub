@@ -7,5 +7,10 @@ namespace DevHub.Controllers.Candidate
     [Authorize(Roles = "CANDIDATE,Candidate")]
     public class CandidateInterviewController : Controller
     {
+        [HttpGet("")]
+        public IActionResult Interviews()
+        {
+            return View("~/Views/Candidate/CandidateInterview/Index.cshtml");
+        }
     }
 }

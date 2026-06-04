@@ -7,5 +7,10 @@ namespace DevHub.Controllers.Candidate
     [Authorize(Roles = "CANDIDATE,Candidate")]
     public class RecommendedJobController : Controller
     {
+        [HttpGet("")]
+        public IActionResult Index()
+        {
+            return View();
+        }
     }
 }

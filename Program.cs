@@ -28,7 +28,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<ItrecruitmentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── Authentication — SmartAuth + 3 Cookie Schemes + Google ──────────────────
+// ── Authentication  ESmartAuth + 3 Cookie Schemes + Google ──────────────────
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme          = "SmartAuth";
@@ -40,8 +40,8 @@ builder.Services.AddAuthentication(options =>
     {
         var path = ctx.Request.Path.Value ?? "";
         if (path.StartsWith("/Recruiter", StringComparison.OrdinalIgnoreCase) ||
-            path.Contains("employer", StringComparison.OrdinalIgnoreCase))
-            return "EmployerCookies";
+            path.Contains("recruiter", StringComparison.OrdinalIgnoreCase))
+            return "RecruiterCookies";
         if (path.StartsWith("/Admin",     StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/Moderator", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("moderator", StringComparison.OrdinalIgnoreCase) ||
@@ -53,7 +53,7 @@ builder.Services.AddAuthentication(options =>
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, o =>
 {
     o.Cookie.Name       = "App.Candidate";
-    o.LoginPath         = "/Auth/Login";
+    o.LoginPath         = "/Auth/CandidateLogin";
     o.AccessDeniedPath  = "/";
     o.ExpireTimeSpan    = TimeSpan.FromHours(12);
     o.SlidingExpiration = true;
@@ -66,11 +66,11 @@ builder.Services.AddAuthentication(options =>
         return Task.CompletedTask;
     };
 })
-.AddCookie("EmployerCookies", o =>
+.AddCookie("RecruiterCookies", o =>
 {
-    o.Cookie.Name       = "App.Employer";
-    o.LoginPath         = "/Auth/EmployerLogin";
-    o.AccessDeniedPath  = "/Auth/EmployerLogin";
+    o.Cookie.Name       = "App.Recruiter";
+    o.LoginPath         = "/Auth/RecruiterLogin";
+    o.AccessDeniedPath  = "/Auth/RecruiterLogin";
     o.ExpireTimeSpan    = TimeSpan.FromHours(12);
     o.SlidingExpiration = true;
     o.Events.OnRedirectToLogin = ctx =>
@@ -85,7 +85,7 @@ builder.Services.AddAuthentication(options =>
 .AddCookie("AdminCookies", o =>
 {
     o.Cookie.Name       = "App.Admin";
-    o.LoginPath         = "/Auth/Login";
+    o.LoginPath         = "/Auth/CandidateLogin";
     o.ExpireTimeSpan    = TimeSpan.FromHours(12);
     o.SlidingExpiration = true;
     o.Events.OnRedirectToLogin = ctx =>
@@ -132,8 +132,8 @@ if (!string.IsNullOrEmpty(googleClientId))
             o.Events.OnRemoteFailure = ctx =>
             {
                 ctx.HandleResponse();
-                var from = ctx.Request.Query["state"].ToString().Contains("employer") ? "employer" : "candidate";
-                var redirectUrl = from == "employer" ? "/Auth/EmployerLogin" : "/Auth/Login";
+                var from = ctx.Request.Query["state"].ToString().Contains("recruiter") ? "recruiter" : "candidate";
+                var redirectUrl = from == "recruiter" ? "/Auth/RecruiterLogin" : "/Auth/CandidateLogin";
                 ctx.Response.Redirect(redirectUrl);
                 return Task.CompletedTask;
             };
@@ -209,7 +209,7 @@ app.UseStatusCodePagesWithReExecute("/Home/Error404");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseSession();           // ← phải trước Authentication
+app.UseSession();           // ↁEphải trước Authentication
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -218,3 +218,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+

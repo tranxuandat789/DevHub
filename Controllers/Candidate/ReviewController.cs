@@ -7,5 +7,10 @@ namespace DevHub.Controllers.Candidate
     [Authorize(Roles = "CANDIDATE,Candidate")]
     public class ReviewController : Controller
     {
+        [HttpGet("create")]
+        public IActionResult Create()
+        {
+            return View();
+        }
     }
 }

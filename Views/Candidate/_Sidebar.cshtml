@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @using DevHub.Services.Interfaces
 @inject IAuthService AuthService
 @{
@@ -28,7 +28,7 @@
     <!-- Navigation Menu -->
     <div class="bg-white rounded-[20px] p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB]">
         <nav class="space-y-1">
-            <a href="/Candidate/Dashboard" 
+            <a href="/candidate/dashboard" 
                class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Dashboard" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Dashboard" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
                 Tổng quan
             </a>
 
-            <a href="/Candidate/Profile" 
+            <a href="/candidate/profile" 
                class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Profile" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Profile" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +46,15 @@
                 Hồ sơ của bạn
             </a>
 
-            <a href="/Candidate/AppliedJobs" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+            <a href="/candidate/jobs/recommended" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+                      @(ViewData["ActiveMenu"]?.ToString() == "RecommendedJobs" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
+                <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "RecommendedJobs" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Gợi ý việc làm
+            </a>
+
+            <a href="/candidate/applications" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "AppliedJobs" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "AppliedJobs" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -54,7 +62,7 @@
                 Việc làm đã ứng tuyển
             </a>
 
-            <a href="/Candidate/SavedJobs" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+            <a href="/candidate/bookmarks" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "SavedJobs" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "SavedJobs" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -62,7 +70,7 @@
                 Việc làm đã lưu
             </a>
 
-            <a href="/Candidate/Interviews" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+            <a href="/candidate/interviews" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Interviews" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Interviews" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -70,7 +78,7 @@
                 Lịch phỏng vấn
             </a>
 
-            <a href="/Candidate/Notifications" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+            <a href="/candidate/notifications" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Notifications" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Notifications" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -91,9 +99,10 @@
                     <svg id="settingsArrow" class="w-4 h-4 transition-transform duration-200 @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <div id="settingsDropdown" class="pl-11 pr-4 py-1 space-y-1 @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "" : "hidden")">
-                    <a href="/Candidate/ChangePassword" class="block py-2 text-[14px] font-medium transition-colors @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "text-primary" : "text-muted hover:text-dark")">Đổi mật khẩu</a>
+                    <a href="/candidate/profile/change-password" class="block py-2 text-[14px] font-medium transition-colors @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "text-primary" : "text-muted hover:text-dark")">Đổi mật khẩu</a>
                 </div>
             </div>
         </nav>
     </div>
 </div>
+

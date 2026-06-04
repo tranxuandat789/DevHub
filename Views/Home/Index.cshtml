@@ -1,3 +1,4 @@
+@model DevHub.Models.HomeViewModel
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -21,30 +22,34 @@
                 </p>
 
                 <!-- Search Bar -->
-                <div class="bg-white p-3 shadow-[0_15px_40px_-10px_rgba(139,92,246,0.3)] hover:shadow-[0_20px_50px_-15px_rgba(139,92,246,0.4)] transition-shadow duration-300 md:rounded-full rounded-3xl flex flex-col md:flex-row gap-3 w-full lg:w-[200%] lg:-mr-[100%] max-w-none relative z-30 items-center border border-purple-100">
+                <form action="/Jobs" method="GET" class="bg-white p-3 shadow-[0_15px_40px_-10px_rgba(139,92,246,0.3)] hover:shadow-[0_20px_50px_-15px_rgba(139,92,246,0.4)] transition-shadow duration-300 md:rounded-full rounded-3xl flex flex-col md:flex-row gap-3 w-full lg:w-[200%] lg:-mr-[100%] max-w-none relative z-30 items-center border border-purple-100"
+                      onsubmit="this.querySelectorAll('input[type=text]').forEach(i => i.value = i.value.trim())">
                     <div class="flex-1 flex items-center px-4 py-2 border-b md:border-b-0 md:border-r border-gray-200 w-full">
                         <svg class="w-6 h-6 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" placeholder="Chức danh công việc hoặc từ khóa." class="w-full focus:outline-none text-dark placeholder-gray-400 font-inter text-base truncate" />
+                        <input type="text" name="keyword" placeholder="Chức danh công việc hoặc từ khóa." class="w-full focus:outline-none text-dark placeholder-gray-400 font-inter text-base truncate" />
                     </div>
                     
-                    <div class="flex-1 flex items-center px-4 py-2 relative w-full">
+                    <div class="flex-1 flex items-center px-4 py-2 relative w-full" id="location-wrapper">
                         <svg class="w-6 h-6 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <input type="text" placeholder="TP Hà Nội" class="w-full focus:outline-none text-dark placeholder-gray-400 font-inter text-base pr-8 truncate" />
+                        <input type="text" name="location" id="location-input" placeholder="TP Hà Nội" class="w-full focus:outline-none text-dark placeholder-gray-400 font-inter text-base pr-8 truncate" autocomplete="off" />
                         <!-- Caret down icon -->
-                        <svg class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <svg id="location-caret" class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <!-- Custom Dropdown -->
+                        <div id="location-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+                        </div>
                     </div>
 
-                    <button class="bg-primary text-white font-bold py-3.5 px-8 md:rounded-full rounded-[20px] hover:bg-opacity-90 transition-all whitespace-nowrap text-[16px] w-full md:w-auto flex-shrink-0 shadow-md">
+                    <button type="submit" class="bg-primary text-white font-bold py-3.5 px-8 md:rounded-full rounded-[20px] hover:bg-opacity-90 transition-all whitespace-nowrap text-[16px] w-full md:w-auto flex-shrink-0 shadow-md">
                         Tìm kiếm việc làm
                     </button>
-                </div>
+                </form>
 
                 <div class="mt-6 text-base font-inter">
                     <span class="text-muted">Gợi ý : </span>
-                    <a href="#" class="text-dark font-medium hover:text-primary transition-colors">UI Designer</a>, 
-                    <a href="#" class="text-dark font-medium hover:text-primary transition-colors">UX Researcher</a>, 
-                    <a href="#" class="text-dark font-medium hover:text-primary transition-colors">Android</a>, 
-                    <a href="#" class="text-dark font-medium hover:text-primary transition-colors">Admin</a>
+                    <a href="/Jobs?keyword=UI Designer" class="text-dark font-medium hover:text-primary transition-colors">UI Designer</a>, 
+                    <a href="/Jobs?keyword=UX Researcher" class="text-dark font-medium hover:text-primary transition-colors">UX Researcher</a>, 
+                    <a href="/Jobs?keyword=Android" class="text-dark font-medium hover:text-primary transition-colors">Android</a>, 
+                    <a href="/Jobs?keyword=Admin" class="text-dark font-medium hover:text-primary transition-colors">Admin</a>
                 </div>
             </div>
 
@@ -75,199 +80,55 @@
         
         <!-- Job Cards Grid (3 columns, 2 rows) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            <!-- Job Card 1 -->
-            <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details'">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 flex items-center justify-center">
-                        <span class="font-bold text-3xl text-dark italic">R</span>
+            @if (Model != null && Model.FeaturedJobs != null && Model.FeaturedJobs.Any())
+            {
+                foreach (var job in Model.FeaturedJobs)
+                {
+                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details/@job.JobId'">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center">
+                                @if (job.Recruiter != null && !string.IsNullOrEmpty(job.Recruiter.CompanyLogoUrl))
+                                {
+                                    <img src="@job.Recruiter.CompanyLogoUrl" alt="@job.Recruiter.CompanyName" class="w-full h-full object-contain rounded" />
+                                }
+                                else
+                                {
+                                    <span class="font-bold text-3xl text-dark italic">@(job.Recruiter?.CompanyName?.Substring(0, 1) ?? "C")</span>
+                                }
+                            </div>
+                            <button class="text-[#4640DE] hover:opacity-80 transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer line-clamp-2">@job.Title</h3>
+                        <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> @job.Recruiter?.CompanyName</span>
+                            <span>•</span>
+                            <span class="truncate max-w-[120px]">@(job.Location ?? "Không xác định")</span>
+                        </div>
+                        
+                        <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            @(job.SalaryMax > 0 ? $"{job.SalaryMin}-{job.SalaryMax} triệu" : "Thỏa thuận")
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">@job.WorkingModel</span>
+                            @if (!string.IsNullOrEmpty(job.ExperienceLevel))
+                            {
+                                <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">@job.ExperienceLevel</span>
+                            }
+                        </div>
                     </div>
-                    <button class="text-[#4640DE] hover:opacity-80 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
+                }
+            }
+            else
+            {
+                <div class="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10">
+                    <p class="text-gray-500">Hiện tại chưa có công việc nổi bật nào.</p>
                 </div>
-                
-                <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer">Email Marketing</h3>
-                <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                    <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Revolut</span>
-                    <span>•</span>
-                    <span>Madrid, Spain</span>
-                </div>
-                
-                <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    12-15 triệu
-                </p>
-                
-                <div class="flex flex-wrap gap-2 mt-auto">
-                    <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Full-Time</span>
-                    <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Marketing</span>
-                    <span class="border border-[#4640DE] text-[#4640DE] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Design</span>
-                </div>
-            </div>
-            
-            <!-- Job Card 2 -->
-            <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details'">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 flex items-center justify-center">
-                        <span class="font-bold text-3xl text-dark italic">R</span>
-                    </div>
-                    <button class="text-[#4640DE] hover:opacity-80 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
-                </div>
-                
-                <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer">Email Marketing</h3>
-                <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                    <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Revolut</span>
-                    <span>•</span>
-                    <span>Madrid, Spain</span>
-                </div>
-                
-                <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    12-15 triệu
-                </p>
-                
-                <div class="flex flex-wrap gap-2 mt-auto">
-                    <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Full-Time</span>
-                    <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Marketing</span>
-                    <span class="border border-[#4640DE] text-[#4640DE] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Design</span>
-                </div>
-            </div>
-
-            <!-- Job Card 3 -->
-            <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details'">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 flex items-center justify-center">
-                        <span class="font-bold text-3xl text-dark italic">R</span>
-                    </div>
-                    <button class="text-[#4640DE] hover:opacity-80 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
-                </div>
-                
-                <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer">Email Marketing</h3>
-                <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                    <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Revolut</span>
-                    <span>•</span>
-                    <span>Madrid, Spain</span>
-                </div>
-                
-                <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    12-15 triệu
-                </p>
-                
-                <div class="flex flex-wrap gap-2 mt-auto">
-                    <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Full-Time</span>
-                    <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Marketing</span>
-                    <span class="border border-[#4640DE] text-[#4640DE] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Design</span>
-                </div>
-            </div>
-
-            <!-- Job Card 4 -->
-            <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details'">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 flex items-center justify-center">
-                        <span class="font-bold text-3xl text-dark italic">R</span>
-                    </div>
-                    <button class="text-[#4640DE] hover:opacity-80 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
-                </div>
-                
-                <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer">Email Marketing</h3>
-                <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                    <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Revolut</span>
-                    <span>•</span>
-                    <span>Madrid, Spain</span>
-                </div>
-                
-                <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    12-15 triệu
-                </p>
-                
-                <div class="flex flex-wrap gap-2 mt-auto">
-                    <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Full-Time</span>
-                    <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Marketing</span>
-                    <span class="border border-[#4640DE] text-[#4640DE] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Design</span>
-                </div>
-            </div>
-
-            <!-- Job Card 5 -->
-            <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details'">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 flex items-center justify-center">
-                        <span class="font-bold text-3xl text-dark italic">R</span>
-                    </div>
-                    <button class="text-[#4640DE] hover:opacity-80 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
-                </div>
-                
-                <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer">Email Marketing</h3>
-                <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                    <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Revolut</span>
-                    <span>•</span>
-                    <span>Madrid, Spain</span>
-                </div>
-                
-                <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    12-15 triệu
-                </p>
-                
-                <div class="flex flex-wrap gap-2 mt-auto">
-                    <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Full-Time</span>
-                    <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Marketing</span>
-                    <span class="border border-[#4640DE] text-[#4640DE] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Design</span>
-                </div>
-            </div>
-
-            <!-- Job Card 6 -->
-            <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details'">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 flex items-center justify-center">
-                        <span class="font-bold text-3xl text-dark italic">R</span>
-                    </div>
-                    <button class="text-[#4640DE] hover:opacity-80 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                    </button>
-                </div>
-                
-                <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer">Email Marketing</h3>
-                <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                    <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Revolut</span>
-                    <span>•</span>
-                    <span>Madrid, Spain</span>
-                </div>
-                
-                <p class="text-[#26A4FF] font-semibold text-sm mb-4 flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    12-15 triệu
-                </p>
-                
-                <div class="flex flex-wrap gap-2 mt-auto">
-                    <span class="border border-[#56CDAD] text-[#56CDAD] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Full-Time</span>
-                    <span class="border border-[#FFB836] text-[#FFB836] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Marketing</span>
-                    <span class="border border-[#4640DE] text-[#4640DE] px-3 py-1 text-xs rounded-full font-medium font-inter bg-white">Design</span>
-                </div>
-            </div>
-
-            </div>
-
-            <!-- Pagination Indicator -->
-            <div class="flex justify-center items-center mt-12 gap-4">
-                <button class="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-primary hover:border-primary transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <span class="text-dark font-medium text-lg">13 / 55</span>
-                <button class="w-10 h-10 rounded-full border border-primary flex items-center justify-center text-primary bg-indigo-50 hover:bg-primary hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
-            </div>
+            }
     </div>
 </section>
 
@@ -286,34 +147,37 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            @{
-                var companies = new[]
-                {
-                    new { Name = "FPT Software", Jobs = 12, Logo = "FPT" },
-                    new { Name = "VNG Corporation", Jobs = 8, Logo = "VNG" },
-                    new { Name = "Viettel Group", Jobs = 15, Logo = "VTL" },
-                    new { Name = "VNPT Technology", Jobs = 6, Logo = "VNP" },
-                    new { Name = "Tiki Corporation", Jobs = 9, Logo = "TKI" },
-                    new { Name = "MoMo (M_Service)", Jobs = 11, Logo = "MoMo" },
-                    new { Name = "Techcombank", Jobs = 7, Logo = "TCB" },
-                    new { Name = "Zalo Group", Jobs = 5, Logo = "ZLO" },
-                };
-            }
-            @foreach (var company in companies)
+            @if (Model != null && Model.FeaturedCompanies != null && Model.FeaturedCompanies.Any())
             {
-                <div class="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] flex flex-col items-center text-center hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 group overflow-hidden h-[286px]">
-                    <!-- Top: Logo + Name → Company Detail -->
-                    <a href="/Companies/Details" class="flex flex-col items-center px-5 pt-8 pb-5 flex-1 justify-center w-full">
-                        <div class="w-[113px] h-[113px] rounded-3xl bg-dark flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
-                            <span class="text-white font-bold text-sm leading-tight text-center tracking-wide">@company.Logo</span>
-                        </div>
-                        <h3 class="text-[16px] font-semibold text-[#121212] leading-snug line-clamp-2">@company.Name</h3>
-                    </a>
-                    <!-- Bottom: Jobs count → All Jobs -->
-                    <a href="/Jobs" class="bg-[#F8F8F8] px-6 py-4 flex items-center justify-center text-[#121212] text-sm font-semibold w-full hover:bg-gray-100 transition-colors">
-                        @company.Jobs việc đang tuyển
-                        <svg class="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform text-[#121212]" fill="none" stroke="#121212" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
+                foreach (var company in Model.FeaturedCompanies)
+                {
+                    <div class="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] flex flex-col items-center text-center hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 group overflow-hidden h-[286px]">
+                        <!-- Top: Logo + Name → Company Detail -->
+                        <a href="/Companies/Details/@company.RecruiterId" class="flex flex-col items-center px-5 pt-8 pb-5 flex-1 justify-center w-full">
+                            <div class="w-[113px] h-[113px] rounded-3xl bg-dark flex items-center justify-center mb-5 shadow-md group-hover:scale-105 transition-transform duration-300 flex-shrink-0 overflow-hidden">
+                                @if (!string.IsNullOrEmpty(company.CompanyLogoUrl))
+                                {
+                                    <img src="@company.CompanyLogoUrl" alt="@company.CompanyName" class="w-full h-full object-cover" />
+                                }
+                                else
+                                {
+                                    <span class="text-white font-bold text-3xl leading-tight text-center tracking-wide">@(company.CompanyName?.Substring(0, 1) ?? "C")</span>
+                                }
+                            </div>
+                            <h3 class="text-[16px] font-semibold text-[#121212] leading-snug line-clamp-2">@company.CompanyName</h3>
+                        </a>
+                        <!-- Bottom: Jobs count → All Jobs -->
+                        <a href="/Jobs?recruiterId=@company.RecruiterId" class="bg-[#F8F8F8] px-6 py-4 flex items-center justify-center text-[#121212] text-sm font-semibold w-full hover:bg-gray-100 transition-colors">
+                            @company.JobCount việc đang tuyển
+                            <svg class="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform text-[#121212]" fill="none" stroke="#121212" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-span-2 md:col-span-4 text-center py-10">
+                    <p class="text-gray-500">Hiện tại chưa có công ty nổi bật nào.</p>
                 </div>
             }
         </div>
@@ -327,77 +191,115 @@
             <h2 class="text-4xl md:text-5xl font-bold text-dark leading-tight">
                 Bài viết nổi bật
             </h2>
-            <a href="#" class="text-[#4640DE] font-bold flex items-center hover:underline group text-lg transition-all">
+            <a href="/CareerHandbook" class="text-[#4640DE] font-bold flex items-center hover:underline group text-lg transition-all">
                 Xem tất cả bài viết
                 <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </a>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6">
-            <!-- Left Large Article -->
-            <div class="w-full lg:w-1/2 flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                <img src="https://picsum.photos/seed/blog1/800/500" alt="" class="w-full aspect-[16/10] object-cover" />
-                <div class="p-8 flex flex-col flex-grow">
-                    <h3 class="text-2xl font-bold text-dark mb-4 hover:text-primary transition-colors cursor-pointer">Cơ hội cho kỹ sư công nghệ Việt Nam tiếp cận cơ hội toàn cầu</h3>
-                    <p class="text-muted text-base mb-6 font-inter leading-relaxed line-clamp-3">
-                        Phần Lan đang mở ra nhiều cơ hội phát triển sự nghiệp cho các kỹ sư công nghệ cấp cao toàn cầu, và Việt Nam là một trong những thị trường nhân tài công nghệ trọng điểm đang nhận được nhiều cơ hội.
-                    </p>
-                    <a href="#" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-base">
-                        Đọc ngay
-                        <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
-            </div>
+            @if (Model != null && Model.FeaturedBlogs != null && Model.FeaturedBlogs.Any())
+            {
+                var mainBlog = Model.FeaturedBlogs.First();
+                var otherBlogs = Model.FeaturedBlogs.Skip(1).ToList();
 
-            <!-- Right Small Articles (2x2 Grid) -->
-            <div class="w-full lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <!-- Small Article 1 -->
-                <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                    <img src="https://picsum.photos/seed/blog2/400/200" alt="" class="w-full h-36 object-cover" />
-                    <div class="p-6 flex flex-col flex-grow">
-                        <h4 class="text-lg font-bold text-dark mb-4 line-clamp-2 hover:text-primary transition-colors cursor-pointer">Alliglow Labo - Tự hào Top 10 Vietnam Best IT Companies 2024</h4>
-                        <a href="#" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
+                <!-- Left Large Article -->
+                <div class="w-full lg:w-1/2 flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
+                    <img src="@(string.IsNullOrEmpty(mainBlog.ThumbnailUrl) ? "https://picsum.photos/seed/blog1/800/500" : mainBlog.ThumbnailUrl)" alt="@mainBlog.Title" class="w-full aspect-[16/10] object-cover" />
+                    <div class="p-8 flex flex-col flex-grow">
+                        <h3 class="text-2xl font-bold text-dark mb-4 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/Blog/@mainBlog.Slug'">@mainBlog.Title</h3>
+                        <p class="text-muted text-base mb-6 font-inter leading-relaxed line-clamp-3">
+                            @(string.IsNullOrEmpty(mainBlog.Content) ? "" : System.Text.RegularExpressions.Regex.Replace(mainBlog.Content, "<.*?>", string.Empty))
+                        </p>
+                        <a href="/Blog/@mainBlog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-base">
                             Đọc ngay
-                            <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </a>
                     </div>
                 </div>
-                <!-- Small Article 2 -->
-                <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                    <img src="https://picsum.photos/seed/blog3/400/200" alt="" class="w-full h-36 object-cover" />
-                    <div class="p-6 flex flex-col flex-grow">
-                        <h4 class="text-lg font-bold text-dark mb-4 line-clamp-2 hover:text-primary transition-colors cursor-pointer">Bên trong hệ sinh thái công nghệ Phần Lan: Cơ hội cho kỹ sư công...</h4>
-                        <a href="#" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
-                            Đọc ngay
-                            <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </a>
+
+                @if (otherBlogs.Any())
+                {
+                    <!-- Right Small Articles (2x2 Grid) -->
+                    <div class="w-full lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        @foreach(var blog in otherBlogs)
+                        {
+                            <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
+                                <img src="@(string.IsNullOrEmpty(blog.ThumbnailUrl) ? "https://picsum.photos/seed/blog" + blog.BlogId + "/400/200" : blog.ThumbnailUrl)" alt="@blog.Title" class="w-full h-36 object-cover" />
+                                <div class="p-6 flex flex-col flex-grow">
+                                    <h4 class="text-lg font-bold text-dark mb-4 line-clamp-2 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/Blog/@blog.Slug'">@blog.Title</h4>
+                                    <a href="/Blog/@blog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
+                                        Đọc ngay
+                                        <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        }
                     </div>
+                }
+            }
+            else
+            {
+                <div class="w-full text-center py-10">
+                    <p class="text-gray-500">Hiện tại chưa có bài viết nổi bật nào.</p>
                 </div>
-                <!-- Small Article 3 -->
-                <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                    <img src="https://picsum.photos/seed/blog4/400/200" alt="" class="w-full h-36 object-cover" />
-                    <div class="p-6 flex flex-col flex-grow">
-                        <h4 class="text-lg font-bold text-dark mb-4 line-clamp-2 hover:text-primary transition-colors cursor-pointer">Cách Niteco giúp nhân tài IT phát triển song hành cùng AI và các xu...</h4>
-                        <a href="#" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
-                            Đọc ngay
-                            <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </a>
-                    </div>
-                </div>
-                <!-- Small Article 4 -->
-                <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                    <img src="https://picsum.photos/seed/blog5/400/200" alt="" class="w-full h-36 object-cover" />
-                    <div class="p-6 flex flex-col flex-grow">
-                        <h4 class="text-lg font-bold text-dark mb-4 line-clamp-2 hover:text-primary transition-colors cursor-pointer">KIOTVIET: 16 NĂM KHẲNG ĐỊNH VỊ THẾ BẰNG SỰ TẬN TÂM VÀ...</h4>
-                        <a href="#" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
-                            Đọc ngay
-                            <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            }
         </div>
     </div>
 </section>
 
+<script>
+(function () {
+    let allProvinces = [];
+    const input = document.getElementById('location-input');
+    const dropdown = document.getElementById('location-dropdown');
+    const caret = document.getElementById('location-caret');
 
+    fetch('https://provinces.open-api.vn/api/p/')
+        .then(r => r.json())
+        .then(data => {
+            allProvinces = data.map(p => p.name.replace(/^(Tỉnh|Thành phố)\s+/i, ''));
+        })
+        .catch(() => {});
+
+    function renderList(items) {
+        dropdown.innerHTML = '';
+        items.forEach(name => {
+            const div = document.createElement('div');
+            div.textContent = name;
+            div.className = 'px-4 py-2 text-sm text-dark hover:bg-primary/5 hover:text-primary cursor-pointer';
+            div.addEventListener('mousedown', e => {
+                e.preventDefault();
+                input.value = name;
+                closeDropdown();
+            });
+            dropdown.appendChild(div);
+        });
+    }
+
+    function openDropdown(filter) {
+        const q = (filter || '').toLowerCase();
+        const list = q ? allProvinces.filter(n => n.toLowerCase().includes(q)) : allProvinces;
+        renderList(list);
+        dropdown.classList.remove('hidden');
+        caret.style.transform = 'translateY(-50%) rotate(180deg)';
+    }
+
+    function closeDropdown() {
+        dropdown.classList.add('hidden');
+        caret.style.transform = '';
+    }
+
+    input.addEventListener('focus', () => openDropdown(input.value));
+    input.addEventListener('input', () => openDropdown(input.value));
+    input.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+    caret.addEventListener('click', () => {
+        if (dropdown.classList.contains('hidden')) {
+            input.focus();
+            openDropdown(input.value);
+        } else {
+            closeDropdown();
+        }
+    });
+})();
+</script>

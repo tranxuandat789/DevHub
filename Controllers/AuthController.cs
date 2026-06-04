@@ -1,3 +1,8 @@
+// =========================================================================
+// Các thư viện, package phục vụ xử lý backend đăng nhập, phiên đăng nhập
+// Author: PhongDH
+// Date: 31/06/2026
+// =========================================================================
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Services.Interfaces;
@@ -33,6 +38,10 @@ public class AuthController : Controller
         _emailHelper = emailHelper;
     }
 
+    /// <summary>
+    /// Hiển thị trang đăng nhập cho ứng viên.
+    /// </summary>
+    /// <returns>View trang đăng nhập hoặc chuyển hướng đến Dashboard nếu đã đăng nhập.</returns>
     [HttpGet]
     public IActionResult Login()
     {
@@ -44,6 +53,12 @@ public class AuthController : Controller
     [HttpGet]
     public IActionResult Register() => View();
 
+    /// <summary>
+    /// Xử lý dữ liệu đăng nhập của ứng viên.
+    /// </summary>
+    /// <param name="vm">Dữ liệu đăng nhập (Email, Mật khẩu).</param>
+    /// <param name="returnUrl">Đường dẫn trả về sau khi đăng nhập thành công (tùy chọn).</param>
+    /// <returns>Chuyển hướng đến Dashboard hoặc trang trả về nếu thành công, ngược lại hiển thị lỗi.</returns>
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
     {
@@ -115,6 +130,10 @@ public class AuthController : Controller
         return RedirectToDashboard(user.UserType);
     }
 
+    /// <summary>
+    /// Hiển thị trang đăng nhập dành riêng cho nhà tuyển dụng.
+    /// </summary>
+    /// <returns>View trang đăng nhập hoặc chuyển hướng đến Dashboard nếu đã đăng nhập.</returns>
     [HttpGet]
     public IActionResult EmployerLogin()
     {
@@ -123,6 +142,12 @@ public class AuthController : Controller
         return View(new LoginViewModel());
     }
 
+    /// <summary>
+    /// Xử lý dữ liệu đăng nhập của nhà tuyển dụng.
+    /// </summary>
+    /// <param name="vm">Dữ liệu đăng nhập (Email, Mật khẩu).</param>
+    /// <param name="returnUrl">Đường dẫn trả về sau khi đăng nhập thành công (tùy chọn).</param>
+    /// <returns>Chuyển hướng đến Dashboard nhà tuyển dụng hoặc trang trả về nếu thành công, ngược lại hiển thị lỗi.</returns>
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> EmployerLogin(LoginViewModel vm, string? returnUrl = null)
     {
@@ -194,6 +219,10 @@ public class AuthController : Controller
         return RedirectToDashboard(user.UserType);
     }
 
+    /// <summary>
+    /// Xử lý đăng xuất tài khoản ứng viên (xóa cookie xác thực).
+    /// </summary>
+    /// <returns>Chuyển hướng về trang chủ.</returns>
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
@@ -201,6 +230,10 @@ public class AuthController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    /// <summary>
+    /// Xử lý đăng xuất tài khoản nhà tuyển dụng (xóa cookie "EmployerCookies").
+    /// </summary>
+    /// <returns>Chuyển hướng về trang chủ dành cho nhà tuyển dụng.</returns>
     [HttpGet]
     public async Task<IActionResult> EmployerLogout()
     {
@@ -208,6 +241,10 @@ public class AuthController : Controller
         return Redirect("/Home/Employer");
     }
 
+    /// <summary>
+    /// Xử lý đăng xuất tài khoản quản trị viên/điều hành viên (xóa cookie "AdminCookies").
+    /// </summary>
+    /// <returns>Chuyển hướng về trang đăng nhập.</returns>
     [HttpGet]
     public async Task<IActionResult> AdminLogout()
     {
@@ -215,6 +252,11 @@ public class AuthController : Controller
         return RedirectToAction("Login", "Auth");
     }
 
+    /// <summary>
+    /// Bắt đầu luồng xác thực đăng nhập bằng Google OAuth.
+    /// </summary>
+    /// <param name="from">Nguồn đăng nhập (ứng viên "candidate" hoặc nhà tuyển dụng "employer").</param>
+    /// <returns>Chuyển hướng tới trang xác thực của Google.</returns>
     [HttpGet]
     public IActionResult GoogleLogin(string? from = "candidate")
     {
@@ -223,6 +265,14 @@ public class AuthController : Controller
         return Challenge(props, GoogleDefaults.AuthenticationScheme);
     }
 
+    /// <summary>
+    /// Xử lý dữ liệu trả về từ Google sau khi người dùng xác thực thành công.
+    /// </summary>
+    /// <returns>
+    /// Đăng nhập và chuyển hướng tới Dashboard nếu người dùng đã tồn tại.
+    /// Tạo tài khoản mới tự động cho ứng viên.
+    /// Chuyển hướng yêu cầu thêm thông tin đối với nhà tuyển dụng mới.
+    /// </returns>
     [HttpGet]
     public async Task<IActionResult> GoogleCallback()
     {
@@ -324,6 +374,10 @@ public class AuthController : Controller
         return RedirectToAction(nameof(GoogleEmployerInfo));
     }
 
+    /// <summary>
+    /// Hiển thị form nhập thông tin bổ sung cho nhà tuyển dụng đăng nhập lần đầu bằng Google.
+    /// </summary>
+    /// <returns>View điền thông tin bổ sung.</returns>
     [HttpGet]
     public IActionResult GoogleEmployerInfo()
     {
@@ -337,6 +391,11 @@ public class AuthController : Controller
         });
     }
 
+    /// <summary>
+    /// Xử lý lưu thông tin bổ sung và tạo tài khoản nhà tuyển dụng qua Google.
+    /// </summary>
+    /// <param name="vm">Dữ liệu thông tin nhà tuyển dụng (Số điện thoại, v.v.).</param>
+    /// <returns>Đăng nhập và chuyển hướng tới Dashboard nhà tuyển dụng nếu thành công.</returns>
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> GoogleEmployerInfo(GoogleEmployerInfoViewModel vm)
     {
@@ -368,6 +427,14 @@ public class AuthController : Controller
         return RedirectToDashboard("Recruiter");
     }
 
+    /// <summary>
+    /// Hàm dùng chung để khởi tạo phiên đăng nhập (Cookie Authentication) cho tất cả các loại tài khoản.
+    /// Thiết lập các Claims (thông tin định danh) như: UserId, Email, Role, FullName, Avatar, và tạo Cookie theo loại User.
+    /// </summary>
+    /// <param name="user">Đối tượng người dùng đã xác thực thành công.</param>
+    /// <param name="rememberMe">Cờ xác định có lưu thông tin đăng nhập (kéo dài thời gian sống của Cookie hay không).</param>
+    /// <param name="googleAvatar">Avatar lấy từ Google (nếu có) để dự phòng khi user chưa có avatar.</param>
+    /// <returns>Một tác vụ (Task) thực hiện ghi Cookie xuống client.</returns>
     private async Task SignInAsync(UserAccount user, bool rememberMe, string? googleAvatar = null)
     {
         var fullName = "";

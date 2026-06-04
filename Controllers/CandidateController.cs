@@ -48,7 +48,8 @@ namespace DevHub.Controllers
             }
             var candidate = await _candidateService.GetCandidateByIdAsync(userId);
             var cv = await _cvService.GetCvByCandidateIdAsync(userId);
-            if (candidate == null) { 
+            if (candidate == null)
+            {
                 return NotFound("Ứng viên không tồn tại");
             }
             var viewModel = new CandidateProfileViewModel
@@ -116,12 +117,12 @@ namespace DevHub.Controllers
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int candidateId = int.Parse(userIdStr!);
                 await _candidateService.UpdateProfileAsync(
-                    candidateId, 
-                    model.FullName, 
-                    model.Phone, 
-                    model.Birthdate, 
-                    model.Gender, 
-                    model.Address, 
+                    candidateId,
+                    model.FullName,
+                    model.Phone,
+                    model.Birthdate,
+                    model.Gender,
+                    model.Address,
                     model.SocialMediaUrl,
                     model.ExpectedSalaryMin,
                     model.ExpectedSalaryMax,
@@ -155,11 +156,11 @@ namespace DevHub.Controllers
 
                 TempData["SuccessMessage"] = "Tải lên CV mới thành công! File cũ đã tự động bị xóa.";
             }
-            catch (ArgumentException ex) 
+            catch (ArgumentException ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Đã xảy ra lỗi khi lưu file: " + ex.Message;
             }
@@ -225,6 +226,12 @@ namespace DevHub.Controllers
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
+        public IActionResult RecommendedJobs()
+        {
+            return View("~/Views/Candidate/RecommendedJob/Index.cshtml");
+        }
+
+        [Authorize(Roles = "CANDIDATE,Candidate")]
         public IActionResult SavedJobs()
         {
             return View("~/Views/Candidate/Bookmark/Index.cshtml");
@@ -256,4 +263,3 @@ namespace DevHub.Controllers
         }
     }
 }
-

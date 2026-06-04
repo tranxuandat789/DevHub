@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿//AnhPT-02/06/2026
+using System.ComponentModel.DataAnnotations;
 
 namespace DevHub.ViewModels.Recruiter
 {

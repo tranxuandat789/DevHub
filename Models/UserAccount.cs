@@ -15,7 +15,7 @@ public partial class UserAccount
     public string? OtpVerification { get; set; }
 
     public DateTime? OtpExpiresAt { get; set; } 
-    public string? ResetPasswordToken { get; set; }
+    public string? ResetPassworvmken { get; set; }
 
     public DateTime? ResetPasswordExpiresAt { get; set; }
 

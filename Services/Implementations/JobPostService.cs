@@ -47,7 +47,7 @@ public class JobPostService : IJobPostService
 
         // Kiểm tra điều kiện: Nếu bài đăng không tồn tại HOẶC trạng thái hiện tại không phải là "pending" (chờ duyệt)
         // thì không thể phê duyệt -> Trả về false
-        if (job == null || job.Status != "pending") return false;
+        if (job == null || !string.Equals(job.Status, "PENDING", StringComparison.OrdinalIgnoreCase)) return false;
 
         // 2. Cập nhật lại các thông tin duyệt bài đăng
         job.Status = "APPROVED";          // Đổi trạng thái thành "approved" (đã phê duyệt)
@@ -69,7 +69,8 @@ public class JobPostService : IJobPostService
 
         // Kiểm tra điều kiện: Nếu bài đăng không tồn tại HOẶC trạng thái hiện tại không phải là "pending" (chờ duyệt)
         // thì không thể từ chối -> Trả về false
-        if (job == null || job.Status != "pending") return false;
+        // Case-insensitive so it works regardless of how the status casing was stored.
+        if (job == null || !string.Equals(job.Status, "PENDING", StringComparison.OrdinalIgnoreCase)) return false;
 
         // 2. Cập nhật lại các thông tin từ chối bài đăng
         job.Status = "REJECTED";           // Đổi trạng thái thành "rejected" (đã từ chối)

@@ -1,4 +1,5 @@
-﻿using DevHub.Repositories.Interfaces;
+﻿//AnhPT 03-06-2026
+using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Recruiter;
 
@@ -6,15 +7,20 @@ namespace DevHub.Services.Implementations
 {
     public class RecruiterService : IRecruiterService
     {
+        //Repository interface instance
         private readonly IRecruiterRepository _recruiterProfileRepository;
+        private readonly IUserAccountRepository _userRepository;
 
-        public RecruiterService(IRecruiterRepository recruiterProfileRepository)
+        //Constructor Injection
+        public RecruiterService(IRecruiterRepository recruiterProfileRepository, IUserAccountRepository userRepository)
         {
             _recruiterProfileRepository = recruiterProfileRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId)
         {
+            //get recruiter profile by id
             var recruiter = await _recruiterProfileRepository.GetProfileAsync(recruiterId);
             if (recruiter == null)
                 throw new Exception("Recruiter not found");
@@ -32,12 +38,13 @@ namespace DevHub.Services.Implementations
                 recruiter.Industry,
                 recruiter.TaxCode
             };
+            //Check if this recruiter has been upload licenses or not
             bool hasLicense = !string.IsNullOrEmpty(recruiter.BusinessLicenseUrl);
             bool hasAdditionalDocs = !string.IsNullOrEmpty(recruiter.AdditionalDocumentsUrl);
 
             int companyFields = companyProfile.Count(field => !string.IsNullOrEmpty(field));
 
-            //each field contribution to profile completeness: company profile field 8%, business license 15%, additional documents 5%
+            //each field contribution to profile completeness: company profile field 9%, business license 7%, additional documents 3%
             int profileCompleteness = companyFields * 9 + (hasLicense ? 7 : 0) + (hasAdditionalDocs ? 3 : 0);
 
             return new RecruiterProfileViewModel
@@ -66,7 +73,7 @@ namespace DevHub.Services.Implementations
 
             int recruiterId = existingRecruiter.RecruiterId;
 
-            // Business rule: ensure TaxCode is unique across recruiters
+            // Business rule: ensure TaxCode is unique.,
             if (!string.IsNullOrEmpty(updateVm.TaxCode) && updateVm.TaxCode != existingRecruiter.TaxCode)
             {
                 bool isTaken = await _recruiterProfileRepository.CheckTaxCodeExistAsync(updateVm.TaxCode, recruiterId);
@@ -87,7 +94,7 @@ namespace DevHub.Services.Implementations
             existingRecruiter.BusinessLicenseUrl = updateVm.BusinessLicenseUrl;
             existingRecruiter.AdditionalDocumentsUrl = updateVm.AdditionalDocumentsUrl;
 
-            // Recalculate profile completeness and persist
+            // Recalculate profile completeness
             var companyProfile = new List<string?>
             {
                 existingRecruiter.FullName,
@@ -108,33 +115,25 @@ namespace DevHub.Services.Implementations
 
             existingRecruiter.ProfileCompletion = profileCompleteness;
 
+            //save changes to database  
             await _recruiterProfileRepository.UpdateProfileAsync(existingRecruiter);
-
-            // Optional audit log when profile is nearly complete — must not fail the profile save
-            if (profileCompleteness >= 90)
-            {
-                try
-                {
-                    string details = $"Profile completeness {profileCompleteness}% - recruiter {existingRecruiter.RecruiterId} requests verification";
-                    await _recruiterProfileRepository.CreateVerificationRequestAsync(existingRecruiter.RecruiterId, details);
-                }
-                catch
-                {
-                    // audit_log may be missing or unavailable; profile update already committed
-                }
-            }
         }
 
+        // User-triggered verification request. Only allowed when the company profile is more than 96% complete;
         public async Task SendVerificationRequestAsync(int recruiterId)
         {
             var recruiter = await _recruiterProfileRepository.GetProfileAsync(recruiterId);
             if (recruiter == null)
                 throw new KeyNotFoundException("Recruiter not found");
 
+            // Gate: profile completeness must exceed 96%.
+            if ((recruiter.ProfileCompletion ?? 0) <= 96)
+                throw new InvalidOperationException("Hồ sơ công ty cần hoàn thiện trên 96% mới có thể gửi yêu cầu xác thực.");
+
             if (string.IsNullOrEmpty(recruiter.BusinessLicenseUrl))
                 throw new InvalidOperationException("Vui lòng cung cấp Giấy phép kinh doanh hợp lệ để thực hiện xác thực");
 
-            // create verification request for moderators; do not throw if repository fails
+            // create verification request for moderators, do not throw if repository fails to create log
             try
             {
                 string details = $"Recruiter {recruiter.RecruiterId} requests verification. Company: {recruiter.CompanyName}, TaxCode: {recruiter.TaxCode}";
@@ -144,6 +143,38 @@ namespace DevHub.Services.Implementations
             {
                 // swallow to avoid breaking user flow
             }
+        }
+
+        // Change the recruiter's login password after verifying.
+        public async Task ChangePasswordAsync(int recruiterId, RecruiterChangePasswordViewModel vm)
+        {
+            //get recruiter
+            var recruiter = await _recruiterProfileRepository.GetProfileAsync(recruiterId);
+            if (recruiter == null)
+                throw new KeyNotFoundException("Recruiter not found");
+
+            var currentHash = recruiter.RecruiterNavigation?.PasswordHash;
+
+            // Google-only accounts have no local password to change here.
+            if (string.IsNullOrEmpty(currentHash) || currentHash == "GOOGLE_OAUTH")
+                throw new InvalidOperationException("Tài khoản đăng nhập trực tiếp bằng Google không thể đổi mật khẩu tại đây.");
+
+            // Verify the supplied current password against the stored BCrypt hash.
+            bool currentOk;
+            try 
+            { 
+                currentOk = BCrypt.Net.BCrypt.Verify(vm.CurrentPassword, currentHash); 
+            }
+            catch 
+            { 
+                currentOk = false; 
+            }
+            if (!currentOk)
+                throw new InvalidOperationException("Mật khẩu hiện tại không đúng.");
+
+            // Hash and persist the new password (recruiterId == userId on user_account).
+            var newHash = BCrypt.Net.BCrypt.HashPassword(vm.NewPassword);
+            await _userRepository.UpdatePasswordAsync(recruiterId, newHash);
         }
     }
 }

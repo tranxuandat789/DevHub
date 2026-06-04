@@ -1,4 +1,4 @@
-//AnhPT-01/06/2026
+//AnhPT-03/06/2026
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
@@ -16,15 +16,18 @@ namespace DevHub.Services.Implementations
 
         public async Task<RecruiterDashboardViewModel> GetDashboardAsync(int recruiterId)
         {
+            //Get job posts and interviews by recruiter
             var jobPosts   = await _repo.GetJobPostsAsync(recruiterId);
             var interviews = await _repo.GetInterviewsAsync(recruiterId);
 
+            //get upcoming interview
             var scheduled = interviews
-                .Where(i => i.Status == "Scheduled" || i.Status == "Pending")
+                .Where(i => i.Status == "SCHEDULED" || i.Status == "PENDING")
                 .ToList();
 
+            //get finished interview
             var completed = interviews
-                .Where(i => i.Status == "Completed" || i.Status == "Done")
+                .Where(i => i.Status == "COMPLETED" || i.Status == "CLOSED")
                 .ToList();
 
             return new RecruiterDashboardViewModel
@@ -34,6 +37,7 @@ namespace DevHub.Services.Implementations
                 TotalScheduledInterviews   = scheduled.Count,
                 TotalCompletedInterviews   = completed.Count,
 
+                //count number of applicants for each jobpost
                 JobPostApplicantCounts = jobPosts.Select(j => new JobPostSummaryViewModel
                 {
                     Title          = j.Title,

@@ -58,7 +58,7 @@ private const int MinProfileCompletion = 90;
             throw new InvalidOperationException("Tài khoản đã hết lượt đăng bài hoặc gói dịch vụ hết hạn.");
 
         var position = await _positionRepo.GetByIdAsync(dto.PositionId);
-        if (position == null)
+        if (position == null || position.IsActive == false)
             throw new InvalidOperationException("Vị trí công việc được chọn không tồn tại hoặc đã bị ẩn.");
 
         var uniqueTechIds = dto.TechnologyIds.Distinct().ToList();

@@ -173,6 +173,7 @@ builder.Services.AddScoped<IReviewRecruiterRepository, ReviewRecruiterRepository
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
+builder.Services.AddScoped<IJobSearchRepository, JobSearchRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -198,6 +199,7 @@ builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
 builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
+builder.Services.AddScoped<IJobSearchService, JobSearchService>();
 
 
 var app = builder.Build();

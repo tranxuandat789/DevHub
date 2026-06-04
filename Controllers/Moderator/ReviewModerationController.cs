@@ -8,7 +8,7 @@ namespace DevHub.Controllers.Moderator
     public class ReviewModerationController : Controller
     {
         [HttpGet("")]
-        [HttpGet("/ReviewApproval")]
+
         public IActionResult Index()
         {
             return View("~/Views/Moderator/ReviewApproval/Index.cshtml");

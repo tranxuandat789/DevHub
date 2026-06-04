@@ -1281,11 +1281,11 @@
       }
 
       if (this._config.touch && this._touchSupported) {
-        this._addTouchEventListeners();
+        this._advmuchEventListeners();
       }
     }
 
-    _addTouchEventListeners() {
+    _advmuchEventListeners() {
       const start = event => {
         if (this._pointerEvent && (event.pointerType === POINTER_TYPE_PEN || event.pointerType === POINTER_TYPE_TOUCH)) {
           this.touchStartX = event.clientX;
@@ -2268,7 +2268,7 @@
     return Object.assign({}, getFreshSideObject(), paddingObject);
   }
 
-  function expandToHashMap(value, keys) {
+  function expanvmHashMap(value, keys) {
     return keys.reduce(function (hashMap, key) {
       hashMap[key] = value;
       return hashMap;
@@ -2279,7 +2279,7 @@
     padding = typeof padding === 'function' ? padding(Object.assign({}, state.rects, {
       placement: state.placement
     })) : padding;
-    return mergePaddingObject(typeof padding !== 'number' ? padding : expandToHashMap(padding, basePlacements));
+    return mergePaddingObject(typeof padding !== 'number' ? padding : expanvmHashMap(padding, basePlacements));
   };
 
   function arrow(_ref) {
@@ -2847,7 +2847,7 @@
         altBoundary = _options$altBoundary === void 0 ? false : _options$altBoundary,
         _options$padding = _options.padding,
         padding = _options$padding === void 0 ? 0 : _options$padding;
-    var paddingObject = mergePaddingObject(typeof padding !== 'number' ? padding : expandToHashMap(padding, basePlacements));
+    var paddingObject = mergePaddingObject(typeof padding !== 'number' ? padding : expanvmHashMap(padding, basePlacements));
     var altContext = elementContext === popper ? reference : popper;
     var referenceElement = state.elements.reference;
     var popperRect = state.rects.popper;

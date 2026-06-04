@@ -1,6 +1,4 @@
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text.Json;
+using DevHub.Data;
 using DevHub.Models;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Auth;
@@ -8,12 +6,18 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DevHub.Controllers;
 
 public class AuthController : Controller
 {
     private readonly IAuthService _auth;
+    private readonly ItrecruitmentDbContext _context;
     private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
     private const string KeyGoogleEmail   = "GoogleEmail";
@@ -22,8 +26,9 @@ public class AuthController : Controller
     private const string KeyGoogleAvatar  = "GoogleAvatar";
     private const string KeyGoogleFrom    = "GoogleFrom";
 
-    public AuthController(IAuthService auth, DevHub.Helpers.EmailHelper emailHelper)
+    public AuthController(IAuthService auth, DevHub.Helpers.EmailHelper emailHelper, ItrecruitmentDbContext context)
     {
+        _context = context;
         _auth = auth;
         _emailHelper = emailHelper;
     }
@@ -83,7 +88,7 @@ public class AuthController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        if (user.UserType == "Recruiter")
+        if (user.UserType?.Trim().ToUpper() == "RECRUITER")
         {
             TempData["GeneralError"] = "Tài khoản nhà tuyển dụng vui lòng đăng nhập tại trang dành riêng.";
             return RedirectToAction(nameof(Login));
@@ -162,7 +167,7 @@ public class AuthController : Controller
             return RedirectToAction(nameof(EmployerLogin));
         }
 
-        if (user.UserType == "Candidate")
+        if (user.UserType?.Trim().ToUpper() == "CANDIDATE")
         {
             TempData["GeneralError"] = "Tài khoản ứng viên vui lòng đăng nhập tại trang dành riêng.";
             return RedirectToAction(nameof(EmployerLogin));
@@ -264,14 +269,14 @@ public class AuthController : Controller
             if (user.GoogleId is null)
                 await _auth.LinkGoogleIdAsync(user.UserId, googleId);
 
-            if (!string.IsNullOrEmpty(avatar) && user.UserType == "Candidate"
+            if (!string.IsNullOrEmpty(avatar) && user.UserType?.Trim().ToUpper() == "CANDIDATE"
                 && user.Candidate?.ImageUrl != avatar)
             {
                 await _auth.SyncCandidateAvatarAsync(user.UserId, avatar);
                 if (user.Candidate != null) user.Candidate.ImageUrl = avatar;
             }
 
-            if (!string.IsNullOrEmpty(avatar) && user.UserType == "Recruiter"
+            if (!string.IsNullOrEmpty(avatar) && user.UserType?.Trim().ToUpper() == "RECRUITER"
                 && user.Recruiter?.CompanyLogoUrl != avatar)
             {
                 await _auth.SyncRecruiterAvatarAsync(user.UserId, avatar);
@@ -286,13 +291,13 @@ public class AuthController : Controller
                     : RedirectToAction(nameof(Login));
             }
 
-            if (from == "employer" && user.UserType == "Candidate")
+            if (from == "employer" && user.UserType?.Trim().ToUpper() == "CANDIDATE")
             {
                 TempData["GeneralError"] = "Tài khoản ứng viên không thể đăng nhập tại trang nhà tuyển dụng.";
                 return Redirect("/Auth/EmployerLogin");
             }
 
-            if (from == "candidate" && user.UserType == "Recruiter")
+            if (from == "candidate" && user.UserType?.Trim().ToUpper() == "RECRUITER")
             {
                 TempData["GeneralError"] = "Tài khoản nhà tuyển dụng vui lòng đăng nhập tại trang dành riêng.";
                 return RedirectToAction(nameof(Login));
@@ -366,49 +371,34 @@ public class AuthController : Controller
     private async Task SignInAsync(UserAccount user, bool rememberMe, string? googleAvatar = null)
     {
         var fullName = "";
-        if (user.UserType == "Candidate")
+        if (user.UserType?.Trim().ToUpper() == "CANDIDATE")
         {
             fullName = !string.IsNullOrEmpty(user.Candidate?.FullName) ? user.Candidate.FullName : user.Email;
         }
-        else if (user.UserType == "Recruiter")
+        else if (user.UserType?.Trim().ToUpper() == "RECRUITER")
         {
             fullName = !string.IsNullOrEmpty(user.Recruiter?.FullName) ? user.Recruiter.FullName : user.Email;
         }
         if (string.IsNullOrEmpty(fullName)) fullName = user.Email;
 
         var avatarUrl = "";
-        if (user.UserType == "Candidate")
+        if (user.UserType?.Trim().ToUpper() == "CANDIDATE")
         {
             avatarUrl = !string.IsNullOrEmpty(user.Candidate?.ImageUrl) ? user.Candidate.ImageUrl : googleAvatar;
         }
-        else if (user.UserType == "Recruiter")
+        else if (user.UserType?.Trim().ToUpper() == "RECRUITER")
         {
             avatarUrl = !string.IsNullOrEmpty(user.Recruiter?.CompanyLogoUrl) ? user.Recruiter.CompanyLogoUrl : googleAvatar;
         }
         avatarUrl ??= "";
 
-        var userTypeLower = (user.UserType ?? string.Empty).ToLowerInvariant();
-        string roleClaim;
-        string scheme;
-        switch (userTypeLower)
+        var (roleClaim, scheme) = (user.UserType?.Trim().ToUpper()) switch
         {
-            case "recruiter":
-                roleClaim = "RECRUITER";
-                scheme = "EmployerCookies";
-                break;
-            case "admin":
-                roleClaim = "ADMIN";
-                scheme = "AdminCookies";
-                break;
-            case "moderator":
-                roleClaim = "MODERATOR";
-                scheme = "AdminCookies";
-                break;
-            default:
-                roleClaim = "CANDIDATE";
-                scheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                break;
-        }
+            "RECRUITER" => ("RECRUITER",  "EmployerCookies"),
+            "ADMIN" => ("ADMIN",     "AdminCookies"),
+            "MODERATOR" => ("MODERATOR", "AdminCookies"),
+            _           => ("CANDIDATE", CookieAuthenticationDefaults.AuthenticationScheme)
+        };
 
         var claims = new List<Claim>
         {
@@ -532,7 +522,7 @@ public class AuthController : Controller
             return View();
         }
 
-        if (sessionOtp != otp)
+        if (sessionOtp != otp?.Trim())
         {
             TempData["ErrorMessage"] = "Mã OTP không chính xác.";
             return View();
@@ -622,7 +612,7 @@ public class AuthController : Controller
 
         TempData["SuccessMsg"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
         
-        if (user.UserType == "Recruiter")
+        if (user.UserType?.Trim().ToUpper() == "RECRUITER")
         {
             return RedirectToAction("EmployerLogin");
         }
@@ -672,12 +662,271 @@ public class AuthController : Controller
     {
         userType ??= User.FindFirstValue(ClaimTypes.Role);
 
-        return userType switch
+        return (userType?.Trim().ToUpper()) switch
         {
-            "Admin"     or "ADMIN"     => Redirect("/admin/dashboard"),
+            "Admin"     or "ADMIN" => Redirect("/admin/dashboard"),
             "Moderator" or "MODERATOR" => Redirect("/moderator/job-approvals"),
-            "Recruiter" or "RECRUITER"  => Redirect("/Recruiter/Dashboard"),
+            "Recruiter" or "RECRUITER" => Redirect("/Recruiter/Dashboard"),
             _                          => RedirectToAction("Index", "Home")
         };
     }
+    [HttpGet]
+    public IActionResult EmployerRegister()
+    {
+        return View();
+    }
+    [HttpPost]
+    public async Task<IActionResult> EmployerRegister(RegisterRecruiterViewModel registerRecruiter)
+    {
+        if (registerRecruiter == null)
+        {
+            ViewBag.ErrorMessage = "Dữ liệu đăng ký không hợp lệ!";
+            return View();
+        }
+
+        string fullName = registerRecruiter.FullName ?? "";
+        string phone = registerRecruiter.Phone ?? "";
+        string email = registerRecruiter.Email ?? "";
+        string passwordRaw = registerRecruiter.Password ?? "";
+        string verifyPasswordRaw = registerRecruiter.VerifyPassword ?? "";
+        string message = "";
+
+        // Validate FullName (must have at least 2 words)
+        var nameWords = fullName.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (nameWords.Length < 2)
+        {
+            message += "Họ và tên phải có ít nhất 2 từ! ";
+        }
+
+        // Validate Phone — format: 0xx xxxx xxx
+        if (string.IsNullOrEmpty(phone) || !Regex.IsMatch(phone, @"^0\d{2} \d{4} \d{3}$"))
+        {
+            message += "Số điện thoại phải theo đúng định dạng '0xx xxxx xxx'! ";
+        }
+
+        // Validate Email
+        if (string.IsNullOrEmpty(email) || !Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@(gmail\.com|fpt\.edu\.vn)$"))
+        {
+            message += "Email phải theo định dạng example@gmail.com hoặc email doanh nghiệp example@fpt.edu.vn! ";
+        }
+
+        // Validate Password matching
+        if (passwordRaw != verifyPasswordRaw)
+        {
+            message += "Mật khẩu và mật khẩu nhập lại không khớp! ";
+        }
+
+        // Validate Password strength
+        if (string.IsNullOrEmpty(passwordRaw) || !Regex.IsMatch(passwordRaw, @"^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{10,}$"))
+        {
+            message += "Mật khẩu phải dài ít nhất 10 ký tự, có ít nhất 1 chữ in hoa, 1 chữ số và 1 ký tự đặc biệt! ";
+        }
+
+        // Check if email already exists
+        if (_context.UserAccounts.Any(u => u.Email == email))
+        {
+            message += "Email này đã được sử dụng để đăng ký tài khoản khác! ";
+        }
+
+        if (!string.IsNullOrEmpty(message))
+        {
+            ViewBag.ErrorMessage = message;
+            return View(registerRecruiter);
+        }
+
+        // Generate 6-digit OTP
+        var otp = new Random().Next(100000, 999999).ToString();
+        Console.WriteLine($"[DevHub OTP] Generated OTP for {email}: {otp}");
+
+        // Store registration info and OTP in session
+        var registrationDataJson = JsonSerializer.Serialize(registerRecruiter);
+        HttpContext.Session.SetString("EmployerRegisterData", registrationDataJson);
+        HttpContext.Session.SetString("EmployerRegisterOTP", otp);
+        HttpContext.Session.SetString("EmployerRegisterExpiry", DateTime.UtcNow.AddMinutes(15).ToString("O"));
+
+        // Send OTP email
+        try
+        {
+            var subject = "Mã xác thực OTP đăng ký Nhà tuyển dụng - DevHub";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                    <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Nhà tuyển dụng DevHub</h2>
+                    <p>Xin chào {fullName},</p>
+                    <p>Cảm ơn bạn đã lựa chọn DevHub. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình đăng ký tài khoản nhà tuyển dụng của bạn:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                    </div>
+                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
+                    <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
+                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                </div>";
+
+            await _emailHelper.SendEmailAsync(email, subject, body);
+            return RedirectToAction("EmployerVerifyOTP");
+        }
+        catch (Exception ex)
+        {
+            var innerMsg = ex.InnerException?.Message ?? ex.Message;
+            Console.WriteLine($"[DevHub EMAIL ERROR] Failed to send OTP email: {innerMsg}");
+            ViewBag.ErrorMessage = $"Không thể gửi email xác thực đến {email}. Lỗi: {innerMsg}";
+            return View(registerRecruiter);
+        }
+    }
+
+    [HttpGet]
+    public IActionResult EmployerVerifyOTP()
+    {
+        var dataJson = HttpContext.Session.GetString("EmployerRegisterData");
+        if (string.IsNullOrEmpty(dataJson))
+        {
+            return RedirectToAction("EmployerRegister");
+        }
+
+        var registerRecruiter = JsonSerializer.Deserialize<RegisterRecruiterViewModel>(dataJson);
+        ViewData["Email"] = registerRecruiter?.Email;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EmployerVerifyOTP(string otp)
+    {
+        var dataJson = HttpContext.Session.GetString("EmployerRegisterData");
+        var sessionOtp = HttpContext.Session.GetString("EmployerRegisterOTP");
+        var expiryStr = HttpContext.Session.GetString("EmployerRegisterExpiry");
+        Console.WriteLine($"[DevHub Debug] Received OTP: '{otp}', Session OTP: '{sessionOtp}'");
+
+        if (string.IsNullOrEmpty(dataJson) || string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(expiryStr))
+        {
+            TempData["ErrorMessage"] = "Yêu cầu đăng ký đã hết hạn hoặc không tìm thấy thông tin. Vui lòng đăng ký lại.";
+            return RedirectToAction("EmployerRegister");
+        }
+
+        var registerRecruiter = JsonSerializer.Deserialize<RegisterRecruiterViewModel>(dataJson)!;
+        ViewData["Email"] = registerRecruiter.Email;
+
+        if (!DateTime.TryParse(expiryStr, out var expiry) || DateTime.UtcNow > expiry)
+        {
+            TempData["ErrorMessage"] = "Mã OTP đã hết hạn. Vui lòng yêu cầu gửi lại mã.";
+            return View();
+        }
+
+        if (sessionOtp != otp?.Trim())
+        {
+            TempData["ErrorMessage"] = "Mã OTP không chính xác.";
+            return View();
+        }
+
+        // Save to database
+        using (var transaction = await _context.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                // Double check if email already exists (DB Conflict protection)
+                if (await _context.UserAccounts.AnyAsync(u => u.Email == registerRecruiter.Email))
+                {
+                    TempData["ErrorMessage"] = "Email này đã được sử dụng để đăng ký tài khoản khác!";
+                    return View();
+                }
+
+                var user = new UserAccount
+                {
+                    Email = registerRecruiter.Email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRecruiter.Password),
+                    UserType = "RECRUITER",
+                    IsActive = true,
+                    CreatedAt = DateTime.Now,
+                    LastUpdated = DateTime.Now
+                };
+                _context.UserAccounts.Add(user);
+                await _context.SaveChangesAsync(); // SaveChanges lần 1 để lấy UserId
+
+                var recruiter = new DevHub.Models.Recruiter
+                {
+                    RecruiterId = user.UserId,
+                    FullName = registerRecruiter.FullName,
+                    Phone = registerRecruiter.Phone,
+                    CompanyName = "Chưa cập nhật",
+                    IsVerified = false,
+                    ProfileCompletion = 0,
+                    TotalSpent = 0,
+                    AverageRating = 0,
+                    TotalReviews = 0
+                };
+                _context.Recruiters.Add(recruiter);
+                await _context.SaveChangesAsync(); // SaveChanges lần 2 để lưu Recruiter
+
+                await transaction.CommitAsync();
+
+                // Clear session keys
+                HttpContext.Session.Remove("EmployerRegisterData");
+                HttpContext.Session.Remove("EmployerRegisterOTP");
+                HttpContext.Session.Remove("EmployerRegisterExpiry");
+
+                // Sign in the user automatically
+                await SignInAsync(user, false);
+                TempData["SuccessMsg"] = "Đăng ký tài khoản nhà tuyển dụng thành công!";
+                return RedirectToDashboard("Recruiter");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                var innerMsg = ex.InnerException?.Message ?? ex.Message;
+                if (innerMsg.Contains("UQ__user_acc__AB6E6164EFF0C5ED") || innerMsg.Contains("unique") || innerMsg.Contains("duplicate"))
+                {
+                    TempData["ErrorMessage"] = "Email này đã được sử dụng để đăng ký tài khoản khác!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Lỗi hệ thống khi tạo tài khoản: " + innerMsg;
+                }
+                return View();
+            }
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EmployerResendOTP()
+    {
+        var dataJson = HttpContext.Session.GetString("EmployerRegisterData");
+        if (string.IsNullOrEmpty(dataJson))
+        {
+            return Json(new { success = false, message = "Không tìm thấy thông tin đăng ký." });
+        }
+
+        var registerRecruiter = JsonSerializer.Deserialize<RegisterRecruiterViewModel>(dataJson)!;
+        var otp = new Random().Next(100000, 999999).ToString();
+        Console.WriteLine($"[DevHub OTP] Resent OTP for {registerRecruiter.Email}: {otp}");
+        HttpContext.Session.SetString("EmployerRegisterOTP", otp);
+        HttpContext.Session.SetString("EmployerRegisterExpiry", DateTime.UtcNow.AddMinutes(15).ToString("O"));
+
+        try
+        {
+            var subject = "Mã xác thực OTP đăng ký Nhà tuyển dụng - DevHub";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                    <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Nhà tuyển dụng DevHub</h2>
+                    <p>Xin chào {registerRecruiter.FullName},</p>
+                    <p>Chúng tôi đã gửi lại mã xác thực OTP đăng ký tài khoản nhà tuyển dụng của bạn. Vui lòng sử dụng mã dưới đây:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                    </div>
+                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
+                    <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
+                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                </div>";
+
+            await _emailHelper.SendEmailAsync(registerRecruiter.Email, subject, body);
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Gửi email thất bại: {ex.Message}" });
+        }
+    }
 }
+
+

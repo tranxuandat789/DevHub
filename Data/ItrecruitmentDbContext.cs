@@ -460,9 +460,6 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.ExperienceLevel)
                 .HasMaxLength(50)
                 .HasColumnName("experience_level");
-            entity.Property(e => e.IsPromoted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_promoted");
             entity.Property(e => e.Location)
                 .HasMaxLength(100)
                 .HasColumnName("location");
@@ -488,7 +485,7 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasColumnName("skill");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
-                .HasDefaultValue("pending")
+                .HasDefaultValue("PENDING")
                 .HasColumnName("status");
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
@@ -914,9 +911,15 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
                 .HasColumnName("password_hash");
-            entity.Property(e => e.ResetPasswordToken)
+            entity.Property(e => e.ResetPassworvmken)
                 .HasMaxLength(100)
                 .HasColumnName("reset_password_token");
+            entity.Property(e => e.OtpVerification)
+                .HasMaxLength(255)
+                .HasColumnName("otp_verification");
+            entity.Property(e => e.OtpExpiresAt)
+                .HasColumnType("datetime")
+                .HasColumnName("otp_expires_at");
             entity.Property(e => e.ResetPasswordExpiresAt)
                 .HasColumnType("datetime")
                 .HasColumnName("reset_password_expires_at");

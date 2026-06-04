@@ -1,6 +1,15 @@
+@* 04/06/2026-DatTX *@
+@model DevHub.ViewModels.Admin.CreateModeratorViewModel
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Thêm/Sửa Moderator";
+    ViewData["Title"] = "Thêm mới Moderator";
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+        Vui lòng kiểm tra lại thông tin nhập vào.
+    </div>
 }
 
 <div class="mb-8">
@@ -12,38 +21,49 @@
     <p class="text-muted">Cấp quyền truy cập vào Moderator Panel cho nhân viên mới.</p>
 </div>
 
-<form onsubmit="event.preventDefault(); submitModerator();" class="max-w-3xl">
+<form method="post" action="/AdminModerator/Create" class="max-w-3xl">
+    @Html.AntiForgeryToken()
     
     <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 border border-[#D6DDEB]">
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block text-dark font-bold mb-2">Họ và Tên <span class="text-red-500">*</span></label>
-                <input type="text" placeholder="Nguyễn Văn A" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium" required>
+                <input type="text" name="FullName" value="@Model?.FullName" placeholder="Nguyễn Văn A" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium" required>
+                @if (ViewData.ModelState["FullName"]?.Errors.Any() == true)
+                {
+                    <p class="text-red-500 text-xs mt-1">@ViewData.ModelState["FullName"]?.Errors.First().ErrorMessage</p>
+                }
             </div>
             <div>
                 <label class="block text-dark font-bold mb-2">Email nội bộ <span class="text-red-500">*</span></label>
-                <input type="email" placeholder="example.mod@jobhuntly.com" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium" required>
+                <input type="email" name="Email" value="@Model?.Email" placeholder="example.mod@jobhuntly.com" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium" required>
+                @if (ViewData.ModelState["Email"]?.Errors.Any() == true)
+                {
+                    <p class="text-red-500 text-xs mt-1">@ViewData.ModelState["Email"]?.Errors.First().ErrorMessage</p>
+                }
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-dark font-bold mb-2">Username đăng nhập <span class="text-red-500">*</span></label>
+                <input type="text" name="Username" value="@Model?.Username" placeholder="Ví dụ: example_mod" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium" required>
+                @if (ViewData.ModelState["Username"]?.Errors.Any() == true)
+                {
+                    <p class="text-red-500 text-xs mt-1">@ViewData.ModelState["Username"]?.Errors.First().ErrorMessage</p>
+                }
+                <p class="text-xs text-muted mt-2">Username dùng để đăng nhập, chỉ bao gồm chữ, số và dấu gạch dưới.</p>
             </div>
         </div>
 
         <div class="mb-6 border-t border-gray-100 pt-6">
             <h4 class="font-bold text-dark mb-4 text-sm uppercase tracking-wide text-gray-500">Cài đặt Mật khẩu</h4>
             <div>
-                <label class="block text-dark font-bold mb-2">Mật khẩu tạm thời (Tùy chọn)</label>
-                <input type="password" placeholder="Để trống nếu muốn hệ thống tự tạo mật khẩu ngẫu nhiên" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark">
-                <p class="text-xs text-muted mt-2">Hệ thống sẽ tự động gửi email thông báo kèm mật khẩu (nếu có) đến cho người dùng mới.</p>
+                <label class="block text-dark font-bold mb-2">Mật khẩu <span class="text-red-500">*</span></label>
+                <input type="password" name="Password" placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark" required>
+                @if (ViewData.ModelState["Password"]?.Errors.Any() == true)
+                {
+                    <p class="text-red-500 text-xs mt-1">@ViewData.ModelState["Password"]?.Errors.First().ErrorMessage</p>
+                }
             </div>
-        </div>
-
-        <div class="mb-8 border-t border-gray-100 pt-6">
-            <label class="flex items-center gap-3 cursor-pointer p-4 border border-gray-100 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                <input type="checkbox" checked class="w-5 h-5 text-primary rounded focus:ring-primary">
-                <div>
-                    <span class="font-bold text-dark block">Kích hoạt tài khoản ngay (Is Active)</span>
-                    <span class="text-xs text-muted">Nếu không, tài khoản sẽ ở trạng thái Vô hiệu hóa (Chờ kích hoạt).</span>
-                </div>
-            </label>
         </div>
 
         <div class="flex gap-4 pt-4 border-t border-[#D6DDEB]">
@@ -59,11 +79,3 @@
 
 </form>
 
-@section Scripts {
-    <script>
-        function submitModerator() {
-            alert('Lưu Moderator thành công! Hệ thống đã gửi email thông báo.');
-            window.location.href = '/AdminModerator';
-        }
-    </script>
-}

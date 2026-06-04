@@ -1,3 +1,4 @@
+//AnhPT-02/06/2026
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
@@ -13,6 +14,7 @@ public class UserAccountRepository : IUserAccountRepository
 
     public Task<UserAccount?> GetByEmailAsync(string email)
         => _db.UserAccounts
+              .AsNoTracking()
               .Include(u => u.Candidate)
               .Include(u => u.Recruiter)
               .Include(u => u.Admin)
@@ -20,6 +22,7 @@ public class UserAccountRepository : IUserAccountRepository
 
     public Task<UserAccount?> GetByGoogleIdAsync(string googleId)
         => _db.UserAccounts
+              .AsNoTracking()
               .Include(u => u.Candidate)
               .Include(u => u.Recruiter)
               .Include(u => u.Admin)
@@ -44,5 +47,26 @@ public class UserAccountRepository : IUserAccountRepository
               .Where(u => u.UserId == userId)
               .ExecuteUpdateAsync(s => s
                   .SetProperty(u => u.GoogleId, googleId)
+                  .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
+
+    public Task UpdatePasswordAsync(int userId, string passwordHash)
+        => _db.UserAccounts
+              .Where(u => u.UserId == userId)
+              .ExecuteUpdateAsync(s => s
+                  .SetProperty(u => u.PasswordHash, passwordHash)
+                  .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
+
+    // Get user account by primary key
+    public Task<UserAccount?> GetByIdAsync(int userId)
+        => _db.UserAccounts
+              .AsNoTracking()
+              .FirstOrDefaultAsync(u => u.UserId == userId);
+
+    // Set is_active (false = soft delete, true = reactivate)
+    public Task SetActiveStatusAsync(int userId, bool isActive)
+        => _db.UserAccounts
+              .Where(u => u.UserId == userId)
+              .ExecuteUpdateAsync(s => s
+                  .SetProperty(u => u.IsActive, isActive)
                   .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
 }

@@ -14,6 +14,7 @@ namespace DevHub.Controllers;
 public class AuthController : Controller
 {
     private readonly IAuthService _auth;
+    private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
     private const string KeyGoogleEmail   = "GoogleEmail";
     private const string KeyGoogleId      = "GoogleId";
@@ -21,9 +22,10 @@ public class AuthController : Controller
     private const string KeyGoogleAvatar  = "GoogleAvatar";
     private const string KeyGoogleFrom    = "GoogleFrom";
 
-    public AuthController(IAuthService auth)
+    public AuthController(IAuthService auth, DevHub.Helpers.EmailHelper emailHelper)
     {
         _auth = auth;
+        _emailHelper = emailHelper;
     }
 
     [HttpGet]
@@ -41,7 +43,7 @@ public class AuthController : Controller
     public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
     {
         var email    = vm.Email?.Trim() ?? "";
-        var password = vm.Password ?? "";
+        var password = vm.Password?.Trim() ?? "";
         bool hasError = false;
 
         if (string.IsNullOrEmpty(email))
@@ -120,7 +122,7 @@ public class AuthController : Controller
     public async Task<IActionResult> EmployerLogin(LoginViewModel vm, string? returnUrl = null)
     {
         var email    = vm.Email?.Trim() ?? "";
-        var password = vm.Password ?? "";
+        var password = vm.Password?.Trim() ?? "";
         bool hasError = false;
 
         if (string.IsNullOrEmpty(email))
@@ -385,13 +387,28 @@ public class AuthController : Controller
         }
         avatarUrl ??= "";
 
-        var (roleClaim, scheme) = user.UserType switch
+        var userTypeLower = (user.UserType ?? string.Empty).ToLowerInvariant();
+        string roleClaim;
+        string scheme;
+        switch (userTypeLower)
         {
-            "Recruiter" => ("BUSINESS",  "EmployerCookies"),
-            "Admin"     => ("ADMIN",     "AdminCookies"),
-            "Moderator" => ("MODERATOR", "AdminCookies"),
-            _           => ("CANDIDATE", CookieAuthenticationDefaults.AuthenticationScheme)
-        };
+            case "recruiter":
+                roleClaim = "RECRUITER";
+                scheme = "EmployerCookies";
+                break;
+            case "admin":
+                roleClaim = "ADMIN";
+                scheme = "AdminCookies";
+                break;
+            case "moderator":
+                roleClaim = "MODERATOR";
+                scheme = "AdminCookies";
+                break;
+            default:
+                roleClaim = "CANDIDATE";
+                scheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                break;
+        }
 
         var claims = new List<Claim>
         {
@@ -424,6 +441,233 @@ public class AuthController : Controller
         await HttpContext.SignInAsync(scheme, principal, props);
     }
 
+    [HttpGet("Auth/ForgotPassword")]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost("Auth/ForgotPassword")]
+    public async Task<IActionResult> ForgotPassword(string email)
+    {
+        if (string.IsNullOrEmpty(email))
+        {
+            TempData["ErrorMessage"] = "Vui lòng nhập email.";
+            return View();
+        }
+
+        var user = await _auth.FindUserByEmailAsync(email);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Email không tồn tại trong hệ thống.";
+            return View();
+        }
+
+        // Generate 6-digit OTP
+        var otp = new Random().Next(100000, 999999).ToString();
+        
+        // Store in session
+        HttpContext.Session.SetString("ForgotPasswordEmail", email);
+        HttpContext.Session.SetString("ForgotPasswordOTP", otp);
+        HttpContext.Session.SetString("ForgotPasswordExpiry", DateTime.UtcNow.AddMinutes(5).ToString("O"));
+
+        // Send email
+        try
+        {
+            var subject = "Mã xác thực OTP đặt lại mật khẩu - DevHub";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                    <h2 style='color: #4640DE; text-align: center;'>Đặt lại mật khẩu DevHub</h2>
+                    <p>Xin chào,</p>
+                    <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng sử dụng mã OTP dưới đây để xác thực:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                    </div>
+                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 5 phút.</p>
+                    <p>Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email này.</p>
+                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                </div>";
+            
+            await _emailHelper.SendEmailAsync(email, subject, body);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to send email: {ex.Message}");
+        }
+
+        return RedirectToAction("VerifyOTP");
+    }
+
+    [HttpGet("Auth/VerifyOTP")]
+    public IActionResult VerifyOTP()
+    {
+        var email = HttpContext.Session.GetString("ForgotPasswordEmail");
+        if (string.IsNullOrEmpty(email))
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+        ViewData["Email"] = email;
+        return View();
+    }
+
+    [HttpPost("Auth/VerifyOTP")]
+    public IActionResult VerifyOTP(string otp)
+    {
+        var email = HttpContext.Session.GetString("ForgotPasswordEmail");
+        var sessionOtp = HttpContext.Session.GetString("ForgotPasswordOTP");
+        var expiryStr = HttpContext.Session.GetString("ForgotPasswordExpiry");
+
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(expiryStr))
+        {
+            TempData["ErrorMessage"] = "Yêu cầu đã hết hạn. Vui lòng thực hiện lại.";
+            return RedirectToAction("ForgotPassword");
+        }
+
+        ViewData["Email"] = email;
+
+        if (!DateTime.TryParse(expiryStr, out var expiry) || DateTime.UtcNow > expiry)
+        {
+            TempData["ErrorMessage"] = "Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.";
+            return View();
+        }
+
+        if (sessionOtp != otp)
+        {
+            TempData["ErrorMessage"] = "Mã OTP không chính xác.";
+            return View();
+        }
+
+        // Mark as verified
+        HttpContext.Session.SetString("OTPVerified", "true");
+        return RedirectToAction("ResetPassword");
+    }
+
+    [HttpGet("Auth/ResetPassword")]
+    public IActionResult ResetPassword()
+    {
+        var email = HttpContext.Session.GetString("ForgotPasswordEmail");
+        var verified = HttpContext.Session.GetString("OTPVerified");
+
+        if (string.IsNullOrEmpty(email) || verified != "true")
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+
+        return View();
+    }
+
+    [HttpPost("Auth/ResetPassword")]
+    public async Task<IActionResult> ResetPassword(string newPassword, string confirmPassword)
+    {
+        var email = HttpContext.Session.GetString("ForgotPasswordEmail");
+        var verified = HttpContext.Session.GetString("OTPVerified");
+
+        if (string.IsNullOrEmpty(email) || verified != "true")
+        {
+            return RedirectToAction("ForgotPassword");
+        }
+
+        if (string.IsNullOrEmpty(newPassword))
+        {
+            TempData["ErrorMessage"] = "Vui lòng nhập mật khẩu mới.";
+            return View();
+        }
+
+        if (newPassword.Contains(" "))
+        {
+            TempData["ErrorMessage"] = "Mật khẩu không được chứa khoảng trắng.";
+            return View();
+        }
+
+        if (newPassword.Length < 8)
+        {
+            TempData["ErrorMessage"] = "Mật khẩu phải chứa ít nhất 8 ký tự.";
+            return View();
+        }
+
+        if (!newPassword.Any(char.IsUpper))
+        {
+            TempData["ErrorMessage"] = "Mật khẩu phải chứa ít nhất 1 chữ cái viết hoa.";
+            return View();
+        }
+
+        if (!newPassword.Any(c => !char.IsLetterOrDigit(c)))
+        {
+            TempData["ErrorMessage"] = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt.";
+            return View();
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            TempData["ErrorMessage"] = "Mật khẩu xác nhận không khớp.";
+            return View();
+        }
+
+        var user = await _auth.FindUserByEmailAsync(email);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy người dùng.";
+            return View();
+        }
+
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _auth.UpdatePasswordAsync(user.UserId, hashedPassword);
+
+        // Clear session
+        HttpContext.Session.Remove("ForgotPasswordEmail");
+        HttpContext.Session.Remove("ForgotPasswordOTP");
+        HttpContext.Session.Remove("ForgotPasswordExpiry");
+        HttpContext.Session.Remove("OTPVerified");
+
+        TempData["SuccessMsg"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
+        
+        if (user.UserType == "Recruiter")
+        {
+            return RedirectToAction("EmployerLogin");
+        }
+        return RedirectToAction("Login");
+    }
+
+    [HttpPost("Auth/ResendOTP")]
+    public async Task<IActionResult> ResendOTP()
+    {
+        var email = HttpContext.Session.GetString("ForgotPasswordEmail");
+        if (string.IsNullOrEmpty(email))
+        {
+            return Json(new { success = false, message = "Không tìm thấy email yêu cầu." });
+        }
+
+        var otp = new Random().Next(100000, 999999).ToString();
+        HttpContext.Session.SetString("ForgotPasswordOTP", otp);
+        HttpContext.Session.SetString("ForgotPasswordExpiry", DateTime.UtcNow.AddMinutes(5).ToString("O"));
+
+        try
+        {
+            var subject = "Mã xác thực OTP đặt lại mật khẩu - DevHub";
+            var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                    <h2 style='color: #4640DE; text-align: center;'>Đặt lại mật khẩu DevHub</h2>
+                    <p>Xin chào,</p>
+                    <p>Chúng tôi nhận được yêu cầu gửi lại mã OTP cho tài khoản của bạn. Vui lòng sử dụng mã OTP dưới đây để xác thực:</p>
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                    </div>
+                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 5 phút.</p>
+                    <p>Nếu bạn không gửi yêu cầu này, vui lòng bỏ quan email này.</p>
+                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                </div>";
+
+            await _emailHelper.SendEmailAsync(email, subject, body);
+            return Json(new { success = true, message = "Mã OTP mới đã được gửi." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Gửi email thất bại: {ex.Message}" });
+        }
+    }
+
     private IActionResult RedirectToDashboard(string? userType = null)
     {
         userType ??= User.FindFirstValue(ClaimTypes.Role);
@@ -432,7 +676,7 @@ public class AuthController : Controller
         {
             "Admin"     or "ADMIN"     => Redirect("/admin/dashboard"),
             "Moderator" or "MODERATOR" => Redirect("/moderator/job-approvals"),
-            "Recruiter" or "BUSINESS"  => Redirect("/Recruiter/Dashboard"),
+            "Recruiter" or "RECRUITER"  => Redirect("/Recruiter/Dashboard"),
             _                          => RedirectToAction("Index", "Home")
         };
     }

@@ -80,7 +80,7 @@ $.extend( $.fn, {
 						hidden = $( "<input type='hidden'/>" )
 							.attr( "name", validator.submitButton.name )
 							.val( $( validator.submitButton ).val() )
-							.appenvm( validator.currentForm );
+							.appendTo( validator.currentForm );
 					}
 
 					if ( validator.settings.submitHandler && !validator.settings.debug ) {

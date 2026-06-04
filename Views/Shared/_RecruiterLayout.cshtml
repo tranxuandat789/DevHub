@@ -13,9 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -186,7 +184,7 @@
                     <div class="bg-white border border-[#D6DDEB] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.08)] py-2 overflow-hidden">
                         <a href="/recruiter/dashboard" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Dashboard</a>
                         <a href="/Recruiter/JobPost" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Quản lý tin tuyển dụng</a>
-                        <a href="/Recruiter/Settings?tab=account" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
+                        <a href="/Recruiter/RecruiterProfile" class="block px-4 py-2.5 text-[15px] font-medium text-dark hover:bg-gray-50 transition-colors">Cài đặt tài khoản</a>
                         <div class="w-full h-[1px] bg-gray-100 my-1"></div>
                         <a href="/Auth/EmployerLogout" class="block px-4 py-2.5 text-[15px] font-medium text-red-600 hover:bg-red-50 transition-colors">Đăng xuất</a>
                     </div>
@@ -461,42 +459,23 @@
     @RenderSection("Scripts", required: false)
 
     @{
-        var toastSuccess = TempData["SuccessMsg"]?.ToString() ?? TempData["Success"]?.ToString();
-        var toastError = TempData["Error"]?.ToString();
+        var toastSuccess = TempData["SuccessMsg"]?.ToString();
     }
-    @if (!string.IsNullOrEmpty(toastSuccess) || !string.IsNullOrEmpty(toastError))
+    @if (!string.IsNullOrEmpty(toastSuccess))
     {
-        <div id="toast-container" class="fixed top-20 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px;font-family:Inter,sans-serif">
-            @if (!string.IsNullOrEmpty(toastSuccess))
-            {
-                <div class="toast flex items-start gap-3 bg-white border border-[#D6DDEB] rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] px-5 py-4">
-                    <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-[14px] font-semibold text-[#25324B]">Thành công</p>
-                        <p class="text-[13px] text-[#515B6F] mt-0.5">@toastSuccess</p>
-                    </div>
-                    <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-[#25324B] ml-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+        <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
+            <div class="toast flex items-start gap-3 bg-white border border-green-200 rounded-xl shadow-lg px-5 py-4">
+                <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 </div>
-            }
-            @if (!string.IsNullOrEmpty(toastError))
-            {
-                <div class="toast flex items-start gap-3 bg-white border border-[#D6DDEB] rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] px-5 py-4">
-                    <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-[14px] font-semibold text-[#25324B]">Có lỗi xảy ra</p>
-                        <p class="text-[13px] text-[#515B6F] mt-0.5">@toastError</p>
-                    </div>
-                    <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-[#25324B] ml-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+                <div class="flex-1">
+                    <p class="text-[14px] font-semibold text-green-800">Thành công</p>
+                    <p class="text-[13px] text-green-700 mt-0.5">@toastSuccess</p>
                 </div>
-            }
+                <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-gray-600 ml-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
         </div>
         <script>
             setTimeout(() => {
@@ -506,7 +485,7 @@
                     t.style.transform = 'translateY(-10px)';
                     setTimeout(() => t.remove(), 400);
                 });
-            }, 3500);
+            }, 4000);
         </script>
     }
 </body>

@@ -1,23 +1,7 @@
-@* 04/06/2026-DatTX *@
-@model DevHub.ViewModels.Admin.ModeratorListViewModel
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Moderator";
 }
-
-@if (TempData["SuccessMsg"] != null)
-{
-    <div class="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
-        @TempData["SuccessMsg"]
-    </div>
-}
-@if (TempData["ErrorMsg"] != null)
-{
-    <div class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-        @TempData["ErrorMsg"]
-    </div>
-}
-
 
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
@@ -32,28 +16,27 @@
 
 <!-- Filters & Sort -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
-    <form method="get" action="/AdminModerator" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onsubmit="event.preventDefault();">
         <div class="w-full">
             <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm</label>
-            <input type="text" name="searchTerm" value="@Model.Search" placeholder="Tên hoặc Email Moderator..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+            <input type="text" placeholder="Tên hoặc Email Moderator..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
         </div>
         <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Lọc trạng thái</label>
-            <select name="statusFilter" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="all" selected="@(ViewBag.StatusFilter as string == "all" ? "selected" : null)">Tất cả</option>
-                <option value="active" selected="@(ViewBag.StatusFilter as string == "active" ? "selected" : null)">Đang hoạt động</option>
-                <option value="inactive" selected="@(ViewBag.StatusFilter as string == "inactive" ? "selected" : null)">Vô hiệu hóa</option>
+            <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp theo Tên</label>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="name_asc">A đến Z</option>
+                <option value="name_desc">Z đến A</option>
             </select>
         </div>
         <div class="w-full">
             <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp theo Ngày tạo</label>
-            <select name="sortOrder" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="newest" selected="@(ViewBag.SortOrder as string == "newest" ? "selected" : null)">Mới nhất (Newest)</option>
-                <option value="oldest" selected="@(ViewBag.SortOrder as string == "oldest" ? "selected" : null)">Cũ nhất (Oldest)</option>
+            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="newest">Mới nhất (Newest)</option>
+                <option value="oldest">Cũ nhất (Oldest)</option>
             </select>
         </div>
         <div>
-            <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
+            <button type="button" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
                 Lọc & Sắp xếp
             </button>
         </div>
@@ -74,126 +57,101 @@
                 </tr>
             </thead>
             <tbody class="text-sm">
-                @if (Model.Items.Any())
-                {
-                    foreach (var mod in Model.Items)
-                    {
-                        var firstLetter = !string.IsNullOrEmpty(mod.FullName) ? mod.FullName.Substring(0, 1).ToUpper() : "M";
-                        var bgColors = new[] { "bg-blue-100 text-blue-600 border-blue-200", "bg-indigo-100 text-indigo-600 border-indigo-200", "bg-purple-100 text-purple-600 border-purple-200" };
-                        var colorClass = bgColors[mod.AdminId % bgColors.Length];
+                <!-- Mod 1: Active -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 font-mono text-muted">#M102</td>
+                    <td class="py-4 px-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg border border-blue-200">H</div>
+                        <div>
+                            <div class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1">Hoàng Tuấn Anh</div>
+                            <div class="text-xs text-muted mt-0.5">anhht.mod@jobhuntly.com</div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                            Đang hoạt động
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-muted font-medium">
+                        15/01/2026
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-1">
+                        <a href="/AdminModerator/Create" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </a>
+                        <button onclick="toggleModStatus('M102', 1)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Vô hiệu hóa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                        </button>
+                    </td>
+                </tr>
+                
+                <!-- Mod 2: Disabled -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 font-mono text-muted">#M101</td>
+                    <td class="py-4 px-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-lg border border-gray-300">L</div>
+                        <div>
+                            <div class="font-bold text-gray-500 line-through decoration-1 line-clamp-1">Lê Thị Mai</div>
+                            <div class="text-xs text-muted mt-0.5">mailt.mod@jobhuntly.com</div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                            Vô hiệu hóa
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-muted font-medium">
+                        20/12/2025
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-1">
+                        <a href="/AdminModerator/Create" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </a>
+                        <button onclick="toggleModStatus('M101', 0)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Kích hoạt lại">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </td>
+                </tr>
 
-                        <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                            <td class="py-4 px-6 font-mono text-muted">#M@(mod.AdminId)</td>
-                            <td class="py-4 px-6 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full @colorClass flex items-center justify-center font-bold text-lg border">@firstLetter</div>
-                                <div>
-                                    <div class="font-bold @(mod.IsActive ? "text-dark hover:text-primary cursor-pointer" : "text-gray-500 line-through decoration-1") line-clamp-1">@mod.FullName</div>
-                                    <div class="text-xs text-muted mt-0.5">@mod.Email</div>
-                                </div>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                @if (mod.IsActive)
-                                {
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                        Đang hoạt động
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                        Vô hiệu hóa
-                                    </span>
-                                }
-                            </td>
-                            <td class="py-4 px-6 text-muted font-medium">
-                                @(mod.CreatedAt?.ToString("dd/MM/yyyy"))
-                            </td>
-                            <td class="py-4 px-6 text-center space-x-1">
-                                <a href="/AdminModerator/Edit/@mod.AdminId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </a>
-                                @if (mod.IsActive)
-                                {
-                                    <form method="post" action="/AdminModerator/ToggleStatus/@mod.AdminId" class="inline-block" onsubmit="return confirm('ADMIN: Bạn có chắc chắn muốn VÔ HIỆU HÓA tài khoản Moderator #@mod.AdminId?');">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="activate" value="false" />
-                                        <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Vô hiệu hóa">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                                        </button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <form method="post" action="/AdminModerator/ToggleStatus/@mod.AdminId" class="inline-block" onsubmit="return confirm('ADMIN: Bạn có chắc chắn muốn TÁI KÍCH HOẠT tài khoản Moderator #@mod.AdminId?');">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="activate" value="true" />
-                                        <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Kích hoạt lại">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        </button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="py-8 text-center text-muted">Không tìm thấy Moderator nào.</td>
-                    </tr>
-                }
+                <!-- Mod 3: Active -->
+                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    <td class="py-4 px-6 font-mono text-muted">#M105</td>
+                    <td class="py-4 px-6 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg border border-indigo-200">T</div>
+                        <div>
+                            <div class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1">Trần Quốc Việt</div>
+                            <div class="text-xs text-muted mt-0.5">viet.tq@jobhuntly.com</div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                            Đang hoạt động
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-muted font-medium">
+                        02/03/2026
+                    </td>
+                    <td class="py-4 px-6 text-center space-x-1">
+                        <a href="/AdminModerator/Create" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </a>
+                        <button onclick="toggleModStatus('M105', 1)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Vô hiệu hóa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                        </button>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
-
-    <!-- Pagination -->
-    @if (Model.TotalPages > 1)
-    {
-        <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
-            <div class="text-sm text-muted">
-                Hiển thị @((Model.Page - 1) * Model.PageSize + 1) đến @(Math.Min(Model.Page * Model.PageSize, Model.TotalCount)) của @Model.TotalCount bản ghi
-            </div>
-            <div class="flex space-x-1">
-                <!-- Previous -->
-                @if (Model.Page > 1)
-                {
-                    <a href="/AdminModerator?page=@(Model.Page - 1)&searchTerm=@Model.Search&sortOrder=@ViewBag.SortOrder&statusFilter=@ViewBag.StatusFilter" 
-                       class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 transition-colors">
-                        Trang trước
-                    </a>
-                }
-                else
-                {
-                    <span class="px-3 py-1 border border-[#D6DDEB] rounded text-muted opacity-50 cursor-not-allowed bg-gray-50">Trang trước</span>
-                }
-
-                <!-- Page numbers -->
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    if (i == Model.Page)
-                    {
-                        <span class="px-3 py-1 bg-primary text-white rounded shadow-sm">@i</span>
-                    }
-                    else
-                    {
-                        <a href="/AdminModerator?page=@i&searchTerm=@Model.Search&sortOrder=@ViewBag.SortOrder&statusFilter=@ViewBag.StatusFilter" 
-                           class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 transition-colors">@i</a>
-                    }
-                }
-
-                <!-- Next -->
-                @if (Model.Page < Model.TotalPages)
-                {
-                    <a href="/AdminModerator?page=@(Model.Page + 1)&searchTerm=@Model.Search&sortOrder=@ViewBag.SortOrder&statusFilter=@ViewBag.StatusFilter" 
-                       class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 transition-colors">
-                        Trang sau
-                    </a>
-                }
-                else
-                {
-                    <span class="px-3 py-1 border border-[#D6DDEB] rounded text-muted opacity-50 cursor-not-allowed bg-gray-50">Trang sau</span>
-                }
-            </div>
-        </div>
-    }
 </div>
+
+@section Scripts {
+    <script>
+        function toggleModStatus(id, currentState) {
+            const actionName = currentState === 1 ? 'VÔ HIỆU HÓA' : 'TÁI KÍCH HOẠT';
+            if (confirm(`ADMIN: Bạn có chắc chắn muốn ${actionName} tài khoản Moderator #${id}?`)) {
+                alert(`Đã cập nhật trạng thái Moderator #${id} thành công! Hệ thống đã ghi log.`);
+            }
+        }
+    </script>
+}

@@ -10,11 +10,6 @@ public class AuthService : IAuthService
     private readonly ICandidateRepository   _candidateRepo;
     private readonly IRecruiterRepository   _recruiterRepo;
 
-    // AuthService is registered Scoped (one instance per request). FindUserByEmailAsync
-    // is called both by the controller and by the shared layout (_RecruiterLayout) within
-    // the same request, so memoize per-request to avoid issuing the heavy 4-table join twice.
-    private readonly Dictionary<string, Task<UserAccount?>> _userByEmailCache = new();
-
     public AuthService(
         IUserAccountRepository userRepo,
         ICandidateRepository   candidateRepo,
@@ -26,14 +21,7 @@ public class AuthService : IAuthService
     }
 
     public Task<UserAccount?> FindUserByEmailAsync(string email)
-    {
-        if (_userByEmailCache.TryGetValue(email, out var cached))
-            return cached;
-
-        var task = _userRepo.GetByEmailAsync(email);
-        _userByEmailCache[email] = task;
-        return task;
-    }
+        => _userRepo.GetByEmailAsync(email);
 
     public Task<UserAccount?> FindUserByGoogleIdAsync(string googleId)
         => _userRepo.GetByGoogleIdAsync(googleId);
@@ -108,7 +96,4 @@ public class AuthService : IAuthService
 
     public Task SyncRecruiterAvatarAsync(int recruiterId, string avatarUrl)
         => _recruiterRepo.UpdateCompanyLogoAsync(recruiterId, avatarUrl);
-
-    public Task UpdatePasswordAsync(int userId, string passwordHash)
-        => _userRepo.UpdatePasswordAsync(userId, passwordHash);
 }

@@ -1277,11 +1277,11 @@ class Carousel extends BaseComponent {
     }
 
     if (this._config.touch && this._touchSupported) {
-      this._advmuchEventListeners();
+      this._addTouchEventListeners();
     }
   }
 
-  _advmuchEventListeners() {
+  _addTouchEventListeners() {
     const start = event => {
       if (this._pointerEvent && (event.pointerType === POINTER_TYPE_PEN || event.pointerType === POINTER_TYPE_TOUCH)) {
         this.touchStartX = event.clientX;

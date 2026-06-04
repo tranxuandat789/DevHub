@@ -1,10 +1,9 @@
-//AnhPT-02/06/2026
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevHub.Controllers.Recruiter
 {
-    [Authorize(Roles = "RECRUITER")]
+    [Authorize(Roles = "BUSINESS")]
     [Route("Recruiter/[controller]")]
     public class RecruiterServiceController : Controller
     {

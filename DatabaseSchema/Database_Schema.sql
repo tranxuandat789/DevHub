@@ -19,9 +19,7 @@ CREATE TABLE [user_account] (
     [last_login] DATETIME NULL,
     [last_updated] DATETIME DEFAULT GETDATE(),
     [reset_password_token] NVARCHAR(255) NULL, 
-    [reset_password_expires_at] DATETIME NULL,
-    [otp_verification] NVARCHAR(255) NULL, 
-    [otp_expires_at] DATETIME NULL
+    [reset_password_expires_at] DATETIME NULL
 );
 
 -- GOOGLE ID IS NOT REQUIRED, BUT HAS TO BE UNIQUE

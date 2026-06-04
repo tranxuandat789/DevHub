@@ -37,6 +37,8 @@ public partial class JobPost
 
     public string? Status { get; set; }
 
+    public bool? IsPromoted { get; set; }
+
     public int? PriorityScore { get; set; }
 
     public int? HiringQuota { get; set; }

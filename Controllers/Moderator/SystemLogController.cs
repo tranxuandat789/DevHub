@@ -8,7 +8,7 @@ namespace DevHub.Controllers.Moderator
     public class SystemLogController : Controller
     {
         [HttpGet("")]
-
+        [HttpGet("/SystemLog")]
         public IActionResult Index()
         {
             return View("~/Views/Moderator/SystemLog/Index.cshtml");

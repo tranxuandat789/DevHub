@@ -1,241 +1,264 @@
-<!--AnhPT-03/06/2026-->
-@model DevHub.ViewModels.Recruiter.JobPostManageViewModel
 @{
     Layout = "_RecruiterLayout";
     ViewData["Title"] = "Quản lý tin tuyển dụng";
     ViewData["ActiveMenu"] = "Jobs";
-
-    // Check if company profile completeness is satisfied.
-    bool profileIncomplete = ViewBag.ProfileIncomplete == true;
-
-    //Filter label by status with different color
-    (string Cls, string Label) StatusBadge(string? status)
-    {
-        switch ((status ?? "").ToLower())
-        {
-            case "approved": return ("bg-green-100 text-green-700", "Đang hiển thị");
-            case "pending": return ("bg-amber-100 text-amber-700", "Chờ duyệt");
-            case "rejected": return ("bg-red-100 text-red-700", "Bị từ chối");
-            case "closed": return ("bg-gray-100 text-gray-600", "Đã đóng");
-            default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "Không rõ" : status);
-        }
-    }
-
-    // Editable: Approved/Rejected. Deletable: Rejected/Closed. Any post is viewable.
-    bool CanEdit(string? s) { var x = (s ?? "").ToLower(); return x == "approved" || x == "rejected"; }
-    bool CanDelete(string? s) { var x = (s ?? "").ToLower(); return x == "rejected" || x == "closed"; }
-
-    string TabCls(string? tab) =>
-        (Model.Status ?? "") == (tab ?? "")
-            ? "px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap"
-            : "px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap";
 }
 
-@if (profileIncomplete)
-{
-    <!-- Check: Company profile completeness is not satisfied -->
-    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-md w-full mx-4 p-8 text-center" style="font-family:Inter,sans-serif">
-            <div class="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
-            </div>
-            <h3 class="text-lg font-bold text-[#25324B] mb-2">Chưa thể đăng tin</h3>
-            <p class="text-[#515B6F] text-sm mb-6">Bạn cần hoàn thành đủ mục thông tin công ty</p>
-            <!--Direct to company tab of account setting-->
-            <a href="/Recruiter/Settings?tab=company" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark transition-all w-full">
-                Hoàn thiện hồ sơ công ty
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-dark">Quản lý tin tuyển dụng</h1>
+            <p class="text-muted text-sm mt-1">Quản lý các tin tuyển dụng và theo dõi hồ sơ ứng viên</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/Recruiter/JobPost/Create" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tạo tin tuyển dụng mới
             </a>
         </div>
     </div>
-}
-else
-{
-    <div class="space-y-6">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-dark">Quản lý tin tuyển dụng</h1>
-                <p class="text-muted text-sm mt-1">Quản lý các tin tuyển dụng và theo dõi hồ sơ ứng viên</p>
-            </div>
-            <!-- Create new post button --> 
-            <div class="flex items-center gap-3">
-                <a href="@Url.Action("Create", new { q = Model.Keyword, status = Model.Status, page = Model.Page })" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Tạo tin tuyển dụng mới
-                </a>
-            </div>
+
+    <!-- Tabs & Filters -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Tabs -->
+        <div class="flex items-center space-x-1 border-b md:border-b-0 border-gray-100 overflow-x-auto pb-2 md:pb-0">
+            <button class="px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Tất cả tin (12)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đang hiển thị (8)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Chờ duyệt (2)</button>
+            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đã đóng (2)</button>
         </div>
-
-        @if (!Model.HasAnyPost)
-        {
-            <!-- Check: If recruiter has not posted anything -->
-            <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm p-16 text-center">
-                <div class="w-16 h-16 mx-auto rounded-full bg-[#F6F5FD] flex items-center justify-center mb-4 text-primary">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                </div>
-                <h3 class="text-lg font-bold text-dark mb-1">Không tìm thấy tin tuyển dụng của bạn</h3>
-                <p class="text-muted text-sm">Bắt đầu bằng cách tạo tin tuyển dụng đầu tiên.</p>
-            </div>
-        }
-        else
-        {
-            <!-- Tabs & Search -->
-            <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center space-x-1 border-b md:border-b-0 border-gray-100 overflow-x-auto pb-2 md:pb-0">
-                    <a href="@Url.Action("Index", new { q = Model.Keyword })" class="@TabCls(null)">Tất cả tin (@Model.CountAll)</a>
-                    <a href="@Url.Action("Index", new { q = Model.Keyword, status = "approved" })" class="@TabCls("approved")">Đang hiển thị (@Model.CountApproved)</a>
-                    <a href="@Url.Action("Index", new { q = Model.Keyword, status = "pending" })" class="@TabCls("pending")">Chờ duyệt (@Model.CountPending)</a>
-                    <a href="@Url.Action("Index", new { q = Model.Keyword, status = "rejected" })" class="@TabCls("rejected")">Bị từ chối (@Model.CountRejected)</a>
-                    <a href="@Url.Action("Index", new { q = Model.Keyword, status = "closed" })" class="@TabCls("closed")">Đã đóng (@Model.CountClosed)</a>
-                </div>
-
-                <form method="get" asp-action="Index" class="relative min-w-[250px]">
-                    <input type="hidden" name="status" value="@Model.Status" />
-                    <input type="text" name="q" value="@Model.Keyword" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm transition-colors" placeholder="Tìm kiếm theo tiêu đề...">
-                    <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </form>
-            </div>
-
-            <!-- Data Table -->
-            <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100 text-sm font-medium text-muted uppercase tracking-wider">
-                                <th class="p-4 whitespace-nowrap font-bold">Vị trí / Chức danh</th>
-                                <th class="p-4 whitespace-nowrap font-bold">Trạng thái</th>
-                                <th class="p-4 whitespace-nowrap font-bold">Ngày đăng</th>
-                                <th class="p-4 whitespace-nowrap font-bold">Hạn nhận CV</th>
-                                <th class="p-4 whitespace-nowrap font-bold text-center">Ứng viên</th>
-                                <th class="p-4 whitespace-nowrap font-bold text-right">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @if (Model.Items.Count == 0)
-                            {
-                                <tr>
-                                    <td colspan="6" class="p-10 text-center text-muted text-sm">Không có tin nào khớp với bộ lọc hiện tại.</td>
-                                </tr>
-                            }
-                            @foreach (var j in Model.Items)
-                            {
-                                var badge = StatusBadge(j.Status);
-                                var title = j.Title ?? "";
-                                var initials = string.IsNullOrWhiteSpace(title) ? "?" : (title.Trim().Length >= 2 ? title.Trim().Substring(0, 2) : title.Trim());
-                                <tr class="hover:bg-gray-50/50 transition-colors group">
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold uppercase">@initials</div>
-                                            <div>
-                                                <a href="@Url.Action("Detail", new { id = j.JobId, q = Model.Keyword, status = Model.Status, page = Model.Page })" class="text-[15px] font-bold text-dark hover:text-primary transition-colors block">@title</a>
-                                                <p class="text-sm text-muted mt-0.5">@j.Position?.PositionName • @j.WorkingModel</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="p-4">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold @badge.Cls whitespace-nowrap">@badge.Label</span>
-                                    </td>
-                                    <td class="p-4 text-sm text-dark font-medium">@(j.CreatedAt?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                    <td class="p-4 text-sm text-dark font-medium">@(j.Deadline?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                    <td class="p-4 text-center">
-                                        <span class="inline-flex items-center justify-center px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg text-sm">@(j.ApplicationCount ?? 0)</span>
-                                    </td>
-                                    <td class="p-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            @if (CanEdit(j.Status))
-                                            {
-                                                <a href="@Url.Action("Edit", new { id = j.JobId, q = Model.Keyword, status = Model.Status, page = Model.Page })" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                                </a>
-                                            }
-                                            @if (CanDelete(j.Status))
-                                            {
-                                                <button type="button" class="btn-delete p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Xóa" data-id="@j.JobId" data-title="@title">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                </button>
-                                            }
-                                            @if (!CanEdit(j.Status) && !CanDelete(j.Status))
-                                            {
-                                                <span class="text-xs text-gray-400">—</span>
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="p-4 border-t border-gray-100 flex items-center justify-between">
-                    <p class="text-sm text-muted">Trang <span class="font-bold text-dark">@Model.Page</span> / <span class="font-bold text-dark">@Model.TotalPages</span> — tổng <span class="font-bold text-dark">@Model.TotalCount</span> tin</p>
-                    @if (Model.TotalPages > 1)
-                    {
-                        <div class="flex items-center gap-1">
-                            @for (int p = 1; p <= Model.TotalPages; p++)
-                            {
-                                var cls = p == Model.Page
-                                    ? "w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium text-sm"
-                                    : "w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium";
-                                <a href="@Url.Action("Index", new { q = Model.Keyword, status = Model.Status, page = p })" class="@cls">@p</a>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    <!-- Modal confirm to delete a post -->
-    <form id="deleteForm" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="q" value="@Model.Keyword" />
-        <input type="hidden" name="status" value="@Model.Status" />
-        <input type="hidden" name="page" value="@Model.Page" />
-    </form>
-    <div id="deleteModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-md w-full mx-4 p-8" style="font-family:Inter,sans-serif">
-            <div class="w-14 h-14 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-4">
-                <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </div>
-            <h3 class="text-lg font-bold text-[#25324B] text-center mb-2">Xác nhận xóa tin tuyển dụng</h3>
-            <p class="text-[#515B6F] text-sm text-center mb-6">Bạn sắp xóa vĩnh viễn tin <span id="deleteTitle" class="font-semibold text-[#25324B]"></span>. Hành động này không thể hoàn tác.</p>
-            <div class="flex gap-3">
-                <button type="button" id="deleteCancel" class="flex-1 px-6 py-2.5 bg-white border border-gray-200 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">Hủy</button>
-                <button type="button" id="deleteConfirm" class="flex-1 px-6 py-2.5 bg-red-600 text-white text-[15px] font-bold rounded-lg hover:bg-red-700 transition-colors">Xóa</button>
-            </div>
+        
+        <!-- Search -->
+        <div class="relative min-w-[250px]">
+            <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm transition-colors" placeholder="Tìm kiếm theo tiêu đề...">
+            <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var modal = document.getElementById('deleteModal');
-            var form = document.getElementById('deleteForm');
-            var titleEl = document.getElementById('deleteTitle');
-            var currentId = null;
+    <!-- Data Table -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-sm font-medium text-muted uppercase tracking-wider">
+                        <th class="p-4 whitespace-nowrap font-bold">Vị trí / Chức danh</th>
+                        <th class="p-4 whitespace-nowrap font-bold">Trạng thái</th>
+                        <th class="p-4 whitespace-nowrap font-bold">Ngày đăng</th>
+                        <th class="p-4 whitespace-nowrap font-bold">Hạn nhận CV</th>
+                        <th class="p-4 whitespace-nowrap font-bold text-center">Ứng viên</th>
+                        <th class="p-4 whitespace-nowrap font-bold text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold">
+                                    .N
+                                </div>
+                                <div>
+                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">Senior .NET Core Backend Engineer</a>
+                                    <p class="text-sm text-muted mt-0.5">Developer • Full-time Onsite</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Đang hiển thị</span>
+                        </td>
+                        <td class="p-4 text-sm text-dark font-medium">10/05/2026</td>
+                        <td class="p-4 text-sm text-dark font-medium">10/06/2026</td>
+                        <td class="p-4 text-center">
+                            <a href="#" class="inline-flex items-center justify-center px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-colors text-sm">
+                                42
+                            </a>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </a>
+                                <button class="p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Tạm dừng">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                                <div class="relative inline-block text-left dropdown-container">
+                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
+                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold">
+                                    BA
+                                </div>
+                                <div>
+                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">Business Analyst (Banking Domain)</a>
+                                    <p class="text-sm text-muted mt-0.5">BA • Hybrid</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Chờ duyệt</span>
+                        </td>
+                        <td class="p-4 text-sm text-dark font-medium">12/05/2026</td>
+                        <td class="p-4 text-sm text-dark font-medium">12/06/2026</td>
+                        <td class="p-4 text-center">
+                            <span class="inline-flex items-center justify-center px-3 py-1 bg-gray-100 text-muted font-bold rounded-lg text-sm">
+                                0
+                            </span>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="/Recruiter/JobPost/Edit" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </a>
+                                <button class="p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Tạm dừng">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                                <div class="relative inline-block text-left dropdown-container">
+                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
+                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Row 3 -->
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-[#F6F5FD] flex items-center justify-center text-primary font-bold">
+                                    Re
+                                </div>
+                                <div>
+                                    <a href="/Recruiter/JobPost/Edit" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer block">ReactJS Frontend Engineer (Fresher/Junior)</a>
+                                    <p class="text-sm text-muted mt-0.5">Developer • Full-time Onsite</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">Đã đóng</span>
+                        </td>
+                        <td class="p-4 text-sm text-dark font-medium">01/04/2026</td>
+                        <td class="p-4 text-sm text-dark font-medium">01/05/2026</td>
+                        <td class="p-4 text-center">
+                            <a href="#" class="inline-flex items-center justify-center px-3 py-1 bg-primary/10 text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-colors text-sm">
+                                128
+                            </a>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Mở lại">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </button>
+                                <div class="relative inline-block text-left dropdown-container">
+                                    <button class="p-1.5 text-gray-400 hover:text-dark transition-colors btn-dropdown" title="Thêm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                    </button>
+                                    <div class="dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-left">
+                                        <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary font-medium btn-status" data-status="duyet">Duyệt</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium btn-status" data-status="tuchoi">Từ chối</button>
+                                        <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 font-medium btn-status" data-status="choxemxet">Chờ xem xét</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="p-4 border-t border-gray-100 flex items-center justify-between">
+            <p class="text-sm text-muted">Hiển thị <span class="font-bold text-dark">1</span> đến <span class="font-bold text-dark">3</span> trong số <span class="font-bold text-dark">12</span> tin</p>
+            <div class="flex items-center gap-1">
+                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-primary hover:border-primary transition-colors" disabled>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium text-sm">1</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium">2</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium">3</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-primary hover:border-primary transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            document.querySelectorAll('.btn-delete').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    currentId = this.getAttribute('data-id');
-                    titleEl.textContent = '"' + (this.getAttribute('data-title') || '') + '"';
-                    modal.classList.remove('hidden');
-                });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownBtns = document.querySelectorAll('.btn-dropdown');
+    
+    dropdownBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== btn.nextElementSibling) {
+                    menu.classList.add('hidden');
+                }
             });
-
-            document.getElementById('deleteCancel').addEventListener('click', function () {
-                modal.classList.add('hidden');
-                currentId = null;
-            });
-
-            document.getElementById('deleteConfirm').addEventListener('click', function () {
-                if (!currentId) return;
-                form.action = '/Recruiter/JobPost/Delete/' + currentId;
-                form.submit();
-            });
-
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) { modal.classList.add('hidden'); currentId = null; }
-            });
+            const menu = btn.nextElementSibling;
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
         });
-    </script>
-}
+    });
+
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    });
+
+    const statusButtons = document.querySelectorAll('.btn-status');
+    statusButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const status = btn.getAttribute('data-status');
+            const row = btn.closest('tr');
+            const badge = row.querySelector('.status-badge');
+            
+            if (badge) {
+                badge.className = 'status-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap';
+                
+                if (status === 'duyet') {
+                    badge.textContent = 'Đang hiển thị';
+                    badge.classList.add('bg-green-100', 'text-green-700');
+                } else if (status === 'tuchoi') {
+                    badge.textContent = 'Từ chối';
+                    badge.classList.add('bg-red-100', 'text-red-700');
+                } else if (status === 'choxemxet') {
+                    badge.textContent = 'Chờ xem xét';
+                    badge.classList.add('bg-amber-100', 'text-amber-700');
+                }
+            }
+            
+            const menu = btn.closest('.dropdown-menu');
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+        });
+    });
+});
+</script>

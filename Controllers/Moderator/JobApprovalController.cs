@@ -66,10 +66,10 @@ namespace DevHub.Controllers.Moderator
             // 2. Gọi Service thực hiện nghiệp vụ phê duyệt bài đăng
             var success = await _jobPostService.ApproveJobAsync(id, moderatorId);
 
-            // Nếu phê duyệt thất bại (Ví dụ: bài đăng không tồn tại hoặc không ở trạng thái pending) -> Trả về lỗi 400
+           
             if (!success) return BadRequest("Cannot approve this job.");
 
-            // 3. Phê duyệt thành công, trả về phản hồi HTTP 200 kèm mã JSON xác nhận
+            
             return Ok(new { success = true });
         }
 
@@ -89,11 +89,7 @@ namespace DevHub.Controllers.Moderator
 
             // 2. Gọi Service thực hiện nghiệp vụ từ chối bài đăng kèm lý do cụ thể
             var success = await _jobPostService.RejectJobAsync(id, moderatorId, reason);
-
-            // Nếu từ chối thất bại -> Trả về lỗi 400
             if (!success) return BadRequest("Cannot reject this job.");
-
-            // 3. Từ chối thành công, trả về phản hồi HTTP 200 kèm mã JSON xác nhận
             return Ok(new { success = true });
         }
 

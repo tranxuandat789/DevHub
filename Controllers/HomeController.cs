@@ -113,17 +113,7 @@ namespace DevHub.Controllers
             return View("~/Views/Moderator/ReviewApproval/Index.cshtml");
         }
 
-        [Route("ModeratorTechStack")]
-        public IActionResult ModeratorTechStackPreview()
-        {
-            return View("~/Views/Moderator/TechStack/Index.cshtml");
-        }
 
-        [Route("ModeratorTechStack/Create")]
-        public IActionResult ModeratorTechStackCreatePreview()
-        {
-            return View("~/Views/Moderator/TechStack/Create.cshtml");
-        }
 
         [Route("AdminUser")]
         public IActionResult AdminUserPreview()

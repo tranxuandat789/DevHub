@@ -1,4 +1,4 @@
-﻿//AnhPT-01/06/2026
+//AnhPT-01/06/2026
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
@@ -23,4 +23,25 @@ public class CommonTechnologyRepository : ICommonTechnologyRepository
         return await _context.CommonTechnologies.Where(t => t.IsActive == true || t.IsActive == null).ToListAsync();
     }
 
+    public async Task<CommonTechnology?> GetByIdAsync(int techId)
+    {
+        return await _context.CommonTechnologies.FirstOrDefaultAsync(t => t.TechId == techId);
+    }
+
+    public async Task<List<CommonTechnology>> GetAllAsync()
+    {
+        return await _context.CommonTechnologies.ToListAsync();
+    }
+
+    public async Task UpdateAsync(CommonTechnology tech)
+    {
+        _context.CommonTechnologies.Update(tech);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task AddAsync(CommonTechnology tech)
+    {
+        await _context.CommonTechnologies.AddAsync(tech);
+        await _context.SaveChangesAsync();
+    }
 }

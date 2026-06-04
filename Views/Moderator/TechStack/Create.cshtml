@@ -12,19 +12,24 @@
     <p class="text-muted">Định nghĩa danh mục Tech Stack để ứng viên và NTD có thể chọn làm kỹ năng.</p>
 </div>
 
-<form onsubmit="event.preventDefault(); submitTechStack();" class="max-w-3xl">
+<form method="post" action="/ModeratorTechStack/Create" class="max-w-3xl">
     
     <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 border border-[#D6DDEB]">
         
         <div class="mb-6">
             <label class="block text-dark font-bold mb-2">Tên Công nghệ (Tech Name) <span class="text-red-500">*</span></label>
-            <input type="text" placeholder="Ví dụ: ReactJS, Angular, Python..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium text-lg" required>
+            <input type="text" name="techName" placeholder="Ví dụ: ReactJS, Angular, Python..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium text-lg" required>
             <p class="text-xs text-muted mt-2">Tên công nghệ phải là duy nhất (UNIQUE) trên hệ thống.</p>
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-dark font-bold mb-2">Phân loại (Category)</label>
+            <input type="text" name="category" placeholder="Ví dụ: Frontend, Backend, Database..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium text-lg">
         </div>
 
         <div class="mb-8">
             <label class="flex items-center gap-3 cursor-pointer p-4 border border-gray-100 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                <input type="checkbox" checked class="w-5 h-5 text-primary rounded focus:ring-primary">
+                <input type="checkbox" name="isActive" value="true" checked class="w-5 h-5 text-primary rounded focus:ring-primary">
                 <div>
                     <span class="font-bold text-dark block">Kích hoạt (Is Active)</span>
                     <span class="text-xs text-muted">Hiển thị công nghệ này trên các form tìm kiếm và form đăng tin.</span>
@@ -45,11 +50,3 @@
 
 </form>
 
-@section Scripts {
-    <script>
-        function submitTechStack() {
-            alert('Lưu Công nghệ thành công! Dữ liệu đã được cập nhật.');
-            window.location.href = '/ModeratorTechStack';
-        }
-    </script>
-}

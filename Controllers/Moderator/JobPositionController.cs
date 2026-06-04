@@ -7,7 +7,7 @@ namespace DevHub.Controllers.Moderator
     [Authorize(Roles = "Moderator")]
     public class JobPositionController : Controller
     {
-        [HttpGet("")]
+          [HttpGet("")]
         [HttpGet("/ModeratorPosition")]
         public IActionResult Index()
         {

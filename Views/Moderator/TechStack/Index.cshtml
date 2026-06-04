@@ -1,6 +1,9 @@
+@model List<DevHub.Models.CommonTechnology>
 @{
     ViewData["Title"] = "Quản lý Tech Stack";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+    var keyword = ViewData["Keyword"] as string ?? "";
+    var status = ViewData["Status"] as string ?? "";
 }
 
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -14,23 +17,33 @@
     </a>
 </div>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-r-lg">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <p class="text-green-700 font-medium">@TempData["SuccessMessage"]</p>
+        </div>
+    </div>
+}
+
 <!-- Filters & Sort -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
-    <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onsubmit="event.preventDefault();">
+    <form method="get" action="/ModeratorTechStack" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div class="w-full md:col-span-2">
             <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm công nghệ</label>
-            <input type="text" placeholder="Nhập tên công nghệ (Ví dụ: ReactJS)..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+            <input type="text" name="keyword" value="@keyword" placeholder="Nhập tên công nghệ (Ví dụ: ReactJS)..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
         </div>
         <div class="w-full">
             <label class="block text-dark font-medium mb-2 text-sm">Trạng thái</label>
-            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="">Tất cả</option>
-                <option value="1">Đang hoạt động</option>
-                <option value="0">Tạm ẩn</option>
+            <select name="status" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="" selected="@(status == "" ? "selected" : null)">Tất cả</option>
+                <option value="1" selected="@(status == "1" ? "selected" : null)">Đang hoạt động</option>
+                <option value="0" selected="@(status == "0" ? "selected" : null)">Tạm ẩn</option>
             </select>
         </div>
         <div>
-            <button type="button" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
+            <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
         </div>
     </form>
 </div>
@@ -43,101 +56,113 @@
                 <tr class="bg-gray-50 border-b border-[#D6DDEB]">
                     <th class="py-4 px-6 text-dark font-bold text-sm w-20">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Tên Công nghệ (Tech Name)</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm w-40">Ngày tạo</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm w-40">Trạng thái</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
                 </tr>
             </thead>
             <tbody class="text-sm">
-                <!-- Row 1 -->
-                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6 text-muted font-medium">#1</td>
-                    <td class="py-4 px-6">
-                        <div class="font-bold text-dark text-base">ReactJS</div>
-                    </td>
-                    <td class="py-4 px-6 text-muted">15/01/2026</td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Hoạt động
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-center space-x-1">
-                        <a href="/ModeratorTechStack/Create" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        </a>
-                        <button onclick="toggleStatus(1)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" title="Vô hiệu hóa">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                        </button>
-                    </td>
-                </tr>
-                
-                <!-- Row 2 -->
-                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6 text-muted font-medium">#2</td>
-                    <td class="py-4 px-6">
-                        <div class="font-bold text-dark text-base">Node.js</div>
-                    </td>
-                    <td class="py-4 px-6 text-muted">20/02/2026</td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            Tạm ẩn
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-center space-x-1">
-                        <a href="/ModeratorTechStack/Create" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        </a>
-                        <button onclick="toggleStatus(2)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Hiển thị lại">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                        </button>
-                    </td>
-                </tr>
-                
-                <!-- Row 3 -->
-                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6 text-muted font-medium">#3</td>
-                    <td class="py-4 px-6">
-                        <div class="font-bold text-dark text-base">C# .NET</div>
-                    </td>
-                    <td class="py-4 px-6 text-muted">10/03/2026</td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Hoạt động
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-center space-x-1">
-                        <a href="/ModeratorTechStack/Create" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        </a>
-                        <button onclick="toggleStatus(3)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" title="Vô hiệu hóa">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                        </button>
-                    </td>
-                </tr>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var tech in Model)
+                    {
+                        var isActive = tech.IsActive ?? true;
+                        <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-muted font-medium">#@tech.TechId</td>
+                            <td class="py-4 px-6">
+                                <div class="font-bold text-dark text-base">@tech.TechName</div>
+                            </td>
+                            <td class="py-4 px-6">
+                                @if (isActive)
+                                {
+                                    <span id="status-badge-@tech.TechId" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span id="status-badge-@tech.TechId" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        Tạm ẩn
+                                    </span>
+                                }
+                            </td>
+                            <td class="py-4 px-6 text-center space-x-1">
+                                <a href="/ModeratorTechStack/edit/@tech.TechId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </a>
+                                <button onclick="toggleStatus(@tech.TechId, this)" class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors @(isActive ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-green-50 text-green-600 hover:bg-green-100")" title="@(isActive ? "Vô hiệu hóa" : "Hiển thị lại")">
+                                    @if (isActive)
+                                    {
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                    }
+                                    else
+                                    {
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    }
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-muted">Không tìm thấy công nghệ nào.</td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
-
-    <!-- Pagination -->
-    <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
-        <div class="text-sm text-muted">
-            Hiển thị 1 đến 3 của 120 Công nghệ
-        </div>
-        <div class="flex space-x-1">
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
-            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">3</button>
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
-        </div>
-    </div>
 </div>
+
+<!-- Toast Notification -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
 
 @section Scripts {
     <script>
-        function toggleStatus(id) {
-            if (confirm(`Bạn có chắc muốn thay đổi trạng thái của Công nghệ #${id}?`)) {
-                alert(`Đã cập nhật trạng thái Công nghệ #${id}! Hệ thống đã ghi log.`);
+        function showToast(message, isSuccess = true) {
+            const toast = document.createElement('div');
+            toast.className = `flex items-center p-4 rounded-lg shadow-lg text-white transform transition-all duration-300 translate-y-10 opacity-0 ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
+            toast.innerHTML = `
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${isSuccess 
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>'
+                    }
+                </svg>
+                <span class="font-medium">${message}</span>
+            `;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function toggleStatus(id, btnElement) {
+            try {
+                const response = await fetch(`/ModeratorTechStack/toggle-status/${id}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast(result.message);
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showToast("Có lỗi xảy ra", false);
+                    }
+                } else {
+                    showToast("Lỗi kết nối server", false);
+                }
+            } catch (error) {
+                showToast("Lỗi kết nối server", false);
             }
         }
     </script>

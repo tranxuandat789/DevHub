@@ -8,23 +8,26 @@ using DevHub.ViewModels.Recruiter;
 
 namespace DevHub.Controllers.Recruiter
 {
-    [Route("Recruiter/Settings")]
+    [Route("Recruiter/[controller]")]
     [Authorize(Roles = "RECRUITER")]
     public class SettingsController : Controller
     {
+        //Service instances
         private readonly IAuthService _authService;
-            private readonly IRecruiterService _recruiterService;
-            private readonly IWebHostEnvironment _env;
-            private readonly ILogger<SettingsController> _logger;
+        private readonly IRecruiterService _recruiterService;
+        private readonly IWebHostEnvironment _env;
+        private readonly ILogger<SettingsController> _logger;
 
-            public SettingsController(IAuthService authService, IRecruiterService recruiterService, IWebHostEnvironment env, ILogger<SettingsController> logger)
-            {
-                _authService = authService;
-                _recruiterService = recruiterService;
-                _env = env;
-                _logger = logger;
-            }
+        //Constructor Injection
+        public SettingsController(IAuthService authService, IRecruiterService recruiterService, IWebHostEnvironment env, ILogger<SettingsController> logger)
+        {
+            _authService = authService;
+            _recruiterService = recruiterService;
+            _env = env;
+            _logger = logger;
+        }
 
+        //Default tab in Settings is "account".
         [HttpGet("")]
         public async Task<IActionResult> Index(string tab = "account")
         {
@@ -53,7 +56,7 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
-            //remove validation state for company fields (do not in the request form) so they don't block the save.
+            //remove validation state for company fields (do not in the request form) so these fields don't block the save.
             ModelState.Remove(nameof(model.CompanyName));
             ModelState.Remove(nameof(model.TaxCode));
             ModelState.Remove(nameof(model.Website));
@@ -61,12 +64,13 @@ namespace DevHub.Controllers.Recruiter
             if (!ModelState.IsValid)
                 return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
 
+            //new viewmodel entity for update, preserve fields.
             var vm = new DevHub.ViewModels.Recruiter.RecruiterProfileViewModel
             {
                 FullName = model.FullName ?? dbUser.Recruiter.FullName,
                 Position = model.Position,
                 Phone = model.Phone,
-                // preserve other fields of recruiter entity
+                // preserve other fields of recruiter entity which are not in the account form.
                 CompanyName = dbUser.Recruiter.CompanyName,
                 CompanyAddress = dbUser.Recruiter.CompanyAddress,
                 CompanyLogoUrl = dbUser.Recruiter.CompanyLogoUrl,
@@ -95,9 +99,8 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
-            // FullName/Phone/Position are not editable in the company form — they are sent
-            // as hidden inputs only and overwritten from the DB below. Drop their validation
-            // so a missing/invalid existing phone doesn't silently block saving company info.
+            // FullName/Phone/Position are sent as hidden inputs only and overwritten from the DB.
+            // Drop their validation to make sure do not block the save process of compoany information
             ModelState.Remove(nameof(model.FullName));
             ModelState.Remove(nameof(model.Phone));
             ModelState.Remove(nameof(model.Position));
@@ -152,11 +155,42 @@ namespace DevHub.Controllers.Recruiter
             }
             catch (InvalidOperationException ex)
             {
+                //Catch invalid tax code format
                 ModelState.AddModelError("TaxCode", ex.Message);
                 return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
             }
 
             return RedirectToAction("Index", new { tab = "company" });
+        }
+
+        // Change the recruiter login password (validates complexity + current password).
+        [HttpPost("password")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(RecruiterChangePasswordViewModel model)
+        {
+            ViewData["ActiveMenu"] = "Settings";
+            ViewBag.ActiveTab = "password";
+
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser == null || dbUser.Recruiter == null)
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+
+            try
+            {
+                await _recruiterService.ChangePasswordAsync(dbUser.Recruiter.RecruiterId, model);
+                TempData["Success"] = "Đổi mật khẩu thành công.";
+                return RedirectToAction("Index", new { tab = "password" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // e.g. wrong current password, or Google-only account.
+                ModelState.AddModelError("CurrentPassword", ex.Message);
+                return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+            }
         }
 
         [HttpPost("license")]
@@ -177,14 +211,17 @@ namespace DevHub.Controllers.Recruiter
                 return RedirectToAction("Index", new { tab = "license" });
             }
 
+            //Limit file format
             var allowedExt = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx" };
             var ext = Path.GetExtension(file_upload.FileName).ToLowerInvariant();
             if (!allowedExt.Contains(ext) || file_upload.Length > 10 * 1024 * 1024)
             {
+                //file is too large or wrong format
                 TempData["Error"] = "File không hợp lệ. Chỉ PDF/JPG/PNG/DOC dưới 10MB.";
                 return RedirectToAction("Index", new { tab = "license" });
             }
 
+            //get path to save license files
             var uploads = Path.Combine(_env.WebRootPath, "uploads", "license");
             try
             {
@@ -213,16 +250,27 @@ namespace DevHub.Controllers.Recruiter
                 };
 
                 await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, vm);
-                await _recruiterService.SendVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
             }
             catch (Exception ex)
             {
+                // exception while uploading file and logger for tracing
                 _logger.LogError(ex, "Error saving license file for recruiter {RecruiterId}", dbUser.Recruiter.RecruiterId);
                 TempData["Error"] = "Đã xảy ra lỗi khi tải file. Vui lòng thử lại hoặc liên hệ quản trị.";
                 return RedirectToAction("Index", new { tab = "license" });
             }
 
-            TempData["Success"] = "Tải giấy phép thành công. Yêu cầu xác thực đã được gửi.";
+            // License saved. Sending the verification request is a separate, gated step
+            // (requires profile completeness > 96%); surface its message but keep the upload as success.
+            try
+            {
+                await _recruiterService.SendVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
+                TempData["Success"] = "Tải giấy phép thành công. Yêu cầu xác thực đã được gửi.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Success"] = "Tải giấy phép thành công.";
+                TempData["Error"] = ex.Message;
+            }
             return RedirectToAction("Index", new { tab = "license" });
         }
 

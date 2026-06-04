@@ -1,13 +1,12 @@
 <!--AnhPT-03/06/2026-->
 @model DevHub.Models.Recruiter
 @{
+    //get logo company, if null generate default logo by user name
     var logoSrc = !string.IsNullOrEmpty(Model.CompanyLogoUrl)
         ? Model.CompanyLogoUrl
         : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.CompanyName ?? "C")}&background=4640DE&color=fff&size=128";
 
-    // On a failed save the controller re-renders with the recruiter's DB values but the
-    // submitted (rejected) values live in ModelState — show those so the user doesn't lose
-    // what they typed.
+    //saved the typed information in form from user in case it got failed by validation
     string FieldValue(string key, string? fallback) =>
         ViewData.ModelState.TryGetValue(key, out var entry) && entry.AttemptedValue != null
             ? entry.AttemptedValue

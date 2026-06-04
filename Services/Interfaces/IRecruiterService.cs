@@ -9,4 +9,5 @@ public interface IRecruiterService
     Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId);
     Task UpdateProfileAsync(Recruiter recruiter, RecruiterProfileViewModel updateVm);
     Task SendVerificationRequestAsync(int recruiterId);
+    Task ChangePasswordAsync(int recruiterId, RecruiterChangePasswordViewModel vm);
 }

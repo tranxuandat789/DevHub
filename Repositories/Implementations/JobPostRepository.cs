@@ -36,7 +36,7 @@ public class JobPostRepository : IJobPostRepository
         var query = _context.JobPosts
             .Include(j => j.Recruiter)
             .Include(j => j.Position)
-            .Where(j => j.Status == "pending");
+            .Where(j => j.Status != null && j.Status.ToUpper() == "PENDING");
 
         // 2. Bộ lọc theo ngày bắt đầu (fromDate): Nếu có giá trị, chỉ lấy các bài viết tạo từ ngày này trở đi (so sánh phần Ngày .Date)
         if (fromDate.HasValue)

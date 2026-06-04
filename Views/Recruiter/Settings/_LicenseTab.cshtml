@@ -10,7 +10,7 @@
 
 <div class="space-y-10">
 
-    <!--SECTION 1 — Business License -->
+    <!--Tab 1 — Business License -->
     <div>
         <div class="flex items-start justify-between mb-4">
             <div>
@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <!--Uploaded files-->
+        <!--Uploaded file-->
         @if (hasLicense)
         {
             <div class="mb-4 flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
@@ -36,7 +36,7 @@
                 <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Hiện tại</span>
             </div>
         }
-
+        <!--Uploading new file-->
         <form asp-action="UploadLicense" asp-controller="Settings" method="post"
               enctype="multipart/form-data" class="space-y-4">
             @Html.AntiForgeryToken()
@@ -113,7 +113,7 @@
         </form>
     </div>
 
-    <!--SECTION 1 — Additional document -->
+    <!--Tab 2 — Additional document -->
     <div class="border-t border-gray-100 pt-8">
         <div class="flex items-start justify-between mb-4">
             <div>
@@ -123,7 +123,7 @@
         </div>
 
 
-        <!--Uploaded files-->
+        <!--Uploaded file-->
         @if (hasAdditional)
         {
             <div class="mb-4 flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
@@ -140,7 +140,7 @@
                 <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Hiện tại</span>
             </div>
         }
-
+        <!--Uploading new file-->
         <form asp-action="UploadAdditionalDoc" asp-controller="Settings" method="post"
               enctype="multipart/form-data" class="space-y-4">
             @Html.AntiForgeryToken()
@@ -208,7 +208,7 @@
         bool canRequestVerify = completeness > 95 && hasLicense && !isVerified;
     }
 
-    <!--SECTION 3 — Send Company verification request-->
+    <!--Tab 3 — Send Company verification request-->
     <div class="border-t border-gray-100 pt-8">
         <div class="mb-4">
             <h2 class="text-lg font-medium text-gray-900">Xác minh công ty</h2>
@@ -227,9 +227,9 @@
             </div>
         </div>
 
+        <!--If Company got verified-->
         @if (isVerified)
         {
-            <!--Company got verified-->
             <div class="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl">
                 <div class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +244,7 @@
         }
         else if (canRequestVerify)
         {
-            <!--reach profile completeness condition, be able to senbd request-->
+            <!--reach profile completeness condition, be able to sendd request-->
             <div class="flex items-center gap-3 px-5 py-4 bg-blue-50 border border-blue-200 rounded-xl mb-4">
                 <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -270,7 +270,7 @@
         }
         else
         {
-            <!--do not profile completeness condition, can not send request-->
+            <!--do not reach profile completeness condition, can not send request-->
             <div class="flex items-start gap-3 px-5 py-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

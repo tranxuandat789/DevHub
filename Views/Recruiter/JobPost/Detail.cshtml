@@ -1,0 +1,122 @@
+<!--AnhPT-04/06/2026-->
+@model DevHub.Models.JobPost
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Chi tiết tin tuyển dụng";
+    ViewData["ActiveMenu"] = "Jobs";
+
+    // Status mapping (uppercase).
+    (string Cls, string Label) StatusBadge(string? status)
+    {
+        switch ((status ?? "").ToLower())
+        {
+            case "approved": return ("bg-green-100 text-green-700", "Đang hiển thị");
+            case "pending": return ("bg-amber-100 text-amber-700", "Chờ duyệt");
+            case "rejected": return ("bg-red-100 text-red-700", "Bị từ chối");
+            case "closed": return ("bg-gray-100 text-gray-600", "Đã đóng");
+            default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "Không rõ" : status);
+        }
+    }
+
+    // Edit allowed for Approved/Rejected; Closed is view-only.
+    bool canEdit;
+    var st = (Model.Status ?? "").ToLower();
+    canEdit = st == "approved" || st == "rejected";
+
+    var badge = StatusBadge(Model.Status);
+    string Money(decimal? v) => v.HasValue ? v.Value.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")) : "-";
+}
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+            <a href="@Url.Action("Index", new { q = ViewBag.Q, status = ViewBag.Status, page = ViewBag.Page })" class="text-sm text-muted hover:text-primary transition-colors inline-flex items-center gap-1 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Quay lại danh sách
+            </a>
+            <h1 class="text-2xl font-bold text-dark">@Model.Title</h1>
+            <div class="flex items-center gap-3 mt-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold @badge.Cls">@badge.Label</span>
+                <span class="text-sm text-muted">@Model.Position?.PositionName • @Model.WorkingModel</span>
+            </div>
+        </div>
+        <!--Check if this post is editable or not-->
+        <div class="flex items-center gap-3">
+            <!--If editable, direct to edit page-->
+            @if (canEdit)
+            {
+                <a href="@Url.Action("Edit", new { id = Model.JobId, q = ViewBag.Q, status = ViewBag.Status, page = ViewBag.Page })" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Chỉnh sửa
+                </a>
+            }
+            else
+            {
+                //Can not edit closed/expired post
+                <span class="text-sm text-muted italic">Tin đã đóng hoặc đang chờ duyệt — không thể chỉnh sửa</span>
+            }
+        </div>
+    </div>
+    <!-- If got rejected-->
+    @if (st == "rejected" && !string.IsNullOrEmpty(Model.RejectedReason))
+    {
+        <div class="bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg px-4 py-3">
+            <span class="font-semibold">Lý do từ chối:</span> @Model.RejectedReason
+        </div>
+    }
+
+    <!-- Overview fields: jobposition, exp level, address, hiring quota, deadline,.. -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 md:p-8 shadow-sm">
+        <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">Thông tin chung</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div><span class="text-muted">Vị trí:</span> <span class="font-medium text-dark">@Model.Position?.PositionName</span></div>
+            <div><span class="text-muted">Cấp bậc:</span> <span class="font-medium text-dark">@Model.ExperienceLevel</span></div>
+            <div><span class="text-muted">Hình thức:</span> <span class="font-medium text-dark">@Model.WorkingModel</span></div>
+            <div><span class="text-muted">Địa điểm:</span> <span class="font-medium text-dark">@Model.Location</span></div>
+            <div><span class="text-muted">Mức lương:</span> <span class="font-medium text-dark">@Money(Model.SalaryMin) - @Money(Model.SalaryMax) VND</span></div>
+            <div><span class="text-muted">Chỉ tiêu tuyển:</span> <span class="font-medium text-dark">@(Model.HiringQuota?.ToString() ?? "-")</span></div>
+            <div><span class="text-muted">Ngày đăng:</span> <span class="font-medium text-dark">@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "-")</span></div>
+            <div><span class="text-muted">Hạn nhận CV:</span> <span class="font-medium text-dark">@(Model.Deadline?.ToString("dd/MM/yyyy") ?? "-")</span></div>
+            <div><span class="text-muted">Lượt ứng tuyển:</span> <span class="font-medium text-dark">@(Model.ApplicationCount ?? 0)</span></div>
+        </div>
+    </div>
+
+    <!--Required tech-stack -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 md:p-8 shadow-sm">
+        <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">Công nghệ / Tech Stack</h2>
+        @if (Model.Teches != null && Model.Teches.Any())
+        {
+            <div class="flex flex-wrap gap-2">
+                @foreach (var tech in Model.Teches)
+                {
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[13px] font-semibold bg-primary text-white">@tech.TechName</span>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-sm text-muted">Bạn chưa chọn yêu cầu về công nghệ.</p>
+        }
+        @if (!string.IsNullOrEmpty(Model.Skill))
+        {
+            <p class="text-sm text-muted mt-4"><span class="font-semibold text-dark">Kỹ năng mềm:</span> @Model.Skill</p>
+        }
+    </div>
+
+    <!-- Job descriptions -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 md:p-8 shadow-sm space-y-6">
+        <div>
+            <h2 class="text-lg font-bold text-dark mb-2">Mô tả công việc</h2>
+            <p class="text-sm text-muted whitespace-pre-line leading-relaxed">@Model.Description</p>
+        </div>
+        <div>
+            <h2 class="text-lg font-bold text-dark mb-2">Yêu cầu công việc</h2>
+            <p class="text-sm text-muted whitespace-pre-line leading-relaxed">@Model.Requirement</p>
+        </div>
+        <div>
+            <h2 class="text-lg font-bold text-dark mb-2">Chế độ phúc lợi</h2>
+            <p class="text-sm text-muted whitespace-pre-line leading-relaxed">@Model.Benefit</p>
+        </div>
+    </div>
+</div>

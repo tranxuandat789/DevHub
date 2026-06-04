@@ -4,16 +4,21 @@
     Layout = "_RecruiterLayout";
     ViewData["Title"] = "Đăng tin tuyển dụng";
     ViewData["ActiveMenu"] = "Jobs";
+
+    // Originating list filters, carried so cancel/save returns to the same filtered list.
+    var q = ViewBag.Q as string;
+    var status = ViewBag.Status as string;
+    var page = ViewBag.Page ?? 1;
 }
 
 <div class="space-y-6">
-    <!-- Header -->
+    <!-- Header/Title -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-dark">Đăng tin tuyển dụng mới</h1>
             <p class="text-muted text-sm mt-1">Điền đầy đủ thông tin để tìm kiếm ứng viên phù hợp nhất</p>
         </div>
-        <a href="/Recruiter/JobPost" class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-200 transition-all">
+        <a href="@Url.Action("Index", new { q, status, page })" class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-200 transition-all">
             Hủy và quay lại
         </a>
     </div>
@@ -22,10 +27,13 @@
     <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 md:p-8 shadow-sm">
         <form asp-action="Create" asp-controller="JobPost" method="post" class="space-y-8">
             @Html.AntiForgeryToken()
+            <input type="hidden" name="q" value="@q" />
+            <input type="hidden" name="status" value="@status" />
+            <input type="hidden" name="page" value="@(page)" />
 
             <div asp-validation-summary="All" class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3 [&:empty]:hidden"></div>
 
-            <!-- 1. Thông tin chung -->
+            <!-- Overall information -->
             <div>
                 <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">1. Thông tin chung</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -91,7 +99,7 @@
                 </div>
             </div>
 
-            <!-- 2. Yêu cầu kĩ năng -->
+            <!-- Technologies requirement -->
             <div>
                 <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">2. Yêu cầu chuyên môn & Kỹ năng</h2>
                 <div class="grid grid-cols-1 gap-6">
@@ -112,7 +120,7 @@
                 </div>
 
                 <style>
-                    /* Theme Choices.js cho Tech Stack theo design spec (#4640DE) */
+                    /* Theme Choices.js for Tech Stack */
                     #tech-choices .choices { margin-bottom: 0; }
                     #tech-choices .choices__inner {
                         background: #fff;
@@ -154,7 +162,7 @@
                     const techDropdown = document.getElementById('tech-dropdown');
                     if (!techDropdown) return;
 
-                    // Choices.js đã được nạp ở layout; chỉ khởi tạo với cấu hình mặc định + tiếng Việt.
+                    // Choices.js is injected in layout.cshtml, just fix placeholde in Vietnamese
                     if (window.Choices) {
                         new Choices(techDropdown, {
                             removeItemButton: true,
@@ -180,7 +188,7 @@
                 </div>
             </div>
 
-            <!-- 3. Mức lương & Phúc lợi -->
+            <!-- Salary range and benefits -->
             <div>
                 <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">3. Mức lương & Chế độ phúc lợi</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -199,7 +207,7 @@
                 </div>
             </div>
 
-            <!-- 4. Chi tiết công việc -->
+            <!-- More about job description -->
             <div>
                 <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">4. Chi tiết công việc</h2>
                 <div class="grid grid-cols-1 gap-6">
@@ -215,11 +223,12 @@
                 </div>
             </div>
 
-            <!-- Submit Button -->
-            <div class="pt-6 border-t border-gray-100 flex justify-end gap-4">
-                <a href="/Recruiter/JobPost" class="px-6 py-3 bg-white border border-gray-200 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">
+            <div class="pt-6 border-t border-gray-100 flex justify-end gap-4"
+                <!-- Cancel button, back to index -->
+                <a href="@Url.Action("Index", new { q, status, page })" class="px-6 py-3 bg-white border border-gray-200 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">
                     Hủy bỏ
-                </a>
+                </a     
+                <!-- Submit Button -->
                 <button type="submit" class="px-8 py-3 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
                     Đăng tin ngay
                 </button>
@@ -230,7 +239,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Định dạng số tiền: thêm dấu '.' sau mỗi 3 chữ số (vd 20000000 -> 20.000.000)
+    // Currency type format(ex: 20000000 -> 20.000.000)
     function formatThousand(value) {
         var digits = (value || '').replace(/\D/g, '');
         if (!digits) return '';
@@ -239,15 +248,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var moneyInputs = document.querySelectorAll('.money-input');
     moneyInputs.forEach(function (el) {
-        // Định dạng ngay khi gõ
+        // applying format while typing
         el.addEventListener('input', function () {
             this.value = formatThousand(this.value);
         });
-        // Định dạng giá trị có sẵn (khi form render lại sau lỗi validation)
+        // re-format after reloading form after validation error
         el.value = formatThousand(el.value);
     });
 
-    // Bỏ dấu '.' ngay trước khi submit để server nhận số thuần (decimal)
+    // remove '.' before submiting so the model binding can parse to number successfully.
     var form = moneyInputs.length ? moneyInputs[0].form : null;
     if (form) {
         form.addEventListener('submit', function () {

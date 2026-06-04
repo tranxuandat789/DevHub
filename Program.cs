@@ -1,3 +1,8 @@
+// =========================================================================
+// Các thư viện, package phục vụ xử lý backend đăng nhập, phiên đăng nhập
+// Author: PhongDH
+// Date: 31/06/2026
+// =========================================================================
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -29,24 +34,41 @@ builder.Services.AddDbContext<ItrecruitmentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ── Authentication — SmartAuth + 3 Cookie Schemes + Google ──────────────────
+// [SmartAuth - Cơ chế điều hướng xác thực thông minh]
+// Vấn đề: Ứng dụng này có 3 nhóm người dùng biệt lập (Ứng viên, Nhà tuyển dụng, Admin/Moderator). 
+// Nếu dùng chung 1 cookie mặc định, các phiên đăng nhập sẽ đụng độ nhau (ví dụ: login ứng viên nhưng có thể vào trang admin nếu không chặn kĩ).
+// Giải pháp: Sử dụng "Policy Scheme" (được đặt tên là "SmartAuth").
+// SmartAuth không trực tiếp lưu Cookie, nó chỉ đóng vai trò "Trạm kiểm soát trung chuyển".
+// Dựa vào đường dẫn (URL) mà người dùng đang truy cập, nó sẽ tự động trỏ đến đúng kho Cookie của nhóm người dùng đó.
 builder.Services.AddAuthentication(options =>
 {
+    // Đặt SmartAuth làm Scheme mặc định để nó đón toàn bộ request cần xác thực
     options.DefaultScheme          = "SmartAuth";
     options.DefaultChallengeScheme = "SmartAuth";
 })
 .AddPolicyScheme("SmartAuth", "Smart Auth", options =>
 {
+    // ForwardDefaultSelector là nơi quyết định loại Cookie nào sẽ được áp dụng cho request hiện tại
     options.ForwardDefaultSelector = ctx =>
     {
         var path = ctx.Request.Path.Value ?? "";
+        
+        // Luồng 1: Nếu URL thuộc khu vực Nhà tuyển dụng (bắt đầu bằng /Recruiter hoặc chứa từ 'employer')
+        // => Trỏ về "EmployerCookies". Nếu chưa đăng nhập, user sẽ bị đẩy về trang /Auth/EmployerLogin
         if (path.StartsWith("/Recruiter", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("employer", StringComparison.OrdinalIgnoreCase))
             return "EmployerCookies";
+            
+        // Luồng 2: Nếu URL thuộc khu vực Quản trị (bắt đầu bằng /Admin, /Moderator...)
+        // => Trỏ về "AdminCookies".
         if (path.StartsWith("/Admin",     StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/Moderator", StringComparison.OrdinalIgnoreCase) ||
             path.Contains("moderator", StringComparison.OrdinalIgnoreCase) ||
             path.Equals("/Auth/AdminLogout", StringComparison.OrdinalIgnoreCase))
             return "AdminCookies";
+            
+        // Luồng 3: Nếu không phải các trường hợp đặc biệt trên (trang chủ, trang tìm việc...)
+        // => Sử dụng Cookie mặc định của hệ thống (dành cho Ứng viên).
         return CookieAuthenticationDefaults.AuthenticationScheme;
     };
 })

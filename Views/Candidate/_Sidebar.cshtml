@@ -28,7 +28,7 @@
     <!-- Navigation Menu -->
     <div class="bg-white rounded-[20px] p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB]">
         <nav class="space-y-1">
-            <a href="/Candidate/Dashboard" 
+            <a href="/candidate/dashboard" 
                class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Dashboard" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Dashboard" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,13 +37,21 @@
                 Tổng quan
             </a>
 
-            <a href="/Candidate/Profile" 
+            <a href="/candidate/profile" 
                class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Profile" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Profile" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 Hồ sơ của bạn
+            </a>
+
+            <a href="/Candidate/RecommendedJobs" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+                      @(ViewData["ActiveMenu"]?.ToString() == "RecommendedJobs" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
+                <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "RecommendedJobs" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Gợi ý việc làm
             </a>
 
             <a href="/Candidate/AppliedJobs" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors

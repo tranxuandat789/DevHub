@@ -26,7 +26,7 @@ namespace DevHub.Controllers.Recruiter
             _techRepo = techRepo;
         }
 
-        // Management grid: check profile completeness, then render filtered/paginated posts.
+        // Management page: check profile completeness, then render filtered/paginated posts.
         [HttpGet]
         public async Task<IActionResult> Index(string? q, string? status, int page = 1)
         {
@@ -43,6 +43,8 @@ namespace DevHub.Controllers.Recruiter
             }
 
             var vm = await _jobPostService.GetManagedJobPostsAsync(dbUser.Recruiter.RecruiterId, q, status, page, 10);
+            // Remaining posts in the active package, shown next to the create button.
+            ViewBag.PostsRemaining = (await _jobPostService.GetActivePackageInfoAsync(dbUser.Recruiter.RecruiterId)).PostsRemaining;
             return View(vm);
         }
 
@@ -85,12 +87,14 @@ namespace DevHub.Controllers.Recruiter
             if (!hasPackage || postsRemaining <= 0)
             {
                 TempData["Error"] = "Tài khoản không đủ lượt đăng. Vui lòng mua gói dịch vụ.";
-                return Redirect("/recruiter/subscription");
+                return Redirect("/Recruiter/JobPost");
             }
 
             ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
             ViewBag.Techs = await _techRepo.GetAllActiveAsync();
             ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
+            // Remaining posts in the active package, shown on the create form.
+            ViewBag.PostsRemaining = postsRemaining;
 
             return View();
         }
@@ -105,11 +109,13 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
+            //reload dropdown input and redirect query
             if (!ModelState.IsValid)
             {
                 ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
                 ViewBag.Techs = await _techRepo.GetAllActiveAsync();
                 ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
+                ViewBag.PostsRemaining = (await _jobPostService.GetActivePackageInfoAsync(dbUser.Recruiter.RecruiterId)).PostsRemaining;
                 return View(vm);
             }
 
@@ -126,11 +132,12 @@ namespace DevHub.Controllers.Recruiter
                 if (ex.Message.Contains("hoàn thành"))
                     return RedirectToAction("Index", "Settings");
                 if (ex.Message.Contains("gói dịch vụ"))
-                    return Redirect("/recruiter/subscription");
+                    return Redirect("/Recruiter/JobPost");
 
                 ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
                 ViewBag.Techs = await _techRepo.GetAllActiveAsync();
                 ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
+                ViewBag.PostsRemaining = (await _jobPostService.GetActivePackageInfoAsync(dbUser.Recruiter.RecruiterId)).PostsRemaining;
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return View(vm);
             }

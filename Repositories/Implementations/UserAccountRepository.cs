@@ -55,4 +55,18 @@ public class UserAccountRepository : IUserAccountRepository
               .ExecuteUpdateAsync(s => s
                   .SetProperty(u => u.PasswordHash, passwordHash)
                   .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
+
+    // Get user account by primary key
+    public Task<UserAccount?> GetByIdAsync(int userId)
+        => _db.UserAccounts
+              .AsNoTracking()
+              .FirstOrDefaultAsync(u => u.UserId == userId);
+
+    // Set is_active (false = soft delete, true = reactivate)
+    public Task SetActiveStatusAsync(int userId, bool isActive)
+        => _db.UserAccounts
+              .Where(u => u.UserId == userId)
+              .ExecuteUpdateAsync(s => s
+                  .SetProperty(u => u.IsActive, isActive)
+                  .SetProperty(u => u.LastUpdated, DateTime.UtcNow));
 }

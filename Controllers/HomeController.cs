@@ -151,17 +151,7 @@ namespace DevHub.Controllers
             return View("~/Views/Moderator/Voucher/Create.cshtml");
         }
 
-        [Route("ModeratorPosition")]
-        public IActionResult ModeratorPositionPreview()
-        {
-            return View("~/Views/Moderator/JobPosition/Index.cshtml");
-        }
 
-        [Route("ModeratorPosition/Create")]
-        public IActionResult ModeratorPositionCreatePreview()
-        {
-            return View("~/Views/Moderator/JobPosition/Create.cshtml");
-        }
 
         [Route("ReviewApproval")]
         public IActionResult ReviewApprovalPreview()

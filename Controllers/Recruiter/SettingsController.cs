@@ -339,5 +339,37 @@ namespace DevHub.Controllers.Recruiter
             TempData["Success"] = "Tài liệu bổ sung đã được cập nhật thành công.";
             return RedirectToAction("Index", new { tab = "license" });
         }
+
+        // User-triggered verification request from the License tab.
+        [HttpPost("request-verification")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestVerification()
+        {
+            ViewData["ActiveMenu"] = "Settings";
+            ViewBag.ActiveTab = "license";
+
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser == null || dbUser.Recruiter == null)
+                return NotFound();
+
+            try
+            {
+                // Service applies the completeness (> 96%).
+                await _recruiterService.SendVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
+                TempData["Success"] = "Đã gửi yêu cầu xác minh. Vui lòng chờ kiểm duyệt viên xử lý.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                // e.g. completeness <= 96% or missing business license
+                TempData["Error"] = ex.Message;
+            }
+            catch (KeyNotFoundException)
+            {
+                TempData["Error"] = "Không tìm thấy thông tin nhà tuyển dụng.";
+            }
+
+            return RedirectToAction("Index", new { tab = "license" });
+        }
     }
 }

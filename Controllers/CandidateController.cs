@@ -112,6 +112,15 @@ namespace DevHub.Controllers
                 TempData["ErrorMessage"] = firstError ?? "Dữ liệu không hợp lệ!";
                 return RedirectToAction("Profile");
             }
+
+            // Business rule: expected max salary must be >= min salary (when both are provided).
+            if (model.ExpectedSalaryMin.HasValue && model.ExpectedSalaryMax.HasValue
+                && model.ExpectedSalaryMax.Value < model.ExpectedSalaryMin.Value)
+            {
+                TempData["ErrorMessage"] = "Mức lương tối đa phải lớn hơn hoặc bằng mức lương tối thiểu!";
+                return RedirectToAction("Profile");
+            }
+
             try
             {
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);

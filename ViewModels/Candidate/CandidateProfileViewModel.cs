@@ -7,6 +7,7 @@ namespace DevHub.ViewModels.Candidate
         public DevHub.Models.Candidate CandidateInfo { get; set; } = null!;
         public int ProfileCompletion { get; set; }
         public Cv? Cv { get; set; }
-        public List<CommonTechnology> AllTechnologies { get; set; } = new List<CommonTechnology>();
+        public List<CandidateSkill> CandidateSkills { get; set; } = new();
+        public List<CommonTechnology> AllTechnologies { get; set; } = new();
     }
 }

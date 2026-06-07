@@ -1,4 +1,4 @@
-﻿//AnhPT 03-06-2026
+//AnhPT 03-06-2026
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Recruiter;
@@ -132,6 +132,15 @@ namespace DevHub.Services.Implementations
 
             if (string.IsNullOrEmpty(recruiter.BusinessLicenseUrl))
                 throw new InvalidOperationException("Vui lòng cung cấp Giấy phép kinh doanh hợp lệ để thực hiện xác thực");
+
+            if (recruiter.IsVerified == true)
+                throw new InvalidOperationException("Công ty của bạn đã được xác thực.");
+
+            // Check if there is already a pending request
+            if (await _recruiterProfileRepository.HasPendingVerificationRequestAsync(recruiterId))
+            {
+                throw new InvalidOperationException("Bạn đã gửi yêu cầu xác thực và đang chờ duyệt. Vui lòng không gửi lại.");
+            }
 
             // create verification request for moderators, do not throw if repository fails to create log
             try

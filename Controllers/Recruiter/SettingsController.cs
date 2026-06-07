@@ -361,7 +361,7 @@ namespace DevHub.Controllers.Recruiter
             }
             catch (InvalidOperationException ex)
             {
-                // e.g. completeness <= 96% or missing business license
+                // e.g. completeness is not satisfied or missing business license
                 TempData["Error"] = ex.Message;
             }
             catch (KeyNotFoundException)

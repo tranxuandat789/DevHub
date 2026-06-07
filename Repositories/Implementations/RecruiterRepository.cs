@@ -84,4 +84,13 @@ public class RecruiterRepository : IRecruiterRepository
         _db.AuditLogs.Add(log);
         await _db.SaveChangesAsync();
     }
+
+    public async Task<bool> HasPendingVerificationRequestAsync(int recruiterId)
+    {
+        return await _db.AuditLogs.AnyAsync(a => 
+            a.Action == "VerificationRequest" && 
+            a.EntityType == "recruiter_profile" && 
+            a.EntityId == recruiterId && 
+            a.OldValue == null);
+    }
 }          

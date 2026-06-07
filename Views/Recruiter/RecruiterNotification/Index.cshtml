@@ -1,3 +1,4 @@
+@model List<DevHub.Models.Notification>
 @{
     Layout = "_RecruiterLayout";
     ViewData["Title"] = "Quản lý thông báo";
@@ -47,58 +48,45 @@
         <!-- Notification List -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" id="notificationList">
             
-            <!-- Quan trọng (Đỏ) - Chưa đọc -->
-            <a href="/recruiter/notifications/details/1" class="notification-item block p-5 border-b border-gray-100 hover:bg-red-50/50 transition-colors bg-red-50/20" data-severity="critical" data-status="unread">
-                <div class="flex items-start gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-start justify-between gap-4">
-                            <h3 class="font-bold text-gray-900 text-base">Cảnh báo: Tài khoản của bạn sắp hết hạn đăng bài</h3>
-                            <span class="text-[10px] uppercase tracking-wide font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded whitespace-nowrap">Mới</span>
-                        </div>
-                        <p class="text-gray-600 text-sm mt-1.5 line-clamp-2 leading-relaxed">Gói dịch vụ "Gói Đồng" của bạn sẽ hết hạn trong 3 ngày tới. Vui lòng gia hạn để không bị gián đoạn việc tuyển dụng và tiếp cận ứng viên.</p>
-                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 font-medium">
-                            <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> 2 giờ trước</span>
-                            <span class="flex items-center gap-1.5 text-red-600"><i class="fas fa-circle text-[6px]"></i> Quan trọng</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var notif in Model)
+                {
+                    string severityClass = notif.SeverityLevel == "critical" ? "bg-red-50/20 hover:bg-red-50/50" : 
+                                           notif.SeverityLevel == "warning" ? "bg-yellow-50/20 hover:bg-yellow-50/50" : 
+                                           "hover:bg-gray-50";
+                    string severityTextClass = notif.SeverityLevel == "critical" ? "text-red-600" : 
+                                               notif.SeverityLevel == "warning" ? "text-yellow-600" : 
+                                               "text-blue-500";
+                    string severityLabel = notif.SeverityLevel == "critical" ? "Quan trọng" : 
+                                           notif.SeverityLevel == "warning" ? "Cảnh báo" : 
+                                           "Thông tin";
+                    string status = notif.IsRead == true ? "read" : "unread";
+                    string opacityClass = notif.IsRead == true ? "opacity-75" : "opacity-100";
 
-            <!-- Cảnh báo (Vàng) - Chưa đọc -->
-            <a href="/recruiter/notifications/details/2" class="notification-item block p-5 border-b border-gray-100 hover:bg-yellow-50/50 transition-colors bg-yellow-50/20" data-severity="warning" data-status="unread">
-                <div class="flex items-start gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-start justify-between gap-4">
-                            <h3 class="font-bold text-gray-900 text-base">Cần cập nhật: Bổ sung thông tin giấy phép kinh doanh</h3>
-                            <span class="text-[10px] uppercase tracking-wide font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded whitespace-nowrap">Mới</span>
+                    <a href="/recruiter/notifications/details/@notif.NotificationId" class="notification-item block p-5 border-b border-gray-100 transition-colors @severityClass @opacityClass" data-severity="@(notif.SeverityLevel ?? "info")" data-status="@status">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between gap-4">
+                                    <h3 class="font-bold text-gray-900 text-base">@notif.Title</h3>
+                                    @if (notif.IsRead != true)
+                                    {
+                                        <span class="text-[10px] uppercase tracking-wide font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded whitespace-nowrap">Mới</span>
+                                    }
+                                </div>
+                                <p class="text-gray-600 text-sm mt-1.5 line-clamp-2 leading-relaxed">@notif.Message</p>
+                                <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 font-medium">
+                                    <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> @(notif.CreatedAt?.ToString("dd/MM/yyyy HH:mm"))</span>
+                                    <span class="flex items-center gap-1.5 @severityTextClass"><i class="fas fa-circle text-[6px]"></i> @severityLabel</span>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-gray-600 text-sm mt-1.5 line-clamp-2 leading-relaxed">Hồ sơ công ty của bạn hiện đang thiếu bản scan Giấy phép Đăng ký Kinh doanh. Việc bổ sung giúp tăng độ tin cậy của nhà tuyển dụng.</p>
-                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 font-medium">
-                            <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> Hôm qua, 14:30</span>
-                            <span class="flex items-center gap-1.5 text-yellow-600"><i class="fas fa-circle text-[6px]"></i> Cảnh báo</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Thông tin (Xanh) - Đã đọc -->
-            <a href="/recruiter/notifications/details/3" class="notification-item block p-5 border-b border-gray-100 hover:bg-gray-50 transition-colors opacity-75" data-severity="info" data-status="read">
-                <div class="flex items-start gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-start justify-between gap-4">
-                            <h3 class="font-medium text-gray-800 text-base">Hệ thống: Tính năng AI Matching đã ra mắt!</h3>
-                        </div>
-                        <p class="text-gray-500 text-sm mt-1.5 line-clamp-2 leading-relaxed">Khám phá tính năng AI Matching hoàn toàn mới, giúp bạn chấm điểm và phân tích mức độ phù hợp của CV ứng viên một cách tự động và chính xác.</p>
-                        <div class="flex items-center gap-4 mt-3 text-xs text-gray-400 font-medium">
-                            <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> 20/05/2026</span>
-                            <span class="flex items-center gap-1.5 text-blue-500"><i class="fas fa-circle text-[6px]"></i> Thông tin</span>
-                        </div>
-                    </div>
-                </div>
-            </a>
+                    </a>
+                }
+            }
             
             <!-- Empty state -->
-            <div id="noNotifications" class="hidden p-12 text-center text-gray-500">
+            <div id="noNotifications" class="@((Model != null && Model.Any()) ? "hidden" : "") p-12 text-center text-gray-500">
                 <i class="far fa-bell-slash text-5xl mb-4 text-gray-300"></i>
                 <p class="text-lg font-medium text-gray-700">Không có thông báo nào</p>
                 <p class="text-sm mt-1">Không tìm thấy thông báo phù hợp với bộ lọc của bạn.</p>

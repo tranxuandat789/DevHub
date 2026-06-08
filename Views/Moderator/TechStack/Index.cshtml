@@ -112,6 +112,33 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="px-6 py-4 border-t border-[#D6DDEB] flex flex-col md:flex-row items-center justify-between bg-gray-50 gap-4">
+            <span class="text-sm text-muted">
+                Hiển thị trang <span class="font-bold text-dark">@ViewBag.CurrentPage</span> / @ViewBag.TotalPages 
+                (Tổng số <span class="font-bold text-dark">@ViewBag.TotalItems</span> công nghệ)
+            </span>
+            <div class="flex gap-2">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
+                }
+                
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
+                }
+            </div>
+        </div>
+    }
 </div>
 
 <!-- Toast Notification -->

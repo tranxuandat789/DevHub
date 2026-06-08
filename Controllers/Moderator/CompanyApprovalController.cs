@@ -22,9 +22,9 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string companyName, DateTime? dateFrom, DateTime? dateTo, string sortOrder = "desc")
         {
-            var pendingRequests = await _db.AuditLogs
+            var query = _db.AuditLogs
                 .Where(a => a.Action == "VerificationRequest" && a.EntityType == "recruiter_profile" && a.OldValue == null)
                 .Join(_db.Recruiters, 
                     a => a.EntityId, 
@@ -38,8 +38,40 @@ namespace DevHub.Controllers.Moderator
                         BusinessLicenseUrl = r.BusinessLicenseUrl,
                         AdditionalDocumentsUrl = r.AdditionalDocumentsUrl,
                         RequestedAt = a.CreatedAt
-                    })
-                .ToListAsync();
+                    });
+
+            if (!string.IsNullOrEmpty(companyName))
+            {
+                query = query.Where(q => q.CompanyName != null && q.CompanyName.Contains(companyName));
+            }
+
+            if (dateFrom.HasValue)
+            {
+                var from = dateFrom.Value.Date;
+                query = query.Where(q => q.RequestedAt >= from);
+            }
+
+            if (dateTo.HasValue)
+            {
+                var to = dateTo.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(q => q.RequestedAt <= to);
+            }
+
+            if (sortOrder == "asc")
+            {
+                query = query.OrderBy(q => q.RequestedAt);
+            }
+            else
+            {
+                query = query.OrderByDescending(q => q.RequestedAt);
+            }
+
+            var pendingRequests = await query.ToListAsync();
+
+            ViewBag.CompanyName = companyName;
+            ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd");
+            ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd");
+            ViewBag.SortOrder = sortOrder;
 
             return View("~/Views/Moderator/CompanyApproval/Index.cshtml", pendingRequests);
         }

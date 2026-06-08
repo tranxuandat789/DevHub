@@ -1058,7 +1058,7 @@ public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
     {
         // Kiểm tra ModelState (các annotation trên ViewModel đã lo validation cơ bản)
         if (!ModelState.IsValid)
-            return View(vm);
+            return View("RegisterCandidate",vm);
 
         var email = vm.Email.Trim().ToLower();
 
@@ -1066,7 +1066,7 @@ public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
         if (await _context.UserAccounts.AnyAsync(u => u.Email == email))
         {
             ViewBag.ErrorMessage = "Email này đã được sử dụng để đăng ký tài khoản khác!";
-            return View(vm);
+            return View("RegisterCandidate", vm);
         }
 
         // Sinh OTP 6 chữ số
@@ -1108,7 +1108,7 @@ public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
             var innerMsg = ex.InnerException?.Message ?? ex.Message;
             Console.WriteLine($"[DevHub EMAIL ERROR] {innerMsg}");
             ViewBag.ErrorMessage = $"Không thể gửi email xác thực đến {email}. Lỗi: {innerMsg}";
-            return View(vm);
+            return View("RegisterCandidate",vm);
         }
     }
 

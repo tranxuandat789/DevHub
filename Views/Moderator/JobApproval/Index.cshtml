@@ -10,6 +10,15 @@ author: Hoang Minh Kien
 @{
     ViewData["Title"] = "Duyet Bai Dang";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+
+    // Build a page URL that preserves the current filters.
+    string PageUrl(int p) => Url.Action("Index", new
+    {
+        fromDate = Model.FromDate?.ToString("yyyy-MM-dd"),
+        toDate = Model.ToDate?.ToString("yyyy-MM-dd"),
+        sortOrder = Model.SortOrder,
+        page = p
+    }) ?? "#";
 }
 
 <div class="flex justify-between items-center mb-8">
@@ -112,14 +121,42 @@ author: Hoang Minh Kien
     <!-- Pagination -->
     <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
         <div class="text-sm text-muted">
-            Hiển thị 1 đến 2 của 2 kết quả
+            Hiển thị <span class="font-medium text-dark">@Model.FromItem</span> đến <span class="font-medium text-dark">@Model.ToItem</span> của <span class="font-medium text-dark">@Model.TotalCount</span> kết quả
         </div>
-        <div class="flex space-x-1">
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
-            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
-        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <div class="flex space-x-1">
+                @if (Model.Page > 1)
+                {
+                    <a href="@PageUrl(Model.Page - 1)" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang trước</a>
+                }
+                else
+                {
+                    <span class="px-3 py-1 border border-[#D6DDEB] rounded text-muted opacity-50 cursor-not-allowed">Trang trước</span>
+                }
+
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    if (p == Model.Page)
+                    {
+                        <span class="px-3 py-1 bg-primary text-white rounded">@p</span>
+                    }
+                    else
+                    {
+                        <a href="@PageUrl(p)" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">@p</a>
+                    }
+                }
+
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a href="@PageUrl(Model.Page + 1)" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</a>
+                }
+                else
+                {
+                    <span class="px-3 py-1 border border-[#D6DDEB] rounded text-muted opacity-50 cursor-not-allowed">Trang sau</span>
+                }
+            </div>
+        }
     </div>
 </div>
 

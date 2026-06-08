@@ -182,11 +182,10 @@
                 <a href="@Url.Action("Index", new { q, status, page })" class="px-6 py-3 bg-white border border-gray-200 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">
                     Hủy bỏ
                 </a>
-                @* Close button: only for an active (APPROVED) post. Posts to Close (bypasses form validation). *@
+                @* Close button: only for an active (APPROVED) post. Opens the custom confirm modal. *@
                 @if ((ViewBag.CurrentStatus as string ?? "").ToUpper() == "APPROVED")
                 {
-                    <button type="submit" formaction="@Url.Action("Close", new { id = jobId })" formmethod="post" formnovalidate
-                            onclick="return confirm('Đóng tin tuyển dụng này? Tin sẽ ngừng hiển thị với ứng viên.');"
+                    <button type="button" onclick="document.getElementById('closeModal').classList.remove('hidden')"
                             class="px-6 py-3 bg-white border border-red-200 text-red-600 text-[15px] font-bold rounded-lg hover:bg-red-50 transition-colors">
                         Đóng tin
                     </button>
@@ -198,6 +197,39 @@
         </form>
     </div>
 </div>
+
+@* Custom "close post" confirmation modal (design spec), shown only for APPROVED posts. *@
+@if ((ViewBag.CurrentStatus as string ?? "").ToUpper() == "APPROVED")
+{
+    <form id="closeForm" method="post" action="@Url.Action("Close", new { id = jobId })">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="q" value="@q" />
+        <input type="hidden" name="status" value="@status" />
+        <input type="hidden" name="page" value="@(page)" />
+    </form>
+    <div id="closeModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-md w-full mx-4 p-8" style="font-family:Inter,sans-serif">
+            <div class="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M5.636 5.636l12.728 12.728"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#25324B] text-center mb-2">Đóng tin tuyển dụng</h3>
+            <p class="text-[#515B6F] text-sm text-center mb-6">Tin sẽ ngừng hiển thị với ứng viên và chuyển sang trạng thái <span class="font-semibold text-[#25324B]">Đã đóng</span>. Bạn có chắc chắn muốn đóng?</p>
+            <div class="flex gap-3">
+                <button type="button" id="closeCancel" class="flex-1 px-6 py-2.5 bg-white border border-[#D6DDEB] text-[#25324B] text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">Hủy</button>
+                <button type="button" id="closeConfirm" class="flex-1 px-6 py-2.5 bg-red-600 text-white text-[15px] font-bold rounded-lg hover:bg-red-700 transition-colors">Đóng tin</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = document.getElementById('closeModal');
+            if (!modal) return;
+            document.getElementById('closeCancel').addEventListener('click', function () { modal.classList.add('hidden'); });
+            document.getElementById('closeConfirm').addEventListener('click', function () { document.getElementById('closeForm').submit(); });
+            modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.add('hidden'); });
+        });
+    </script>
+}
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

@@ -25,12 +25,9 @@ public class JobPostService : IJobPostService
         _jobPostRepository = jobPostRepository;
     }
 
-    // Lấy danh sách các bài đăng đang chờ duyệt (Pending) có bộ lọc theo ngày và sắp xếp
-    public async Task<List<JobPost>> GetPendingJobsAsync(DateTime? fromDate, DateTime? toDate, string? sortOrder)
-    {
-        // Gọi xuống tầng Repository để truy vấn dữ liệu từ DB bất đồng bộ (async/await)
-        return await _jobPostRepository.GetPendingJobPostsAsync(fromDate, toDate, sortOrder);
-    }
+    // Lấy danh sách bài đăng đang chờ duyệt (Pending) có bộ lọc + sắp xếp + phân trang (ở SQL).
+    public Task<(List<JobPost> Items, int TotalCount)> GetPendingJobsAsync(DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
+        => _jobPostRepository.GetPendingJobPostsAsync(fromDate, toDate, sortOrder, page, pageSize);
 
     // Tìm kiếm một bài đăng tuyển dụng dựa vào ID bài đăng
     public async Task<JobPost?> GetJobPostByIdAsync(int jobId)

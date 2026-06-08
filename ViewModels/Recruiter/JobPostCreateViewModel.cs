@@ -6,7 +6,7 @@ namespace DevHub.ViewModels.Recruiter
     public class JobPostCreateViewModel
     {
         // Only letters (incl. Vietnamese), digits and blanks are allowed for free-text info fields.
-        private const string TextPattern = @"^[\p{L}0-9\s]+$";
+        private const string TextPattern = @"^[\p{L}0-9\s,.]+$";
 
         [Required(ErrorMessage = "Tiêu đề bài đăng không được để trống.")]
         [StringLength(200, ErrorMessage = "Tiêu đề không được vượt quá 200 ký tự.")]

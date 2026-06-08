@@ -16,13 +16,23 @@ namespace DevHub.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly ICandidateService _candidateService;
         private readonly ICvService _cvService;
+        private readonly ICandidateSkillService _skillService;
+        private readonly ICommonTechnologyService _techService;
 
-        public CandidateController(IAuthService authService, IWebHostEnvironment env, ICandidateService candidateService, ICvService cvService)
+        public CandidateController(
+            IAuthService authService,
+            IWebHostEnvironment env,
+            ICandidateService candidateService,
+            ICvService cvService,
+            ICandidateSkillService skillService,
+            ICommonTechnologyService techService)
         {
             _authService = authService;
             _env = env;
             _candidateService = candidateService;
             _cvService = cvService;
+            _skillService = skillService;
+            _techService = techService;
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
@@ -36,31 +46,36 @@ namespace DevHub.Controllers
             };
             return View("~/Views/Candidate/CandidateDashboard/Index.cshtml", model);
         }
+
         // View profile
         [Authorize(Roles = "CANDIDATE,Candidate")]
         public async Task<IActionResult> Profile()
         {
-            // take user id from claim cookie
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
-            {
                 return RedirectToAction("Login", "Auth");
-            }
+
             var candidate = await _candidateService.GetCandidateByIdAsync(userId);
-            var cv = await _cvService.GetCvByCandidateIdAsync(userId);
             if (candidate == null)
-            {
                 return NotFound("Ứng viên không tồn tại");
-            }
+
+            var cv = await _cvService.GetCvByCandidateIdAsync(userId);
+            var skills = await _skillService.GetSkillsAsync(userId);
+            var allTechs = (await _techService.GetAllTechsAsync())
+                           .Where(t => t.IsActive == true).ToList();
+
             var viewModel = new CandidateProfileViewModel
             {
                 CandidateInfo = candidate,
                 Cv = cv,
-                ProfileCompletion = candidate.ProfileCompletion ?? 0
+                ProfileCompletion = candidate.ProfileCompletion ?? 0,
+                CandidateSkills = skills,
+                AllTechnologies = allTechs
             };
             return View("~/Views/Candidate/CandidateProfile/Index.cshtml", viewModel);
         }
-        // upload avatar
+
+        // Upload avatar
         [HttpPost]
         [Authorize(Roles = "CANDIDATE,Candidate")]
         public async Task<IActionResult> UploadAvatar(IFormFile avatar)
@@ -69,17 +84,24 @@ namespace DevHub.Controllers
             {
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
-                {
                     return Json(new { success = false, message = "Không xác định được người dùng" });
-                }
 
                 try
                 {
+                    // Validate File Size (max 5MB)
+                    const int maxFileSize = 5 * 1024 * 1024;
+                    if (avatar.Length > maxFileSize)
+                        return Json(new { success = false, message = "Kích thước ảnh tối đa là 5MB." });
+
+                    // Validate File Type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var extension = Path.GetExtension(avatar.FileName).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+                        return Json(new { success = false, message = "Định dạng ảnh không hợp lệ. Vui lòng chọn .jpg, .jpeg, .png hoặc .gif." });
+
                     var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "avatars");
                     if (!Directory.Exists(uploadsFolder))
-                    {
                         Directory.CreateDirectory(uploadsFolder);
-                    }
 
                     var uniqueFileName = $"{userId}_{Guid.NewGuid()}{Path.GetExtension(avatar.FileName)}";
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -91,6 +113,7 @@ namespace DevHub.Controllers
 
                     var relativePath = $"/uploads/avatars/{uniqueFileName}";
                     await _authService.SyncCandidateAvatarAsync(userId, relativePath);
+                    await _candidateService.CalculateAndSaveCompletionAsync(userId);
 
                     return Json(new { success = true, message = "Cập nhật ảnh đại diện thành công", url = relativePath });
                 }
@@ -101,6 +124,7 @@ namespace DevHub.Controllers
             }
             return Json(new { success = false, message = "Không có tệp nào được chọn" });
         }
+
         // Update basic info
         [HttpPost]
         [Authorize(Roles = "CANDIDATE,Candidate")]
@@ -113,7 +137,6 @@ namespace DevHub.Controllers
                 return RedirectToAction("Profile");
             }
 
-            // Business rule: expected max salary must be >= min salary (when both are provided).
             if (model.ExpectedSalaryMin.HasValue && model.ExpectedSalaryMax.HasValue
                 && model.ExpectedSalaryMax.Value < model.ExpectedSalaryMin.Value)
             {
@@ -139,7 +162,6 @@ namespace DevHub.Controllers
                     model.ExperienceYears,
                     model.CvSearchable
                 );
-
                 TempData["SuccessMessage"] = "Cập nhật thông tin cơ bản thành công!";
             }
             catch (ArgumentException ex)
@@ -160,7 +182,6 @@ namespace DevHub.Controllers
                 int candidateId = int.Parse(userIdStr!);
 
                 await _cvService.UploadCvFileAsync(candidateId, cvFile, _env.WebRootPath);
-
                 await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
 
                 TempData["SuccessMessage"] = "Tải lên CV mới thành công! File cũ đã tự động bị xóa.";
@@ -173,58 +194,46 @@ namespace DevHub.Controllers
             {
                 TempData["ErrorMessage"] = "Đã xảy ra lỗi khi lưu file: " + ex.Message;
             }
-
-            return RedirectToAction("Profile");
-        }
-        // Update education, experience, skills, languages sections of CV
-        [HttpPost]
-        [Authorize(Roles = "CANDIDATE,Candidate")]
-        public async Task<IActionResult> UpdateEducation(string School, string Major, string Degree, string StartDate)
-        {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int candidateId = int.Parse(userIdStr!);
-            var json = System.Text.Json.JsonSerializer.Serialize(new[] { new { School, Major, Degree, StartDate } });
-            await _cvService.UpdateEducationAsync(candidateId, json);
-            await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
-            TempData["SuccessMessage"] = "Cập nhật Học vấn thành công!";
             return RedirectToAction("Profile");
         }
 
+        // Add skill
         [HttpPost]
         [Authorize(Roles = "CANDIDATE,Candidate")]
-        public async Task<IActionResult> UpdateExperience(string Title, string Company, string StartDate, string EndDate, string Description)
+        public async Task<IActionResult> AddSkill(int techId, string level)
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int candidateId = int.Parse(userIdStr!);
-            var json = System.Text.Json.JsonSerializer.Serialize(new[] { new { Title, Company, StartDate, EndDate, Description } });
-            await _cvService.UpdateExperienceAsync(candidateId, json);
-            await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
-            TempData["SuccessMessage"] = "Cập nhật Kinh nghiệm thành công!";
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int candidateId = int.Parse(userIdStr!);
+                await _skillService.AddSkillAsync(candidateId, techId, level);
+                await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
+                TempData["SuccessMessage"] = "Thêm kỹ năng thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi: " + ex.Message;
+            }
             return RedirectToAction("Profile");
         }
 
+        // Remove skill
         [HttpPost]
         [Authorize(Roles = "CANDIDATE,Candidate")]
-        public async Task<IActionResult> UpdateSkills(string SkillName, string Proficiency)
+        public async Task<IActionResult> RemoveSkill(int techId)
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int candidateId = int.Parse(userIdStr!);
-            await _cvService.AddOrUpdateSkillAsync(candidateId, SkillName, Proficiency);
-            await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
-            TempData["SuccessMessage"] = "Thêm Kỹ năng thành công!";
-            return RedirectToAction("Profile");
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "CANDIDATE,Candidate")]
-        public async Task<IActionResult> UpdateLanguages(string Language, string Proficiency)
-        {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int candidateId = int.Parse(userIdStr!);
-            var json = System.Text.Json.JsonSerializer.Serialize(new[] { new { Language, Proficiency } });
-            await _cvService.UpdateLanguagesAsync(candidateId, json);
-            await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
-            TempData["SuccessMessage"] = "Cập nhật Ngoại ngữ thành công!";
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int candidateId = int.Parse(userIdStr!);
+                await _skillService.RemoveSkillAsync(candidateId, techId);
+                await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
+                TempData["SuccessMessage"] = "Đã xóa kỹ năng!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi: " + ex.Message;
+            }
             return RedirectToAction("Profile");
         }
 

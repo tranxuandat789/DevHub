@@ -67,31 +67,19 @@ namespace DevHub.Services.Implementations
             if (candidate == null) return 0;
             int percent = 0;
             var cv = candidate.Cvs.FirstOrDefault(c => c.IsDefault == true);
-            // setting percent
-            // 1.Avatar
+            // 1. Avatar (10%)
             if (!string.IsNullOrEmpty(candidate.ImageUrl)) percent += 10;
             // 2. CandidateInfo (20%)
-            if (!string.IsNullOrEmpty(candidate.Phone)) percent += 3;
-            if (candidate.Birthdate.HasValue) percent += 3;
+            if (!string.IsNullOrEmpty(candidate.Phone)) percent += 4;
+            if (candidate.Birthdate.HasValue) percent += 4;
             if (!string.IsNullOrEmpty(candidate.Gender)) percent += 3;
             if (!string.IsNullOrEmpty(candidate.Address)) percent += 3;
             if (!string.IsNullOrEmpty(candidate.PreferredLocation)) percent += 3;
             if (candidate.ExpectedSalaryMin.HasValue || candidate.ExpectedSalaryMax.HasValue) percent += 3;
-            if (candidate.ExperienceYears.HasValue) percent += 2;
-            // 3. Skills 
-            if ((candidate.CandidateSkills != null && candidate.CandidateSkills.Any()) || (cv != null && !string.IsNullOrEmpty(cv.Skills) && cv.Skills.Length > 5)) percent += 15;
-            // CV
-            if (cv != null)
-            {
-                // 4. File PDF CV (40%)
-                if (!string.IsNullOrEmpty(cv.CvUrl)) percent += 40;
-                // 5. Education (5%) 
-                if (!string.IsNullOrEmpty(cv.Education) && cv.Education.Length > 5) percent += 5;
-                // 6. Experience (5%)
-                if (!string.IsNullOrEmpty(cv.Experience) && cv.Experience.Length > 5) percent += 5;
-                // 7. Languages (5%)
-                if (!string.IsNullOrEmpty(cv.Languages) && cv.Languages.Length > 5) percent += 5;
-            }
+            // 3. Skills from candidate_skill table (10%)
+            if (candidate.CandidateSkills != null && candidate.CandidateSkills.Any()) percent += 10;
+            // 4. CV file (60%)
+            if (cv != null && !string.IsNullOrEmpty(cv.CvUrl)) percent += 60;
             if (percent > 100) percent = 100;
             await _candidateRepository.UpdateProfileCompletionAsync(candidateId, percent);
             return percent;

@@ -20,24 +20,13 @@
         ? avatarUrl
         : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(displayName)}&background=4640DE&color=fff&size=128";
 
-    DevHub.DTOs.Candidate.EduDto? edu = null;
-    DevHub.DTOs.Candidate.ExpDto? exp = null;
-    DevHub.DTOs.Candidate.LangDto? lang = null;
-    List<DevHub.DTOs.Candidate.SkillDto> skillsList = new();
-
-    if (Model.Cv != null)
-    {
-        try { if (!string.IsNullOrEmpty(Model.Cv.Education)) edu = System.Text.Json.JsonSerializer.Deserialize<List<DevHub.DTOs.Candidate.EduDto>>(Model.Cv.Education)?.FirstOrDefault(); } catch {}
-        try { if (!string.IsNullOrEmpty(Model.Cv.Experience)) exp = System.Text.Json.JsonSerializer.Deserialize<List<DevHub.DTOs.Candidate.ExpDto>>(Model.Cv.Experience)?.FirstOrDefault(); } catch {}
-        try { if (!string.IsNullOrEmpty(Model.Cv.Languages)) lang = System.Text.Json.JsonSerializer.Deserialize<List<DevHub.DTOs.Candidate.LangDto>>(Model.Cv.Languages)?.FirstOrDefault(); } catch {}
-        try { if (!string.IsNullOrEmpty(Model.Cv.Skills)) skillsList = System.Text.Json.JsonSerializer.Deserialize<List<DevHub.DTOs.Candidate.SkillDto>>(Model.Cv.Skills) ?? new(); } catch {}
-    }
+    var addedTechIds = Model.CandidateSkills.Select(s => s.TechId).ToHashSet();
+    var availableTechs = Model.AllTechnologies.Where(t => !addedTechIds.Contains(t.TechId)).ToList();
 }
 
 <div class="bg-[#F8F9FA] min-h-screen py-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- Hiển thị thông báo từ Controller (nếu có) -->
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -80,7 +69,7 @@
                             <p class="text-gray-400 text-[15px] font-medium mt-1">Ứng viên</p>
                         </div>
                         <!-- Edit Button -->
-                        <button onclick="openModal('basic-info', 'Cập nhật thông tin cá nhân')" class="absolute top-6 right-6 text-[#4640DE] hover:bg-indigo-50 p-1.5 rounded-md transition-colors">
+                        <button onclick="openModal()" class="absolute top-6 right-6 text-[#4640DE] hover:bg-indigo-50 p-1.5 rounded-md transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
@@ -137,76 +126,158 @@
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2.5L17.5 9H13V4.5zM6 20V4h5v6h6v10H6z"/>
                             </svg>
                         </div>
-                        <p class="text-[14.5px] text-dark font-medium max-w-md mb-2 leading-relaxed">
-                            Tải lên CV (Tối đa 5MB)
-                        </p>
+                        <p class="text-[14.5px] text-dark font-medium max-w-md mb-2 leading-relaxed">Tải lên CV (Tối đa 5MB)</p>
                         <p class="text-[13px] text-gray-400 mb-5">Định dạng hỗ trợ: .pdf, .docx</p>
-                        
-                        <!-- Input File ẩn, tự động nộp Form khi chọn file xong -->
                         <input type="file" name="cvFile" accept=".pdf,.docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="this.form.submit()">
-                        
                         <button type="button" class="bg-[#4640DE] text-white px-8 py-2.5 rounded-[5px] text-[15px] font-semibold hover:bg-opacity-90 transition-all pointer-events-none">
                             @(Model.Cv != null ? "Chọn tệp thay thế" : "Tải lên ngay")
                         </button>
                     </form>
                 </div>
 
-                <!-- Sections -->
-                @{
-                    var sections = new[] {
-                        new { Id = "education", Title = "Học vấn", Desc = "Chia sẻ trình độ học vấn của bạn", IconColor = "bg-indigo-50 text-indigo-400", IconPath = "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" },
-                        new { Id = "experience", Title = "Kinh nghiệm làm việc", Desc = "Thể hiện những thông tin chi tiết về quá trình làm việc", IconColor = "bg-indigo-50 text-indigo-400", IconPath = "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
-                        new { Id = "skills", Title = "Kỹ năng", Desc = "Liệt kê các kỹ năng chuyên môn của bạn", IconColor = "bg-gray-50 text-gray-400", IconPath = "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
-                        new { Id = "languages", Title = "Ngoại ngữ", Desc = "Liệt kê các ngôn ngữ mà bạn biết", IconColor = "bg-indigo-50 text-indigo-400", IconPath = "M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 15h4.498" }
-                    };
+                <!-- Skills Section -->
+                <div class="bg-white rounded-[10px] p-6 shadow-sm border border-[#D6DDEB]">
+                    <div class="flex items-center justify-between mb-5">
+                        <div>
+                            <h3 class="text-[17px] font-bold text-dark">Kỹ năng</h3>
+                            <p class="text-gray-400 text-[14px] mt-0.5">Các công nghệ và kỹ năng chuyên môn</p>
+                        </div>
+                        @if (availableTechs.Any())
+                        {
+                            <button onclick="document.getElementById('add-skill-panel').classList.toggle('hidden')"
+                                    class="text-[#4640DE] hover:text-indigo-800 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </button>
+                        }
+                    </div>
 
-                    foreach (var item in sections)
+                    <!-- Add skill form (ẩn mặc định) -->
+                    @if (availableTechs.Any())
                     {
-                        <div onclick="openModal('@item.Id', 'Cập nhật @item.Title')" class="bg-white rounded-[10px] p-6 shadow-sm border border-[#D6DDEB] flex justify-between items-center group cursor-pointer hover:border-primary/30 transition-colors">
-                            <div>
-                                <h3 class="text-[17px] font-bold text-dark mb-1">@item.Title</h3>
-                                <p class="text-gray-400 text-[14px]">@item.Desc</p>
-                            </div>
-                            <div class="flex items-center gap-5">
-                                <!-- Graphic icon -->
-                                <div class="w-[50px] h-[50px] @item.IconColor bg-opacity-60 rounded-full flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
-                                    <svg class="w-7 h-7 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="@item.IconPath" />
-                                    </svg>
-                                    <div class="absolute inset-0 bg-white bg-opacity-20 backdrop-blur-[1px]"></div>
+                        <div id="add-skill-panel" class="hidden mb-5 p-4 bg-[#F8F9FA] rounded-lg border border-[#D6DDEB]">
+                            <form method="post" action="/Candidate/AddSkill" class="flex flex-wrap gap-3 items-end">
+                                <div class="flex-1 min-w-[160px]">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Công nghệ</label>
+                                    <select name="techId" required class="w-full px-3 py-2 border border-[#D6DDEB] rounded-lg text-sm focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                                        <option value="">-- Chọn --</option>
+                                        @foreach (var tech in availableTechs)
+                                        {
+                                            <option value="@tech.TechId">@tech.TechName</option>
+                                        }
+                                    </select>
                                 </div>
-                                <!-- Plus button -->
-                                <button class="text-[#4640DE] hover:text-indigo-800 transition-colors">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
+                                <div class="flex-1 min-w-[140px]">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Mức độ</label>
+                                    <select name="level" class="w-full px-3 py-2 border border-[#D6DDEB] rounded-lg text-sm focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                                        <option value="Intern">Intern</option>
+                                        <option value="Fresher">Fresher</option>
+                                        <option value="Middle">Middle</option>
+                                        <option value="Senior">Senior</option>
+                                        <option value="Expert">Expert</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="px-5 py-2 bg-[#4640DE] text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition-colors">
+                                    Thêm
                                 </button>
-                            </div>
+                            </form>
                         </div>
                     }
-                }
+
+                    <!-- Current skills -->
+                    @if (Model.CandidateSkills.Any())
+                    {
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var skill in Model.CandidateSkills)
+                            {
+                                <div class="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full">
+                                    <span class="text-[#4640DE] text-sm font-medium">@skill.Tech?.TechName</span>
+                                    @if (!string.IsNullOrEmpty(skill.Level))
+                                    {
+                                        <span class="text-gray-400 text-xs">· @skill.Level</span>
+                                    }
+                                    <form method="post" action="/Candidate/RemoveSkill" class="inline">
+                                        <input type="hidden" name="techId" value="@skill.TechId" />
+                                        <button type="submit" class="text-gray-300 hover:text-red-400 transition-colors ml-1" title="Xóa kỹ năng này">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-gray-400 text-sm text-center py-4">Chưa có kỹ năng nào. Nhấn <strong>+</strong> để thêm.</p>
+                    }
+                </div>
+
             </div>
 
-            <!-- Right Sidebar -->
+            <!-- Right Sidebar: Profile Completion -->
             <div class="lg:w-[300px] flex-shrink-0 mt-8 lg:mt-0">
                 <div class="bg-white rounded-[10px] p-6 shadow-sm border border-[#D6DDEB] sticky top-6">
                     <h3 class="text-[15.5px] font-bold text-dark text-center mb-2">Độ hoàn thiện hồ sơ</h3>
                     <div class="relative w-48 h-28 mx-auto">
-                        <!-- Half Circle SVG -->
+                        @{
+                            // Avatar
+                            int avatarPct = !string.IsNullOrEmpty(Model.CandidateInfo?.ImageUrl) ? 10 : 0;
+
+                            // Basic info — từng trường cộng dần
+                            int infoPct = 0;
+                            if (!string.IsNullOrEmpty(Model.CandidateInfo?.Phone))           infoPct += 4;
+                            if (Model.CandidateInfo?.Birthdate.HasValue == true)             infoPct += 4;
+                            if (!string.IsNullOrEmpty(Model.CandidateInfo?.Gender))          infoPct += 3;
+                            if (!string.IsNullOrEmpty(Model.CandidateInfo?.Address))         infoPct += 3;
+                            if (!string.IsNullOrEmpty(Model.CandidateInfo?.PreferredLocation)) infoPct += 3;
+                            if (Model.CandidateInfo?.ExpectedSalaryMin.HasValue == true
+                                || Model.CandidateInfo?.ExpectedSalaryMax.HasValue == true)  infoPct += 3;
+
+                            // Skills
+                            int skillPct = Model.CandidateSkills.Any() ? 10 : 0;
+
+                            // CV file
+                            int cvPct = (Model.Cv != null && !string.IsNullOrEmpty(Model.Cv.CvUrl)) ? 60 : 0;
+
+                            int totalPct = avatarPct + infoPct + skillPct + cvPct;
+                            if (totalPct > 100) totalPct = 100;
+
+                            string Color(int earned, int max) =>
+                                earned == 0 ? "text-gray-400" : earned == max ? "text-green-600" : "text-amber-500";
+                        }
                         <svg viewBox="0 0 100 50" class="w-full h-full overflow-visible">
-                            <!-- Background track -->
                             <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#E5E7EB" stroke-width="12" stroke-linecap="round"/>
-                            <!-- Progress track (Dynamic) -->
                             @{
                                 double maxOffset = 125.66;
-                                double currentOffset = maxOffset - (maxOffset * Model.ProfileCompletion / 100);
+                                double currentOffset = maxOffset - (maxOffset * totalPct / 100);
                             }
                             <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#4640DE" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="@currentOffset" class="transition-all duration-1000 ease-out"/>
                         </svg>
-                        <!-- Center Text -->
                         <div class="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center transform translate-y-3">
-                            <span class="text-[24px] font-bold text-dark leading-none">@Model.ProfileCompletion%</span>
+                            <span class="text-[24px] font-bold text-dark leading-none">@totalPct%</span>
                             <span class="text-[12px] text-gray-500 mt-1 font-medium">hoàn thành</span>
+                        </div>
+                    </div>
+                    <!-- Gợi ý hoàn thiện -->
+                    <div class="mt-6 space-y-2 text-sm">
+                        <div class="flex items-center gap-2 @Color(avatarPct, 10)">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span>Ảnh đại diện (@avatarPct/10%)</span>
+                        </div>
+                        <div class="flex items-center gap-2 @Color(infoPct, 20)">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span>Thông tin cơ bản (@infoPct/20%)</span>
+                        </div>
+                        <div class="flex items-center gap-2 @Color(skillPct, 10)">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span>Kỹ năng (@skillPct/10%)</span>
+                        </div>
+                        <div class="flex items-center gap-2 @Color(cvPct, 60)">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span>File CV (@cvPct/60%)</span>
                         </div>
                     </div>
                 </div>
@@ -216,39 +287,30 @@
     </div>
 </div>
 
-<!-- Modals -->
-<div id="genericModal" class="fixed inset-0 z-[100] hidden">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-    
-    <!-- Modal Content -->
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transition-all">
+<!-- Modal: Cập nhật thông tin cơ bản -->
+<div id="basicInfoModal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         <div class="px-6 py-4 border-b border-[#D6DDEB] flex justify-between items-center bg-gray-50/50">
-            <h3 id="modalTitle" class="text-lg font-bold text-gray-900">Tiêu đề</h3>
+            <h3 class="text-lg font-bold text-gray-900">Cập nhật thông tin cá nhân</h3>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-full">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
-        <div class="p-6 overflow-y-auto w-full">
-            <p class="text-gray-500 mb-4 text-sm">Cập nhật thông tin chi tiết cho phần này.</p>
-            
-            <!-- Basic Info Form (Dùng Action từ Controller + HTML5 Validation) -->
-            <form id="form-basic-info" method="post" action="/Candidate/UpdateBasicInfo" class="modal-form hidden space-y-4">
+        <div class="p-6 overflow-y-auto">
+            <form id="form-basic-info" method="post" action="/Candidate/UpdateBasicInfo" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên <span class="text-red-500">*</span></label>
-                        <!-- HTML5 required chặn dữ liệu trống. onblur kích hoạt popup lỗi khi click ra ngoài -->
-                        <input type="text" name="FullName" value="@Model.CandidateInfo?.FullName" required maxlength="100" title="Họ và tên là bắt buộc và không quá 100 ký tự" onblur="this.reportValidity()" placeholder="VD: Nguyễn Văn A" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <input type="text" name="FullName" value="@Model.CandidateInfo?.FullName" required maxlength="100" onblur="this.reportValidity()" placeholder="VD: Nguyễn Văn A" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-                        <!-- Pattern: Bắt đầu bằng số 0 và theo sau là 9 con số -->
-                        <input type="tel" name="Phone" value="@Model.CandidateInfo?.Phone" pattern="0[0-9]{9}" title="Số điện thoại phải bắt đầu bằng số 0 và gồm đúng 10 chữ số" onblur="this.reportValidity()" placeholder="VD: 0987654321" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <input type="tel" name="Phone" value="@Model.CandidateInfo?.Phone" pattern="0[0-9]{9}" onblur="this.reportValidity()" placeholder="VD: 0987654321" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
-                        <!-- Thêm thuộc tính max = cách đây 15 năm để chặn dưới tuổi lao động ngay trên giao diện -->
-                        <input type="date" name="Birthdate" value="@(Model.CandidateInfo?.Birthdate?.ToString("yyyy-MM-dd"))" max="@DateTime.Now.AddYears(-15).ToString("yyyy-MM-dd")" title="Bạn phải đủ 15 tuổi (độ tuổi lao động) để cập nhật hồ sơ!" onblur="this.reportValidity()" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <input type="date" name="Birthdate" value="@(Model.CandidateInfo?.Birthdate?.ToString("yyyy-MM-dd"))" max="@DateTime.Now.AddYears(-15).ToString("yyyy-MM-dd")" onblur="this.reportValidity()" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
@@ -265,20 +327,19 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Link cá nhân (Portfolio, LinkedIn...)</label>
-                        <!-- type="url" tự động kiểm tra định dạng web -->
-                        <input type="url" name="SocialMediaUrl" value="@Model.CandidateInfo?.SocialMediaUrl" title="Vui lòng nhập đúng định dạng link web (phải có http:// hoặc https://)" onblur="this.reportValidity()" placeholder="https://" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <input type="url" name="SocialMediaUrl" value="@Model.CandidateInfo?.SocialMediaUrl" onblur="this.reportValidity()" placeholder="https://" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Mức lương tối thiểu (VNĐ)</label>
-                        <input type="text" inputmode="numeric" name="ExpectedSalaryMin" value="@((long?)Model.CandidateInfo?.ExpectedSalaryMin)" title="Lương tối thiểu phải là số dương" placeholder="VD: 10.000.000" class="money-input w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Lương tối thiểu (VNĐ)</label>
+                        <input type="text" inputmode="numeric" name="ExpectedSalaryMin" value="@((long?)Model.CandidateInfo?.ExpectedSalaryMin)" placeholder="VD: 10.000.000" class="money-input w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Mức lương tối đa (VNĐ)</label>
-                        <input type="text" inputmode="numeric" name="ExpectedSalaryMax" value="@((long?)Model.CandidateInfo?.ExpectedSalaryMax)" title="Lương tối đa phải là số dương" placeholder="VD: 20.000.000" class="money-input w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Lương tối đa (VNĐ)</label>
+                        <input type="text" inputmode="numeric" name="ExpectedSalaryMax" value="@((long?)Model.CandidateInfo?.ExpectedSalaryMax)" placeholder="VD: 20.000.000" class="money-input w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Số năm kinh nghiệm</label>
-                        <input type="number" name="ExperienceYears" value="@Model.CandidateInfo?.ExperienceYears" min="0" max="50" onblur="this.reportValidity()" title="Số năm kinh nghiệm hợp lệ từ 0 đến 50" placeholder="VD: 2" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
+                        <input type="number" name="ExperienceYears" value="@Model.CandidateInfo?.ExperienceYears" min="0" max="50" placeholder="VD: 2" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Địa điểm mong muốn</label>
@@ -286,187 +347,30 @@
                     </div>
                 </div>
             </form>
-
-            <!-- Education Form -->
-            <form id="form-education" action="/Candidate/UpdateEducation" method="post" class="modal-form hidden space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Trường học / Cơ sở đào tạo</label>
-                    <input type="text" name="School" value="@edu?.School" required placeholder="VD: Đại học FPT" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngành học</label>
-                        <input type="text" name="Major" value="@edu?.Major" required pattern="^[\p{L}0-9\s]+$" title="Không được chứa ký tự đặc biệt" placeholder="VD: Kỹ thuật phần mềm" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Bằng cấp</label>
-                        <input type="text" name="Degree" value="@edu?.Degree" required pattern="^[\p{L}0-9\s]+$" title="Không được chứa ký tự đặc biệt" placeholder="VD: Cử nhân" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
-                        <input type="month" name="StartDate" value="@edu?.StartDate" required max="@DateTime.Now.ToString("yyyy-MM")" onblur="this.reportValidity()" title="Ngày bắt đầu không được vượt quá tháng hiện tại" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                </div>
-            </form>
-            
-            <!-- Experience Form -->
-            <form id="form-experience" action="/Candidate/UpdateExperience" method="post" class="modal-form hidden space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Chức danh</label>
-                        <input type="text" name="Title" value="@exp?.Title" required pattern="^[\p{L}0-9\s]+$" title="Không được chứa ký tự đặc biệt" placeholder="VD: Front-end Developer" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên công ty</label>
-                        <input type="text" name="Company" value="@exp?.Company" required pattern="^[\p{L}0-9\s]+$" title="Không được chứa ký tự đặc biệt" placeholder="VD: FPT Software" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Từ tháng</label>
-                        <input type="month" name="StartDate" value="@exp?.StartDate" required id="exp-start" max="@DateTime.Now.ToString("yyyy-MM")" onchange="var end = document.getElementById('exp-end'); end.min = this.value; if(end.value && end.value <= this.value) end.setCustomValidity('Đến tháng phải sau Từ tháng'); else end.setCustomValidity('');" title="Từ tháng không được vượt quá tháng hiện tại" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Đến tháng</label>
-                        <input type="month" name="EndDate" value="@exp?.EndDate" required id="exp-end" max="@DateTime.Now.ToString("yyyy-MM")" onchange="var start = document.getElementById('exp-start'); if(start.value && this.value <= start.value) this.setCustomValidity('Đến tháng phải sau Từ tháng'); else this.setCustomValidity('');" title="Đến tháng không được vượt quá tháng hiện tại và phải sau Từ tháng" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả công việc</label>
-                    <textarea name="Description" required rows="4" placeholder="Mô tả chi tiết những việc bạn đã làm..." class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">@exp?.Description</textarea>
-                </div>
-            </form>
-
-            <!-- Skills Form -->
-            <form id="form-skills" action="/Candidate/UpdateSkills" method="post" class="modal-form hidden space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên kỹ năng</label>
-                    <select name="SkillName" required onblur="this.reportValidity()" title="Vui lòng chọn một công nghệ" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                        <option value="">-- Chọn công nghệ --</option>
-                        <option value="C#">C#</option>
-                        <option value="Java">Java</option>
-                        <option value="Python">Python</option>
-                        <option value="JavaScript">JavaScript</option>
-                        <option value="TypeScript">TypeScript</option>
-                        <option value="ReactJS">ReactJS</option>
-                        <option value="Angular">Angular</option>
-                        <option value="VueJS">VueJS</option>
-                        <option value="NodeJS">NodeJS</option>
-                        <option value="ASP.NET Core">ASP.NET Core</option>
-                        <option value="SQL Server">SQL Server</option>
-                        <option value="MySQL">MySQL</option>
-                        <option value="MongoDB">MongoDB</option>
-                        <option value="AWS">AWS</option>
-                        <option value="Docker">Docker</option>
-                        <option value="Figma">Figma</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mức độ thành thạo</label>
-                    <select name="Proficiency" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                        <option value="Sơ cấp">Sơ cấp</option>
-                        <option value="Trung cấp">Trung cấp</option>
-                        <option value="Cao cấp">Cao cấp</option>
-                        <option value="Chuyên gia">Chuyên gia</option>
-                    </select>
-                </div>
-                
-                @if (skillsList.Any())
-                {
-                    <div class="mt-4 pt-4 border-t border-gray-100">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Các kỹ năng đã thêm:</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach (var s in skillsList)
-                            {
-                                <span class="px-3 py-1 bg-indigo-50 text-[#4640DE] text-sm font-medium rounded-full border border-indigo-100">
-                                    @s.SkillName - @s.Proficiency
-                                </span>
-                            }
-                        </div>
-                    </div>
-                }
-            </form>
-
-            <!-- Languages Form -->
-            <form id="form-languages" action="/Candidate/UpdateLanguages" method="post" class="modal-form hidden space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngoại ngữ</label>
-                        <input type="text" name="Language" value="@lang?.Language" required pattern="^[\p{L}0-9\s]+$" title="Không được chứa ký tự đặc biệt" placeholder="VD: Tiếng Anh" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Trình độ</label>
-                        <select name="Proficiency" class="w-full px-4 py-2 border border-[#D6DDEB] rounded-lg focus:ring-2 focus:ring-[#4640DE]/20 focus:border-[#4640DE] outline-none">
-                            <option value="Sơ cấp" selected="@(lang?.Proficiency == "Sơ cấp")">Sơ cấp</option>
-                            <option value="Trung cấp" selected="@(lang?.Proficiency == "Trung cấp")">Trung cấp</option>
-                            <option value="Cao cấp" selected="@(lang?.Proficiency == "Cao cấp")">Cao cấp</option>
-                            <option value="Bản ngữ" selected="@(lang?.Proficiency == "Bản ngữ")">Bản ngữ</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
-
         </div>
         <div class="px-6 py-4 border-t border-[#D6DDEB] flex justify-end gap-3 bg-gray-50/50">
             <button onclick="closeModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors text-sm">Hủy</button>
-            <button onclick="submitActiveForm()" class="px-6 py-2 bg-[#4640DE] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors text-sm shadow-sm">Lưu thay đổi</button>
+            <button onclick="submitForm()" class="px-6 py-2 bg-[#4640DE] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors text-sm shadow-sm">Lưu thay đổi</button>
         </div>
     </div>
 </div>
 
 <script>
-    function openModal(formId, title) {
-        document.getElementById('modalTitle').innerText = title;
-        
-        // Hide all forms
-        const forms = document.querySelectorAll('.modal-form');
-        forms.forEach(form => form.classList.add('hidden'));
-        
-        // Show target form
-        const targetForm = document.getElementById('form-' + formId);
-        if (targetForm) {
-            targetForm.classList.remove('hidden');
-        }
-        
-        const modal = document.getElementById('genericModal');
-        modal.classList.remove('hidden');
+    function openModal() {
+        document.getElementById('basicInfoModal').classList.remove('hidden');
     }
-    
     function closeModal() {
-        const modal = document.getElementById('genericModal');
-        modal.classList.add('hidden');
+        document.getElementById('basicInfoModal').classList.add('hidden');
+    }
+    function submitForm() {
+        const form = document.getElementById('form-basic-info');
+        form.querySelectorAll('.money-input').forEach(el => {
+            el.value = (el.value || '').replace(/\./g, '');
+        });
+        if (form.reportValidity()) form.submit();
     }
 
-    // Hàm JavaScript này sẽ tìm form đang mở và gửi nó đi 
-    function submitActiveForm() {
-        const activeForm = document.querySelector('.modal-form:not(.hidden)');
-        if (activeForm && activeForm.tagName === 'FORM') {
-            
-            const startDateObj = activeForm.querySelector('input[name="StartDate"]');
-            const endDateObj = activeForm.querySelector('input[name="EndDate"]');
-            
-            if (startDateObj && endDateObj) {
-                if (startDateObj.value && endDateObj.value && endDateObj.value <= startDateObj.value) {
-                    endDateObj.setCustomValidity('Thời gian kết thúc phải sau thời gian bắt đầu!');
-                } else {
-                    endDateObj.setCustomValidity('');
-                }
-            }
-
-            // reportValidity() sẽ bắt trình duyệt soi các thẻ HTML5 (required, email, pattern...)
-            // Nếu sai, nó báo đỏ. Nếu đúng, nó gửi form.
-            if (activeForm.reportValidity()) {
-                // Bỏ dấu '.' ở các ô tiền trước khi gửi để model binding parse được số.
-                // (form.submit() không bắn sự kiện 'submit' nên phải strip thủ công tại đây.)
-                activeForm.querySelectorAll('.money-input').forEach(function (el) {
-                    el.value = (el.value || '').replace(/\./g, '');
-                });
-                activeForm.submit();
-            }
-        } else {
-            closeModal();
-        }
-    }
-
-    // Avatar preview logic
+    // Avatar upload
     document.getElementById('avatar-upload').addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             const reader = new FileReader();
@@ -474,63 +378,38 @@
                 document.getElementById('avatar-preview').src = event.target.result;
             };
             reader.readAsDataURL(e.target.files[0]);
-            
-            // Send file via AJAX to the server
+
             const formData = new FormData();
             formData.append('avatar', e.target.files[0]);
-
-            fetch('/Candidate/UploadAvatar', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    console.log('Upload successful:', data.message);
-                    // Sync with navbar avatar instantly!
-                    const navbarAvatars = document.querySelectorAll('header img[alt="Avatar"]');
-                    navbarAvatars.forEach(navImg => {
-                        navImg.src = data.url;
-                    });
-                } else {
-                    console.error('Upload failed:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error uploading avatar:', error);
-            });
+            fetch('/Candidate/UploadAvatar', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelectorAll('header img[alt="Avatar"]').forEach(img => img.src = data.url);
+                        alert(data.message || 'Cập nhật ảnh đại diện thành công!');
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra khi cập nhật ảnh đại diện.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('Đã xảy ra lỗi khi tải ảnh lên.');
+                });
         }
     });
 </script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Currency type format(ex: 20000000 -> 20.000.000)
     function formatThousand(value) {
         var digits = (value || '').replace(/\D/g, '');
         if (!digits) return '';
         return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
-
-    var moneyInputs = document.querySelectorAll('.money-input');
-    moneyInputs.forEach(function (el) {
-        // applying format while typing
-        el.addEventListener('input', function () {
-            this.value = formatThousand(this.value);
-        });
-        // re-format after reloading form after validation error
+    document.querySelectorAll('.money-input').forEach(function (el) {
+        el.addEventListener('input', function () { this.value = formatThousand(this.value); });
         el.value = formatThousand(el.value);
     });
-
-    // remove '.' before submiting so the model binding can parse to number successfully.
-    var form = moneyInputs.length ? moneyInputs[0].form : null;
-    if (form) {
-        form.addEventListener('submit', function () {
-            moneyInputs.forEach(function (el) {
-                el.value = (el.value || '').replace(/\./g, '');
-            });
-        });
-    }
 });
 </script>
-

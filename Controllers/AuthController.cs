@@ -1067,6 +1067,7 @@ public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
         {
             ViewBag.ErrorMessage = "Email này đã được sử dụng để đăng ký tài khoản khác!";
             return View("RegisterCandidate", vm);
+            //return View(vm);
         }
 
         // Sinh OTP 6 chữ số

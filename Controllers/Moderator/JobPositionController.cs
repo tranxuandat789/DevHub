@@ -15,7 +15,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> Index(string keyword = "", string status = "")
+        public async Task<IActionResult> Index(string keyword = "", string status = "", int page = 1)
         {
             var positions = await _positionService.GetAllPositionsAsync();
 
@@ -30,10 +30,22 @@ namespace DevHub.Controllers.Moderator
                 positions = positions.Where(p => (p.IsActive ?? true) == isActive).ToList();
             }
 
+            int pageSize = 10;
+            int totalItems = positions.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var pagedPositions = positions.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
             ViewData["Keyword"] = keyword;
             ViewData["Status"] = status;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
 
-            return View("~/Views/Moderator/JobPosition/Index.cshtml", positions);
+            return View("~/Views/Moderator/JobPosition/Index.cshtml", pagedPositions);
         }
 
         [HttpGet("Create")]
@@ -45,16 +57,27 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("Create")]
         public async Task<IActionResult> Create([FromForm] string positionName, [FromForm] bool isActive = false)
         {
-            if (!string.IsNullOrWhiteSpace(positionName))
+            if (string.IsNullOrWhiteSpace(positionName))
             {
-                var newPos = new DevHub.Models.CommonJobPosition
-                {
-                    PositionName = positionName.Trim(),
-                    IsActive = isActive
-                };
-                await _positionService.AddPositionAsync(newPos);
-                TempData["SuccessMessage"] = $"Thêm thành công vị trí: {positionName}!";
+                ViewBag.ErrorMessage = "Vui lòng nhập tên vị trí.";
+                return View("~/Views/Moderator/JobPosition/Create.cshtml");
             }
+
+            var allPositions = await _positionService.GetAllPositionsAsync();
+            if (allPositions.Any(p => p.PositionName.Equals(positionName.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewBag.ErrorMessage = $"Lỗi: Tên vị trí '{positionName}' đã tồn tại trong hệ thống.";
+                return View("~/Views/Moderator/JobPosition/Create.cshtml");
+            }
+
+            var newPos = new DevHub.Models.CommonJobPosition
+            {
+                PositionName = positionName.Trim(),
+                IsActive = isActive
+            };
+            await _positionService.AddPositionAsync(newPos);
+            TempData["SuccessMessage"] = $"Thêm thành công vị trí: {positionName}!";
+            
             return RedirectToAction("Index");
         }
 
@@ -73,13 +96,24 @@ namespace DevHub.Controllers.Moderator
             var pos = await _positionService.GetPositionByIdAsync(id);
             if (pos == null) return NotFound();
 
-            if (!string.IsNullOrWhiteSpace(positionName))
+            if (string.IsNullOrWhiteSpace(positionName))
             {
-                pos.PositionName = positionName.Trim();
-                pos.IsActive = isActive;
-                await _positionService.UpdatePositionAsync(pos);
-                TempData["SuccessMessage"] = $"Cập nhật thành công vị trí #{id}!";
+                ViewBag.ErrorMessage = "Vui lòng nhập tên vị trí.";
+                return View("~/Views/Moderator/JobPosition/Edit.cshtml", pos);
             }
+
+            var allPositions = await _positionService.GetAllPositionsAsync();
+            if (allPositions.Any(p => p.PositionId != id && p.PositionName.Equals(positionName.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewBag.ErrorMessage = $"Lỗi: Tên vị trí '{positionName}' đã được sử dụng bởi một mục khác.";
+                return View("~/Views/Moderator/JobPosition/Edit.cshtml", pos);
+            }
+
+            pos.PositionName = positionName.Trim();
+            pos.IsActive = isActive;
+            await _positionService.UpdatePositionAsync(pos);
+            TempData["SuccessMessage"] = $"Cập nhật thành công vị trí #{id}!";
+            
             return RedirectToAction("Index");
         }
 

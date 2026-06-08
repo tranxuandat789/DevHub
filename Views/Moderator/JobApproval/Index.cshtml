@@ -19,6 +19,14 @@ author: Hoang Minh Kien
     </div>
 </div>
 
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@ViewBag.ErrorMessage</span>
+    </div>
+}
+
 <!-- Filters & Sort -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
     <form method="GET" action="/moderator/job-approvals" class="flex flex-col md:flex-row gap-4 items-end">

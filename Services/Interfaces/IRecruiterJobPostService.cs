@@ -14,4 +14,5 @@ public interface IRecruiterJobPostService
     Task<JobPost?> GetEditableJobPostAsync(int recruiterId, int jobId);
     Task UpdateJobPostAsync(int recruiterId, int jobId, JobPostCreateViewModel vm);
     Task DeleteJobPostAsync(int recruiterId, int jobId);
+    Task CloseJobPostAsync(int recruiterId, int jobId);
 }

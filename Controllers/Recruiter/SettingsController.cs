@@ -41,6 +41,9 @@ namespace DevHub.Controllers.Recruiter
                 return NotFound();
             }
 
+            // Google-login accounts (no local password) -> hide the "current password" box.
+            ViewBag.IsGoogleAccount = string.IsNullOrEmpty(dbUser.PasswordHash) || dbUser.PasswordHash == "GOOGLE_OAUTH";
+
             return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
         }
 
@@ -115,8 +118,9 @@ namespace DevHub.Controllers.Recruiter
             model.BusinessLicenseUrl = dbUser.Recruiter.BusinessLicenseUrl;
             model.AdditionalDocumentsUrl = dbUser.Recruiter.AdditionalDocumentsUrl;
 
-            // Preserve uploaded logo
-            model.CompanyLogoUrl = dbUser.Recruiter.CompanyLogoUrl;
+            // Preserve current logo; remember the old one so it can be deleted if replaced.
+            var oldLogoUrl = dbUser.Recruiter.CompanyLogoUrl;
+            model.CompanyLogoUrl = oldLogoUrl;
 
             // handle logo upload — override logo if upload new
             if (logoFile != null && logoFile.Length > 0)
@@ -151,6 +155,24 @@ namespace DevHub.Controllers.Recruiter
             try
             {
                 await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, model);
+
+                // New logo saved & DB updated -> delete the old logo file from wwwroot (if replaced).
+                if (!string.IsNullOrEmpty(oldLogoUrl) && oldLogoUrl != model.CompanyLogoUrl
+                    && oldLogoUrl.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var oldPath = Path.Combine(_env.WebRootPath, oldLogoUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+                    catch (Exception delEx)
+                    {
+                        // Deletion failure must not break the update flow.
+                        _logger.LogWarning(delEx, "Could not delete old company logo {Url} for recruiter {RecruiterId}", oldLogoUrl, dbUser.Recruiter.RecruiterId);
+                    }
+                }
+
                 TempData["Success"] = "Cập nhật thông tin công ty thành công.";
             }
             catch (InvalidOperationException ex)
@@ -176,13 +198,19 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
+            // Google-login accounts have no current password -> skip its validation and hide the box.
+            bool isGoogleOnly = string.IsNullOrEmpty(dbUser.PasswordHash) || dbUser.PasswordHash == "GOOGLE_OAUTH";
+            ViewBag.IsGoogleAccount = isGoogleOnly;
+            if (isGoogleOnly)
+                ModelState.Remove(nameof(model.CurrentPassword));
+
             if (!ModelState.IsValid)
                 return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
 
             try
             {
                 await _recruiterService.ChangePasswordAsync(dbUser.Recruiter.RecruiterId, model);
-                TempData["Success"] = "Đổi mật khẩu thành công.";
+                TempData["Success"] = isGoogleOnly ? "Đặt mật khẩu thành công." : "Đổi mật khẩu thành công.";
                 return RedirectToAction("Index", new { tab = "password" });
             }
             catch (InvalidOperationException ex)
@@ -223,6 +251,8 @@ namespace DevHub.Controllers.Recruiter
 
             //get path to save license files
             var uploads = Path.Combine(_env.WebRootPath, "uploads", "license");
+            // Remember the current license file then delete it after the new one is saved.
+            var oldLicenseUrl = dbUser.Recruiter.BusinessLicenseUrl;
             try
             {
                 Directory.CreateDirectory(uploads);
@@ -250,6 +280,24 @@ namespace DevHub.Controllers.Recruiter
                 };
 
                 await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, vm);
+
+                // New license uploaded would delete the old license file from wwwroot .
+                if (!string.IsNullOrEmpty(oldLicenseUrl) && oldLicenseUrl != vm.BusinessLicenseUrl)
+                {
+                    try
+                    {
+                        var oldPath = Path.Combine(_env.WebRootPath, oldLicenseUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+                    catch (Exception delEx)
+                    {
+                        // Deletion failure must not break the upload flow.
+                        _logger.LogWarning(delEx, "Could not delete old license file {Url} for recruiter {RecruiterId}", oldLicenseUrl, dbUser.Recruiter.RecruiterId);
+                    }
+                }
+
+                TempData["Success"] = "Tải giấy phép thành công.";
             }
             catch (Exception ex)
             {
@@ -257,19 +305,6 @@ namespace DevHub.Controllers.Recruiter
                 _logger.LogError(ex, "Error saving license file for recruiter {RecruiterId}", dbUser.Recruiter.RecruiterId);
                 TempData["Error"] = "Đã xảy ra lỗi khi tải file. Vui lòng thử lại hoặc liên hệ quản trị.";
                 return RedirectToAction("Index", new { tab = "license" });
-            }
-
-            // License saved. Sending the verification request is a separate, gated step
-            // (requires profile completeness > 96%); surface its message but keep the upload as success.
-            try
-            {
-                await _recruiterService.SendVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
-                TempData["Success"] = "Tải giấy phép thành công. Yêu cầu xác thực đã được gửi.";
-            }
-            catch (InvalidOperationException ex)
-            {
-                TempData["Success"] = "Tải giấy phép thành công.";
-                TempData["Error"] = ex.Message;
             }
             return RedirectToAction("Index", new { tab = "license" });
         }
@@ -301,6 +336,8 @@ namespace DevHub.Controllers.Recruiter
             }
 
             var uploads = Path.Combine(_env.WebRootPath, "uploads", "additional");
+            // Remember the current additional doc so it can be deleted after the new one is saved.
+            var oldDocUrl = dbUser.Recruiter.AdditionalDocumentsUrl;
             try
             {
                 Directory.CreateDirectory(uploads);
@@ -328,6 +365,23 @@ namespace DevHub.Controllers.Recruiter
                 };
 
                 await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, vm);
+
+                // New doc saved & DB updated -> delete the old additional doc from wwwroot (if replaced).
+                if (!string.IsNullOrEmpty(oldDocUrl) && oldDocUrl != vm.AdditionalDocumentsUrl
+                    && oldDocUrl.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var oldPath = Path.Combine(_env.WebRootPath, oldDocUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+                    catch (Exception delEx)
+                    {
+                        // Deletion failure must not break the upload flow.
+                        _logger.LogWarning(delEx, "Could not delete old additional doc {Url} for recruiter {RecruiterId}", oldDocUrl, dbUser.Recruiter.RecruiterId);
+                    }
+                }
             }
             catch (Exception ex)
             {

@@ -9,4 +9,5 @@ public interface IRecruiterJobPostRepository
     Task<JobPost?> GetJobPostForEditAsync(int jobId, int recruiterId);
     Task UpdateJobPostAsync(JobPost source, List<CommonTechnology> techs, string newStatus);
     Task DeleteJobPostAsync(int jobId, int recruiterId);
+    Task CloseJobPostAsync(int jobId, int recruiterId);
 }

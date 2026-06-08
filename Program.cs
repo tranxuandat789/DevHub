@@ -14,6 +14,7 @@ using DevHub.Repositories.Implementations;
 using DevHub.Services.Interfaces;
 using DevHub.Services.Implementations;
 using System.Security.Claims;
+using DevHub.Services.BackgroundServices;
 
 DotNetEnv.Env.Load();
 
@@ -222,6 +223,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
 builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
 builder.Services.AddScoped<IJobSearchService, JobSearchService>();
+
+// Background worker: auto-close APPROVED job posts whose deadline has passed.
+builder.Services.AddHostedService<JobPostAutoCloseService>();
 
 
 var app = builder.Build();

@@ -37,7 +37,10 @@
     </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        
+
+        /* Hide the validation summary box when there are no errors (it still renders an empty <ul>). */
+        .validation-summary-valid { display: none; }
+
         .sidebar-secondary {
             transition: width 0.3s ease;
             width: 0px;

@@ -1,4 +1,5 @@
 //AnhPT-03/06/2026
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
@@ -11,8 +12,8 @@ public class RecruiterJobPostService : IRecruiterJobPostService
 
     // Editable: APPROVED, REJECTED. PENDING, CLOSED posts are view-only.
     private static readonly string[] EditableStatuses = { "approved", "rejected" };
-    // Deletable: only Rejected or Closed posts.
-    private static readonly string[] DeletableStatuses = { "rejected", "closed" };
+    // Deletable: only Closed posts.
+    private const string DeletableStatus = "rejected";
 
     //standardize to normal case
     private static string Canon(string? s) => (s ?? "").Trim().ToLowerInvariant();
@@ -21,6 +22,12 @@ public class RecruiterJobPostService : IRecruiterJobPostService
     // Search 'Senior   springboot   dev' could match 'senior springboot dev'.
     private static string NormalizeText(string? s) =>
         Regex.Replace((s ?? "").Trim().ToLowerInvariant(), @"\s+", " ");
+
+    // Collapse consecutive whitespace into a single space and trim.
+    // e.g. "Lương   tháng 13" -> "Lương tháng 13"
+    [return: NotNullIfNotNull(nameof(s))]
+    private static string? NormalizeSpaces(string? s) =>
+        string.IsNullOrWhiteSpace(s) ? s : Regex.Replace(s.Trim(), @"\s+", " ");
 
     //Repository Instance
     private readonly ICommonTechnologyRepository _techRepo;
@@ -103,13 +110,13 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             RecruiterId = recruiterId,
             PositionId = vm.PositionId,
             RecruiterPackageHistoryId = package.Id,
-            Title = vm.Title,
-            Description = vm.Description,
-            Requirement = vm.Requirement,
-            Benefit = vm.Benefit,
-            Skill = vm.Skill,
+            Title = NormalizeSpaces(vm.Title),
+            Description = NormalizeSpaces(vm.Description),
+            Requirement = NormalizeSpaces(vm.Requirement),
+            Benefit = NormalizeSpaces(vm.Benefit),
+            Skill = NormalizeSpaces(vm.Skill),
             ExperienceLevel = vm.ExperienceLevel,
-            Location = vm.Location,
+            Location = NormalizeSpaces(vm.Location),
             WorkingModel = vm.WorkingModel,
             SalaryMin = vm.SalaryMin,
             SalaryMax = vm.SalaryMax,
@@ -232,17 +239,17 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         {
             JobId = jobId,
             RecruiterId = recruiterId,
-            Title = vm.Title,
+            Title = NormalizeSpaces(vm.Title),
             PositionId = vm.PositionId,
-            Location = vm.Location,
-            Skill = vm.Skill,
+            Location = NormalizeSpaces(vm.Location),
+            Skill = NormalizeSpaces(vm.Skill),
             WorkingModel = vm.WorkingModel,
             SalaryMin = vm.SalaryMin,
             SalaryMax = vm.SalaryMax,
             ExperienceLevel = vm.ExperienceLevel,
-            Description = vm.Description,
-            Requirement = vm.Requirement,
-            Benefit = vm.Benefit,
+            Description = NormalizeSpaces(vm.Description),
+            Requirement = NormalizeSpaces(vm.Requirement),
+            Benefit = NormalizeSpaces(vm.Benefit),
             HiringQuota = vm.HiringQuota,
             Deadline = vm.Deadline,
         };
@@ -270,10 +277,22 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         var job = await _jobPostRepo.GetJobPostForEditAsync(jobId, recruiterId)
             ?? throw new KeyNotFoundException("Không tìm thấy tin tuyển dụng.");
 
-        if (!DeletableStatuses.Contains(Canon(job.Status)))
-            throw new InvalidOperationException("Chỉ có thể xóa tin ở trạng thái Bị từ chối hoặc Đã đóng.");
+        if (Canon(job.Status) != DeletableStatus)
+            throw new InvalidOperationException("Chỉ có thể xóa tin ở trạng thái 'bị từ chối'.");
 
         await _jobPostRepo.DeleteJobPostAsync(jobId, recruiterId);
+    }
+
+    // Validate ownership + APPROVED status, then close the post (status = CLOSED).
+    public async Task CloseJobPostAsync(int recruiterId, int jobId)
+    {
+        var job = await _jobPostRepo.GetJobPostForEditAsync(jobId, recruiterId)
+            ?? throw new KeyNotFoundException("Không tìm thấy tin tuyển dụng.");
+
+        if (Canon(job.Status) != "approved")
+            throw new InvalidOperationException("Chỉ có thể đóng tin đang hiển thị (đã duyệt).");
+
+        await _jobPostRepo.CloseJobPostAsync(jobId, recruiterId);
     }
 
 }

@@ -33,6 +33,48 @@ namespace DevHub.Controllers.Moderator
         [HttpGet("")]
         public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string? sortOrder)
         {
+            // Validate để tránh lỗi SqlDateTime overflow (Năm < 1753) và chặn lọc tương lai
+            bool hasInvalidDate = false;
+            bool isFutureDate = false;
+            var maxDate = DateTime.Now;
+
+            if (fromDate.HasValue)
+            {
+                if (fromDate.Value.Year < 1753)
+                {
+                    fromDate = null;
+                    hasInvalidDate = true;
+                }
+                else if (fromDate.Value > maxDate)
+                {
+                    fromDate = null;
+                    isFutureDate = true;
+                }
+            }
+
+            if (toDate.HasValue)
+            {
+                if (toDate.Value.Year < 1753)
+                {
+                    toDate = null;
+                    hasInvalidDate = true;
+                }
+                else if (toDate.Value > maxDate)
+                {
+                    toDate = null;
+                    isFutureDate = true;
+                }
+            }
+
+            if (hasInvalidDate)
+            {
+                ViewBag.ErrorMessage = "Vui lòng nhập năm từ 1753 trở đi. Các ngày quá cũ đã bị bỏ qua.";
+            }
+            if (isFutureDate)
+            {
+                ViewBag.ErrorMessage = "Ngày lọc không được vượt quá thời gian hiện tại. Dữ liệu đã được tự động điều chỉnh.";
+            }
+
             // 1. Gọi Service lấy danh sách bài đăng đang chờ duyệt dựa theo bộ lọc (ngày tháng, sắp xếp)
             var pendingJobs = await _jobPostService.GetPendingJobsAsync(fromDate, toDate, sortOrder);
 

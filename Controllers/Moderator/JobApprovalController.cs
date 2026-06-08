@@ -33,6 +33,56 @@ namespace DevHub.Controllers.Moderator
         [HttpGet("")]
         public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string? sortOrder)
         {
+            // Validate để tránh lỗi SqlDateTime overflow (SQL Server không hỗ trợ năm < 1753)
+            // Và chặn người dùng chọn ngày lớn hơn ngày hiện tại
+            DateTime minSqlDate = new DateTime(1753, 1, 1);
+            DateTime maxDate = DateTime.Now;
+            
+            bool hasTooOldDate = false;
+            bool hasFutureDate = false;
+            bool hasFormatError = !ModelState.IsValid;
+
+            if (fromDate.HasValue) 
+            {
+                if (fromDate.Value < minSqlDate) {
+                    fromDate = null;
+                    hasTooOldDate = true;
+                }
+                else if (fromDate.Value > maxDate) {
+                    fromDate = null;
+                    hasFutureDate = true;
+                }
+            }
+            
+            if (toDate.HasValue) 
+            {
+                if (toDate.Value < minSqlDate) {
+                    toDate = null;
+                    hasTooOldDate = true;
+                }
+                else if (toDate.Value > maxDate) {
+                    toDate = null;
+                    hasFutureDate = true;
+                }
+            }
+
+            if (hasFormatError)
+            {
+                ViewBag.ErrorMessage = "Định dạng ngày không hợp lệ. Vui lòng nhập đúng mốc thời gian (ví dụ: từ năm 1753 đến năm hiện tại).";
+            }
+            else if (hasTooOldDate && hasFutureDate)
+            {
+                ViewBag.ErrorMessage = "Vui lòng nhập năm từ 1753 trở đi và không được vượt quá thời gian hiện tại.";
+            }
+            else if (hasTooOldDate)
+            {
+                ViewBag.ErrorMessage = "Vui lòng nhập năm từ 1753 trở đi. Các ngày không hợp lệ đã bị bỏ qua.";
+            }
+            else if (hasFutureDate)
+            {
+                ViewBag.ErrorMessage = "Ngày lọc không được vượt quá thời gian hiện tại. Dữ liệu đã được tự động điều chỉnh.";
+            }
+
             // 1. Gọi Service lấy danh sách bài đăng đang chờ duyệt dựa theo bộ lọc (ngày tháng, sắp xếp)
             var pendingJobs = await _jobPostService.GetPendingJobsAsync(fromDate, toDate, sortOrder);
 

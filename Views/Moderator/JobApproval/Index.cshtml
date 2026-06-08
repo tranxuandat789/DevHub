@@ -19,6 +19,14 @@ author: Hoang Minh Kien
     </div>
 </div>
 
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@ViewBag.ErrorMessage</span>
+    </div>
+}
+
 <!-- Filters & Sort -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
     <form method="GET" action="/moderator/job-approvals" class="flex flex-col md:flex-row gap-4 items-end">
@@ -79,7 +87,7 @@ author: Hoang Minh Kien
                                 <button onclick="openDetailModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" title="Chi tiết">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </button>
-                                <button onclick="approveJob(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
+                                <button onclick="openApproveModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 </button>
                                 <button onclick="openRejectModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
@@ -112,6 +120,27 @@ author: Hoang Minh Kien
             <button class="px-3 py-1 bg-primary text-white rounded">1</button>
             <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">2</button>
             <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div id="approveModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-lg p-6 relative">
+        <button onclick="closeApproveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <h3 class="text-2xl font-bold text-dark mb-2">Duyệt bài đăng</h3>
+        <p class="text-muted text-sm mb-6">Bạn có chắc chắn muốn duyệt bài đăng <span id="approveJobId" class="font-bold"></span>?</p>
+        
+        <div class="mb-6 p-4 bg-green-50 border border-green-100 rounded-lg">
+            <p class="text-green-800 text-sm">Bài đăng sẽ được hiển thị công khai trên hệ thống và ứng viên có thể bắt đầu nộp hồ sơ.</p>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeApproveModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
+            <button onclick="submitApprove()" class="px-5 py-2.5 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition-colors shadow-sm">Xác nhận Duyệt</button>
         </div>
     </div>
 </div>
@@ -200,8 +229,12 @@ author: Hoang Minh Kien
 </div>
 
 @section Scripts {
+    <!-- Thêm thư viện SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
         let currentRejectId = null;
+        let currentApproveId = null;
 
         async function openDetailModal(id) {
             try {
@@ -228,11 +261,21 @@ author: Hoang Minh Kien
 
                     document.getElementById('detailModal').classList.remove('hidden');
                 } else {
-                    alert('Không thể lấy thông tin chi tiết bài đăng.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Không thể lấy thông tin chi tiết bài đăng.',
+                        confirmButtonColor: '#3b82f6'
+                    });
                 }
             } catch (e) {
                 console.error(e);
-                alert('Có lỗi xảy ra.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi hệ thống',
+                    text: 'Có lỗi xảy ra khi kết nối đến máy chủ.',
+                    confirmButtonColor: '#3b82f6'
+                });
             }
         }
 
@@ -240,20 +283,58 @@ author: Hoang Minh Kien
             document.getElementById('detailModal').classList.add('hidden');
         }
 
-        async function approveJob(id) {
-            if (confirm(`Bạn có chắc chắn muốn duyệt bài đăng #${id}? Hành động này sẽ được ghi log và gửi thông báo.`)) {
-                try {
-                    const response = await fetch(`/moderator/job-approvals/approve/${id}`, { method: 'POST' });
-                    if (response.ok) {
-                        alert(`Đã duyệt bài đăng #${id} thành công!`);
-                        window.location.reload();
-                    } else {
-                        alert("Có lỗi xảy ra khi duyệt bài đăng này.");
+        function openApproveModal(id) {
+            currentApproveId = id;
+            document.getElementById('approveJobId').innerText = `#${id}`;
+            document.getElementById('approveModal').classList.remove('hidden');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.add('hidden');
+            currentApproveId = null;
+        }
+
+        async function submitApprove() {
+            if (!currentApproveId) return;
+            
+            try {
+                // Đóng modal cũ đi và hiển thị loading
+                closeApproveModal();
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    text: 'Vui lòng chờ trong giây lát.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
                     }
-                } catch (e) {
-                    console.error(e);
-                    alert("Có lỗi hệ thống.");
+                });
+
+                const response = await fetch(`/moderator/job-approvals/approve/${currentApproveId}`, { method: 'POST' });
+                
+                if (response.ok) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: `Đã duyệt bài đăng #${currentApproveId} thành công!`,
+                        confirmButtonColor: '#10b981'
+                    });
+                    window.location.reload();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Có lỗi xảy ra khi duyệt bài đăng này.',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
+            } catch (e) {
+                console.error(e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi hệ thống',
+                    text: 'Không thể kết nối đến máy chủ.',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
 
@@ -272,11 +353,27 @@ author: Hoang Minh Kien
         async function submitReject() {
             const reason = document.getElementById('rejectReason').value.trim();
             if (!reason) {
-                alert('Vui lòng nhập lý do từ chối.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng nhập lý do từ chối để thông báo cho nhà tuyển dụng.',
+                    confirmButtonColor: '#f59e0b' // amber-500
+                });
                 return;
             }
             
             try {
+                // Đóng modal cũ đi và hiển thị loading
+                closeRejectModal();
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    text: 'Hệ thống đang từ chối bài đăng.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 const formData = new FormData();
                 formData.append('reason', reason);
                 const response = await fetch(`/moderator/job-approvals/reject/${currentRejectId}`, {
@@ -285,15 +382,29 @@ author: Hoang Minh Kien
                 });
                 
                 if (response.ok) {
-                    alert(`Đã từ chối bài đăng #${currentRejectId} thành công.`);
-                    closeRejectModal();
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Đã từ chối!',
+                        text: `Bạn đã từ chối bài đăng #${currentRejectId} thành công.`,
+                        confirmButtonColor: '#10b981'
+                    });
                     window.location.reload();
                 } else {
-                    alert("Có lỗi xảy ra khi từ chối bài đăng này.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Thất bại',
+                        text: 'Có lỗi xảy ra khi từ chối bài đăng này.',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
             } catch (e) {
                 console.error(e);
-                alert("Có lỗi hệ thống.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi hệ thống',
+                    text: 'Không thể kết nối đến máy chủ.',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
     </script>

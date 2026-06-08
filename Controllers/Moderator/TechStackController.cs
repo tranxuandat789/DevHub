@@ -17,7 +17,7 @@ namespace DevHub.Controllers.Moderator
 
         // 2. Action Index hiển thị danh sách (có hỗ trợ tìm kiếm và lọc)
         [HttpGet("")]
-        public async Task<IActionResult> Index(string keyword = "", string status = "")
+        public async Task<IActionResult> Index(string keyword = "", string status = "", int page = 1)
         {
             var techs = await _techService.GetAllTechsAsync();
 
@@ -34,10 +34,22 @@ namespace DevHub.Controllers.Moderator
                 techs = techs.Where(t => (t.IsActive ?? true) == isActive).ToList();
             }
 
+            int pageSize = 10;
+            int totalItems = techs.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var pagedTechs = techs.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
             ViewData["Keyword"] = keyword;
             ViewData["Status"] = status;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
 
-            return View("~/Views/Moderator/TechStack/Index.cshtml", techs);
+            return View("~/Views/Moderator/TechStack/Index.cshtml", pagedTechs);
         }
 
         // 3. Action hiển thị form Create
@@ -51,18 +63,29 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("Create")]
         public async Task<IActionResult> Create([FromForm] string techName, [FromForm] string category, [FromForm] bool isActive = false)
         {
-            if (!string.IsNullOrWhiteSpace(techName))
+            if (string.IsNullOrWhiteSpace(techName))
             {
-                var newTech = new DevHub.Models.CommonTechnology
-                {
-                    TechName = techName.Trim(),
-                    Category = string.IsNullOrWhiteSpace(category) ? "Chưa phân loại" : category.Trim(),
-                    IsActive = isActive
-                };
-                
-                await _techService.AddTechAsync(newTech);
-                TempData["SuccessMessage"] = $"Thêm mới thành công công nghệ: {techName}!";
+                ViewBag.ErrorMessage = "Vui lòng nhập tên công nghệ.";
+                return View("~/Views/Moderator/TechStack/Create.cshtml");
             }
+
+            var allTechs = await _techService.GetAllTechsAsync();
+            if (allTechs.Any(t => t.TechName.Equals(techName.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewBag.ErrorMessage = $"Lỗi: Công nghệ '{techName}' đã tồn tại trong hệ thống.";
+                return View("~/Views/Moderator/TechStack/Create.cshtml");
+            }
+
+            var newTech = new DevHub.Models.CommonTechnology
+            {
+                TechName = techName.Trim(),
+                Category = string.IsNullOrWhiteSpace(category) ? "Chưa phân loại" : category.Trim(),
+                IsActive = isActive
+            };
+            
+            await _techService.AddTechAsync(newTech);
+            TempData["SuccessMessage"] = $"Thêm mới thành công công nghệ: {techName}!";
+            
             return RedirectToAction("Index");
         }
 
@@ -83,13 +106,24 @@ namespace DevHub.Controllers.Moderator
             var tech = await _techService.GetTechByIdAsync(id);
             if (tech == null) return NotFound();
 
-            if (!string.IsNullOrWhiteSpace(techName))
+            if (string.IsNullOrWhiteSpace(techName))
             {
-                tech.TechName = techName.Trim();
-                tech.IsActive = isActive;
-                await _techService.UpdateTechAsync(tech); // Gọi Service xử lý lưu vào DB thông qua Repository
-                TempData["SuccessMessage"] = $"Cập nhật thành công công nghệ #{id}!";
+                ViewBag.ErrorMessage = "Vui lòng nhập tên công nghệ.";
+                return View("~/Views/Moderator/TechStack/Edit.cshtml", tech);
             }
+
+            var allTechs = await _techService.GetAllTechsAsync();
+            if (allTechs.Any(t => t.TechId != id && t.TechName.Equals(techName.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                ViewBag.ErrorMessage = $"Lỗi: Công nghệ '{techName}' đã được sử dụng bởi một mục khác.";
+                return View("~/Views/Moderator/TechStack/Edit.cshtml", tech);
+            }
+
+            tech.TechName = techName.Trim();
+            tech.IsActive = isActive;
+            await _techService.UpdateTechAsync(tech); // Gọi Service xử lý lưu vào DB thông qua Repository
+            TempData["SuccessMessage"] = $"Cập nhật thành công công nghệ #{id}!";
+            
             return RedirectToAction("Index");
         }
 

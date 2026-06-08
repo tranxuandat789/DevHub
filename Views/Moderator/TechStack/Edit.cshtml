@@ -12,6 +12,21 @@
     <h1 class="text-[32px] font-bold text-dark mb-2">Chỉnh sửa Công nghệ</h1>
     <p class="text-muted">Định nghĩa các công nghệ và kỹ năng chuẩn trên hệ thống.</p>
 </div>
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@ViewBag.ErrorMessage</span>
+    </div>
+}
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@ViewBag.ErrorMessage</span>
+    </div>
+}
 
 <form method="post" action="/ModeratorTechStack/edit/@Model.TechId" class="max-w-3xl">
     

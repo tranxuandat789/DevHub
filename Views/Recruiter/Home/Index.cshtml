@@ -116,7 +116,7 @@
     </div>
 </section>
 
-<!-- Testimonials -->
+<!-- Testimonials Carousel -->
 <section class="py-20" style="background-color: #ffffff;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
@@ -125,62 +125,115 @@
             </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Testimonial 1 -->
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full">
-                <div class="text-4xl text-[#26A4FF] font-serif mb-4">"</div>
-                <p class="text-muted text-[15px] leading-relaxed mb-8">
-                    "Tôi đã có trải nghiệm rất tốt khi sử dụng cổng thông tin tuyển dụng này! Quy trình ứng tuyển diễn ra mượt mà và tôi nhanh chóng tìm được nhiều cơ hội phù hợp chỉ trong thời gian ngắn."
-                </p>
-                <div class="flex items-center gap-4 mt-auto">
-                    <img src="https://i.pravatar.cc/150?img=32" alt="Albert Flores" class="w-12 h-12 rounded-full object-cover">
-                    <div>
-                        <div class="font-bold text-dark text-[16px]">Albert Flores</div>
-                        <div class="text-[13px] text-muted">HR Manager</div>
+        <!-- Carousel wrapper -->
+        <div class="relative">
+
+            <!-- Track -->
+            <div class="overflow-hidden">
+                <div id="testimonial-track" class="flex gap-8 transition-transform duration-500 ease-in-out">
+
+                    <!-- Card 1 -->
+                    <div class="testimonial-card min-w-0 w-full md:w-[calc(33.333%-22px)] flex-shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <div class="text-4xl text-[#26A4FF] font-serif mb-4 leading-none">"</div>
+                        <p class="text-muted text-[15px] leading-relaxed mb-8 flex-1">
+                            "DevHub giúp chúng tôi tìm được nhân tài đúng chuyên môn chỉ trong 2 tuần. Quy trình đăng tuyển trực quan, dễ thao tác và tiết kiệm rất nhiều thời gian cho phòng nhân sự."
+                        </p>
+                        <div class="flex items-center gap-4 mt-auto">
+                            <img src="https://i.pravatar.cc/150?img=32" alt="Albert Flores" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                            <div>
+                                <div class="font-bold text-dark text-[16px]">Albert Flores</div>
+                                <div class="text-[13px] text-muted">HR Manager · FPT Software</div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Card 2 -->
+                    <div class="testimonial-card min-w-0 w-full md:w-[calc(33.333%-22px)] flex-shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <div class="text-4xl text-[#26A4FF] font-serif mb-4 leading-none">"</div>
+                        <p class="text-muted text-[15px] leading-relaxed mb-8 flex-1">
+                            "Tôi rất hài lòng với kết quả nhận được. Nền tảng dễ sử dụng và luôn cập nhật kịp thời hồ sơ ứng viên. Chúng tôi tuyển được 5 kỹ sư chỉ trong một tháng."
+                        </p>
+                        <div class="flex items-center gap-4 mt-auto">
+                            <img src="https://i.pravatar.cc/150?img=47" alt="Jane Cooper" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                            <div>
+                                <div class="font-bold text-dark text-[16px]">Jane Cooper</div>
+                                <div class="text-[13px] text-muted">Product Manager · VNG Corp</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="testimonial-card min-w-0 w-full md:w-[calc(33.333%-22px)] flex-shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <div class="text-4xl text-[#26A4FF] font-serif mb-4 leading-none">"</div>
+                        <p class="text-muted text-[15px] leading-relaxed mb-8 flex-1">
+                            "Nền tảng này đã giúp việc tuyển dụng của chúng tôi trở nên dễ dàng hơn rất nhiều. Tôi đánh giá cao sự đa dạng ứng viên và tính năng lọc theo kỹ năng."
+                        </p>
+                        <div class="flex items-center gap-4 mt-auto">
+                            <img src="https://i.pravatar.cc/150?img=11" alt="Floyd Miles" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                            <div>
+                                <div class="font-bold text-dark text-[16px]">Floyd Miles</div>
+                                <div class="text-[13px] text-muted">Tech Lead · Viettel Digital</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="testimonial-card min-w-0 w-full md:w-[calc(33.333%-22px)] flex-shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <div class="text-4xl text-[#26A4FF] font-serif mb-4 leading-none">"</div>
+                        <p class="text-muted text-[15px] leading-relaxed mb-8 flex-1">
+                            "Chúng tôi đã thử nhiều nền tảng khác nhau nhưng DevHub là nơi cho chất lượng ứng viên tốt nhất. Hệ thống gợi ý thông minh thực sự hiệu quả."
+                        </p>
+                        <div class="flex items-center gap-4 mt-auto">
+                            <img src="https://i.pravatar.cc/150?img=68" alt="Nguyen Thi Lan" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                            <div>
+                                <div class="font-bold text-dark text-[16px]">Nguyễn Thị Lan</div>
+                                <div class="text-[13px] text-muted">Giám đốc Nhân sự · KiotViet</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="testimonial-card min-w-0 w-full md:w-[calc(33.333%-22px)] flex-shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <div class="text-4xl text-[#26A4FF] font-serif mb-4 leading-none">"</div>
+                        <p class="text-muted text-[15px] leading-relaxed mb-8 flex-1">
+                            "Tính năng quản lý hồ sơ ứng tuyển rất trực quan. Chúng tôi tiết kiệm được hàng chục giờ mỗi tuần so với quy trình cũ. Rất khuyến khích cho các startup."
+                        </p>
+                        <div class="flex items-center gap-4 mt-auto">
+                            <img src="https://i.pravatar.cc/150?img=59" alt="Tran Minh Duc" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                            <div>
+                                <div class="font-bold text-dark text-[16px]">Trần Minh Đức</div>
+                                <div class="text-[13px] text-muted">CTO · One Mount Group</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="testimonial-card min-w-0 w-full md:w-[calc(33.333%-22px)] flex-shrink-0 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <div class="text-4xl text-[#26A4FF] font-serif mb-4 leading-none">"</div>
+                        <p class="text-muted text-[15px] leading-relaxed mb-8 flex-1">
+                            "Đội ngũ hỗ trợ của DevHub luôn sẵn sàng giải đáp mọi thắc mắc. Chúng tôi đã tuyển thành công 20+ nhân sự kỹ thuật chỉ trong quý đầu tiên hợp tác."
+                        </p>
+                        <div class="flex items-center gap-4 mt-auto">
+                            <img src="https://i.pravatar.cc/150?img=25" alt="Le Thanh Huong" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                            <div>
+                                <div class="font-bold text-dark text-[16px]">Lê Thanh Hương</div>
+                                <div class="text-[13px] text-muted">Talent Acquisition · Samsung Vietnam</div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Testimonial 2 -->
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full">
-                <div class="text-4xl text-[#26A4FF] font-serif mb-4">"</div>
-                <p class="text-muted text-[15px] leading-relaxed mb-8">
-                    "Tôi rất hài lòng với kết quả nhận được. Website dễ sử dụng và tôi luôn nhận được cập nhật kịp thời về các đơn ứng tuyển."
-                </p>
-                <div class="flex items-center gap-4 mt-auto">
-                    <img src="https://i.pravatar.cc/150?img=47" alt="Jane Cooper" class="w-12 h-12 rounded-full object-cover">
-                    <div>
-                        <div class="font-bold text-dark text-[16px]">Jane Cooper</div>
-                        <div class="text-[13px] text-muted">Product Manager</div>
-                    </div>
-                </div>
-            </div>
+        </div>
 
-            <!-- Testimonial 3 -->
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-full">
-                <div class="text-4xl text-[#26A4FF] font-serif mb-4">"</div>
-                <p class="text-muted text-[15px] leading-relaxed mb-8">
-                    "Nền tảng này đã giúp việc tìm kiếm công việc của tôi trở nên dễ dàng hơn rất nhiều. Tôi đánh giá cao sự đa dạng của các vị trí tuyển dụng."
-                </p>
-                <div class="flex items-center gap-4 mt-auto">
-                    <img src="https://i.pravatar.cc/150?img=11" alt="Floyd Miles" class="w-12 h-12 rounded-full object-cover">
-                    <div>
-                        <div class="font-bold text-dark text-[16px]">Floyd Miles</div>
-                        <div class="text-[13px] text-muted">Product Manager</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Pagination dots -->
-        <div class="flex justify-center gap-2 mt-10">
-            <div class="w-2.5 h-2.5 rounded-full bg-dark"></div>
-            <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-            <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-            <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-        </div>
+        <!-- Dots -->
+        <div id="testimonial-dots" class="flex justify-center gap-2 mt-10"></div>
     </div>
 </section>
+
+
+
 
 <!-- Pricing / Packages Section -->
 <section class="py-20 relative overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 25% 65%, rgba(139, 92, 246, 0.15), transparent 45%);">
@@ -306,5 +359,45 @@
                 observer.observe(counter);
             });
         });
+
+        // ── Testimonial Carousel ──────────────────────────────────────
+        (function () {
+            const track = document.getElementById('testimonial-track');
+            const dotsContainer = document.getElementById('testimonial-dots');
+            const cards = track ? track.querySelectorAll('.testimonial-card') : [];
+            if (!track || cards.length === 0) return;
+
+            const CARDS_PER_SLIDE = window.innerWidth >= 768 ? 3 : 1;
+            const TOTAL_SLIDES = Math.ceil(cards.length / CARDS_PER_SLIDE);
+            let current = 0;
+            let autoTimer;
+
+            // Build dots
+            for (let i = 0; i < TOTAL_SLIDES; i++) {
+                const dot = document.createElement('button');
+                dot.className = 'w-2.5 h-2.5 rounded-full transition-colors ' + (i === 0 ? 'bg-dark' : 'bg-gray-300');
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            }
+
+            function goTo(index) {
+                current = (index + TOTAL_SLIDES) % TOTAL_SLIDES;
+                const cardWidth = cards[0].offsetWidth;
+                const gap = 32; // gap-8 = 2rem = 32px
+                track.style.transform = `translateX(-${current * CARDS_PER_SLIDE * (cardWidth + gap)}px)`;
+                dotsContainer.querySelectorAll('button').forEach((d, i) => {
+                    d.className = 'w-2.5 h-2.5 rounded-full transition-colors ' + (i === current ? 'bg-dark' : 'bg-gray-300');
+                });
+                resetAuto();
+            }
+
+            function resetAuto() {
+                clearInterval(autoTimer);
+                autoTimer = setInterval(() => goTo(current + 1), 4000);
+            }
+
+
+            resetAuto();
+        })();
     </script>
 }

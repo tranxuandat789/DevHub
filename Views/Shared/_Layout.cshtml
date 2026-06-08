@@ -382,36 +382,7 @@
             });
         });
     </script>
-@{
-    var toastSuccess = TempData["SuccessMsg"]?.ToString();
-}
-@if (!string.IsNullOrEmpty(toastSuccess))
-{
-    <div id="toast-container" class="fixed top-20 right-6 z-[9999] flex flex-col gap-3" style="min-width:320px">
-        <div class="toast flex items-start gap-3 bg-white border border-green-200 rounded-xl shadow-lg px-5 py-4">
-            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-            </div>
-            <div class="flex-1">
-                <p class="text-[14px] font-semibold text-green-800">Thành công</p>
-                <p class="text-[13px] text-green-700 mt-0.5">@toastSuccess</p>
-            </div>
-            <button onclick="this.closest('.toast').remove()" class="text-gray-400 hover:text-gray-600 ml-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    </div>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => {
-                t.style.transition = 'opacity 0.4s, transform 0.4s';
-                t.style.opacity = '0';
-                t.style.transform = 'translateY(-10px)';
-                setTimeout(() => t.remove(), 400);
-            });
-        }, 2500);
-    </script>
-}
+
 </body>
 </html>
 

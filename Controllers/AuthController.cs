@@ -47,11 +47,11 @@ public class AuthController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
             return RedirectToDashboard();
-        return View(new LoginViewModel());
+        return View("LoginCandidate", new LoginViewModel());
     }
 
     [HttpGet]
-    public IActionResult Register() => View();
+    public IActionResult Register() => View("RegisterCandidate");
 
     /// <summary>
     /// Xử lý dữ liệu đăng nhập của ứng viên.
@@ -266,6 +266,53 @@ public class AuthController : Controller
     }
 
     /// <summary>
+    /// [DEV ONLY] Mô phỏng đăng nhập Google để test ở môi trường local không có OAuth key.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> TestGoogle(string? from = "candidate")
+    {
+        // Dữ liệu giả mô phỏng Google trả về
+        var fakeEmail = from == "employer" ? "test.employer@gmail.com" : "test.candidate@gmail.com";
+        var fakeName  = from == "employer" ? "Test Employer" : "Test Candidate";
+        var fakeGoogleId = from == "employer" ? "fake-google-id-employer" : "fake-google-id-candidate";
+        var fakeAvatar = "";
+
+        // Tìm user hiện có
+        var user = await _auth.FindUserByEmailAsync(fakeEmail);
+
+        if (user is not null)
+        {
+            if (user.IsActive != true)
+            {
+                TempData["GeneralError"] = "Tài khoản đã bị khóa.";
+                return from == "employer"
+                    ? Redirect("/Auth/EmployerLogin")
+                    : RedirectToAction(nameof(Login));
+            }
+            await SignInAsync(user, false, fakeAvatar);
+            await _auth.UpdateLastLoginAsync(user.UserId);
+            return RedirectToDashboard(user.UserType);
+        }
+
+        // Tạo tài khoản mới
+        if (from == "employer")
+        {
+            HttpContext.Session.SetString(KeyGoogleEmail, fakeEmail);
+            HttpContext.Session.SetString(KeyGoogleId, fakeGoogleId);
+            HttpContext.Session.SetString(KeyGoogleName, fakeName);
+            HttpContext.Session.SetString(KeyGoogleAvatar, fakeAvatar);
+            return RedirectToAction(nameof(GoogleEmployerInfo));
+        }
+        else
+        {
+            var newUser = await _auth.CreateCandidateGoogleAccountAsync(fakeEmail, fakeGoogleId, fakeName, fakeAvatar);
+            await SignInAsync(newUser, false, fakeAvatar);
+            return RedirectToDashboard("Candidate");
+        }
+    }
+
+
+    /// <summary>
     /// Xử lý dữ liệu trả về từ Google sau khi người dùng xác thực thành công.
     /// </summary>
     /// <returns>
@@ -336,11 +383,20 @@ public class AuthController : Controller
             if (user.IsActive != true)
             {
                 TempData["GeneralError"] = "Tài khoản đã bị khóa.";
-                return from == "employer"
+                return from is "employer" or "register-employer"
                     ? Redirect("/Auth/EmployerLogin")
                     : RedirectToAction(nameof(Login));
             }
 
+            // Nếu đến từ form đăng ký → đăng nhập thẳng vào đúng dashboard, không báo lỗi
+            if (from is "register-candidate" or "register-employer")
+            {
+                await SignInAsync(user, false, avatar);
+                await _auth.UpdateLastLoginAsync(user.UserId);
+                return RedirectToDashboard(user.UserType);
+            }
+
+            // Đến từ form đăng nhập → kiểm tra đúng loại tài khoản
             if (from == "employer" && user.UserType?.Trim().ToUpper() == "CANDIDATE")
             {
                 TempData["GeneralError"] = "Tài khoản ứng viên không thể đăng nhập tại trang nhà tuyển dụng.";
@@ -359,7 +415,8 @@ public class AuthController : Controller
             return RedirectToDashboard(user.UserType);
         }
 
-        if (from == "candidate")
+        // Tài khoản chưa tồn tại → tạo mới
+        if (from is "candidate" or "register-candidate")
         {
             var newUser = await _auth.CreateCandidateGoogleAccountAsync(email, googleId, name, avatar);
             await SignInAsync(newUser, false, avatar);
@@ -372,6 +429,7 @@ public class AuthController : Controller
         HttpContext.Session.SetString(KeyGoogleName, name);
         HttpContext.Session.SetString(KeyGoogleAvatar, avatar);
         return RedirectToAction(nameof(GoogleEmployerInfo));
+
     }
 
     /// <summary>

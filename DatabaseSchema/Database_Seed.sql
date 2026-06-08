@@ -256,4 +256,4 @@ PRINT '=============================================';
 PRINT 'SUCCESS: Seed data completed cleanly!';
 PRINT 'Default Account Password for testing: Ab@123456';
 PRINT '=============================================';
-GO
+GO

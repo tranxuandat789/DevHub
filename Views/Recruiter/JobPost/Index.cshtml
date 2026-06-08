@@ -23,7 +23,7 @@
 
     // Editable: Approved/Rejected. Deletable: Rejected/Closed. Any post is viewable.
     bool CanEdit(string? s) { var x = (s ?? "").ToLower(); return x == "approved" || x == "rejected"; }
-    bool CanDelete(string? s) { var x = (s ?? "").ToLower(); return x == "rejected" || x == "closed"; }
+    bool CanDelete(string? s) { return (s ?? "").ToLower() == "closed"; }
 
     string TabCls(string? tab) =>
         (Model.Status ?? "") == (tab ?? "")

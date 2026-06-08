@@ -1,4 +1,6 @@
 //AnhPT 03-06-2026
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Recruiter;
@@ -7,6 +9,12 @@ namespace DevHub.Services.Implementations
 {
     public class RecruiterService : IRecruiterService
     {
+        // Collapse consecutive whitespace into a single space and trim (preserves case).
+        // e.g. "Lương    tháng 13" -> "Lương tháng 13"
+        [return: NotNullIfNotNull(nameof(s))]
+        private static string? NormalizeSpaces(string? s) =>
+            string.IsNullOrWhiteSpace(s) ? s : Regex.Replace(s.Trim(), @"\s+", " ");
+
         //Repository interface instance
         private readonly IRecruiterRepository _recruiterProfileRepository;
         private readonly IUserAccountRepository _userRepository;
@@ -81,15 +89,16 @@ namespace DevHub.Services.Implementations
                     throw new InvalidOperationException("Mã số thuế này đã được đăng ký bởi một doanh nghiệp khác trên hệ thống.");
             }
 
-            existingRecruiter.FullName = updateVm.FullName;
-            existingRecruiter.Position = updateVm.Position;
+            // Normalize blanks (collapse multiple spaces + trim) for free-text info fields on save.
+            existingRecruiter.FullName = NormalizeSpaces(updateVm.FullName);
+            existingRecruiter.Position = NormalizeSpaces(updateVm.Position);
             existingRecruiter.Phone = updateVm.Phone;
-            existingRecruiter.CompanyName = updateVm.CompanyName;
-            existingRecruiter.CompanyAddress = updateVm.CompanyAddress;
+            existingRecruiter.CompanyName = NormalizeSpaces(updateVm.CompanyName);
+            existingRecruiter.CompanyAddress = NormalizeSpaces(updateVm.CompanyAddress);
             existingRecruiter.CompanyLogoUrl = updateVm.CompanyLogoUrl;
-            existingRecruiter.CompanyDescription = updateVm.CompanyDescription;
+            existingRecruiter.CompanyDescription = NormalizeSpaces(updateVm.CompanyDescription);
             existingRecruiter.Website = updateVm.Website;
-            existingRecruiter.Industry = updateVm.Industry;
+            existingRecruiter.Industry = NormalizeSpaces(updateVm.Industry);
             existingRecruiter.TaxCode = updateVm.TaxCode;
             existingRecruiter.BusinessLicenseUrl = updateVm.BusinessLicenseUrl;
             existingRecruiter.AdditionalDocumentsUrl = updateVm.AdditionalDocumentsUrl;
@@ -164,22 +173,24 @@ namespace DevHub.Services.Implementations
 
             var currentHash = recruiter.RecruiterNavigation?.PasswordHash;
 
-            // Google-only accounts have no local password to change here.
-            if (string.IsNullOrEmpty(currentHash) || currentHash == "GOOGLE_OAUTH")
-                throw new InvalidOperationException("Tài khoản đăng nhập trực tiếp bằng Google không thể đổi mật khẩu tại đây.");
-
-            // Verify the supplied current password against the stored BCrypt hash.
-            bool currentOk;
-            try 
-            { 
-                currentOk = BCrypt.Net.BCrypt.Verify(vm.CurrentPassword, currentHash); 
+            // Google-login accounts (registered via Google, no local password) may SET a password
+            // without entering an old one. Normal accounts must verify their current password.
+            bool isGoogleOnly = string.IsNullOrEmpty(currentHash) || currentHash == "GOOGLE_OAUTH";
+            if (!isGoogleOnly)
+            {
+                // Verify the supplied current password against the stored BCrypt hash.
+                bool currentOk;
+                try
+                {
+                    currentOk = BCrypt.Net.BCrypt.Verify(vm.CurrentPassword, currentHash);
+                }
+                catch
+                {
+                    currentOk = false;
+                }
+                if (!currentOk)
+                    throw new InvalidOperationException("Mật khẩu hiện tại không đúng.");
             }
-            catch 
-            { 
-                currentOk = false; 
-            }
-            if (!currentOk)
-                throw new InvalidOperationException("Mật khẩu hiện tại không đúng.");
 
             // Hash and persist the new password (recruiterId == userId on user_account).
             var newHash = BCrypt.Net.BCrypt.HashPassword(vm.NewPassword);

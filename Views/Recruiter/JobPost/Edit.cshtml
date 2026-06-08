@@ -182,8 +182,17 @@
                 <a href="@Url.Action("Index", new { q, status, page })" class="px-6 py-3 bg-white border border-gray-200 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">
                     Hủy bỏ
                 </a>
+                @* Close button: only for an active (APPROVED) post. Posts to Close (bypasses form validation). *@
+                @if ((ViewBag.CurrentStatus as string ?? "").ToUpper() == "APPROVED")
+                {
+                    <button type="submit" formaction="@Url.Action("Close", new { id = jobId })" formmethod="post" formnovalidate
+                            onclick="return confirm('Đóng tin tuyển dụng này? Tin sẽ ngừng hiển thị với ứng viên.');"
+                            class="px-6 py-3 bg-white border border-red-200 text-red-600 text-[15px] font-bold rounded-lg hover:bg-red-50 transition-colors">
+                        Đóng tin
+                    </button>
+                }
                 <button type="submit" class="px-8 py-3 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
-                    Lưu thay đổi
+                    Lưu và gửi yêu cầu duyệt
                 </button>
             </div>
         </form>

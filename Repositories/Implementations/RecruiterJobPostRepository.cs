@@ -96,6 +96,12 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         await _context.SaveChangesAsync();
     }
 
+    // Close an active post: set status to CLOSED (owned by the recruiter).
+    public Task CloseJobPostAsync(int jobId, int recruiterId)
+        => _context.JobPosts
+            .Where(j => j.JobId == jobId && j.RecruiterId == recruiterId)
+            .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, "CLOSED"));
+
     //Delete job post: cascade delete related applications, interviews, bookmarks, job_tech_stack.
     public async Task DeleteJobPostAsync(int jobId, int recruiterId)
     {

@@ -236,7 +236,7 @@ namespace DevHub.Controllers.Recruiter
             }
         }
 
-        // Permanently delete a Rejected/Closed post after the confirm modal; service purges dependents.
+        // Permanently delete a Closed post after the confirm modal; service purges dependents.
         [HttpPost("Delete/{id:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id, string? q, string? status, int page = 1)
@@ -267,6 +267,33 @@ namespace DevHub.Controllers.Recruiter
                 TempData["Error"] = "Không thể xóa tin do còn dữ liệu liên quan. Vui lòng thử lại hoặc liên hệ quản trị.";
             }
             // Keep the originating list filters after delete.
+            return RedirectToAction("Index", new { q, status, page });
+        }
+
+        // Recruiter closes an active (APPROVED) post -> status CLOSED.
+        [HttpPost("Close/{id:int}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Close(int id, string? q, string? status, int page = 1)
+        {
+            var email = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser == null || dbUser.Recruiter == null)
+                return NotFound();
+
+            try
+            {
+                await _jobPostService.CloseJobPostAsync(dbUser.Recruiter.RecruiterId, id);
+                TempData["Success"] = "Đã đóng tin tuyển dụng.";
+            }
+            catch (KeyNotFoundException)
+            {
+                TempData["Error"] = "Tin tuyển dụng không tồn tại.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+            // Keep the originating list filters after closing.
             return RedirectToAction("Index", new { q, status, page });
         }
     }

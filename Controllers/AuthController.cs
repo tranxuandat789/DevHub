@@ -803,65 +803,25 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> EmployerRegister(RegisterRecruiterViewModel registerRecruiter)
     {
-        if (registerRecruiter == null)
+        if (!ModelState.IsValid)
         {
-            ViewBag.ErrorMessage = "Dữ liệu đăng ký không hợp lệ!";
-            return View();
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage);
+            ViewBag.ErrorMessage = string.Join("<br/>", errors);
+            return View(registerRecruiter);
         }
 
-        string fullName = registerRecruiter.FullName ?? "";
-        string phone = registerRecruiter.Phone ?? "";
-        string email = registerRecruiter.Email ?? "";
-        string passwordRaw = registerRecruiter.Password ?? "";
-        string verifyPasswordRaw = registerRecruiter.VerifyPassword ?? "";
-        string message = "";
-
-        // Validate FullName (must have at least 2 words)
-        var nameWords = fullName.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        if (nameWords.Length < 2)
+        // Check email trùng
+        if (_context.UserAccounts.Any(u => u.Email == registerRecruiter.Email))
         {
-            message += "Họ và tên phải có ít nhất 2 từ! ";
-        }
-
-        // Validate Phone — format: 0xx xxxx xxx
-        if (string.IsNullOrEmpty(phone) || !Regex.IsMatch(phone, @"^0\d{2} \d{4} \d{3}$"))
-        {
-            message += "Số điện thoại phải theo đúng định dạng '0xx xxxx xxx'! ";
-        }
-
-        // Validate Email
-        if (string.IsNullOrEmpty(email) || !Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@(gmail\.com|fpt\.edu\.vn)$"))
-        {
-            message += "Email phải theo định dạng example@gmail.com hoặc email doanh nghiệp example@fpt.edu.vn! ";
-        }
-
-        // Validate Password matching
-        if (passwordRaw != verifyPasswordRaw)
-        {
-            message += "Mật khẩu và mật khẩu nhập lại không khớp! ";
-        }
-
-        // Validate Password strength
-        if (string.IsNullOrEmpty(passwordRaw) || !Regex.IsMatch(passwordRaw, @"^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{10,}$"))
-        {
-            message += "Mật khẩu phải dài ít nhất 10 ký tự, có ít nhất 1 chữ in hoa, 1 chữ số và 1 ký tự đặc biệt! ";
-        }
-
-        // Check if email already exists
-        if (_context.UserAccounts.Any(u => u.Email == email))
-        {
-            message += "Email này đã được sử dụng để đăng ký tài khoản khác! ";
-        }
-
-        if (!string.IsNullOrEmpty(message))
-        {
-            ViewBag.ErrorMessage = message;
+            ViewBag.ErrorMessage = "Email này đã được sử dụng để đăng ký tài khoản khác!";
             return View(registerRecruiter);
         }
 
         // Generate 6-digit OTP
         var otp = new Random().Next(100000, 999999).ToString();
-        Console.WriteLine($"[DevHub OTP] Generated OTP for {email}: {otp}");
+        Console.WriteLine($"[DevHub OTP] Generated OTP for {registerRecruiter.Email}: {otp}");
 
         // Store registration info and OTP in session
         var registrationDataJson = JsonSerializer.Serialize(registerRecruiter);
@@ -874,27 +834,27 @@ public class AuthController : Controller
         {
             var subject = "Mã xác thực OTP đăng ký Nhà tuyển dụng - DevHub";
             var body = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
-                    <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Nhà tuyển dụng DevHub</h2>
-                    <p>Xin chào {fullName},</p>
-                    <p>Cảm ơn bạn đã lựa chọn DevHub. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình đăng ký tài khoản nhà tuyển dụng của bạn:</p>
-                    <div style='text-align: center; margin: 30px 0;'>
-                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
-                    </div>
-                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
-                    <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
-                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-                </div>";
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Nhà tuyển dụng DevHub</h2>
+                <p>Xin chào {registerRecruiter.FullName},</p>
+                <p>Cảm ơn bạn đã lựa chọn DevHub. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình đăng ký tài khoản nhà tuyển dụng của bạn:</p>
+                <div style='text-align: center; margin: 30px 0;'>
+                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                </div>
+                <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
+                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
+                <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+            </div>";
 
-            await _emailHelper.SendEmailAsync(email, subject, body);
+            await _emailHelper.SendEmailAsync(registerRecruiter.Email, subject, body);
             return RedirectToAction("EmployerVerifyOTP");
         }
         catch (Exception ex)
         {
             var innerMsg = ex.InnerException?.Message ?? ex.Message;
             Console.WriteLine($"[DevHub EMAIL ERROR] Failed to send OTP email: {innerMsg}");
-            ViewBag.ErrorMessage = $"Không thể gửi email xác thực đến {email}. Lỗi: {innerMsg}";
+            ViewBag.ErrorMessage = $"Không thể gửi email xác thực đến {registerRecruiter.Email}. Lỗi: {innerMsg}";
             return View(registerRecruiter);
         }
     }

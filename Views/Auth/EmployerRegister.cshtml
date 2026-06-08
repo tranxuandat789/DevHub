@@ -22,7 +22,7 @@
                     <span id="errorMessageText">@ViewBag.ErrorMessage</span>
                 </div>
 
-                <form asp-action="EmployerRegister" asp-controller="Auth" method="post" id="employerRegisterForm" onsubmit="return validateForm(event)">
+                <form asp-action="EmployerRegister" asp-controller="Auth" method="post" id="employerRegisterForm">
                     <div class="mb-4">
                         <input type="text" placeholder="Họ và tên" name="FullName" id="fnID" value="@Model?.FullName"
                                class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" required />
@@ -119,62 +119,5 @@
                 </svg>
             `;
         }
-    }
-
-    function validateForm(event) {
-        const errorBanner = document.getElementById("errorBanner");
-        const errorMessageText = document.getElementById("errorMessageText");
-        
-        // Hide banner first
-        errorBanner.classList.add("hidden");
-        errorMessageText.innerText = "";
-        
-        const fullName = document.getElementById("fnID").value.trim();
-        const email = document.getElementById("eID").value.trim();
-        const phone = document.getElementById("pID").value.trim();
-        const password = document.getElementById("passwordID").value;
-        const verifyPassword = document.getElementById("verifyPasswordID").value;
-        
-        let errors = [];
-        
-        // FullName validation (at least 2 words)
-        const words = fullName.split(/\s+/).filter(w => w.length > 0);
-        if (words.length < 2) {
-            errors.push("Họ và tên phải có ít nhất 2 từ!");
-        }
-        
-        // Phone validation (0xx xxxx xxx)
-        const phoneRegex = /^0\d{2} \d{4} \d{3}$/;
-        if (!phoneRegex.test(phone)) {
-            errors.push("Số điện thoại phải đúng định dạng '0xx xxxx xxx' (ví dụ: 091 1234 567)!");
-        }
-        
-        // Email validation (@@gmail.com or @@fpt.edu.vn)
-        const gmailRegex = /^[a-zA-Z0-9._%+-]+@@gmail\.com$/;
-        const fptRegex = /^[a-zA-Z0-9._%+-]+@@fpt\.edu\.vn$/;
-        if (!gmailRegex.test(email) && !fptRegex.test(email)) {
-            errors.push("Email phải có đuôi @@gmail.com hoặc @@fpt.edu.vn!");
-        }
-        
-        // Password match validation
-        if (password !== verifyPassword) {
-            errors.push("Mật khẩu và mật khẩu nhập lại không khớp!");
-        }
-        
-        // Password strength validation
-        // At least 8 chars, 1 uppercase, 1 special, 1 digit
-        const passStrengthRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
-        if (!passStrengthRegex.test(password)) {
-            errors.push("Mật khẩu phải dài ít nhất 8 ký tự, chứa ít nhất 1 chữ in hoa, 1 chữ số và 1 ký tự đặc biệt!");
-        }
-        
-        if (errors.length > 0) {
-            event.preventDefault();
-            errorMessageText.innerHTML = errors.join("<br/>");
-            errorBanner.classList.remove("hidden");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return false;
-        }
-        return true;
     }
 </script>

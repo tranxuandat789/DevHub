@@ -31,7 +31,7 @@ namespace DevHub.Controllers.Moderator
 
         // Action xử lý yêu cầu GET đến địa chỉ "moderator/job-approvals" để hiển thị danh sách bài đăng chờ duyệt
         [HttpGet("")]
-        public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string? sortOrder)
+        public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string? sortOrder, int page = 1)
         {
             // Validate để tránh lỗi SqlDateTime overflow (Năm < 1753) và chặn lọc tương lai
             bool hasInvalidDate = false;
@@ -75,19 +75,30 @@ namespace DevHub.Controllers.Moderator
                 ViewBag.ErrorMessage = "Ngày lọc không được vượt quá thời gian hiện tại. Dữ liệu đã được tự động điều chỉnh.";
             }
 
-            // 1. Gọi Service lấy danh sách bài đăng đang chờ duyệt dựa theo bộ lọc (ngày tháng, sắp xếp)
-            var pendingJobs = await _jobPostService.GetPendingJobsAsync(fromDate, toDate, sortOrder);
+            // 1. Phân trang ngay ở SQL (Skip/Take) — Service trả về (trang hiện tại, tổng số bài)
+            const int pageSize = 10;
+            var (pageItems, totalCount) = await _jobPostService.GetPendingJobsAsync(fromDate, toDate, sortOrder, page, pageSize);
 
-            // 2. Khởi tạo ViewModel để truyền dữ liệu và các tiêu chí lọc ra giao diện (View)
+            // 2. Tính số trang + clamp trang hiện tại cho UI (cùng cách clamp với repository)
+            int totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+            page = Math.Min(Math.Max(1, page), totalPages);
+
+            // 3. Khởi tạo ViewModel để truyền dữ liệu, tiêu chí lọc và thông tin phân trang ra View
             var viewModel = new JobApprovalViewModel
             {
-                JobPosts = pendingJobs,
+                JobPosts = pageItems,
                 FromDate = fromDate,
                 ToDate = toDate,
-                SortOrder = sortOrder
+                SortOrder = sortOrder,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                FromItem = totalCount == 0 ? 0 : (page - 1) * pageSize + 1,
+                ToItem = Math.Min(page * pageSize, totalCount)
             };
 
-            // 3. Trả về View giao diện tương ứng kèm theo dữ liệu (ViewModel)
+            // 4. Trả về View giao diện tương ứng kèm theo dữ liệu (ViewModel)
             return View("~/Views/Moderator/JobApproval/Index.cshtml", viewModel);
         }
 

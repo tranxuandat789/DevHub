@@ -28,38 +28,48 @@ public class JobPostRepository : IJobPostRepository
         _context = context;
     }
 
-    // Lấy danh sách các bài đăng tuyển dụng có trạng thái "pending" (chờ duyệt) kèm theo bộ lọc và sắp xếp
-    public async Task<List<JobPost>> GetPendingJobPostsAsync(DateTime? fromDate, DateTime? toDate, string? sortOrder)
+    // Lấy danh sách bài đăng "pending" (chờ duyệt) kèm bộ lọc/sắp xếp + phân trang ngay ở SQL (Skip/Take).
+    // Trả về (danh sách trang hiện tại, tổng số bài khớp bộ lọc).
+    public async Task<(List<JobPost> Items, int TotalCount)> GetPendingJobPostsAsync(DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
     {
-        // 1. Khởi tạo truy vấn cơ bản: Lấy dữ liệu từ bảng JobPosts, kết hợp (Eager Loading) bảng Recruiter và Position,
-        // sau đó lọc ra các bài đăng có trạng thái Status là "pending"
+        // 1. Truy vấn cơ bản: lọc các bài đăng có trạng thái "pending".
         var query = _context.JobPosts
             .Include(j => j.Recruiter)
             .Include(j => j.Position)
             .Where(j => j.Status != null && j.Status.ToUpper() == "PENDING");
 
-        // 2. Bộ lọc theo ngày bắt đầu (fromDate): Nếu có giá trị, chỉ lấy các bài viết tạo từ ngày này trở đi (so sánh phần Ngày .Date)
+        // 2. Bộ lọc theo ngày bắt đầu.
         if (fromDate.HasValue)
             query = query.Where(j => j.CreatedAt >= fromDate.Value.Date);
 
-        // 3. Bộ lọc theo ngày kết thúc (toDate): Nếu có giá trị, tính toán thời điểm cuối cùng của ngày đó (23:59:59.999...)
-        // để đảm bảo không bỏ sót các bài đăng được tạo trong ngày kết thúc
+        // 3. Bộ lọc theo ngày kết thúc (đến hết 23:59:59 của ngày đó).
         if (toDate.HasValue)
         {
             var endOfDay = toDate.Value.Date.AddDays(1).AddTicks(-1);
             query = query.Where(j => j.CreatedAt <= endOfDay);
         }
 
-        // 4. Sắp xếp kết quả: 
-        // Nếu tham số sortOrder là "oldest", sắp xếp tăng dần theo thời gian tạo (bài cũ lên trước)
-        // Ngược lại (mặc định hoặc truyền giá trị khác), sắp xếp giảm dần (bài mới lên trước)
-        if (sortOrder == "oldest")
-            query = query.OrderBy(j => j.CreatedAt);
-        else
-            query = query.OrderByDescending(j => j.CreatedAt);
+        // 4. Đếm tổng số bài khớp bộ lọc (trước khi phân trang).
+        int totalCount = await query.CountAsync();
 
-        // 5. Thực thi truy vấn xuống Cơ sở dữ liệu và trả về danh sách kết quả một cách bất đồng bộ
-        return await query.ToListAsync();
+        // 5. Clamp trang về [1, totalPages] để Skip không vượt quá dữ liệu.
+        if (pageSize < 1) pageSize = 10;
+        int totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        // 6. Sắp xếp.
+        query = sortOrder == "oldest"
+            ? query.OrderBy(j => j.CreatedAt)
+            : query.OrderByDescending(j => j.CreatedAt);
+
+        // 7. Phân trang ở SQL và trả về.
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
     // Tìm kiếm một bài đăng tuyển dụng cụ thể dựa trên ID (Khóa chính)

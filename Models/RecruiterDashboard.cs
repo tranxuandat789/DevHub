@@ -14,6 +14,10 @@ namespace DevHub.Models
 
         public List<Interview> ScheduledInterviews { get; set; } = new List<Interview>();
         public List<Interview> CompletedInterviews { get; set; } = new List<Interview>();
+
+        // Verification state (populated by the dashboard service; mock defaults to false for now).
+        public bool IsVerified { get; set; }
+        public bool HasPendingVerification { get; set; }
     }
 
     public class JobPostApplicantCount

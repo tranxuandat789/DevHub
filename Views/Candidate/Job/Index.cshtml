@@ -1,6 +1,7 @@
 @model DevHub.ViewModels.Jobs.JobSearchPageViewModel
 @{
     ViewData["Title"] = "Tìm Việc Làm";
+    bool isAuthenticated = User.Identity?.IsAuthenticated == true;
 }
 
 <!-- Top Header Section -->
@@ -383,9 +384,15 @@
                                         Hạn: @job.Deadline.Value.ToString("dd/MM/yyyy")
                                     </span>
                                 }
-                                <div class="flex items-center gap-2 mt-1">
-                                    <button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors shadow-sm border border-gray-100 bookmark-btn" data-job-id="@job.JobId" title="Lưu việc làm">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="flex items-center gap-2 mt-1" data-is-authenticated="@isAuthenticated.ToString().ToLower()">
+                                    @{ bool isBookmarked = Model.BookmarkedJobIds.Contains(job.JobId); }
+                                    <button type="button"
+                                            class="w-8 h-8 flex items-center justify-center rounded-full transition-colors shadow-sm border bookmark-btn
+                                                   @(isBookmarked ? "bg-primary/10 text-primary border-primary/30" : "bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 border-gray-100")"
+                                            data-job-id="@job.JobId"
+                                            data-bookmarked="@isBookmarked.ToString().ToLower()"
+                                            title="@(isBookmarked ? "Bỏ lưu việc làm" : "Lưu việc làm")">
+                                        <svg class="w-4 h-4" fill="@(isBookmarked ? "currentColor" : "none")" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                                         </svg>
                                     </button>
@@ -498,9 +505,21 @@
 </section>
 
 @section Scripts {
+    <!-- Toast container -->
+    <div id="bookmark-toast" class="fixed bottom-6 right-6 z-50 hidden">
+        <div class="bg-white border border-[#D6DDEB] shadow-xl rounded-2xl px-5 py-4 flex items-center gap-3 min-w-[280px]">
+            <div id="bookmark-toast-icon" class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+            </div>
+            <p id="bookmark-toast-msg" class="text-[14px] font-medium text-dark"></p>
+        </div>
+    </div>
+
     <script>
-        // Collapse/expand sidebar filter sections
         document.addEventListener('DOMContentLoaded', function () {
+            // ── Sidebar filter collapse/expand ────────────────────────────────
             document.querySelectorAll('.filter-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const content = header.nextElementSibling;
@@ -522,24 +541,83 @@
                 content.style.opacity   = '1';
             });
 
-            // Quick-filter panel toggle
+            // ── Quick-filter panel toggle ─────────────────────────────────────
             window.togglePanel = function(id) {
                 const panels = ['tech-panel', 'city-panel', 'company-panel'];
                 panels.forEach(pid => {
                     const el = document.getElementById(pid);
-                    if (pid === id) {
-                        el.classList.toggle('hidden');
-                    } else {
-                        el.classList.add('hidden');
-                    }
+                    if (pid === id) { el.classList.toggle('hidden'); }
+                    else { el.classList.add('hidden'); }
                 });
             };
-
-            // Click ngoài panel thì đóng lại
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.quick-filter-wrapper')) {
                     document.querySelectorAll('[id$="-panel"]').forEach(p => p.classList.add('hidden'));
                 }
+            });
+
+            // ── Bookmark toggle ───────────────────────────────────────────────
+            function showToast(message, type) {
+                const toast   = document.getElementById('bookmark-toast');
+                const msg     = document.getElementById('bookmark-toast-msg');
+                const iconBox = document.getElementById('bookmark-toast-icon');
+                msg.textContent = message;
+                if (type === 'success') {
+                    iconBox.className = 'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary';
+                } else {
+                    iconBox.className = 'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-red-50 text-red-500';
+                }
+                toast.classList.remove('hidden');
+                setTimeout(() => toast.classList.add('hidden'), 2500);
+            }
+
+            document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Kiểm tra trạng thái đăng nhập từ wrapper cha
+                    const wrapper = btn.closest('[data-is-authenticated]');
+                    const isAuth  = wrapper && wrapper.dataset.isAuthenticated === 'true';
+
+                    if (!isAuth) {
+                        showToast('Vui lòng đăng nhập để lưu việc làm', 'error');
+                        setTimeout(() => { window.location.href = '/Auth/Login'; }, 2000);
+                        return;
+                    }
+
+                    const jobId = btn.dataset.jobId;
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                        const res   = await fetch(`/candidate/bookmarks/toggle?jobId=${jobId}`, {
+                            method: 'POST',
+                            headers: { 'RequestVerificationToken': token }
+                        });
+                        if (!res.ok) throw new Error();
+                        const data = await res.json();
+
+                        const svg = btn.querySelector('svg');
+                        if (data.isBookmarked) {
+                            btn.dataset.bookmarked = 'true';
+                            btn.title = 'Bỏ lưu việc làm';
+                            btn.className = btn.className
+                                .replace('bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 border-gray-100', '')
+                                + ' bg-primary/10 text-primary border-primary/30';
+                            svg.setAttribute('fill', 'currentColor');
+                            showToast('Đã lưu việc làm thành công!', 'success');
+                        } else {
+                            btn.dataset.bookmarked = 'false';
+                            btn.title = 'Lưu việc làm';
+                            btn.className = btn.className
+                                .replace('bg-primary/10 text-primary border-primary/30', '')
+                                + ' bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 border-gray-100';
+                            svg.setAttribute('fill', 'none');
+                            showToast('Đã bỏ lưu việc làm', 'success');
+                        }
+                    } catch {
+                        showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
+                    }
+                });
             });
         });
     </script>

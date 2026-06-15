@@ -2,16 +2,19 @@
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Jobs;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DevHub.Controllers;
 
 public class JobsController : Controller
 {
     private readonly IJobSearchService _jobSearchService;
+    private readonly IBookmarkService _bookmarkService;
 
-    public JobsController(IJobSearchService jobSearchService)
+    public JobsController(IJobSearchService jobSearchService, IBookmarkService bookmarkService)
     {
         _jobSearchService = jobSearchService;
+        _bookmarkService = bookmarkService;
     }
 
     /// GET /Jobs — Job search page. 
@@ -19,6 +22,15 @@ public class JobsController : Controller
     public async Task<IActionResult> Index([FromQuery] JobSearchFilterViewModel filter)
     {
         var model = await _jobSearchService.SearchJobsAsync(filter);
+
+        // Load bookmark IDs nếu ứng viên đã đăng nhập
+        if (User.Identity?.IsAuthenticated == true && User.IsInRole("CANDIDATE") || User.IsInRole("Candidate"))
+        {
+            var candidateIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(candidateIdStr, out int candidateId))
+                model.BookmarkedJobIds = await _bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
+        }
+
         return View("~/Views/Candidate/Job/Index.cshtml", model);
     }
 

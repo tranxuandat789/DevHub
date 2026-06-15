@@ -252,7 +252,7 @@ namespace DevHub.Controllers
         [Authorize(Roles = "CANDIDATE,Candidate")]
         public IActionResult SavedJobs()
         {
-            return View("~/Views/Candidate/Bookmark/Index.cshtml");
+            return RedirectToAction("Index", "Bookmark", new { area = "" });
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]

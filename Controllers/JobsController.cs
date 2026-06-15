@@ -1,6 +1,8 @@
 // Author: [your-name] - Public job search controller
+using System.Security.Claims;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Jobs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -10,11 +12,13 @@ public class JobsController : Controller
 {
     private readonly IJobSearchService _jobSearchService;
     private readonly IBookmarkService _bookmarkService;
+    private readonly IApplicationService _applicationService;
 
-    public JobsController(IJobSearchService jobSearchService, IBookmarkService bookmarkService)
+    public JobsController(IJobSearchService jobSearchService, IBookmarkService bookmarkService, IApplicationService applicationService)
     {
         _jobSearchService = jobSearchService;
         _bookmarkService = bookmarkService;
+        _applicationService = applicationService;
     }
 
     /// GET /Jobs — Job search page. 
@@ -54,5 +58,52 @@ public class JobsController : Controller
         var data = await _jobSearchService.GetNavMenuDataAsync();
         return Json(data);
     }
+
+    /// GET /Jobs/MakeExpired — Temporary test endpoint to make the first 2 jobs expired
+    [HttpGet("Jobs/MakeExpired")]
+    public async Task<IActionResult> MakeExpired([FromServices] DevHub.Data.ItrecruitmentDbContext context)
+    {
+        var jobs = context.JobPosts.Where(j => j.Status == "APPROVED").Take(2).ToList();
+        foreach (var job in jobs)
+        {
+            job.Deadline = DateOnly.FromDateTime(DateTime.Now.AddDays(-5));
+        }
+        await context.SaveChangesAsync();
+        return Content($"Đã cập nhật {jobs.Count} công việc (ID: {string.Join(", ", jobs.Select(j => j.JobId))}) thành quá hạn (cách đây 5 ngày).");
+    }
+
+    /// GET /Jobs/ApplyInfo — Get candidate info for apply modal
+    [HttpGet]
+    [Authorize(Roles = "CANDIDATE")]
+    public async Task<IActionResult> ApplyInfo()
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int candidateId))
+            return Unauthorized();
+
+        var applyInfo = await _applicationService.GetApplyInfoAsync(candidateId);
+        if (applyInfo == null)
+            return NotFound();
+
+        return Json(applyInfo);
+    }
+
+    /// POST /Jobs/Apply — Submit job application
+    [HttpPost]
+    [Authorize(Roles = "CANDIDATE")]
+    public async Task<IActionResult> Apply([FromBody] SubmitApplyViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ." });
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int candidateId))
+            return Unauthorized();
+
+        var (success, message) = await _applicationService.ApplyForJobAsync(candidateId, model);
+
+        return Json(new { success, message });
+    }
 }
+
 

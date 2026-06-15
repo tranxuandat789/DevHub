@@ -100,9 +100,22 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button type="button" class="flex-1 bg-[#4F46E5] text-white font-semibold py-3 px-6 rounded-lg hover:bg-opacity-90 transition-all text-[15px]">
-                        Ứng tuyển ngay
-                    </button>
+                    @{
+                        bool isExpired = Model.Deadline.HasValue && Model.Deadline.Value < DateOnly.FromDateTime(DateTime.Now);
+                    }
+
+                    @if (isExpired)
+                    {
+                        <button type="button" disabled class="flex-1 bg-gray-300 text-white font-semibold py-3 px-6 rounded-lg cursor-not-allowed text-[15px]">
+                            Đã hết hạn ứng tuyển
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="handleApplyClick(@Model.JobId, '@Html.Raw(Model.Title)', '@Html.Raw(Model.CompanyName)')" class="flex-1 bg-[#4F46E5] text-white font-semibold py-3 px-6 rounded-lg hover:bg-opacity-90 transition-all text-[15px]">
+                            Ứng tuyển ngay
+                        </button>
+                    }
                     <button type="button" class="flex-1 border border-[#4F46E5] text-[#4F46E5] font-semibold py-3 px-6 rounded-lg hover:bg-indigo-50 transition-all text-[15px] flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -209,3 +222,173 @@
 
     </div>
 </section>
+
+<!-- Include Apply Modal -->
+@await Html.PartialAsync("~/Views/Candidate/_ApplyModal.cshtml")
+
+@section Scripts {
+    <!-- SweetAlert2 for nice alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+
+        function handleApplyClick(jobId, jobTitle, companyName) {
+            if (!isAuthenticated) {
+                Swal.fire({
+                    html: `
+                        <div class="flex flex-col items-center pt-4 pb-2">
+                            <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
+                                <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h2 class="text-[22px] font-bold text-gray-800 mb-2">Yêu cầu đăng nhập</h2>
+                            <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Bạn cần đăng nhập bằng tài khoản ứng viên để ứng tuyển công việc này.</p>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Đăng nhập ngay',
+                    cancelButtonText: 'Đóng',
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
+                        actions: 'flex gap-3 w-full mt-4',
+                        confirmButton: 'flex-1 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all',
+                        cancelButton: 'flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition-all'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    }
+                });
+                return;
+            }
+
+            // Fetch candidate info
+            Swal.showLoading();
+            fetch('/Jobs/ApplyInfo')
+                .then(res => {
+                    if (res.status === 401 || res.status === 403) {
+                        Swal.fire({
+                            html: `
+                                <div class="flex flex-col items-center pt-4 pb-2">
+                                    <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
+                                        <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-[22px] font-bold text-gray-800 mb-2">Truy cập từ chối</h2>
+                                    <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Chỉ ứng viên mới có thể ứng tuyển công việc này.</p>
+                                </div>
+                            `,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Đã hiểu',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
+                                confirmButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-xl transition-all mt-4'
+                            }
+                        });
+                        throw new Error('Unauthorized');
+                    }
+                    if (!res.ok) {
+                        Swal.fire({
+                            html: `
+                                <div class="flex flex-col items-center pt-4 pb-2">
+                                    <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
+                                        <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-[22px] font-bold text-gray-800 mb-2">Đã có lỗi xảy ra</h2>
+                                    <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Không thể lấy thông tin ứng tuyển lúc này.</p>
+                                </div>
+                            `,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Đóng',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
+                                confirmButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-xl transition-all mt-4'
+                            }
+                        });
+                        throw new Error('Network error');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    Swal.close();
+                    if (!data) return;
+
+                    if (data.profileCompletion < 70) {
+                        Swal.fire({
+                            html: `
+                                <div class="flex flex-col items-center pt-4 pb-2">
+                                    <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
+                                        <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-[22px] font-bold text-gray-800 mb-2 text-center">Hồ sơ chưa hoàn thiện</h2>
+                                    <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Hồ sơ của bạn mới đạt <span class="font-bold text-dark">${data.profileCompletion}%</span>. Bạn cần tối thiểu 70% để ứng tuyển.</p>
+                                </div>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Cập nhật hồ sơ',
+                            cancelButtonText: 'Đóng',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
+                                actions: 'flex gap-3 w-full mt-4',
+                                confirmButton: 'flex-1 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all',
+                                cancelButton: 'flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition-all'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/Candidate/Profile'; 
+                            }
+                        });
+                        return;
+                    }
+
+                    if (!data.defaultCvId) {
+                        Swal.fire({
+                            html: `
+                                <div class="flex flex-col items-center pt-4 pb-2">
+                                    <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
+                                        <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-[22px] font-bold text-gray-800 mb-2 text-center">Chưa có CV</h2>
+                                    <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Bạn chưa tải lên CV nào trong hệ thống. Hãy tải CV lên trước khi ứng tuyển.</p>
+                                </div>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Cập nhật CV',
+                            cancelButtonText: 'Đóng',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
+                                actions: 'flex gap-3 w-full mt-4',
+                                confirmButton: 'flex-1 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all',
+                                cancelButton: 'flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition-all'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/Candidate/Profile'; 
+                            }
+                        });
+                        return;
+                    }
+
+                    // Mở modal và truyền dữ liệu
+                    openApplyModal(jobId, jobTitle, companyName, data);
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+        }
+    </script>
+}

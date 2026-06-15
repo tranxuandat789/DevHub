@@ -27,7 +27,21 @@
 
         <!-- Title -->
         <h1 class="text-[32px] md:text-[40px] font-bold text-dark mb-8">
-            @if (!string.IsNullOrWhiteSpace(Model.Filter.Keyword))
+            @if (Model.Filter.TechId.HasValue)
+            {
+                var activeTech = Model.TopTechs.FirstOrDefault(t => t.TechId == Model.Filter.TechId.Value);
+                <span>Việc làm <span class="text-primary">@(activeTech.TechName ?? "Kỹ năng")</span></span>
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.Filter.FilterLocation))
+            {
+                <span>Việc làm tại <span class="text-primary">@Model.Filter.FilterLocation</span></span>
+            }
+            else if (Model.Filter.RecruiterId.HasValue)
+            {
+                var activeCompany = Model.TopCompanies.FirstOrDefault(c => c.RecruiterId == Model.Filter.RecruiterId.Value);
+                <span>Việc làm tại <span class="text-primary">@(activeCompany.CompanyName ?? "Công ty")</span></span>
+            }
+            else if (!string.IsNullOrWhiteSpace(Model.Filter.Keyword))
             {
                 <span>Kết quả cho "<span class="text-primary">@Model.Filter.Keyword</span>"</span>
             }
@@ -44,6 +58,9 @@
             <input type="hidden" name="workingModel" value="@Model.Filter.WorkingModel" />
             <input type="hidden" name="experienceLevel" value="@Model.Filter.ExperienceLevel" />
             <input type="hidden" name="desiredSalary" value="@Model.Filter.DesiredSalary" />
+            @if (Model.Filter.TechId.HasValue) { <input type="hidden" name="techId" value="@Model.Filter.TechId" /> }
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.FilterLocation)) { <input type="hidden" name="filterLocation" value="@Model.Filter.FilterLocation" /> }
+            @if (Model.Filter.RecruiterId.HasValue) { <input type="hidden" name="recruiterId" value="@Model.Filter.RecruiterId" /> }
             <input type="hidden" name="page" value="1" />
 
             <div class="bg-white p-3 shadow-[0_15px_40px_-10px_rgba(70,64,222,0.15)] md:rounded-full rounded-3xl flex flex-col md:flex-row items-center border border-purple-100">
@@ -68,14 +85,146 @@
     </div>
 </section>
 
+<!-- Quick-Filter Tab Section -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-0">
+    <div class="flex flex-wrap gap-3">
+        @{
+            bool techActive    = Model.Filter.TechId.HasValue;
+            bool cityActive    = !string.IsNullOrWhiteSpace(Model.Filter.FilterLocation);
+            bool companyActive = Model.Filter.RecruiterId.HasValue;
+        }
+
+        <!-- Nút: Việc làm theo Kỹ năng -->
+        <div class="relative quick-filter-wrapper">
+            <button type="button"
+                    onclick="togglePanel('tech-panel')"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-full border font-semibold text-[14px] transition-all
+                           @(techActive ? "bg-primary text-white border-primary" : "bg-white text-dark border-bordercolor hover:border-primary hover:text-primary")">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                Việc làm theo Kỹ năng
+                @if (techActive) { <span class="w-2 h-2 rounded-full bg-white opacity-80"></span> }
+                <svg class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+
+            <!-- Panel kỹ năng -->
+            <div id="tech-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-[520px] max-h-72 overflow-y-auto">
+                @if (techActive)
+                {
+                    <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary })"
+                       class="inline-flex items-center gap-1 text-primary text-[13px] hover:underline mb-3 font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Xóa lọc kỹ năng
+                    </a>
+                }
+                <div class="flex flex-wrap gap-2">
+                    @foreach (var tech in Model.TopTechs)
+                    {
+                        <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = tech.TechId, page = 1 })"
+                           class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium transition-all
+                                  @(Model.Filter.TechId == tech.TechId ? "bg-primary text-white border-primary" : "border-gray-200 text-dark hover:border-primary hover:text-primary")">
+                            @tech.TechName
+                            <span class="text-[11px] @(Model.Filter.TechId == tech.TechId ? "opacity-80" : "text-muted")">@tech.JobCount</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút: Việc làm theo Thành phố -->
+        <div class="relative quick-filter-wrapper">
+            <button type="button"
+                    onclick="togglePanel('city-panel')"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-full border font-semibold text-[14px] transition-all
+                           @(cityActive ? "bg-primary text-white border-primary" : "bg-white text-dark border-bordercolor hover:border-primary hover:text-primary")">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                Việc làm theo Thành phố
+                @if (cityActive) { <span class="w-2 h-2 rounded-full bg-white opacity-80"></span> }
+                <svg class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+
+            <!-- Panel thành phố -->
+            <div id="city-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-72 max-h-72 overflow-y-auto">
+                @if (cityActive)
+                {
+                    <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId })"
+                       class="inline-flex items-center gap-1 text-primary text-[13px] hover:underline mb-3 font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Xóa lọc thành phố
+                    </a>
+                }
+                <div class="space-y-1">
+                    @foreach (var loc in Model.TopLocations)
+                    {
+                        <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = loc.Location, page = 1 })"
+                           class="flex justify-between items-center px-3 py-2 rounded-lg text-[14px] transition-colors
+                                  @(Model.Filter.FilterLocation == loc.Location ? "bg-primary/10 text-primary font-semibold" : "text-dark hover:bg-gray-50 hover:text-primary")">
+                            <span>@loc.Location</span>
+                            <span class="text-[12px] text-muted ml-2">@loc.JobCount việc</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút: Việc làm theo Công ty -->
+        <div class="relative quick-filter-wrapper">
+            <button type="button"
+                    onclick="togglePanel('company-panel')"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-full border font-semibold text-[14px] transition-all
+                           @(companyActive ? "bg-primary text-white border-primary" : "bg-white text-dark border-bordercolor hover:border-primary hover:text-primary")">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                Việc làm theo Công ty
+                @if (companyActive) { <span class="w-2 h-2 rounded-full bg-white opacity-80"></span> }
+                <svg class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+
+            <!-- Panel công ty -->
+            <div id="company-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-80 max-h-72 overflow-y-auto">
+                @if (companyActive)
+                {
+                    <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation })"
+                       class="inline-flex items-center gap-1 text-primary text-[13px] hover:underline mb-3 font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Xóa lọc công ty
+                    </a>
+                }
+                <div class="space-y-1">
+                    @foreach (var company in Model.TopCompanies)
+                    {
+                        <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = company.RecruiterId, page = 1 })"
+                           class="flex justify-between items-center px-3 py-2 rounded-lg text-[14px] transition-colors
+                                  @(Model.Filter.RecruiterId == company.RecruiterId ? "bg-primary/10 text-primary font-semibold" : "text-dark hover:bg-gray-50 hover:text-primary")">
+                            <div class="flex items-center gap-2 min-w-0">
+                                @if (!string.IsNullOrEmpty(company.LogoUrl))
+                                {
+                                    <img src="@company.LogoUrl" class="w-6 h-6 rounded object-contain flex-shrink-0" />
+                                }
+                                else
+                                {
+                                    <span class="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px] flex-shrink-0">@company.CompanyName[0]</span>
+                                }
+                                <span class="truncate">@company.CompanyName</span>
+                            </div>
+                            <span class="text-[12px] text-muted ml-2 flex-shrink-0">@company.JobCount việc</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Main Content -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8">
 
     <!-- Sidebar Filters -->
     <aside class="w-full md:w-1/4 border border-bordercolor shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl p-6 bg-white h-fit">
         <form method="get" action="/Jobs" id="filter-form">
-            <!-- Giữ keyword khi filter -->
+            <!-- Giữ keyword + quick-filter params khi dùng sidebar -->
             <input type="hidden" name="keyword" value="@Model.Filter.Keyword" />
+            @if (Model.Filter.TechId.HasValue) { <input type="hidden" name="techId" value="@Model.Filter.TechId" /> }
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.FilterLocation)) { <input type="hidden" name="filterLocation" value="@Model.Filter.FilterLocation" /> }
+            @if (Model.Filter.RecruiterId.HasValue) { <input type="hidden" name="recruiterId" value="@Model.Filter.RecruiterId" /> }
             <input type="hidden" name="page" value="1" />
 
             <!-- Filter: Hình thức làm việc (load từ DB) -->
@@ -298,12 +447,14 @@
             <!-- Pagination -->
             @if (Model.TotalPages > 1)
             {
+                // Route values dùng lại cho tất cả pagination links
+                var baseRoute = new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId };
                 <div class="mt-8 flex justify-center">
                     <nav class="flex items-center space-x-1" aria-label="Phân trang">
                         <!-- Prev -->
                         @if (Model.Filter.Page > 1)
                         {
-                            <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, page = Model.Filter.Page - 1 })"
+                            <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId, page = Model.Filter.Page - 1 })"
                                class="w-10 h-10 flex items-center justify-center rounded border border-bordercolor text-muted hover:bg-gray-100 transition-colors">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -320,7 +471,7 @@
                             }
                             else if (p == 1 || p == Model.TotalPages || (p >= Model.Filter.Page - 1 && p <= Model.Filter.Page + 1))
                             {
-                                <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, page = p })"
+                                <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId, page = p })"
                                    class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-dark hover:bg-gray-100 font-medium transition-colors">@p</a>
                             }
                             else if (p == Model.Filter.Page - 2 || p == Model.Filter.Page + 2)
@@ -332,7 +483,7 @@
                         <!-- Next -->
                         @if (Model.Filter.Page < Model.TotalPages)
                         {
-                            <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, page = Model.Filter.Page + 1 })"
+                            <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId, page = Model.Filter.Page + 1 })"
                                class="w-10 h-10 flex items-center justify-center rounded border border-bordercolor text-muted hover:bg-gray-100 transition-colors">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -348,14 +499,13 @@
 
 @section Scripts {
     <script>
-        // Collapse/expand filter sections
+        // Collapse/expand sidebar filter sections
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.filter-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const content = header.nextElementSibling;
                     const icon    = header.querySelector('.filter-icon');
                     const isOpen  = content.style.maxHeight !== '0px' && content.style.maxHeight !== '';
-
                     if (isOpen) {
                         content.style.maxHeight = '0px';
                         content.style.opacity   = '0';
@@ -367,11 +517,29 @@
                     }
                 });
             });
-
-            // Mở sẵn tất cả filter
             document.querySelectorAll('.filter-content').forEach(content => {
                 content.style.maxHeight = content.scrollHeight + 'px';
                 content.style.opacity   = '1';
+            });
+
+            // Quick-filter panel toggle
+            window.togglePanel = function(id) {
+                const panels = ['tech-panel', 'city-panel', 'company-panel'];
+                panels.forEach(pid => {
+                    const el = document.getElementById(pid);
+                    if (pid === id) {
+                        el.classList.toggle('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+            };
+
+            // Click ngoài panel thì đóng lại
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.quick-filter-wrapper')) {
+                    document.querySelectorAll('[id$="-panel"]').forEach(p => p.classList.add('hidden'));
+                }
             });
         });
     </script>

@@ -33,4 +33,14 @@ public class JobsController : Controller
 
         return View("~/Views/Candidate/Job/Details.cshtml", model);
     }
+
+    /// GET /Jobs/NavData — JSON data cho mega menu trong header.
+    /// Trả về top 20 kỹ năng, thành phố, công ty có nhiều job nhất.
+    [HttpGet]
+    public async Task<IActionResult> NavData()
+    {
+        var data = await _jobSearchService.GetNavMenuDataAsync();
+        return Json(data);
+    }
 }
+

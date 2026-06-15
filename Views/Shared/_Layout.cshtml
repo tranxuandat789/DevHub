@@ -113,9 +113,89 @@
                         }
                         else
                         {
-                            <a href="/Jobs" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Tìm việc</a>
+                            <!-- Mega menu: Tìm việc -->
+                            <div class="relative" id="jobs-mega-menu">
+                                <button type="button" id="jobs-menu-btn"
+                                        class="flex items-center gap-1 text-muted font-medium hover:text-primary transition-colors text-[16px] py-2">
+                                    Tìm việc
+                                    <svg class="w-4 h-4 transition-transform duration-200" id="jobs-menu-caret" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <!-- Dropdown container (2 cột: menu trái + panel phải) -->
+                                <div id="jobs-dropdown"
+                                     class="hidden absolute left-0 top-full pt-1 z-[200]"
+                                     style="min-width:200px">
+                                    <div class="flex shadow-[0_8px_40px_rgba(0,0,0,0.15)] rounded-xl overflow-hidden border border-gray-100">
+
+                                        <!-- Cột trái: 3 mục -->
+                                        <div class="bg-white w-52 py-2 flex-shrink-0">
+                                            <div class="jobs-menu-item group/item flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-primary/5 transition-colors"
+                                                 data-panel="skill-panel">
+                                                <span class="text-[15px] font-medium text-dark group-hover/item:text-primary">Việc làm theo Kỹ năng</span>
+                                                <svg class="w-4 h-4 text-muted group-hover/item:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="jobs-menu-item group/item flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-primary/5 transition-colors"
+                                                 data-panel="city-panel">
+                                                <span class="text-[15px] font-medium text-dark group-hover/item:text-primary">Việc làm theo Thành phố</span>
+                                                <svg class="w-4 h-4 text-muted group-hover/item:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="jobs-menu-item group/item flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-primary/5 transition-colors"
+                                                 data-panel="company-panel">
+                                                <span class="text-[15px] font-medium text-dark group-hover/item:text-primary">Việc làm theo Công ty</span>
+                                                <svg class="w-4 h-4 text-muted group-hover/item:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                            <div class="border-t border-gray-100 mt-1 pt-1">
+                                                <a href="/Jobs" class="flex items-center px-5 py-3 text-[14px] text-muted hover:text-primary hover:bg-primary/5 transition-colors">
+                                                    Xem tất cả việc làm →
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cột phải: các panel con -->
+                                        <div class="bg-white border-l border-gray-100" id="jobs-right-panel" style="display:none; min-width:480px; max-width:700px">
+
+                                            <!-- Panel kỹ năng -->
+                                            <div id="skill-panel" class="hidden p-5">
+                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3">Kỹ năng phổ biến</p>
+                                                <div id="skill-list" class="flex flex-wrap gap-2">
+                                                    <span class="text-muted text-sm">Đang tải...</span>
+                                                </div>
+                                                <a href="/Jobs" class="mt-4 inline-block text-primary text-[13px] font-semibold hover:underline">
+                                                    Xem tất cả việc làm theo kỹ năng →
+                                                </a>
+                                            </div>
+
+                                            <!-- Panel thành phố -->
+                                            <div id="city-panel" class="hidden p-5">
+                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3">Thành phố phổ biến</p>
+                                                <div id="city-list" class="grid grid-cols-2 gap-1">
+                                                    <span class="text-muted text-sm">Đang tải...</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Panel công ty -->
+                                            <div id="company-panel" class="hidden p-5">
+                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3">Công ty đang tuyển nhiều nhất</p>
+                                                <div id="company-list" class="space-y-1">
+                                                    <span class="text-muted text-sm">Đang tải...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <a href="/CareerHandbook" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Cẩm nang nghề nghiệp</a>
                         }
+
                     </nav>
                 </div>
 
@@ -383,6 +463,114 @@
         });
     </script>
 
+    <!-- Mega Menu: Tìm việc -->
+    <script>
+    (function () {
+        const btn = document.getElementById('jobs-menu-btn');
+        if (!btn) return;
+
+        const dropdown   = document.getElementById('jobs-dropdown');
+        const caret      = document.getElementById('jobs-menu-caret');
+        const rightPanel = document.getElementById('jobs-right-panel');
+        const menuItems  = document.querySelectorAll('.jobs-menu-item');
+
+        let loaded = false;
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = !dropdown.classList.contains('hidden');
+            if (isOpen) { closeMenu(); } else { openMenu(); }
+        });
+
+        function openMenu() {
+            dropdown.classList.remove('hidden');
+            caret.style.transform = 'rotate(180deg)';
+            if (!loaded) loadData();
+        }
+
+        function closeMenu() {
+            dropdown.classList.add('hidden');
+            caret.style.transform = '';
+            rightPanel.style.display = 'none';
+            document.querySelectorAll('#jobs-right-panel > div').forEach(p => p.classList.add('hidden'));
+            menuItems.forEach(i => i.classList.remove('bg-primary/5'));
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!document.getElementById('jobs-mega-menu').contains(e.target)) closeMenu();
+        });
+
+        // Hover vào mục trái → hiện panel phải tương ứng
+        menuItems.forEach(item => {
+            item.addEventListener('mouseenter', function () {
+                menuItems.forEach(i => i.classList.remove('bg-primary/5'));
+                this.classList.add('bg-primary/5');
+                rightPanel.style.display = 'block';
+                document.querySelectorAll('#jobs-right-panel > div').forEach(p => p.classList.add('hidden'));
+                const panel = document.getElementById(this.dataset.panel);
+                if (panel) panel.classList.remove('hidden');
+            });
+        });
+
+        // Lazy-load: chỉ fetch 1 lần khi lần đầu mở menu
+        function loadData() {
+            fetch('/Jobs/NavData')
+                .then(r => r.json())
+                .then(data => {
+                    loaded = true;
+                    renderSkills(data.techs);
+                    renderCities(data.locations);
+                    renderCompanies(data.companies);
+                })
+                .catch(() => {});
+        }
+
+        function renderSkills(techs) {
+            const el = document.getElementById('skill-list');
+            if (!el || !techs) return;
+            el.innerHTML = techs.map(t =>
+                `<a href="/Jobs?techId=${t.techId}"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-[13px] font-medium text-dark hover:border-primary hover:text-primary transition-all">
+                    ${t.techName}
+                    <span class="text-[11px] text-muted">${t.jobCount}</span>
+                 </a>`
+            ).join('');
+        }
+
+        function renderCities(locations) {
+            const el = document.getElementById('city-list');
+            if (!el || !locations) return;
+            el.innerHTML = locations.map(l =>
+                `<a href="/Jobs?filterLocation=${encodeURIComponent(l.location)}"
+                    class="flex justify-between items-center px-3 py-2 rounded-lg text-[14px] text-dark hover:bg-primary/5 hover:text-primary transition-colors">
+                    <span>${l.location}</span>
+                    <span class="text-[12px] text-muted ml-2">${l.jobCount} việc</span>
+                 </a>`
+            ).join('');
+        }
+
+        function renderCompanies(companies) {
+            const el = document.getElementById('company-list');
+            if (!el || !companies) return;
+            el.innerHTML = companies.map(c => {
+                const logo = c.logoUrl
+                    ? `<img src="${c.logoUrl}" class="w-6 h-6 rounded object-contain flex-shrink-0" />`
+                    : `<span class="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px] flex-shrink-0">${c.companyName[0]}</span>`;
+                return `<a href="/Jobs?recruiterId=${c.recruiterId}"
+                           class="flex justify-between items-center px-3 py-1.5 rounded-lg text-[14px] text-dark hover:bg-primary/5 hover:text-primary transition-colors">
+                            <div class="flex items-center gap-2 min-w-0">
+                                ${logo}
+                                <span class="truncate">${c.companyName}</span>
+                            </div>
+                            <span class="text-[12px] text-muted ml-2 flex-shrink-0">${c.jobCount} việc</span>
+                         </a>`;
+            }).join('');
+        }
+    })();
+    </script>
+
 </body>
 </html>
+
+
 

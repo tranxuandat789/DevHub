@@ -17,4 +17,14 @@ public interface IJobSearchRepository
 
     /// <summary>Get a list of DISTINCT experience_level values in APPROVED jobs.</summary>
     Task<List<string>> GetDistinctExperienceLevelsAsync();
+
+    /// Top techs có nhiều APPROVED job nhất.
+    Task<List<(int TechId, string TechName, int JobCount)>> GetTopTechsAsync(int top);
+
+    /// Top locations có nhiều APPROVED job nhất.
+    Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top);
+
+    /// Top companies có nhiều APPROVED job nhất.
+    Task<List<(int RecruiterId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top);
 }
+

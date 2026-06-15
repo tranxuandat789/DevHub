@@ -12,4 +12,9 @@ public class JobSearchPageViewModel
     public int TotalPages { get; set; }
     public List<string> WorkingModelOptions { get; set; } = new();
     public List<string> ExperienceLevelOptions { get; set; } = new();
+    // Data cho quick-filter panels (top 20 theo số job nhiều nhất)
+    public List<(int TechId, string TechName, int JobCount)> TopTechs { get; set; } = new();
+    public List<(string Location, int JobCount)> TopLocations { get; set; } = new();
+    public List<(int RecruiterId, string CompanyName, string? LogoUrl, int JobCount)> TopCompanies { get; set; } = new();
 }
+

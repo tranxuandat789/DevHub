@@ -46,14 +46,24 @@ public class JobSearchRepository : IJobSearchRepository
         if (filter.DesiredSalary.HasValue && filter.DesiredSalary.Value > 0)
         {
             var desiredVnd = filter.DesiredSalary.Value * 1_000_000m;
-            
-            // Find jobs where the desired salary falls within the salary_min and salary_max range
-            query = query.Where(j => 
+            query = query.Where(j =>
                 (j.SalaryMin == null || j.SalaryMin <= desiredVnd) &&
                 (j.SalaryMax == null || j.SalaryMax >= desiredVnd) &&
                 (j.SalaryMin != null || j.SalaryMax != null)
             );
         }
+
+        // Quick-filter: kỹ năng
+        if (filter.TechId.HasValue)
+            query = query.Where(j => j.Teches.Any(t => t.TechId == filter.TechId.Value));
+
+        // Quick-filter: thành phố
+        if (!string.IsNullOrWhiteSpace(filter.FilterLocation))
+            query = query.Where(j => j.Location == filter.FilterLocation);
+
+        // Quick-filter: công ty
+        if (filter.RecruiterId.HasValue)
+            query = query.Where(j => j.RecruiterId == filter.RecruiterId.Value);
 
         // Count total before pagination
         var totalCount = await query.CountAsync();
@@ -104,4 +114,55 @@ public class JobSearchRepository : IJobSearchRepository
             .ToListAsync();
     }
 
+    /// Top N techs có nhiều APPROVED job nhất (qua job_tech_stack).
+    public async Task<List<(int TechId, string TechName, int JobCount)>> GetTopTechsAsync(int top)
+    {
+        return await _context.CommonTechnologies
+            .AsNoTracking()
+            .Where(t => t.IsActive == true && t.Jobs.Any(j => j.Status == "APPROVED"))
+            .Select(t => new
+            {
+                t.TechId,
+                t.TechName,
+                JobCount = t.Jobs.Count(j => j.Status == "APPROVED")
+            })
+            .OrderByDescending(x => x.JobCount)
+            .Take(top)
+            .Select(x => ValueTuple.Create(x.TechId, x.TechName, x.JobCount))
+            .ToListAsync();
+    }
+
+    /// Top N locations có nhiều APPROVED job nhất.
+    public async Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top)
+    {
+        return await _context.JobPosts
+            .AsNoTracking()
+            .Where(j => j.Status == "APPROVED" && j.Location != null)
+            .GroupBy(j => j.Location!)
+            .Select(g => new { Location = g.Key, JobCount = g.Count() })
+            .OrderByDescending(x => x.JobCount)
+            .Take(top)
+            .Select(x => ValueTuple.Create(x.Location, x.JobCount))
+            .ToListAsync();
+    }
+
+    /// Top N companies có nhiều APPROVED job nhất.
+    public async Task<List<(int RecruiterId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top)
+    {
+        return await _context.JobPosts
+            .AsNoTracking()
+            .Where(j => j.Status == "APPROVED")
+            .GroupBy(j => new { j.RecruiterId, j.Recruiter.CompanyName, j.Recruiter.CompanyLogoUrl })
+            .Select(g => new
+            {
+                g.Key.RecruiterId,
+                g.Key.CompanyName,
+                g.Key.CompanyLogoUrl,
+                JobCount = g.Count()
+            })
+            .OrderByDescending(x => x.JobCount)
+            .Take(top)
+            .Select(x => ValueTuple.Create(x.RecruiterId, x.CompanyName, x.CompanyLogoUrl, x.JobCount))
+            .ToListAsync();
+    }
 }

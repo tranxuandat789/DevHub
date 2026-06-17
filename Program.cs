@@ -192,6 +192,7 @@ builder.Services.AddScoped<IPackageTransactionRepository, PackageTransactionRepo
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
 builder.Services.AddScoped<IRecruiterPackageHistoryRepository, RecruiterPackageHistoryRepository>();
+builder.Services.AddScoped<IRecruiterDashboardRepository, RecruiterDashboardRepository>();
 builder.Services.AddScoped<IReviewRecruiterRepository, ReviewRecruiterRepository>();
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();

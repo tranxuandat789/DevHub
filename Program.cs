@@ -198,6 +198,7 @@ builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>(
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
 builder.Services.AddScoped<IJobSearchRepository, JobSearchRepository>();
+builder.Services.AddScoped<IRecruiterApplicationRepository, RecruiterApplicationRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -224,6 +225,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<DevHub.Helpers.EmailHelper>();
 builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
 builder.Services.AddScoped<IJobSearchService, JobSearchService>();
+builder.Services.AddScoped<IRecruiterApplicationService, RecruiterApplicationService>();
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.
 builder.Services.AddHostedService<JobPostAutoCloseService>();

@@ -1,211 +1,345 @@
+<!--AnhPT-18/06/2026-->
+@model DevHub.ViewModels.Recruiter.ApplicantListViewModel
+@using DevHub.ViewModels.Recruiter
 @{
     Layout = "_RecruiterLayout";
-    ViewData["Title"] = "Quản lý CV ứng tuyển";
+    ViewData["Title"] = Model.IsCrossJob ? "Tất cả ứng viên" : "Ứng viên của tin tuyển dụng";
     ViewData["ActiveMenu"] = "Candidates";
+
+    var f = Model.Filter;
+    string basePath = Model.IsCrossJob ? "/Recruiter/RecruiterApplication/All" : "/Recruiter/RecruiterApplication";
+
+    (string Cls, string Label) StatusBadge(string? status)
+    {
+        switch ((status ?? "").ToUpper())
+        {
+            case "APPROVED": return ("bg-green-100 text-green-700", "Đã duyệt");
+            case "PENDING": return ("bg-amber-100 text-amber-700", "Đang chờ");
+            case "REJECTED": return ("bg-red-100 text-red-700", "Từ chối");
+            default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "—" : status);
+        }
+    }
+
+    string TabCls(string? tab) =>
+        (f.Status ?? "") == (tab ?? "")
+            ? "px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap"
+            : "px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap";
+
+    // Builds a list URL preserving all current filters (supports repeated TechIds & status/page overrides).
+    Func<int, string?, string> BuildUrl = (page, statusOverride) =>
+    {
+        var parts = new List<string>();
+        if (!Model.IsCrossJob && Model.JobId != null) parts.Add($"jobId={Model.JobId}");
+        foreach (var t in f.TechIds) parts.Add($"TechIds={t}");
+        if (!string.IsNullOrEmpty(f.ExperienceBucket)) parts.Add($"ExperienceBucket={Uri.EscapeDataString(f.ExperienceBucket)}");
+        var st = statusOverride ?? f.Status;
+        if (!string.IsNullOrEmpty(st)) parts.Add($"Status={Uri.EscapeDataString(st)}");
+        if (Model.IsCrossJob && f.PositionId != null) parts.Add($"PositionId={f.PositionId}");
+        if (!string.IsNullOrEmpty(f.Keyword)) parts.Add($"Keyword={Uri.EscapeDataString(f.Keyword)}");
+        if (!string.IsNullOrEmpty(f.Location)) parts.Add($"Location={Uri.EscapeDataString(f.Location)}");
+        if (!string.IsNullOrEmpty(f.Sort)) parts.Add($"Sort={Uri.EscapeDataString(f.Sort)}");
+        parts.Add($"Page={page}");
+        return basePath + "?" + string.Join("&", parts);
+    };
+
+    string Avatar(string? url, string name) =>
+        !string.IsNullOrEmpty(url) ? url : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(name)}&background=4640DE&color=fff&size=64";
 }
 
 <div class="space-y-6">
+    @if (TempData["Success"] != null)
+    {
+        <div class="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">@TempData["Error"]</div>
+    }
+
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-dark">Quản lý CV ứng tuyển</h1>
-            <p class="text-muted text-sm mt-1">Xem và duyệt hồ sơ ứng viên theo từng bài tuyển dụng</p>
+            @if (!Model.IsCrossJob)
+            {
+                <div class="flex items-center gap-2 text-sm text-muted mb-2">
+                    <a href="/Recruiter/JobPost" class="hover:text-primary transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Quản lý tin tuyển dụng
+                    </a>
+                    <span>/</span>
+                    <span class="text-dark">Ứng viên</span>
+                </div>
+                <h1 class="text-2xl font-bold text-dark">@Model.JobTitle</h1>
+                <p class="text-muted text-sm mt-1">Danh sách ứng viên đã nộp hồ sơ cho tin này</p>
+            }
+            else
+            {
+                <h1 class="text-2xl font-bold text-dark">Tất cả ứng viên</h1>
+                <p class="text-muted text-sm mt-1">Tổng hợp ứng viên trên mọi tin tuyển dụng của bạn</p>
+            }
         </div>
         <div class="flex items-center gap-3">
-            <div class="relative">
-                <select class="appearance-none pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm font-medium text-dark cursor-pointer shadow-sm">
-                    <option value="">Tất cả bài tuyển dụng</option>
-                    <option value="1">Senior .NET Core Backend Engineer</option>
-                    <option value="2">Business Analyst (Banking Domain)</option>
-                    <option value="3">ReactJS Frontend Engineer (Fresher/Junior)</option>
-                </select>
-                <svg class="w-4 h-4 text-gray-500 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
+            @if (Model.IsCrossJob)
+            {
+                <a href="@BuildUrl(1, "PENDING")" class="inline-flex items-center px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-700 font-semibold rounded-lg hover:bg-amber-100 transition-colors text-sm">
+                    Đơn chờ duyệt (@Model.CountPending)
+                </a>
+            }
+            else
+            {
+                <a href="/Recruiter/RecruiterApplication/All" class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
+                    Xem tất cả ứng viên
+                </a>
+            }
         </div>
     </div>
 
-    <!-- Tabs & Filters -->
-    <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <!-- Tabs -->
-        <div class="flex items-center space-x-1 border-b md:border-b-0 border-gray-100 overflow-x-auto pb-2 md:pb-0">
-            <button class="px-4 py-2 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Tất cả (24)</button>
-            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Đang chờ (12)</button>
-            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Phù hợp (8)</button>
-            <button class="px-4 py-2 text-sm font-medium text-muted hover:text-dark transition-colors whitespace-nowrap">Từ chối (4)</button>
+    <!-- Status tabs -->
+    <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm">
+        <div class="flex items-center space-x-1 border-b border-gray-100 overflow-x-auto pb-2 mb-4">
+            <a href="@BuildUrl(1, "")" class="@TabCls("")">Tất cả (@Model.CountAll)</a>
+            <a href="@BuildUrl(1, "PENDING")" class="@TabCls("PENDING")">Đang chờ (@Model.CountPending)</a>
+            <a href="@BuildUrl(1, "APPROVED")" class="@TabCls("APPROVED")">Đã duyệt (@Model.CountApproved)</a>
+            <a href="@BuildUrl(1, "REJECTED")" class="@TabCls("REJECTED")">Từ chối (@Model.CountRejected)</a>
         </div>
-        
-        <!-- Search -->
-        <div class="relative min-w-[250px]">
-            <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm transition-colors" placeholder="Tìm tên ứng viên...">
-            <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        </div>
+
+        <!-- Filter form (GET). Dropdown values bind from option lists only; typeahead just filters them. -->
+        <form method="get" action="@basePath" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+            @if (!Model.IsCrossJob && Model.JobId != null)
+            {
+                <input type="hidden" name="jobId" value="@Model.JobId" />
+            }
+            <input type="hidden" name="Status" value="@f.Status" />
+
+            <div class="lg:col-span-2">
+                <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Kỹ năng (tech stack)</label>
+                <select id="techFilter" name="TechIds" multiple>
+                    @foreach (var t in Model.TechOptions)
+                    {
+                        if (f.TechIds.Contains(t.TechId))
+                        {
+                            <option value="@t.TechId" selected>@t.TechName</option>
+                        }
+                        else
+                        {
+                            <option value="@t.TechId">@t.TechName</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Kinh nghiệm</label>
+                <select name="ExperienceBucket" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+                    <option value="">Tất cả</option>
+                    @foreach (var b in ExperienceBuckets.All)
+                    {
+                        if (f.ExperienceBucket == b.Key)
+                        {
+                            <option value="@b.Key" selected>@b.Label</option>
+                        }
+                        else
+                        {
+                            <option value="@b.Key">@b.Label</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            @if (Model.IsCrossJob)
+            {
+                <div>
+                    <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Vị trí tuyển</label>
+                    <select id="positionFilter" name="PositionId">
+                        <option value="">Tất cả vị trí</option>
+                        @foreach (var p in Model.PositionOptions)
+                        {
+                            if (f.PositionId == p.PositionId)
+                            {
+                                <option value="@p.PositionId" selected>@p.PositionName</option>
+                            }
+                            else
+                            {
+                                <option value="@p.PositionId">@p.PositionName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+
+            <div>
+                <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Khu vực mong muốn</label>
+                <select id="locationFilter" name="Location">
+                    <option value="">Tất cả khu vực</option>
+                    @foreach (var loc in Model.LocationOptions)
+                    {
+                        if (f.Location == loc)
+                        {
+                            <option value="@loc" selected>@loc</option>
+                        }
+                        else
+                        {
+                            <option value="@loc">@loc</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Sắp xếp</label>
+                <select name="Sort" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+                    <option value="applied_desc" selected="@(f.Sort == null || f.Sort == "applied_desc")">Mới ứng tuyển nhất</option>
+                    <option value="applied_asc" selected="@(f.Sort == "applied_asc")">Cũ nhất</option>
+                    <option value="exp_desc" selected="@(f.Sort == "exp_desc")">Kinh nghiệm cao → thấp</option>
+                    <option value="exp_asc" selected="@(f.Sort == "exp_asc")">Kinh nghiệm thấp → cao</option>
+                </select>
+            </div>
+
+            <div class="lg:col-span-2">
+                <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Tìm theo tên ứng viên</label>
+                <input type="text" name="Keyword" value="@f.Keyword" placeholder="Nhập tên ứng viên..." class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm" />
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors">Áp dụng</button>
+                <a href="@basePath@(Model.JobId != null ? "?jobId=" + Model.JobId : "")" class="px-4 py-2.5 bg-white border border-gray-200 text-dark text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">Xóa lọc</a>
+            </div>
+        </form>
     </div>
 
     <!-- Data Table -->
     <div class="bg-white rounded-xl border border-[#F6F5FD] shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-gray-100 text-sm font-medium text-muted uppercase tracking-wider">
-                        <th class="p-4 whitespace-nowrap font-bold">Ứng viên</th>
-                        <th class="p-4 whitespace-nowrap font-bold">Vị trí ứng tuyển</th>
-                        <th class="p-4 whitespace-nowrap font-bold">Ngày nộp</th>
-                        <th class="p-4 whitespace-nowrap font-bold">Trạng thái</th>
-                        <th class="p-4 whitespace-nowrap font-bold text-right">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <!-- Row 1 -->
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3">
-                                <img src="https://i.pravatar.cc/150?img=33" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
-                                <div>
-                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Nguyễn Văn A</h3>
-                                    <p class="text-sm text-muted mt-0.5">3 năm kinh nghiệm</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <div class="text-sm font-medium text-dark">Senior .NET Core Backend Engineer</div>
-                            <div class="text-xs text-muted mt-0.5">ID: JOB-1234</div>
-                        </td>
-                        <td class="p-4 text-sm text-dark font-medium">14/05/2026</td>
-                        <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 whitespace-nowrap">Đang chờ</span>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2 dropdown-container relative">
-                                <a href="/Recruiter/RecruiterApplication/Details" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
-                                    Xem hồ sơ
-                                </a>
-                                <button onclick="toggleDropdown(this)" class="p-1.5 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                </button>
-                                <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors">Phù hợp</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-gray-50 transition-colors">Đang chờ</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors">Từ chối</button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Row 2 -->
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3">
-                                <img src="https://i.pravatar.cc/150?img=12" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
-                                <div>
-                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Trần Thị B</h3>
-                                    <p class="text-sm text-muted mt-0.5">1 năm kinh nghiệm</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <div class="text-sm font-medium text-dark">Business Analyst (Banking Domain)</div>
-                            <div class="text-xs text-muted mt-0.5">ID: JOB-5678</div>
-                        </td>
-                        <td class="p-4 text-sm text-dark font-medium">13/05/2026</td>
-                        <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Phù hợp</span>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2 dropdown-container relative">
-                                <a href="/Recruiter/RecruiterApplication/Details" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
-                                    Xem hồ sơ
-                                </a>
-                                <button onclick="toggleDropdown(this)" class="p-1.5 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                </button>
-                                <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors">Phù hợp</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-gray-50 transition-colors">Đang chờ</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors">Từ chối</button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 3 -->
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="p-4">
-                            <div class="flex items-center gap-3">
-                                <img src="https://i.pravatar.cc/150?img=68" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
-                                <div>
-                                    <h3 class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors cursor-pointer">Lê Văn C</h3>
-                                    <p class="text-sm text-muted mt-0.5">Mới tốt nghiệp</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <div class="text-sm font-medium text-dark">ReactJS Frontend Engineer (Fresher/Junior)</div>
-                            <div class="text-xs text-muted mt-0.5">ID: JOB-9012</div>
-                        </td>
-                        <td class="p-4 text-sm text-dark font-medium">12/05/2026</td>
-                        <td class="p-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">Từ chối</span>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2 dropdown-container relative">
-                                <a href="/Recruiter/RecruiterApplication/Details" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
-                                    Xem hồ sơ
-                                </a>
-                                <button onclick="toggleDropdown(this)" class="p-1.5 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                </button>
-                                <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors">Phù hợp</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-gray-50 transition-colors">Đang chờ</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors">Từ chối</button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination -->
-        <div class="border-t border-gray-100 p-4 flex items-center justify-between">
-            <span class="text-sm text-muted">Hiển thị 1 đến 3 trong số 24 ứng viên</span>
-            <div class="flex items-center gap-1">
-                <button class="p-1.5 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <button class="w-8 h-8 rounded-lg bg-primary text-white font-medium text-sm flex items-center justify-center">1</button>
-                <button class="w-8 h-8 rounded-lg text-dark hover:bg-gray-100 font-medium text-sm flex items-center justify-center transition-colors">2</button>
-                <button class="w-8 h-8 rounded-lg text-dark hover:bg-gray-100 font-medium text-sm flex items-center justify-center transition-colors">3</button>
-                <span class="w-8 h-8 flex items-center justify-center text-muted">...</span>
-                <button class="p-1.5 rounded-lg border border-gray-200 text-dark hover:bg-gray-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
+        @if (Model.Items.Count == 0)
+        {
+            <div class="p-16 text-center">
+                <div class="w-16 h-16 mx-auto rounded-full bg-[#F6F5FD] flex items-center justify-center mb-4 text-primary">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-dark mb-1">Chưa có ứng viên</h3>
+                <p class="text-muted text-sm">Hiện chưa có hồ sơ nào khớp với bộ lọc.</p>
+                @if (!Model.IsCrossJob)
+                {
+                    <a href="/Recruiter/JobPost" class="inline-flex items-center mt-4 px-4 py-2 bg-white border border-gray-200 text-dark text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">Quay lại quản lý tin</a>
+                }
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100 text-sm font-medium text-muted uppercase tracking-wider">
+                            <th class="p-4 whitespace-nowrap font-bold">Ứng viên</th>
+                            <th class="p-4 whitespace-nowrap font-bold">Kỹ năng</th>
+                            @if (Model.IsCrossJob)
+                            {
+                                <th class="p-4 whitespace-nowrap font-bold">Tin tuyển</th>
+                            }
+                            <th class="p-4 whitespace-nowrap font-bold">Ngày nộp</th>
+                            <th class="p-4 whitespace-nowrap font-bold">Trạng thái</th>
+                            <th class="p-4 whitespace-nowrap font-bold text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach (var a in Model.Items)
+                        {
+                            var badge = StatusBadge(a.Status);
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="@Avatar(a.AvatarUrl, a.FullName)" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                                        <div>
+                                            <a href="/Recruiter/RecruiterApplication/Details/@a.ApplicationId" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors">@a.FullName</a>
+                                            <p class="text-sm text-muted mt-0.5">@(a.ExperienceYears.HasValue ? $"{a.ExperienceYears} năm kinh nghiệm" : "Chưa cập nhật kinh nghiệm")</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex flex-wrap gap-1 max-w-[260px]">
+                                        @if (a.TopSkills.Count == 0)
+                                        {
+                                            <span class="text-xs text-muted">—</span>
+                                        }
+                                        @foreach (var s in a.TopSkills)
+                                        {
+                                            <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded">@s</span>
+                                        }
+                                    </div>
+                                </td>
+                                @if (Model.IsCrossJob)
+                                {
+                                    <td class="p-4 text-sm text-dark font-medium max-w-[200px] truncate">@a.JobTitle</td>
+                                }
+                                <td class="p-4 text-sm text-dark font-medium">@(a.AppliedAt?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold @badge.Cls whitespace-nowrap">@badge.Label</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <a href="/Recruiter/RecruiterApplication/Details/@a.ApplicationId" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
+                                        Xem hồ sơ
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="p-4 border-t border-gray-100 flex items-center justify-between">
+                <p class="text-sm text-muted">Trang <span class="font-bold text-dark">@Model.Page</span> / <span class="font-bold text-dark">@Model.TotalPages</span> — tổng <span class="font-bold text-dark">@Model.TotalCount</span> ứng viên</p>
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="flex items-center gap-1">
+                        @for (int p = 1; p <= Model.TotalPages; p++)
+                        {
+                            var cls = p == Model.Page
+                                ? "w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium text-sm"
+                                : "w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium";
+                            <a href="@BuildUrl(p, null)" class="@cls">@p</a>
+                        }
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
+    <style>
+        .choices { margin-bottom: 0; }
+        .choices__inner { background: #fff; border-radius: 0.5rem; border: 1px solid #e5e7eb; min-height: 42px; padding: 4px 8px; font-size: 14px; }
+        .choices.is-focused .choices__inner { border-color: #4640DE; box-shadow: 0 0 0 1px #4640DE; }
+        .choices__list--multiple .choices__item { background: #4640DE; border: none; border-radius: 6px; font-size: 12px; }
+        .choices__list--dropdown .choices__item--selectable.is-highlighted { background: #4640DE; color: #fff; }
+    </style>
     <script>
-        function toggleDropdown(button) {
-            // Close all other open dropdowns
-            document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                if (menu !== button.nextElementSibling) {
-                    menu.classList.add('hidden');
-                }
-            });
-            // Toggle the current dropdown
-            const menu = button.nextElementSibling;
-            menu.classList.toggle('hidden');
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!window.Choices) return;
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.dropdown-container')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
+            // Multi-select tech: typeahead filters suggestions; values come only from the option list.
+            var tech = document.getElementById('techFilter');
+            if (tech) new Choices(tech, {
+                removeItemButton: true,
+                addItems: false,        // free text cannot become a value
+                duplicateItemsAllowed: false,
+                searchEnabled: true,
+                placeholderValue: 'Gõ để tìm kỹ năng...',
+                noResultsText: 'Không tìm thấy kỹ năng',
+                noChoicesText: 'Đã chọn hết',
+                itemSelectText: ''
+            });
+
+            ['positionFilter', 'locationFilter'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) new Choices(el, {
+                    addItems: false,    // bind from list only
+                    searchEnabled: true,
+                    shouldSort: false,
+                    itemSelectText: '',
+                    noResultsText: 'Không có kết quả'
                 });
-            }
+            });
         });
     </script>
 }

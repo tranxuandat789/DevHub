@@ -1,5 +1,8 @@
-﻿namespace DevHub.Repositories.Interfaces;
+using DevHub.Models;
+
+namespace DevHub.Repositories.Interfaces;
 
 public interface IPackageTransactionRepository
 {
+    IQueryable<PackageTransaction> GetAll();
 }

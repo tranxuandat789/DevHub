@@ -789,7 +789,7 @@ public class AuthController : Controller
 
         return (userType?.Trim().ToUpper()) switch
         {
-            "Admin" or "ADMIN" => Redirect("/admin/dashboard"),
+            "Admin" or "ADMIN" => Redirect("/AdminDashboard"),
             "Moderator" or "MODERATOR" => Redirect("/moderator/job-approvals"),
             "Recruiter" or "RECRUITER" => Redirect("/Recruiter/Dashboard"),
             _ => RedirectToAction("Index", "Home")

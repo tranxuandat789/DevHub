@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DevHub.Models;
-using System;
-using System.Collections.Generic;
+using DevHub.Services.Interfaces;
+using DevHub.Repositories.Interfaces;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DevHub.Controllers.Recruiter
@@ -11,62 +12,101 @@ namespace DevHub.Controllers.Recruiter
     [Authorize(Roles = "RECRUITER")]
     public class RecruiterDashboardController : Controller
     {
-        public RecruiterDashboardController()
+        private readonly IAuthService _authService;
+        private readonly IRecruiterDashboardRepository _dashboardRepo;
+        private readonly IRecruiterRepository _recruiterRepo;
+        private readonly IRecruiterPackageHistoryRepository _packageRepo;
+
+        public RecruiterDashboardController(
+            IAuthService authService,
+            IRecruiterDashboardRepository dashboardRepo,
+            IRecruiterRepository recruiterRepo,
+            IRecruiterPackageHistoryRepository packageRepo)
         {
+            _authService = authService;
+            _dashboardRepo = dashboardRepo;
+            _recruiterRepo = recruiterRepo;
+            _packageRepo = packageRepo;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // Sử dụng dữ liệu giả (mock data) để thiết kế UI mà không cần kết nối DB
+            // 1. Resolve the logged-in recruiter.
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser?.Recruiter == null)
+                return NotFound();
+
+            var recruiter = dbUser.Recruiter;
+            int recruiterId = recruiter.RecruiterId;
+
+            // 2. Pull real data.
+            var posts = await _dashboardRepo.GetJobPostsAsync(recruiterId);        // all posts, newest first
+            var interviews = await _dashboardRepo.GetInterviewsAsync(recruiterId);
+
+            var scheduled = interviews
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED" || s == "PENDING"; })
+                .ToList();
+            var completed = interviews
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "COMPLETED" || s == "CLOSED"; })
+                .ToList();
+
+            // Recent posts shown in the table (top 5 newest) + their applicant avatars.
+            var recentPosts = posts.Take(5).ToList();
+            var avatarsByJob = await _dashboardRepo.GetApplicantAvatarsByJobAsync(recentPosts.Select(p => p.JobId).ToList(), 3);
+
+            var jobApplicantCounts = recentPosts.Select(j => new JobPostApplicantCount
+            {
+                JobId = j.JobId,
+                Title = j.Title,
+                ApplicantCount = j.ApplicationCount ?? 0,
+                Status = j.Status,
+                CreatedAt = j.CreatedAt,
+                Deadline = j.Deadline,
+                ApplicantAvatars = avatarsByJob.TryGetValue(j.JobId, out var avts) ? avts : new List<string>()
+            }).ToList();
+
+            // [#3] Active package, [#5] expiring jobs, [#6] recent applicants, [#10] pending verification.
+            var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
+            var expiringJobs = await _dashboardRepo.GetExpiringJobsAsync(recruiterId);
+            var recentApps = await _dashboardRepo.GetRecentApplicationsAsync(recruiterId);
+            bool hasPending = await _recruiterRepo.HasPendingVerificationRequestAsync(recruiterId);
+
+            // [#4] Missing profile fields.
+            var missingFields = new List<string>();
+            if (string.IsNullOrEmpty(recruiter.CompanyLogoUrl)) missingFields.Add("Logo công ty");
+            if (string.IsNullOrEmpty(recruiter.CompanyDescription)) missingFields.Add("Giới thiệu công ty");
+            if (string.IsNullOrEmpty(recruiter.Website)) missingFields.Add("Website");
+            if (string.IsNullOrEmpty(recruiter.Industry)) missingFields.Add("Ngành nghề");
+            if (string.IsNullOrEmpty(recruiter.TaxCode)) missingFields.Add("Mã số thuế");
+            if (string.IsNullOrEmpty(recruiter.BusinessLicenseUrl)) missingFields.Add("Giấy phép kinh doanh");
+
+            // 3. Assemble the dashboard model.
             var viewModel = new RecruiterDashboard
             {
-                TotalJobPosts = 12,
-                TotalApplications = 145,
-                TotalScheduledInterviews = 8,
-                TotalCompletedInterviews = 32,
-                JobPostApplicantCounts = new List<JobPostApplicantCount>
-                {
-                    new JobPostApplicantCount { JobId = 1, Title = "Senior UI/UX Designer", ApplicantCount = 45, Status = "Active", CreatedAt = DateTime.Now.AddDays(-2) },
-                    new JobPostApplicantCount { JobId = 2, Title = "Frontend Developer (React/NextJS)", ApplicantCount = 38, Status = "Active", CreatedAt = DateTime.Now.AddDays(-5) },
-                    new JobPostApplicantCount { JobId = 3, Title = "Backend Engineer (.NET Core)", ApplicantCount = 24, Status = "Closed", CreatedAt = DateTime.Now.AddDays(-15) },
-                    new JobPostApplicantCount { JobId = 4, Title = "Marketing Specialist", ApplicantCount = 38, Status = "Active", CreatedAt = DateTime.Now.AddDays(-8) }
-                },
-                ScheduledInterviews = new List<Interview>
-                {
-                    new Interview { 
-                        InterviewId = 1, 
-                        ScheduledTime = DateTime.Now.AddDays(1).AddHours(2), 
-                        Status = "Scheduled", 
-                        Candidate = new DevHub.Models.Candidate { FullName = "Nguyễn Văn Hoàng" }, 
-                        Application = new Application { Job = new JobPost { Title = "Senior UI/UX Designer" } }, 
-                        MeetingLink = "https://meet.google.com/abc-xyz" 
-                    },
-                    new Interview { 
-                        InterviewId = 2, 
-                        ScheduledTime = DateTime.Now.AddDays(2).AddHours(5), 
-                        Status = "Scheduled", 
-                        Candidate = new DevHub.Models.Candidate { FullName = "Trần Thị Lan" }, 
-                        Application = new Application { Job = new JobPost { Title = "Frontend Developer" } }, 
-                        MeetingLink = "https://zoom.us/j/123456789" 
-                    }
-                },
-                CompletedInterviews = new List<Interview>
-                {
-                    new Interview { 
-                        InterviewId = 3, 
-                        ScheduledTime = DateTime.Now.AddDays(-1).AddHours(-2), 
-                        Status = "Completed", 
-                        Candidate = new DevHub.Models.Candidate { FullName = "Lê Tuấn Anh" }, 
-                        Application = new Application { Job = new JobPost { Title = "Backend Engineer" } } 
-                    },
-                    new Interview { 
-                        InterviewId = 4, 
-                        ScheduledTime = DateTime.Now.AddDays(-3).AddHours(-4), 
-                        Status = "Completed", 
-                        Candidate = new DevHub.Models.Candidate { FullName = "Phạm Mai Phương" }, 
-                        Application = new Application { Job = new JobPost { Title = "Marketing Specialist" } } 
-                    }
-                }
+                TotalJobPosts            = posts.Count,
+                TotalApplications        = posts.Sum(j => j.ApplicationCount ?? 0),
+                TotalScheduledInterviews = scheduled.Count,
+                TotalCompletedInterviews = completed.Count,
+
+                JobPostApplicantCounts = jobApplicantCounts,
+                ScheduledInterviews = scheduled,
+                CompletedInterviews = completed,
+
+                IsVerified             = recruiter.IsVerified ?? false,
+                HasPendingVerification = hasPending,
+
+                HasActivePackage  = package != null,
+                ActivePackageName = package?.Service?.PackageName,
+                PostsRemaining    = package?.PostsRemaining ?? 0,
+                PostsGranted      = package?.PostsGranted ?? 0,
+                PackageExpiry     = package?.EndDate,
+
+                ProfileCompletion    = recruiter.ProfileCompletion ?? 0,
+                MissingProfileFields = missingFields,
+
+                ExpiringJobs       = expiringJobs,
+                RecentApplications = recentApps
             };
 
             return View("~/Views/Recruiter/RecruiterDashboard/Index.cshtml", viewModel);

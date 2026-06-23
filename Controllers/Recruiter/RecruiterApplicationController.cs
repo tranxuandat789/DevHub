@@ -1,5 +1,9 @@
+//AnhPT-18/06/2026
+using DevHub.Services.Interfaces;
+using DevHub.ViewModels.Recruiter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DevHub.Controllers.Recruiter
 {
@@ -7,16 +11,95 @@ namespace DevHub.Controllers.Recruiter
     [Authorize(Roles = "RECRUITER")]
     public class RecruiterApplicationController : Controller
     {
-        [HttpGet]
-        public IActionResult Index()
+        private readonly IAuthService _authService;
+        private readonly IRecruiterApplicationService _appService;
+
+        public RecruiterApplicationController(IAuthService authService, IRecruiterApplicationService appService)
         {
-            return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml");
+            _authService = authService;
+            _appService = appService;
         }
 
-        [HttpGet("Details")]
-        public IActionResult Details()
+        // Resolves the logged-in recruiter id; returns null when not found.
+        private async Task<int?> GetRecruiterIdAsync()
         {
-            return View("~/Views/Recruiter/RecruiterApplication/Details.cshtml");
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            return dbUser?.Recruiter?.RecruiterId;
+        }
+
+        // UC-14: applicants of one APPROVED job owned by the recruiter.
+        [HttpGet]
+        public async Task<IActionResult> Index(int? jobId, ApplicantFilter filter)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            if (jobId == null)
+                return RedirectToAction(nameof(All));
+
+            var vm = await _appService.GetJobApplicantsAsync(recruiterId.Value, jobId.Value, filter);
+            if (vm == null)
+            {
+                TempData["Error"] = "Không tìm thấy tin tuyển dụng hoặc tin chưa được duyệt.";
+                return RedirectToAction("Index", "JobPost");
+            }
+
+            return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", vm);
+        }
+
+        // Cross-job thin layer: all applicants across the recruiter's jobs.
+        [HttpGet("All")]
+        public async Task<IActionResult> All(ApplicantFilter filter)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            var vm = await _appService.GetAllApplicantsAsync(recruiterId.Value, filter);
+            return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", vm);
+        }
+
+        // UC-15: full candidate profile + CV.
+        [HttpGet("Details/{applicationId:int}")]
+        public async Task<IActionResult> Details(int applicationId)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            var vm = await _appService.GetCandidateProfileAsync(recruiterId.Value, applicationId);
+            if (vm == null)
+            {
+                TempData["Error"] = "Không tìm thấy hồ sơ ứng viên.";
+                return RedirectToAction("Index", "JobPost");
+            }
+
+            return View("~/Views/Recruiter/RecruiterApplication/Details.cshtml", vm);
+        }
+
+        // AF-01: approve application.
+        [HttpPost("Approve/{applicationId:int}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int applicationId)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            var (success, message) = await _appService.ApproveAsync(recruiterId.Value, applicationId);
+            TempData[success ? "Success" : "Error"] = message;
+            return RedirectToAction(nameof(Details), new { applicationId });
+        }
+
+        // AF-02: reject application.
+        [HttpPost("Reject/{applicationId:int}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(int applicationId)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            var (success, message) = await _appService.RejectAsync(recruiterId.Value, applicationId);
+            TempData[success ? "Success" : "Error"] = message;
+            return RedirectToAction(nameof(Details), new { applicationId });
         }
     }
 }

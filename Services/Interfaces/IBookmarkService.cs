@@ -1,4 +1,4 @@
-﻿namespace DevHub.Services.Interfaces;
+namespace DevHub.Services.Interfaces;
 
 public interface IBookmarkService
 {

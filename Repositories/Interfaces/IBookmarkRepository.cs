@@ -1,4 +1,4 @@
-﻿namespace DevHub.Repositories.Interfaces;
+namespace DevHub.Repositories.Interfaces;
 
 public interface IBookmarkRepository
 {

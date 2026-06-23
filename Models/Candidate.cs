@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -22,6 +22,8 @@ public partial class Candidate
     public decimal? ExpectedSalaryMax { get; set; }
 
     public string? PreferredLocation { get; set; }
+
+    public string? PreferredWorkingModel { get; set; }
 
     public int? ExperienceYears { get; set; }
 

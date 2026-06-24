@@ -81,6 +81,28 @@ namespace DevHub.Controllers.Recruiter
             if (string.IsNullOrEmpty(recruiter.TaxCode)) missingFields.Add("Mã số thuế");
             if (string.IsNullOrEmpty(recruiter.BusinessLicenseUrl)) missingFields.Add("Giấy phép kinh doanh");
 
+            // [#1] 30-day activity series (applications & interviews per day, zero-filled).
+            const int statsDays = 30;
+            var statsFrom = DateTime.Today.AddDays(-(statsDays - 1));
+            var appDates = await _dashboardRepo.GetApplicationDatesAsync(recruiterId, statsFrom);
+            var appByDay = appDates.GroupBy(d => d.Date).ToDictionary(g => g.Key, g => g.Count());
+            var interviewByDay = interviews
+                .Select(i => (i.CreatedAt ?? i.ScheduledTime).Date)
+                .Where(d => d >= statsFrom.Date)
+                .GroupBy(d => d)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var statsLabels = new List<string>();
+            var statsApplications = new List<int>();
+            var statsInterviews = new List<int>();
+            for (int i = 0; i < statsDays; i++)
+            {
+                var day = statsFrom.Date.AddDays(i);
+                statsLabels.Add(day.ToString("d/M"));
+                statsApplications.Add(appByDay.TryGetValue(day, out var ac) ? ac : 0);
+                statsInterviews.Add(interviewByDay.TryGetValue(day, out var ic) ? ic : 0);
+            }
+
             // 3. Assemble the dashboard model.
             var viewModel = new RecruiterDashboard
             {
@@ -106,7 +128,11 @@ namespace DevHub.Controllers.Recruiter
                 MissingProfileFields = missingFields,
 
                 ExpiringJobs       = expiringJobs,
-                RecentApplications = recentApps
+                RecentApplications = recentApps,
+
+                StatsLabels        = statsLabels,
+                StatsApplications  = statsApplications,
+                StatsInterviews    = statsInterviews
             };
 
             return View("~/Views/Recruiter/RecruiterDashboard/Index.cshtml", viewModel);

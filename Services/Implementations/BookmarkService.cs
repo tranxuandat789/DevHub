@@ -1,4 +1,4 @@
-﻿using DevHub.Services.Interfaces;
+using DevHub.Services.Interfaces;
 
 namespace DevHub.Services.Implementations;
 

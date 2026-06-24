@@ -1,4 +1,5 @@
-﻿@{
+@model List<DevHub.ViewModels.Jobs.JobRecommendationViewModel>
+@{
     ViewData["Title"] = "Gợi ý việc làm";
     ViewData["ActiveMenu"] = "RecommendedJobs";
 }
@@ -17,160 +18,108 @@
                 <!-- Page Header -->
                 <div class="mb-6">
                     <h1 class="text-[28px] font-bold text-dark">Gợi ý việc làm <span class="text-primary">dành cho bạn</span></h1>
-                    <p class="text-muted text-[15px] mt-1">Có <span class="text-primary font-bold">3</span> việc làm phù hợp nhất dành cho bạn</p>
-                </div>
-
-                <!-- Horizontal Filter Bar -->
-                <div class="bg-white border border-gray-200 shadow-[0_4px_20px_rgb(0,0,0,0.08)] rounded-[16px] p-4 mb-6 flex flex-wrap items-center gap-3">
-                    <!-- Label -->
-                    <div class="flex items-center gap-2 text-[13px] font-bold text-dark flex-shrink-0">
-                        <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" /></svg>
-                        Bộ lọc:
-                    </div>
-
-
-                    <!-- Loại công việc dropdown -->
-                    <div class="relative" id="filter-type">
-                        <button onclick="toggleDropdown('dropdown-type')" class="flex items-center gap-2 border border-gray-200 bg-gray-50 hover:border-primary hover:bg-primary/5 text-[13px] text-dark font-medium px-3 py-2 rounded-lg transition-all">
-                            Loại công việc
-                            <svg class="w-3.5 h-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                        </button>
-                        <div id="dropdown-type" class="hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-3 min-w-[160px] space-y-2">
-                            <label class="flex items-center gap-2 cursor-pointer text-[13px] text-dark"><input type="checkbox" class="form-checkbox h-4 w-4 text-primary rounded border-gray-300 accent-primary"> Full time</label>
-                            <label class="flex items-center gap-2 cursor-pointer text-[13px] text-dark"><input type="checkbox" class="form-checkbox h-4 w-4 text-primary rounded border-gray-300 accent-primary"> Part time</label>
-                            <label class="flex items-center gap-2 cursor-pointer text-[13px] text-dark"><input type="checkbox" class="form-checkbox h-4 w-4 text-primary rounded border-gray-300 accent-primary"> Remote</label>
-                        </div>
-                    </div>
-
-                    <!-- Mức lương dropdown -->
-                    <div class="relative" id="filter-salary">
-                        <button onclick="toggleDropdown('dropdown-salary')" class="flex items-center gap-2 border border-gray-200 bg-gray-50 hover:border-primary hover:bg-primary/5 text-[13px] text-dark font-medium px-3 py-2 rounded-lg transition-all">
-                            Mức lương
-                            <svg class="w-3.5 h-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                        </button>
-                        <div id="dropdown-salary" class="hidden absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 p-3 min-w-[160px] space-y-2">
-                            <label class="flex items-center gap-2 cursor-pointer text-[13px] text-dark"><input type="radio" name="salary" class="form-radio h-4 w-4 text-primary border-gray-300 accent-primary"> 500 - 1000$</label>
-                            <label class="flex items-center gap-2 cursor-pointer text-[13px] text-dark"><input type="radio" name="salary" class="form-radio h-4 w-4 text-primary border-gray-300 accent-primary"> 1000 - 2000$</label>
-                            <label class="flex items-center gap-2 cursor-pointer text-[13px] text-dark"><input type="radio" name="salary" class="form-radio h-4 w-4 text-primary border-gray-300 accent-primary"> 2000$+</label>
-                        </div>
-                    </div>
-
-                    <!-- Sort -->
-                    <div class="ml-auto">
-                        <select class="border border-gray-200 bg-white text-[13px] text-dark rounded-lg px-3 py-2 focus:ring-primary outline-none">
-                            <option>Độ phù hợp cao nhất</option>
-                            <option>Mới nhất</option>
-                            <option>Lương cao nhất</option>
-                        </select>
-                    </div>
+                    <p class="text-muted text-[15px] mt-1">Có <span class="text-primary font-bold">@ViewBag.TotalJobs</span> việc làm phù hợp dành cho bạn</p>
                 </div>
 
                 <!-- Job List -->
                 <div class="space-y-4">
+                    @if (!Model.Any())
+                    {
+                        <div class="bg-white rounded-[20px] p-8 text-center border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-700">Chưa tìm thấy công việc phù hợp</h3>
+                            <p class="text-gray-500 mt-2">Vui lòng cập nhật thêm thông tin Hồ sơ cá nhân (kỹ năng, mức lương, địa điểm) để nhận gợi ý chính xác hơn.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            var job = item.Job;
+                            var matchScore = item.MatchPercentage;
+                            string formattedSalary = (job.SalaryMin.HasValue && job.SalaryMax.HasValue) 
+                                ? $"{job.SalaryMin:N0} VNĐ - {job.SalaryMax:N0} VNĐ" 
+                                : "Thỏa thuận";
 
-                            <!-- Job 1 -->
-                            <div class="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-primary transition-all rounded-[20px] p-5 relative mt-4">
-                                <div class="absolute -top-3 right-4 bg-gradient-to-r from-green-400 to-green-500 text-white font-bold text-[12px] px-3 py-1 rounded-full shadow flex items-center gap-1 border-2 border-white">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                    Phù hợp 95%
+                            <div class="bg-white border border-gray-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 rounded-[20px] p-6 relative mt-6 group">
+                                <!-- Match Badge -->
+                                <div class="absolute -top-3 right-6 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white font-bold text-[12px] px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 border-2 border-white z-10">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    Phù hợp @matchScore%
                                 </div>
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" class="w-full h-full object-contain p-1">
+                                
+                                <div class="flex items-start gap-4 mb-4">
+                                    <div class="w-12 h-12 rounded-xl border border-blue-100 bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow transition-all">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                     </div>
-                                    <div>
-                                        <h3 class="text-[16px] font-bold text-dark">Senior Frontend Developer (React/Next.js)</h3>
-                                        <div class="flex items-center text-muted text-[13px] gap-2 mt-0.5">
-                                            <span class="font-medium text-dark">Google</span>
-                                            <span>•</span>
-                                            <span>Mountain View, CA (Hybrid)</span>
+                                    <div class="flex-1 min-w-0 pt-0.5">
+                                        <a href="/Jobs/Details/@job.JobId" class="text-[18px] font-bold text-gray-900 hover:text-primary transition-colors line-clamp-1">@job.Title</a>
+                                        <div class="text-primary font-medium text-[14px] mt-1 mb-2">@job.Recruiter?.CompanyName</div>
+                                        
+                                        <div class="flex flex-wrap items-center text-gray-500 text-[13px] gap-4 mt-1">
+                                            <div class="flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                <span>@job.Location</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                                <span>@job.WorkingModel</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-muted text-[13px] mb-3">Google đang tìm kiếm Senior Frontend Developer có kinh nghiệm sâu sắc về React để xây dựng trải nghiệm người dùng thế hệ tiếp theo.</p>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="text-[#26A4FF] font-medium text-[13px]">$120,000 - $180,000 / năm</span>
-                                        <span class="px-2 py-0.5 rounded-full border border-green-500 text-green-500 text-[12px] bg-green-50">Full-Time</span>
-                                        <span class="px-2 py-0.5 rounded-full border border-primary text-primary text-[12px] bg-primary/5">React</span>
+                                
+                                <p class="text-gray-600 text-[14px] mb-5 line-clamp-2 leading-relaxed">@(string.IsNullOrEmpty(job.Description) ? "Không có mô tả" : job.Description)</p>
+                                
+                                <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                                    <div class="flex flex-wrap gap-2.5 items-center">
+                                        <div class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md font-medium text-[13px]">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            @formattedSalary
+                                        </div>
+                                        <div class="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md text-[13px]">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                            @job.ExperienceLevel
+                                        </div>
+                                        <div class="h-4 w-px bg-gray-200 mx-1 hidden sm:block"></div>
+                                        @foreach(var tech in job.Teches.Take(2))
+                                        {
+                                            <span class="px-2.5 py-1 rounded-md border border-gray-200 text-gray-600 text-[12px] bg-white hover:bg-gray-50 transition-colors">@tech.TechName</span>
+                                        }
+                                        @if(job.Teches.Count > 2)
+                                        {
+                                            <span class="px-2.5 py-1 rounded-md border border-gray-200 text-gray-500 text-[12px] bg-gray-50">+@(job.Teches.Count - 2)</span>
+                                        }
                                     </div>
-                                    <div class="flex gap-2 flex-shrink-0">
-                                        <button class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Lưu">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                                        </button>
-                                        <button onclick="openApplyModal('Senior Frontend Developer (React/Next.js)', 'Google', 'Google đang tìm kiếm Senior Frontend Developer có kinh nghiệm sâu sắc về React để xây dựng trải nghiệm người dùng thế hệ tiếp theo trên nền tảng toàn cầu.')" class="bg-primary text-white px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-opacity-90 transition-colors">Ứng tuyển</button>
+                                    <div class="flex gap-2 flex-shrink-0 ml-4">
+                                        <a href="/Jobs/Details/@job.JobId" class="flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl text-[14px] font-semibold transition-all duration-300">
+                                            Chi tiết
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
+                        }
 
-                            <!-- Job 2 -->
-                            <div class="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-primary transition-all rounded-[20px] p-5 relative mt-4">
-                                <div class="absolute -top-3 right-4 bg-gradient-to-r from-green-400 to-green-500 text-white font-bold text-[12px] px-3 py-1 rounded-full shadow flex items-center gap-1 border-2 border-white">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                    Phù hợp 88%
-                                </div>
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-10 h-10 rounded-full border border-gray-200 bg-black flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png" alt="Tesla" class="w-full h-full object-contain p-1 filter invert">
-                                    </div>
-                                    <div>
-                                        <h3 class="text-[16px] font-bold text-dark">Software Engineer, UI Frameworks</h3>
-                                        <div class="flex items-center text-muted text-[13px] gap-2 mt-0.5">
-                                            <span class="font-medium text-dark">Tesla</span>
-                                            <span>•</span>
-                                            <span>Austin, TX (On-site)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="text-muted text-[13px] mb-3">Gia nhập đội ngũ kỹ sư Tesla để xây dựng các UI frameworks tùy chỉnh sử dụng trên hàng triệu phương tiện toàn cầu.</p>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="text-[#26A4FF] font-medium text-[13px]">Thỏa thuận</span>
-                                        <span class="px-2 py-0.5 rounded-full border border-green-500 text-green-500 text-[12px] bg-green-50">Full-Time</span>
-                                        <span class="px-2 py-0.5 rounded-full border border-primary text-primary text-[12px] bg-primary/5">TypeScript</span>
-                                    </div>
-                                    <div class="flex gap-2 flex-shrink-0">
-                                        <button class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Lưu">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                                        </button>
-                                        <button onclick="openApplyModal('Software Engineer, UI Frameworks', 'Tesla', 'Gia nhập đội ngũ kỹ sư Tesla để xây dựng các UI frameworks tùy chỉnh sử dụng trên hàng triệu phương tiện và ứng dụng toàn cầu.')" class="bg-primary text-white px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-opacity-90 transition-colors">Ứng tuyển</button>
-                                    </div>
-                                </div>
+                        <!-- Pagination -->
+                        @if (ViewBag.TotalPages > 1)
+                        {
+                            <div class="mt-8 flex justify-center">
+                                <nav class="flex items-center gap-2">
+                                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                    {
+                                        if (i == ViewBag.CurrentPage)
+                                        {
+                                            <span class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-medium">@i</span>
+                                        }
+                                        else
+                                        {
+                                            <a href="/Candidate/RecommendedJobs?page=@i" class="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-primary hover:text-white transition-colors">@i</a>
+                                        }
+                                    }
+                                </nav>
                             </div>
-
-                            <!-- Job 3 -->
-                            <div class="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-primary transition-all rounded-[20px] p-5 relative mt-4">
-                                <div class="absolute -top-3 right-4 bg-gradient-to-r from-green-400 to-green-500 text-white font-bold text-[12px] px-3 py-1 rounded-full shadow flex items-center gap-1 border-2 border-white">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                                    Phù hợp 82%
-                                </div>
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-10 h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" class="w-full h-full object-contain p-1">
-                                    </div>
-                                    <div>
-                                        <h3 class="text-[16px] font-bold text-dark">Full Stack Developer (.NET/React)</h3>
-                                        <div class="flex items-center text-muted text-[13px] gap-2 mt-0.5">
-                                            <span class="font-medium text-dark">Microsoft</span>
-                                            <span>•</span>
-                                            <span>Seattle, WA (Remote)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="text-muted text-[13px] mb-3">Phát triển các ứng dụng doanh nghiệp quy mô lớn sử dụng .NET Core và React cho nền tảng Azure.</p>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex flex-wrap gap-2">
-                                        <span class="text-[#26A4FF] font-medium text-[13px]">$100,000 - $140,000 / năm</span>
-                                        <span class="px-2 py-0.5 rounded-full border border-purple-500 text-purple-500 text-[12px] bg-purple-50">Remote</span>
-                                        <span class="px-2 py-0.5 rounded-full border border-primary text-primary text-[12px] bg-primary/5">.NET</span>
-                                    </div>
-                                    <div class="flex gap-2 flex-shrink-0">
-                                        <button class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Lưu">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                                        </button>
-                                        <button onclick="openApplyModal('Full Stack Developer (.NET/React)', 'Microsoft', 'Phát triển các ứng dụng doanh nghiệp quy mô lớn sử dụng .NET Core và React cho nền tảng Azure của Microsoft.')" class="bg-primary text-white px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-opacity-90 transition-colors">Ứng tuyển</button>
-                                    </div>
-                                </div>
+                        }
+                    }
                 </div>
             </div>
         </div>

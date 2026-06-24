@@ -1,4 +1,4 @@
-﻿using DevHub.Repositories.Interfaces;
+using DevHub.Repositories.Interfaces;
 
 namespace DevHub.Repositories.Implementations;
 

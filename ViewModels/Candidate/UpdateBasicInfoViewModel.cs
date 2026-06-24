@@ -28,6 +28,9 @@ namespace DevHub.ViewModels.Candidate
         [RegularExpression(@"^[\p{L}0-9\s]+$", ErrorMessage = "Địa điểm mong muốn không được chứa ký tự đặc biệt!")]
         public string? PreferredLocation { get; set; }
         
+        [StringLength(50)]
+        public string? PreferredWorkingModel { get; set; }
+        
         [Range(0, 50, ErrorMessage = "Số năm kinh nghiệm không hợp lệ (từ 0 đến 50)")]
         public int? ExperienceYears { get; set; }
         

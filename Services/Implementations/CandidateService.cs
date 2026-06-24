@@ -20,7 +20,7 @@ namespace DevHub.Services.Implementations
             return await _candidateRepository.GetByIdWithDetailsAsync(candidateId);
         }
         // update candidate profile and then recalculate the completion percentage
-        public async Task UpdateProfileAsync(int candidateId, string fullName, string? phone, DateOnly? birthdate, string? gender, string? address, string? socialMediaUrl, decimal? expectedSalaryMin, decimal? expectedSalaryMax, string? preferredLocation, int? experienceYears, bool cvSearchable)
+        public async Task UpdateProfileAsync(int candidateId, string fullName, string? phone, DateOnly? birthdate, string? gender, string? address, string? socialMediaUrl, decimal? expectedSalaryMin, decimal? expectedSalaryMax, string? preferredLocation, int? experienceYears, bool cvSearchable, string? preferredWorkingModel)
         {
             if (string.IsNullOrWhiteSpace(fullName))
                 throw new ArgumentException("Họ và tên không được để trống!");
@@ -56,7 +56,7 @@ namespace DevHub.Services.Implementations
                     throw new ArgumentException("Link mạng xã hội phải bắt đầu bằng http:// hoặc https://");
             }
 
-            await _candidateRepository.UpdateProfileAsync(candidateId, fullName, phone, birthdate, gender, address, socialMediaUrl, expectedSalaryMin, expectedSalaryMax, preferredLocation, experienceYears, cvSearchable);
+            await _candidateRepository.UpdateProfileAsync(candidateId, fullName, phone, birthdate, gender, address, socialMediaUrl, expectedSalaryMin, expectedSalaryMax, preferredLocation, experienceYears, cvSearchable, preferredWorkingModel);
             await CalculateAndSaveCompletionAsync(candidateId);
         }
 

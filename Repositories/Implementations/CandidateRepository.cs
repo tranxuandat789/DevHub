@@ -33,7 +33,7 @@ public class CandidateRepository : ICandidateRepository
             .FirstOrDefaultAsync(c => c.CandidateId == candidateId);
     }
     // updates the candidate profile with the provided details
-    public async Task UpdateProfileAsync(int candidateId, string fullName, string? phone, DateOnly? birthdate, string? gender, string? address, string? socialMediaUrl, decimal? expectedSalaryMin, decimal? expectedSalaryMax, string? preferredLocation, int? experienceYears, bool cvSearchable)
+    public async Task UpdateProfileAsync(int candidateId, string fullName, string? phone, DateOnly? birthdate, string? gender, string? address, string? socialMediaUrl, decimal? expectedSalaryMin, decimal? expectedSalaryMax, string? preferredLocation, int? experienceYears, bool cvSearchable, string? preferredWorkingModel)
     {
         await _db.Candidates
             .Where(c => c.CandidateId == candidateId)
@@ -48,6 +48,7 @@ public class CandidateRepository : ICandidateRepository
                 .SetProperty(c => c.ExpectedSalaryMax, expectedSalaryMax)
                 .SetProperty(c => c.PreferredLocation, preferredLocation)
                 .SetProperty(c => c.ExperienceYears, experienceYears)
+                .SetProperty(c => c.PreferredWorkingModel, preferredWorkingModel)
                 .SetProperty(c => c.CvSearchable, cvSearchable));
     }
     // updates the profile completion percentage for a candidate

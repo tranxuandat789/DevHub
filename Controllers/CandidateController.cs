@@ -18,6 +18,7 @@ namespace DevHub.Controllers
         private readonly ICvService _cvService;
         private readonly ICandidateSkillService _skillService;
         private readonly ICommonTechnologyService _techService;
+        private readonly IRecommendationService _recommendationService;
 
         public CandidateController(
             IAuthService authService,
@@ -25,7 +26,8 @@ namespace DevHub.Controllers
             ICandidateService candidateService,
             ICvService cvService,
             ICandidateSkillService skillService,
-            ICommonTechnologyService techService)
+            ICommonTechnologyService techService,
+            IRecommendationService recommendationService)
         {
             _authService = authService;
             _env = env;
@@ -33,6 +35,7 @@ namespace DevHub.Controllers
             _cvService = cvService;
             _skillService = skillService;
             _techService = techService;
+            _recommendationService = recommendationService;
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
@@ -160,7 +163,8 @@ namespace DevHub.Controllers
                     model.ExpectedSalaryMax,
                     model.PreferredLocation,
                     model.ExperienceYears,
-                    model.CvSearchable
+                    model.CvSearchable,
+                    model.PreferredWorkingModel
                 );
                 TempData["SuccessMessage"] = "Cập nhật thông tin cơ bản thành công!";
             }
@@ -244,9 +248,32 @@ namespace DevHub.Controllers
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
-        public IActionResult RecommendedJobs()
+        public async Task<IActionResult> RecommendedJobs(int page = 1)
         {
-            return View("~/Views/Candidate/RecommendedJob/Index.cshtml");
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int candidateId))
+                return RedirectToAction("Login", "Auth");
+
+            var recommendedJobs = await _recommendationService.GetRecommendedJobsAsync(candidateId);
+            
+            int pageSize = 3;
+            int totalItems = recommendedJobs.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            
+            // Đảm bảo page nằm trong giới hạn
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var pagedJobs = recommendedJobs
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalJobs = totalItems;
+
+            return View("~/Views/Candidate/RecommendedJob/Index.cshtml", pagedJobs);
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]

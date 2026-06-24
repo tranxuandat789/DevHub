@@ -87,4 +87,4 @@ namespace DevHub.Controllers.Candidate
             return RedirectToAction("Index");
         }
     }
-}
+}

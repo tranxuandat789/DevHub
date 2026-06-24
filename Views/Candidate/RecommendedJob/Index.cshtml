@@ -90,7 +90,21 @@
                                             <span class="px-2.5 py-1 rounded-md border border-gray-200 text-gray-500 text-[12px] bg-gray-50">+@(job.Teches.Count - 2)</span>
                                         }
                                     </div>
-                                    <div class="flex gap-2 flex-shrink-0 ml-4">
+                                    <div class="flex gap-2 flex-shrink-0 ml-4 items-center" data-is-authenticated="true">
+                                        @{
+                                            var bookmarkedJobIds = ViewBag.BookmarkedJobIds as List<int> ?? new List<int>();
+                                            bool isBookmarked = bookmarkedJobIds.Contains(job.JobId);
+                                        }
+                                        <button type="button"
+                                                class="w-10 h-10 flex items-center justify-center rounded-xl transition-colors shadow-sm border bookmark-btn
+                                                       @(isBookmarked ? "bg-primary/10 text-primary border-primary/30" : "bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 border-gray-100")"
+                                                data-job-id="@job.JobId"
+                                                data-bookmarked="@isBookmarked.ToString().ToLower()"
+                                                title="@(isBookmarked ? "Bỏ lưu việc làm" : "Lưu việc làm")">
+                                            <svg class="w-5 h-5" fill="@(isBookmarked ? "currentColor" : "none")" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                            </svg>
+                                        </button>
                                         <a href="/Jobs/Details/@job.JobId" class="flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl text-[14px] font-semibold transition-all duration-300">
                                             Chi tiết
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -129,6 +143,18 @@
 @await Html.PartialAsync("~/Views/Candidate/_ApplyModal.cshtml")
 
 @section Scripts {
+    <!-- Toast container -->
+    <div id="bookmark-toast" class="fixed bottom-6 right-6 z-50 hidden">
+        <div class="bg-white border border-[#D6DDEB] shadow-xl rounded-2xl px-5 py-4 flex items-center gap-3 min-w-[280px]">
+            <div id="bookmark-toast-icon" class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+            </div>
+            <p id="bookmark-toast-msg" class="text-[14px] font-medium text-dark"></p>
+        </div>
+    </div>
+
     <script>
         function toggleDropdown(id) {
             const all = ['dropdown-match', 'dropdown-type', 'dropdown-salary'];
@@ -141,6 +167,69 @@
             if (!e.target.closest('#filter-match, #filter-type, #filter-salary')) {
                 ['dropdown-match','dropdown-type','dropdown-salary'].forEach(d => document.getElementById(d).classList.add('hidden'));
             }
+        });
+
+        // Bookmark Logic
+        function showToast(message, type) {
+            const toast = document.getElementById('bookmark-toast');
+            const msg = document.getElementById('bookmark-toast-msg');
+            const iconBox = document.getElementById('bookmark-toast-icon');
+            msg.textContent = message;
+            if (type === 'success') {
+                iconBox.className = 'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary';
+            } else {
+                iconBox.className = 'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-red-50 text-red-500';
+            }
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
+
+        document.querySelectorAll('.bookmark-btn').forEach(btn => {
+            btn.addEventListener('click', async function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const wrapper = btn.closest('[data-is-authenticated]');
+                const isAuth = wrapper && wrapper.dataset.isAuthenticated === 'true';
+
+                if (!isAuth) {
+                    showToast('Vui lòng đăng nhập để lưu việc làm', 'error');
+                    setTimeout(() => { window.location.href = '/Auth/Login'; }, 2000);
+                    return;
+                }
+
+                const jobId = btn.dataset.jobId;
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                    const res = await fetch(`/candidate/bookmarks/toggle?jobId=${jobId}`, {
+                        method: 'POST',
+                        headers: { 'RequestVerificationToken': token }
+                    });
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+
+                    const svg = btn.querySelector('svg');
+                    if (data.isBookmarked) {
+                        btn.dataset.bookmarked = 'true';
+                        btn.title = 'Bỏ lưu việc làm';
+                        btn.className = btn.className
+                            .replace('bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 border-gray-100', '')
+                            + ' bg-primary/10 text-primary border-primary/30';
+                        svg.setAttribute('fill', 'currentColor');
+                        showToast('Đã lưu việc làm thành công!', 'success');
+                    } else {
+                        btn.dataset.bookmarked = 'false';
+                        btn.title = 'Lưu việc làm';
+                        btn.className = btn.className
+                            .replace('bg-primary/10 text-primary border-primary/30', '')
+                            + ' bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/10 border-gray-100';
+                        svg.setAttribute('fill', 'none');
+                        showToast('Đã bỏ lưu việc làm', 'success');
+                    }
+                } catch {
+                    showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
+                }
+            });
         });
     </script>
 }

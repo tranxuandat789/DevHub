@@ -47,6 +47,16 @@ public class JobsController : Controller
         if (model is null)
             return NotFound();
 
+        if (User.Identity?.IsAuthenticated == true && (User.IsInRole("CANDIDATE") || User.IsInRole("Candidate")))
+        {
+            var candidateIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(candidateIdStr, out int candidateId))
+            {
+                var bookmarkedJobIds = await _bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
+                model.IsBookmarked = bookmarkedJobIds.Contains(id);
+            }
+        }
+
         return View("~/Views/Candidate/Job/Details.cshtml", model);
     }
 

@@ -1,14 +1,28 @@
-<meta charset="utf-8" />
+@model DevHub.ViewModels.Candidate.BookmarkPageViewModel
 @{
     ViewData["Title"] = "Việc làm đã lưu";
     ViewData["IsCandidate"] = "true";
     ViewData["ActiveMenu"] = "SavedJobs";
+
+    // Helper: build url giữ nguyên filter khi đổi trang
+    string PageUrl(int p)
+    {
+        var qs = new System.Text.StringBuilder("/candidate/bookmarks?page=" + p);
+        if (!string.IsNullOrEmpty(Model.FilterWorkingModel)) qs.Append("&workingModel=" + Uri.EscapeDataString(Model.FilterWorkingModel));
+        if (!string.IsNullOrEmpty(Model.FilterLevel)) qs.Append("&level=" + Uri.EscapeDataString(Model.FilterLevel));
+        if (!string.IsNullOrEmpty(Model.FilterLocation)) qs.Append("&location=" + Uri.EscapeDataString(Model.FilterLocation));
+        return qs.ToString();
+    }
+
+    bool hasFilter = !string.IsNullOrEmpty(Model.FilterWorkingModel)
+                  || !string.IsNullOrEmpty(Model.FilterLevel)
+                  || !string.IsNullOrEmpty(Model.FilterLocation);
 }
 
 <div class="bg-[#F8F9FA] min-h-screen py-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row gap-8">
-            
+
             <!-- Sidebar -->
             <div class="lg:w-[280px] flex-shrink-0">
                 @await Html.PartialAsync("~/Views/Candidate/_Sidebar.cshtml")
@@ -16,90 +30,344 @@
 
             <!-- Main Content -->
             <div class="flex-1">
-                <div class="bg-white rounded-[10px] p-6 shadow-sm border border-[#D6DDEB]">
+                <div class="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#D6DDEB]">
+
+                    <!-- Header -->
                     <div class="flex justify-between items-center mb-6 border-b border-[#D6DDEB] pb-4">
                         <h2 class="text-[20px] font-bold text-dark">Việc làm đã lưu</h2>
-                        <div class="flex gap-2">
-                            <span class="bg-primary/10 text-primary text-sm font-semibold px-3 py-1 rounded-full">3 Công việc</span>
-                        </div>
+                        <span class="bg-primary/10 text-primary text-sm font-semibold px-3 py-1 rounded-full">
+                            @Model.TotalCount Công việc
+                        </span>
                     </div>
 
-                    <!-- Saved Jobs List -->
-                    <div class="space-y-4">
-                        @for (int i = 0; i < 3; i++)
-                        {
-                            <div class="block border border-[#D6DDEB] hover:border-primary/50 hover:shadow-sm transition-all rounded-xl p-5 group">
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div class="flex items-start gap-4">
-                                        <!-- Company Logo -->
-                                        <div class="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden border border-[#D6DDEB] bg-white shadow-sm flex-shrink-0">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg" alt="Company" class="w-10 h-10 object-contain">
-                                        </div>
-                                        
-                                        <!-- Job Details -->
-                                        <div>
-                                            <a href="/Jobs/Details/1" class="text-[17px] font-bold text-dark group-hover:text-primary transition-colors">UI/UX Designer</a>
-                                            <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                                <span class="font-medium text-dark">BMW</span>
-                                                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                                                <span class="flex items-center">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
-                                                    Hà Nội
-                                                </span>
+                    <!-- Filter Bar -->
+                    @if (Model.WorkingModelOptions.Count > 0 || Model.ExperienceLevelOptions.Count > 0 || Model.LocationOptions.Count > 0)
+                    {
+                        <form method="get" action="/candidate/bookmarks" class="flex flex-wrap gap-3 mb-6">
+                            <input type="hidden" name="page" value="1" />
+
+                            <!-- Hình thức -->
+                            @if (Model.WorkingModelOptions.Count > 0)
+                            {
+                                <div class="relative">
+                                    <select name="workingModel"
+                                            onchange="this.form.submit()"
+                                            class="appearance-none pl-3 pr-8 py-2 rounded-lg border border-[#D6DDEB] text-[14px] text-dark bg-white focus:outline-none focus:border-primary cursor-pointer hover:border-primary transition-colors">
+                                        <option value="">Hình thức</option>
+                                        @foreach (var wm in Model.WorkingModelOptions)
+                                        {
+                                            if (Model.FilterWorkingModel == wm)
+                                            {
+                                                <option value="@wm" selected>@wm</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@wm">@wm</option>
+                                            }
+                                        }
+                                    </select>
+                                    <svg class="w-4 h-4 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            }
+
+                            <!-- Cấp bậc -->
+                            @if (Model.ExperienceLevelOptions.Count > 0)
+                            {
+                                <div class="relative">
+                                    <select name="level"
+                                            onchange="this.form.submit()"
+                                            class="appearance-none pl-3 pr-8 py-2 rounded-lg border border-[#D6DDEB] text-[14px] text-dark bg-white focus:outline-none focus:border-primary cursor-pointer hover:border-primary transition-colors">
+                                        <option value="">Cấp bậc</option>
+                                        @foreach (var lv in Model.ExperienceLevelOptions)
+                                        {
+                                            if (Model.FilterLevel == lv)
+                                            {
+                                                <option value="@lv" selected>@lv</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@lv">@lv</option>
+                                            }
+                                        }
+                                    </select>
+                                    <svg class="w-4 h-4 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            }
+
+                            <!-- Khu vực -->
+                            @if (Model.LocationOptions.Count > 0)
+                            {
+                                <div class="relative">
+                                    <select name="location"
+                                            onchange="this.form.submit()"
+                                            class="appearance-none pl-3 pr-8 py-2 rounded-lg border border-[#D6DDEB] text-[14px] text-dark bg-white focus:outline-none focus:border-primary cursor-pointer hover:border-primary transition-colors">
+                                        <option value="">Khu vực</option>
+                                        @foreach (var loc in Model.LocationOptions)
+                                        {
+                                            if (Model.FilterLocation == loc)
+                                            {
+                                                <option value="@loc" selected>@loc</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@loc">@loc</option>
+                                            }
+                                        }
+                                    </select>
+                                    <svg class="w-4 h-4 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            }
+
+                            @if (hasFilter)
+                            {
+                                <a href="/candidate/bookmarks"
+                                   class="px-4 py-2 rounded-lg border border-primary/30 text-primary text-[14px] font-medium hover:bg-primary/5 transition-colors flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Xóa lọc
+                                </a>
+                            }
+                        </form>
+                    }
+
+                    <!-- Job List -->
+                    @if (!Model.Jobs.Any())
+                    {
+                        <!-- Empty State -->
+                        <div class="py-16 text-center">
+                            <div class="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-10 h-10 text-primary/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                </svg>
+                            </div>
+                            <p class="text-[16px] font-semibold text-dark mb-2">
+                                @if (hasFilter)
+                                {
+                                    <span>Không có việc làm nào phù hợp với bộ lọc</span>
+                                }
+                                else
+                                {
+                                    <span>Chưa có việc làm nào được lưu</span>
+                                }
+                            </p>
+                            <p class="text-[14px] text-muted mb-5">
+                                @if (hasFilter)
+                                {
+                                    <span>Thử xóa bộ lọc để xem tất cả việc làm đã lưu.</span>
+                                }
+                                else
+                                {
+                                    <span>Bấm vào biểu tượng bookmark trên các tin tuyển dụng để lưu lại.</span>
+                                }
+                            </p>
+                            <a href="/Jobs" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-full text-[14px] font-semibold hover:bg-opacity-90 transition-all shadow-md">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Tìm việc ngay
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-y-4">
+                            @foreach (var job in Model.Jobs)
+                            {
+                                <div class="border border-[#D6DDEB] hover:border-primary/40 hover:shadow-md transition-all rounded-xl p-5 group">
+                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <!-- Left: Logo + Info -->
+                                        <div class="flex items-start gap-4 flex-1 min-w-0">
+                                            <!-- Company Logo -->
+                                            <div class="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden border border-[#D6DDEB] bg-white shadow-sm flex-shrink-0">
+                                                @if (!string.IsNullOrEmpty(job.CompanyLogoUrl))
+                                                {
+                                                    <img src="@job.CompanyLogoUrl" alt="@job.CompanyName" class="w-10 h-10 object-contain" />
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-primary font-bold text-[20px]">@(job.CompanyName.Length > 0 ? job.CompanyName[0].ToString().ToUpper() : "?")</span>
+                                                }
                                             </div>
-                                            
-                                            <!-- Tags -->
-                                            <div class="flex flex-wrap gap-2 mt-3">
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-green-50 text-green-600">Full-Time</span>
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-blue-50 text-blue-600">Design</span>
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium text-gray-500 flex items-center bg-gray-50">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    15-20 triệu
-                                                </span>
+
+                                            <!-- Job Info -->
+                                            <div class="min-w-0">
+                                                <a href="/Jobs/Details/@job.JobId"
+                                                   class="text-[16px] font-bold text-dark group-hover:text-primary transition-colors line-clamp-1">
+                                                    @job.Title
+                                                </a>
+                                                <div class="flex items-center gap-2 mt-1 text-[13px] text-muted flex-wrap">
+                                                    <span class="font-medium text-dark">@job.CompanyName</span>
+                                                    @if (!string.IsNullOrEmpty(job.Location))
+                                                    {
+                                                        <span class="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0"></span>
+                                                        <span class="flex items-center gap-1">
+                                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </svg>
+                                                            @job.Location
+                                                        </span>
+                                                    }
+                                                </div>
+
+                                                <!-- Tags + Salary -->
+                                                <div class="flex flex-wrap gap-2 mt-3 items-center">
+                                                    @if (!string.IsNullOrEmpty(job.WorkingModel))
+                                                    {
+                                                        <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-green-50 text-green-600 border border-green-200">@job.WorkingModel</span>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(job.ExperienceLevel))
+                                                    {
+                                                        <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-orange-50 text-orange-500 border border-orange-200">@job.ExperienceLevel</span>
+                                                    }
+                                                    @if (job.SalaryMin.HasValue || job.SalaryMax.HasValue)
+                                                    {
+                                                        <span class="flex items-center gap-1 text-[12px] text-primary font-medium">
+                                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            @if (job.SalaryMin.HasValue && job.SalaryMax.HasValue)
+                                                            {
+                                                                @($"{job.SalaryMin:N0} – {job.SalaryMax:N0} triệu")
+                                                            }
+                                                            else if (job.SalaryMin.HasValue)
+                                                            {
+                                                                @($"Từ {job.SalaryMin:N0} triệu")
+                                                            }
+                                                            else
+                                                            {
+                                                                @($"Đến {job.SalaryMax:N0} triệu")
+                                                            }
+                                                        </span>
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Actions -->
-                                    <div class="flex flex-col items-end gap-3 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#D6DDEB]">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[13px] text-gray-400 whitespace-nowrap">Đã lưu 5 ngày trước</span>
-                                        </div>
-                                        <div class="flex items-center justify-between w-full md:w-auto gap-3">
-                                            <a href="/Jobs/Details/1" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-white border border-primary hover:bg-opacity-90 w-full text-center transition-colors">Ứng tuyển ngay</a>
-                                            <button class="p-2 text-primary hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors bg-primary/5" title="Bỏ lưu">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                </svg>
-                                            </button>
+
+                                        <!-- Right: Actions -->
+                                        <div class="flex flex-col items-end gap-3 w-full md:w-auto mt-3 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#D6DDEB] flex-shrink-0">
+                                            @if (job.SavedAt.HasValue)
+                                            {
+                                                <span class="text-[12px] text-gray-400 whitespace-nowrap">
+                                                    Đã lưu @((DateTime.Now - job.SavedAt.Value).Days) ngày trước
+                                                </span>
+                                            }
+                                            <div class="flex items-center gap-2">
+                                                <a href="/Jobs/Details/@job.JobId"
+                                                   class="px-4 py-1.5 rounded-lg text-[13px] font-semibold bg-primary text-white hover:bg-opacity-90 transition-all shadow-sm whitespace-nowrap">
+                                                    Ứng tuyển ngay
+                                                </a>
+                                                <!-- Nút bỏ lưu -->
+                                                <form method="post" action="/candidate/bookmarks/remove">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="jobId" value="@job.JobId" />
+                                                    <button type="submit"
+                                                            class="p-2 rounded-lg text-primary bg-primary/5 hover:bg-red-50 hover:text-red-500 transition-colors border border-primary/20 hover:border-red-200"
+                                                            title="Bỏ lưu việc làm này">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            }
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <div class="flex items-center justify-between mt-8 pt-5 border-t border-[#D6DDEB]">
+                                <!-- Info -->
+                                <p class="text-[13px] text-muted hidden sm:block">
+                                    Trang @Model.Page / @Model.TotalPages
+                                    <span class="text-gray-300 mx-1">•</span>
+                                    @Model.TotalCount việc làm
+                                </p>
+
+                                <!-- Page buttons -->
+                                <div class="flex items-center gap-1.5 mx-auto sm:mx-0">
+                                    <!-- Prev -->
+                                    @if (Model.Page > 1)
+                                    {
+                                        <a href="@PageUrl(Model.Page - 1)"
+                                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-500 hover:border-primary hover:text-primary transition-colors">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-300 cursor-not-allowed">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </span>
+                                    }
+
+                                    <!-- Page numbers -->
+                                    @for (int i = 1; i <= Model.TotalPages; i++)
+                                    {
+                                        // Hiện trang hiện tại, 2 trang liền kề, trang đầu và cuối
+                                        bool show = (i == 1 || i == Model.TotalPages || Math.Abs(i - Model.Page) <= 1);
+                                        bool isEllipsisBefore = (i == 2 && Model.Page > 4);
+                                        bool isEllipsisAfter = (i == Model.TotalPages - 1 && Model.Page < Model.TotalPages - 3);
+
+                                        if (!show)
+                                        {
+                                            if (isEllipsisBefore || isEllipsisAfter)
+                                            {
+                                                <span class="w-9 h-9 flex items-center justify-center text-gray-400 text-[13px]">…</span>
+                                            }
+                                            continue;
+                                        }
+
+                                        if (i == Model.Page)
+                                        {
+                                            <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white text-[14px] font-semibold shadow-sm">@i</span>
+                                        }
+                                        else
+                                        {
+                                            <a href="@PageUrl(i)"
+                                               class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-600 hover:border-primary hover:text-primary transition-colors text-[14px]">@i</a>
+                                        }
+                                    }
+
+                                    <!-- Next -->
+                                    @if (Model.Page < Model.TotalPages)
+                                    {
+                                        <a href="@PageUrl(Model.Page + 1)"
+                                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-500 hover:border-primary hover:text-primary transition-colors">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-300 cursor-not-allowed">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </span>
+                                    }
+                                </div>
                             </div>
                         }
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="mt-8 flex justify-center">
-                        <nav class="flex items-center space-x-1">
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-gray-400 hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-primary bg-primary text-white text-sm font-medium">1</button>
-                            <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-gray-400 hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </button>
-                        </nav>
-                    </div>
+                    }
 
                 </div>
             </div>
-
         </div>
     </div>
 </div>

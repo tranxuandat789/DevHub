@@ -2,7 +2,7 @@ using DevHub.Models;
 
 namespace DevHub.ViewModels.Recruiter
 {
-    // ViewModel for the applicant list screen (UC-14) — per-job and cross-job.
+    // ViewModel for the applicant list for each-job and cross-job.
     public class ApplicantListViewModel
     {
         public bool IsCrossJob { get; set; }

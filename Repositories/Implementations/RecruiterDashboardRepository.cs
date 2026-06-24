@@ -99,4 +99,14 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
                         : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(x.FullName)}&background=4640DE&color=fff&size=64"
                 ).ToList());
     }
+
+    // [#1] AppliedAt timestamps for the recruiter's jobs since fromDate (bucketed into the 30-day chart by the controller).
+    public async Task<List<DateTime>> GetApplicationDatesAsync(int recruiterId, DateTime fromDate)
+        => await _context.Applications
+            .AsNoTracking()
+            .Where(a => a.Job.RecruiterId == recruiterId
+                     && a.AppliedAt != null
+                     && a.AppliedAt >= fromDate)
+            .Select(a => a.AppliedAt!.Value)
+            .ToListAsync();
 }

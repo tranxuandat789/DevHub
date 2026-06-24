@@ -516,11 +516,11 @@
                 new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['1', '5', '10', '15', '20', '25', '30'],
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsLabels)),
                         datasets: [
                             {
                                 label: 'Lượt ứng tuyển',
-                                data: [12, 25, 18, 35, 22, 40, 38],
+                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsApplications)),
                                 borderColor: '#2563EB',
                                 backgroundColor: gradientBlue,
                                 borderWidth: 3,
@@ -534,7 +534,7 @@
                             },
                             {
                                 label: 'Lượt phỏng vấn',
-                                data: [5, 10, 8, 15, 12, 18, 20],
+                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsInterviews)),
                                 borderColor: '#8B5CF6',
                                 backgroundColor: gradientPurple,
                                 borderWidth: 3,

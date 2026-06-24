@@ -88,4 +88,36 @@ public class JobPostRepository : IJobPostRepository
         // Thực thi việc lưu và cập nhật các thay đổi này xuống Cơ sở dữ liệu một cách bất đồng bộ
         await _context.SaveChangesAsync();
     }
+
+    // Notify candidates with an active (PENDING/APPROVED) application that the re-reviewed job is live again.
+    public async Task NotifyApplicantsOnJobReApprovedAsync(int jobId, string jobTitle)
+    {
+        var targets = await _context.Applications
+            .AsNoTracking()
+            .Where(a => a.JobId == jobId
+                     && a.Status != null
+                     && (a.Status.ToUpper() == "PENDING" || a.Status.ToUpper() == "APPROVED"))
+            .Select(a => new { a.CandidateId, a.ApplicationId })
+            .ToListAsync();
+
+        if (targets.Count == 0) return;
+
+        var notifications = targets.Select(t => new Notification
+        {
+            UserId = t.CandidateId,
+            UserType = "CANDIDATE",
+            Type = "APPLICATION",
+            Title = "Tin tuyển dụng đã được cập nhật",
+            Message = $"Tin \"{jobTitle}\" đã được cập nhật và tiếp tục hoạt động. " +
+                      "Vui lòng xem lại thông tin yêu cầu trước khi tiếp tục quá trình ứng tuyển.",
+            ReferenceType = "Application",
+            ReferenceId = t.ApplicationId,
+            SeverityLevel = "info",
+            IsRead = false,
+            CreatedAt = DateTime.Now
+        }).ToList();
+
+        _context.Notifications.AddRange(notifications);
+        await _context.SaveChangesAsync();
+    }
 }

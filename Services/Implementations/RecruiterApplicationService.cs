@@ -3,6 +3,7 @@ using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Recruiter;
+using Microsoft.Extensions.Logging;
 
 namespace DevHub.Services.Implementations
 {
@@ -10,16 +11,18 @@ namespace DevHub.Services.Implementations
     {
         private const int PageSize = 10;
         private readonly IRecruiterApplicationRepository _repo;
+        private readonly ILogger<RecruiterApplicationService> _logger;
 
-        public RecruiterApplicationService(IRecruiterApplicationRepository repo)
+        public RecruiterApplicationService(IRecruiterApplicationRepository repo, ILogger<RecruiterApplicationService> logger)
         {
             _repo = repo;
+            _logger = logger;
         }
 
         public async Task<ApplicantListViewModel?> GetJobApplicantsAsync(int recruiterId, int jobId, ApplicantFilter filter)
         {
-            // Precondition UC-14: job must belong to the recruiter and be APPROVED.
-            var job = await _repo.GetOwnedApprovedJobAsync(jobId, recruiterId);
+            //Recruiter only can access jobs they possesed and status has to be APPROVED or CLOSED.
+            var job = await _repo.GetOwnedJobAsync(jobId, recruiterId);
             if (job == null) return null;
 
             var vm = await BuildListAsync(recruiterId, jobId, filter, isCrossJob: false);
@@ -37,7 +40,7 @@ namespace DevHub.Services.Implementations
             int page = filter.Page < 1 ? 1 : filter.Page;
 
             var (items, total) = await _repo.GetApplicantsAsync(recruiterId, jobId, filter, page, PageSize);
-            var counts = await _repo.CountByStatusAsync(recruiterId, jobId);
+            var counts = await _repo.CountByStatusAsync(recruiterId, jobId, filter);
 
             var vm = new ApplicantListViewModel
             {
@@ -109,22 +112,39 @@ namespace DevHub.Services.Implementations
                 CvUrl = a.Cv?.CvUrl,
                 CoverLetter = a.CoverLetter,
                 Status = (a.Status ?? "PENDING").ToUpper(),
+                JobStatus = (a.Job?.Status ?? "").ToUpper(),
                 AppliedAt = a.AppliedAt
             };
         }
 
         public async Task<(bool Success, string Message)> ApproveAsync(int recruiterId, int applicationId)
         {
+            // Freeze gate: block approve/reject while the job is pending re-review (recruiter just edited it).
+            var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
+            if (appCheck == null)
+                return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");
+            if ((jobStatus ?? "").ToUpper() == "PENDING")
+                return (false, "Tin tuyển dụng đang chờ kiểm duyệt lại. Vui lòng chờ sau khi tin được duyệt.");
+
             var app = await _repo.UpdateStatusIfPendingAsync(applicationId, recruiterId, "APPROVED");
             if (app == null)
                 return (false, "Đơn ứng tuyển không tồn tại hoặc đã được xử lý.");
 
-            await _repo.CreateCandidateNotificationAsync(
-                app.CandidateId,
-                "Đơn ứng tuyển được chấp nhận",
-                $"Hồ sơ của bạn cho vị trí \"{app.Job?.Title}\" đã được nhà tuyển dụng chấp nhận. Vui lòng chờ lịch phỏng vấn.",
-                "success",
-                app.ApplicationId);
+            // Notification is best-effort: the status change is already committed, so a notification
+            // failure must NOT roll back / fail the approve action.
+            try
+            {
+                await _repo.CreateCandidateNotificationAsync(
+                    app.CandidateId,
+                    "Đơn ứng tuyển được chấp nhận",
+                    $"Hồ sơ của bạn cho vị trí \"{app.Job?.Title}\" đã được nhà tuyển dụng chấp nhận. Vui lòng chờ lịch phỏng vấn.",
+                    "success",
+                    app.ApplicationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create approval notification for application {ApplicationId}", app.ApplicationId);
+            }
 
             // Approving unlocks Interview Scheduling for this application (gated in the Interview flow).
             return (true, "Đã duyệt ứng viên. Bạn có thể lên lịch phỏng vấn.");
@@ -132,16 +152,31 @@ namespace DevHub.Services.Implementations
 
         public async Task<(bool Success, string Message)> RejectAsync(int recruiterId, int applicationId)
         {
+            // Freeze gate (see ApproveAsync).
+            var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
+            if (appCheck == null)
+                return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");
+            if ((jobStatus ?? "").ToUpper() == "PENDING")
+                return (false, "Tin tuyển dụng đang chờ kiểm duyệt lại. Vui lòng chờ sau khi tin được duyệt.");
+
             var app = await _repo.UpdateStatusIfPendingAsync(applicationId, recruiterId, "REJECTED");
             if (app == null)
                 return (false, "Đơn ứng tuyển không tồn tại hoặc đã được xử lý.");
 
-            await _repo.CreateCandidateNotificationAsync(
-                app.CandidateId,
-                "Đơn ứng tuyển bị từ chối",
-                $"Rất tiếc, hồ sơ của bạn cho vị trí \"{app.Job?.Title}\" chưa phù hợp ở thời điểm này.",
-                "warning",
-                app.ApplicationId);
+            // Best-effort notification (see ApproveAsync).
+            try
+            {
+                await _repo.CreateCandidateNotificationAsync(
+                    app.CandidateId,
+                    "Đơn ứng tuyển bị từ chối",
+                    $"Rất tiếc, hồ sơ của bạn cho vị trí \"{app.Job?.Title}\" chưa phù hợp ở thời điểm này.",
+                    "warning",
+                    app.ApplicationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create rejection notification for application {ApplicationId}", app.ApplicationId);
+            }
 
             return (true, "Đã từ chối ứng viên.");
         }

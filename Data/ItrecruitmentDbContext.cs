@@ -267,6 +267,9 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.PreferredLocation)
                 .HasMaxLength(100)
                 .HasColumnName("preferred_location");
+            entity.Property(e => e.PreferredWorkingModel)
+                .HasMaxLength(50)
+                .HasColumnName("preferred_working_model");
             entity.Property(e => e.ProfileCompletion)
                 .HasDefaultValue(0)
                 .HasColumnName("profile_completion");

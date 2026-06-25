@@ -28,6 +28,8 @@ public class JobsController : Controller
 
     /// GET /Jobs/Details/{id} — Job details page.
     /// Returns 404 if job does not exist or is not APPROVED.
+    [HttpGet("Job/Detail/{id}")]
+    [HttpGet("Jobs/Details/{id}")]
     public async Task<IActionResult> Details(int id)
     {
         var model = await _jobSearchService.GetJobDetailAsync(id);
@@ -36,6 +38,21 @@ public class JobsController : Controller
             return NotFound();
 
         return View("~/Views/Candidate/Job/Details.cshtml", model);
+    }
+
+    /// GET /Job/Apply/{id}
+    /// Helper redirection for job applications from outside the details view.
+    [HttpGet("Job/Apply/{id}")]
+    public IActionResult ApplyJobRedirect(int id)
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Details", "Jobs", new { id = id, apply = true });
+        }
+        else
+        {
+            return Redirect($"/Account/Login?returnUrl={Url.Content($"/Job/Apply/{id}")}");
+        }
     }
 
     /// GET /Jobs/NavData — JSON data cho mega menu trong header.

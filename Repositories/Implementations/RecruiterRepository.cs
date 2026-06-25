@@ -78,7 +78,7 @@ public class RecruiterRepository : IRecruiterRepository
             EntityType = "recruiter_profile",
             EntityId = recruiterId,
             NewValue = details?.Length > 4000 ? details[..4000] : details,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         _db.AuditLogs.Add(log);

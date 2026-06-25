@@ -390,5 +390,15 @@
                     console.error(err);
                 });
         }
+
+        // Tự động mở modal ứng tuyển nếu có apply=true trong URL
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get("apply")?.toLowerCase() === "true") {
+                handleApplyClick(@Model.JobId, `@Html.Raw(Model.Title)`, `@Html.Raw(Model.CompanyName)`);
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+        });
     </script>
 }

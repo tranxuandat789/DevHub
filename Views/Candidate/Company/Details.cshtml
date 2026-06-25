@@ -1,18 +1,19 @@
+@model DevHub.ViewModels.Company.CompanyDetailsViewModel
 @{
-    ViewData["Title"] = "Chi Tiết Công Ty";
+    ViewData["Title"] = Model.Recruiter.CompanyName;
 }
 
 <!-- Top Header Section -->
-<div class="border-b border-gray-200 relative overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 75% 35%, rgba(139, 92, 246, 0.18), transparent 35%);">
+<div class="border-b border-gray-200 relative overflow-hidden bg-[#F7F5FF]" style="background-image: radial-gradient(circle at 75% 35%, rgba(139, 92, 246, 0.18), transparent 35%);">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
         <!-- Breadcrumb -->
         <div class="text-sm text-gray-500 flex items-center space-x-2">
-            <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4 text-[#4640DE]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <a href="/" class="hover:text-blue-600">Trang chủ</a>
+            <a href="/" class="hover:text-[#4640DE] transition-colors">Trang chủ</a>
             <span>&rsaquo;</span>
-            <a href="/Companies" class="hover:text-blue-600">Công ty</a>
+            <a href="/Company/Search" class="hover:text-[#4640DE] transition-colors">Công ty</a>
             <span>&rsaquo;</span>
             <span class="text-gray-800 font-medium">Chi tiết công ty</span>
         </div>
@@ -21,318 +22,497 @@
     <!-- Company Header Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 relative z-10">
         <div class="flex flex-col md:flex-row items-center gap-10 mt-6">
-            <!-- Logo Box with Glow -->
-            <div class="w-44 h-44 bg-white border border-gray-200 flex items-center justify-center rounded-2xl flex-shrink-0"
-                 style="box-shadow: 0 0 70px 10px rgba(70, 64, 222, 0.15);">
-                <span class="text-blue-600 font-black italic" style="font-size: 3.5rem;">F<span class="text-orange-500">P</span><span class="text-green-500">T</span></span>
+            <!-- Logo Box -->
+            <div class="w-44 h-44 bg-white border border-gray-200 flex items-center justify-center rounded-2xl flex-shrink-0 overflow-hidden shadow-md">
+                @if (!string.IsNullOrEmpty(Model.Recruiter.CompanyLogoUrl))
+                {
+                    <img src="@Model.Recruiter.CompanyLogoUrl" alt="Logo" class="w-full h-full object-contain" />
+                }
+                else
+                {
+                    <!-- Building Icon Placeholder -->
+                    <svg class="w-20 h-20 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                }
             </div>
             <!-- Company Info -->
             <div class="text-center md:text-left">
-                <h1 class="text-4xl font-bold text-gray-800 mb-3">Công Ty Cổ Phần Việt Nam</h1>
-                <!-- Rating tổng quát -->
+                <h1 class="text-4xl font-bold text-gray-850 mb-3">@Model.Recruiter.CompanyName</h1>
+                <!-- Rating Summary -->
                 <div class="flex items-center justify-center md:justify-start gap-2 mb-3">
-                    <div class="flex items-center gap-0.5">
-                        @for (int s = 1; s <= 5; s++) {
-                            <svg class="w-5 h-5 @(s <= 4 ? "text-yellow-400" : "text-yellow-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        }
-                    </div>
-                    <span class="text-lg font-bold text-gray-800">4.2</span>
-                    <span class="text-gray-500 text-sm">(128 đánh giá)</span>
+                    @if (Model.TotalReviews > 0 && Model.AverageRating.HasValue)
+                    {
+                        <div class="flex items-center gap-0.5">
+                            @{
+                                double avg = Model.AverageRating.Value;
+                                int roundedRating = (int)Math.Round(avg);
+                            }
+                            @for (int s = 1; s <= 5; s++) {
+                                <span class="text-[#ffc107] text-lg">@(s <= roundedRating ? "★" : "☆")</span>
+                            }
+                        </div>
+                        <span class="text-lg font-bold text-gray-800">@Model.AverageRating.Value.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)</span>
+                        <span class="text-gray-500 text-sm">(@Model.TotalReviews đánh giá)</span>
+                    }
+                    else
+                    {
+                        <span class="text-sm text-gray-500 font-medium italic">Chưa có đánh giá</span>
+                    }
                 </div>
-                <div class="flex items-center justify-center md:justify-start text-gray-500 text-lg">
-                    <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="flex items-center justify-center md:justify-start text-gray-500 text-base">
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Revolut • Madrid, Spain
+                    <span>@Model.Recruiter.Industry • @(Model.Recruiter.CompanyAddress ?? "Địa chỉ đang cập nhật")</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Area -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="flex flex-col lg:flex-row gap-12">
-        <!-- Left Sidebar Navigation -->
-        <div class="w-full lg:w-1/4">
-            <ul class="space-y-4">
-                <li>
-                    <a href="#vitri" class="block border-l-4 border-transparent pl-4 py-2 text-gray-800 font-bold hover:text-blue-600 hover:border-blue-600 transition-colors">
-                        Vị trí đang tuyển 10
-                    </a>
-                </li>
-                <li>
-                    <a href="#gioithieu" class="block border-l-4 border-blue-600 pl-4 py-2 text-blue-600 font-bold">
-                        Giới thiệu doanh nghiệp
-                    </a>
-                </li>
-                <li>
-                    <a href="#danhgia" class="block border-l-4 border-transparent pl-4 py-2 text-gray-800 font-bold hover:text-blue-600 hover:border-blue-600 transition-colors">
-                        Đánh giá công ty
-                    </a>
-                </li>
-                <li>
-                    <a href="#lienhe" class="block border-l-4 border-transparent pl-4 py-2 text-gray-800 font-bold hover:text-blue-600 hover:border-blue-600 transition-colors">
-                        Thông tin liên hệ
-                    </a>
-                </li>
-            </ul>
-        </div>
+<!-- Tab Navigation Header -->
+<div class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-8" aria-label="Tabs">
+            <button type="button" onclick="switchTab('intro')" id="tab-btn-intro" class="border-b-2 border-primary text-primary px-1 py-4 text-base font-bold whitespace-nowrap tab-btn transition-all">
+                Giới thiệu công ty
+            </button>
+            <button type="button" onclick="switchTab('reviews')" id="tab-btn-reviews" class="border-b-2 border-transparent text-muted hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-base font-bold whitespace-nowrap tab-btn transition-all">
+                Đánh giá (@Model.TotalReviews)
+            </button>
+            <button type="button" onclick="switchTab('jobs')" id="tab-btn-jobs" class="border-b-2 border-transparent text-muted hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-base font-bold whitespace-nowrap tab-btn transition-all">
+                Việc làm đang tuyển (@Model.ActiveJobs.Count)
+            </button>
+        </nav>
+    </div>
+</div>
 
-        <!-- Right Content Area -->
-        <div class="w-full lg:w-3/4 space-y-12">
-            
-            <!-- Vị trí đang tuyển -->
-            <div id="vitri">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Vị trí đang tuyển</h2>
-                <div class="space-y-4">
-                    <!-- Job 1 -->
-                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-600 hover:shadow-md transition-all rounded-[20px] p-5 bg-white group">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">Nhân Viên Content Marketing - Đi Làm Ngay Khi Đạt Phỏng Vấn</h3>
-                            <button class="text-gray-400 hover:text-red-500 transition-colors">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-4 text-sm mb-4">
-                            <div class="flex items-center text-blue-600 font-medium">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                8 - 10 triệu
-                            </div>
-                            <div class="flex items-center text-gray-500">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                </svg>
-                                Hà Nội
-                            </div>
-                        </div>
-                        <div class="flex justify-end text-sm text-gray-500">
-                            <span class="flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Còn 14 ngày
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Job 2 -->
-                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-600 hover:shadow-md transition-all rounded-[20px] p-5 bg-white group">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">Nhân Viên Thiết Kế Nội Thất - Lương Từ 15 - 20 Triệu - Đi Làm Ngay</h3>
-                            <button class="text-gray-400 hover:text-red-500 transition-colors">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-4 text-sm mb-4">
-                            <div class="flex items-center text-blue-600 font-medium">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                15 - 20 triệu
-                            </div>
-                            <div class="flex items-center text-gray-500">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                </svg>
-                                Hà Nội
-                            </div>
-                        </div>
-                        <div class="flex justify-end text-sm text-gray-500">
-                            <span class="flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Còn 14 ngày
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Job 3 -->
-                    <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-600 hover:shadow-md transition-all rounded-[20px] p-5 bg-white group">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">(Nữ) - Nhân Viên Kinh Doanh Sales Nội Thất + Data Nóng Từ Marketing - Thu Nhập Lên Đến...</h3>
-                            <button class="text-gray-400 hover:text-red-500 transition-colors">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-4 text-sm mb-4">
-                            <div class="flex items-center text-blue-600 font-medium">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                20 - 50 triệu
-                            </div>
-                            <div class="flex items-center text-gray-500">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                </svg>
-                                TPHCM, +1
-                            </div>
-                        </div>
-                        <div class="flex justify-end text-sm text-gray-500">
-                            <span class="flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Còn 1 ngày
-                            </span>
-                        </div>
+<!-- Main content area -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <!-- Tab 1: Giới thiệu công ty -->
+    <div id="tab-content-intro" class="tab-content space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Info Block -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
+                    <h2 class="text-xl font-bold text-dark mb-4 pb-2 border-b border-gray-100">Về chúng tôi</h2>
+                    <div class="text-[#475569] leading-relaxed text-justify whitespace-pre-line">
+                        @if (!string.IsNullOrEmpty(Model.Recruiter.CompanyDescription))
+                        {
+                            @Html.Raw(Model.Recruiter.CompanyDescription)
+                        }
+                        else
+                        {
+                            <span class="italic text-gray-400">Doanh nghiệp chưa cập nhật thông tin giới thiệu.</span>
+                        }
                     </div>
                 </div>
             </div>
 
-            <!-- Giới thiệu doanh nghiệp -->
-            <div id="gioithieu" class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-8 bg-white">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Giới thiệu doanh nghiệp</h2>
+            <!-- Right Contacts Sidebar -->
+            <div class="space-y-6">
+                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">Thông tin liên hệ</h2>
+                    <div class="space-y-4">
+                        <!-- Address -->
+                        <div class="flex items-start gap-3">
+                            <span class="text-base text-gray-400 mt-0.5">📍</span>
+                            <div class="text-sm text-[#475569]">
+                                <span class="font-semibold text-dark block">Địa chỉ</span>
+                                <span>@(Model.Recruiter.CompanyAddress ?? "Chưa cập nhật")</span>
+                            </div>
+                        </div>
+
+                        <!-- Industry -->
+                        <div class="flex items-start gap-3">
+                            <span class="text-base text-gray-400 mt-0.5">💼</span>
+                            <div class="text-sm text-[#475569]">
+                                <span class="font-semibold text-dark block">Lĩnh vực</span>
+                                <span>@(Model.Recruiter.Industry ?? "Chưa cập nhật")</span>
+                            </div>
+                        </div>
+
+                        <!-- Website -->
+                        <div class="flex items-start gap-3">
+                            <span class="text-base text-gray-400 mt-0.5">🌐</span>
+                            <div class="text-sm text-[#475569]">
+                                <span class="font-semibold text-dark block">Website</span>
+                                @if (!string.IsNullOrEmpty(Model.Recruiter.Website))
+                                {
+                                    <a href="@(Model.Recruiter.Website.StartsWith("http") ? Model.Recruiter.Website : "http://" + Model.Recruiter.Website)" target="_blank" class="text-primary hover:underline font-medium break-all">
+                                        @Model.Recruiter.Website
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Contact Person -->
+                        <div class="flex items-start gap-3">
+                            <span class="text-base text-gray-400 mt-0.5">👤</span>
+                            <div class="text-sm text-[#475569]">
+                                <span class="font-semibold text-dark block">Người liên hệ</span>
+                                <span>@Model.Recruiter.FullName @(string.IsNullOrEmpty(Model.Recruiter.Position) ? "" : $"({Model.Recruiter.Position})")</span>
+                            </div>
+                        </div>
+
+                        <!-- Contact Email -->
+                        <div class="flex items-start gap-3">
+                            <span class="text-base text-gray-400 mt-0.5">✉️</span>
+                            <div class="text-sm text-[#475569]">
+                                <span class="font-semibold text-dark block">Email liên hệ</span>
+                                @if (Model.Recruiter.RecruiterNavigation != null)
+                                {
+                                    <a href="mailto:@Model.Recruiter.RecruiterNavigation.Email" class="text-primary hover:underline font-medium">
+                                        @Model.Recruiter.RecruiterNavigation.Email
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Đánh giá -->
+    <div id="tab-content-reviews" class="tab-content hidden space-y-8">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
+            
+            <!-- Phần A – Tổng quan -->
+            <div class="flex flex-col md:flex-row gap-8 pb-8 border-b border-gray-100 mb-8 items-center md:items-start">
                 
-                <h3 class="font-bold text-gray-800 uppercase mb-3">1. HÀNH TRÌNH GOVI VƯƠN MÌNH KHẲNG ĐỊNH THƯƠNG HIỆU SỐ 1 VIỆT NAM</h3>
-                <p class="text-gray-600 leading-relaxed text-justify">
-                    Thành lập năm 2011, Govi mang khát vọng xây dựng một thương hiệu Việt Nam uy tín số 1 lĩnh vực nội thất văn phòng phân khúc trung & cao cấp - nơi chất lượng được đề cao, thẩm mỹ và đổi mới luôn song hành. Chúng tôi tin rằng, một không gian làm việc hiện đại không chỉ nâng cao hiệu suất công việc, bảo vệ sức khỏe, mà còn truyền cảm hứng và phản ánh bản sắc riêng của từng cá nhân, doanh nghiệp.
-                    <br><br>
-                    Trải qua 13+ năm hình thành và phát triển, Govi không ngừng lớn mạnh, mở rộng quy mô và năng lực sản xuất. Mỗi sản phẩm ra đời đều là kết tinh của tư duy sáng tạo, sự chỉn chu trong từng chi tiết và cam kết hướng đến trải nghiệm người dùng. Bởi: "Người Việt xứng đáng được làm việc trong những không gian hiện đại, sang trọng và tiện nghi".
-                </p>
+                <!-- Average Rating display box -->
+                <div class="flex flex-col items-center justify-center bg-[#F7F5FF] rounded-2xl px-10 py-8 min-w-[180px] border border-purple-50">
+                    <span class="text-5xl font-extrabold text-primary mb-2">@(Model.AverageRating?.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) ?? "0.0")</span>
+                    <div class="flex gap-0.5 mb-2">
+                        @for (int s = 1; s <= 5; s++) {
+                            <span class="text-[#ffc107] text-xl">@(s <= (Model.AverageRating.HasValue ? (int)Math.Round(Model.AverageRating.Value) : 0) ? "★" : "☆")</span>
+                        }
+                    </div>
+                    <span class="text-muted text-sm font-medium">@Model.TotalReviews đánh giá</span>
+                </div>
+
+                <!-- Star breakdowns with Progress bars -->
+                <div class="flex-grow w-full space-y-2.5">
+                    @{
+                        int total = Model.TotalReviews > 0 ? Model.TotalReviews : 1;
+                        int s5 = Model.Recruiter.ReviewRecruiters.Count(r => r.Rating == 5);
+                        int s4 = Model.Recruiter.ReviewRecruiters.Count(r => r.Rating == 4);
+                        int s3 = Model.Recruiter.ReviewRecruiters.Count(r => r.Rating == 3);
+                        int s2 = Model.Recruiter.ReviewRecruiters.Count(r => r.Rating == 2);
+                        int s1 = Model.Recruiter.ReviewRecruiters.Count(r => r.Rating == 1);
+                        var starDist = new[] { (5, s5), (4, s4), (3, s3), (2, s2), (1, s1) };
+                    }
+                    @foreach (var (star, count) in starDist)
+                    {
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-semibold text-dark w-3">@star</span>
+                            <span class="text-[#ffc107] text-sm">★</span>
+                            
+                            <!-- Bootstrap Progress Component -->
+                            <div class="progress flex-grow" style="height: 10px; background-color: #F1F5F9; border-radius: 9999px;">
+                                <div class="progress-bar bg-[#ffc107]" role="progressbar" style="width: @(count * 100 / total)%; border-radius: 9999px;" aria-valuenow="@(count * 100 / total)" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            
+                            <span class="text-xs text-muted w-16 text-right">@count lượt (@(count * 100 / total)%)</span>
+                        </div>
+                    }
+                </div>
             </div>
 
-            <!-- Đánh giá công ty -->
-            <div id="danhgia" class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-8 bg-white">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">Đánh giá công ty</h2>
-                <!-- Tổng quan -->
-                <div class="flex flex-col sm:flex-row gap-6 mb-8 pb-6 border-b border-gray-100">
-                    <div class="flex flex-col items-center justify-center bg-blue-50 rounded-2xl px-8 py-6 min-w-[140px]">
-                        <span class="text-5xl font-bold text-blue-600 mb-1">4.2</span>
-                        <div class="flex gap-0.5 mb-1">
-                            @for (int s = 1; s <= 5; s++) {
-                                <svg class="w-4 h-4 @(s <= 4 ? "text-yellow-400" : "text-yellow-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <!-- Phần B – Chi tiết -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-bold text-dark mb-4">Nhận xét từ các ứng viên</h3>
+                
+                <div id="reviewsList" class="space-y-5">
+                    @if (Model.Recruiter.ReviewRecruiters.Any())
+                    {
+                        @foreach (var r in Model.Recruiter.ReviewRecruiters)
+                        {
+                            <div class="review-item border border-[#E2E8F0] rounded-2xl p-5 hover:border-purple-200 transition-colors bg-white">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-[#EEEFfe] flex items-center justify-center text-primary font-bold text-base">
+                                            Ứ
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-dark text-sm">
+                                                Ứng viên
+                                            </p>
+                                            <p class="text-gray-400 text-xs">Đã ứng tuyển qua DevHub</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <div class="flex gap-0.5">
+                                            @for (int s = 1; s <= 5; s++) {
+                                                <span class="text-[#ffc107] text-sm">@(s <= r.Rating ? "★" : "☆")</span>
+                                            }
+                                        </div>
+                                        <span class="text-gray-400 text-xs">@r.CreatedAt?.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 text-sm text-[#475569]">
+                                    <p><strong class="text-dark">Ưu điểm:</strong> @r.Pros</p>
+                                    <p><strong class="text-dark">Nhược điểm:</strong> @r.Cons</p>
+                                    @if (!string.IsNullOrEmpty(r.Description))
+                                    {
+                                        <p><strong class="text-dark">Mô tả thêm:</strong> @r.Description</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div id="noReviewsAlert" class="p-6 border border-dashed border-gray-200 rounded-xl bg-gray-50 text-center text-muted italic">
+                            Chưa có đánh giá nào
+                        </div>
+                    }
+                </div>
+
+                <!-- Review Pagination Bar -->
+                <div id="reviewsPagination" class="mt-8 flex justify-center">
+                    <!-- Javascript will render pages buttons dynamically -->
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Việc làm đang tuyển -->
+    <div id="tab-content-jobs" class="tab-content hidden space-y-6">
+        <h2 class="text-xl font-bold text-dark mb-4">Các vị trí đang tuyển dụng</h2>
+        
+        <div class="space-y-4">
+            @if (Model.ActiveJobs.Any())
+            {
+                @foreach (var job in Model.ActiveJobs)
+                {
+                    <div class="bg-white border border-[#E2E8F0] hover:border-primary rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group">
+                        
+                        <!-- Left Info -->
+                        <div class="flex-grow space-y-3 min-w-0 w-full">
+                            <h3 class="font-bold text-dark text-lg group-hover:text-primary transition-colors truncate">
+                                <a href="/Job/Detail/@job.JobId">@job.Title</a>
+                            </h3>
+                            
+                            <!-- Middle details -->
+                            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted font-medium">
+                                <!-- Salary -->
+                                <span class="flex items-center gap-1.5 text-primary">
+                                    💰
+                                    @if (job.SalaryMin.HasValue || job.SalaryMax.HasValue)
+                                    {
+                                        <span>
+                                            @(job.SalaryMin.HasValue ? (job.SalaryMin.Value / 1_000_000).ToString("N0") : "0") - 
+                                            @(job.SalaryMax.HasValue ? (job.SalaryMax.Value / 1_000_000).ToString("N0") : "Thoả thuận") triệu VND
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>Thoả thuận</span>
+                                    }
+                                </span>
+
+                                <!-- Location -->
+                                <span class="flex items-center gap-1.5">
+                                    📍 @job.Location
+                                </span>
+
+                                <!-- Posted Date -->
+                                <span class="flex items-center gap-1.5 text-gray-400">
+                                    📅 Đăng ngày: @(job.ApprovedAt?.ToString("dd/MM/yyyy") ?? job.CreatedAt?.ToString("dd/MM/yyyy"))
+                                </span>
+                            </div>
+
+                            <!-- Tech Stack badges -->
+                            @if (job.Teches != null && job.Teches.Any())
+                            {
+                                <div class="flex flex-wrap gap-1.5 pt-1">
+                                    @foreach (var tech in job.Teches)
+                                    {
+                                        <span class="bg-[#F8FAFC] border border-[#E2E8F0] text-[#515B6F] text-[11px] font-semibold px-2.5 py-1 rounded-md">
+                                            @tech.TechName
+                                        </span>
+                                    }
+                                </div>
                             }
                         </div>
-                        <span class="text-gray-500 text-sm">128 đánh giá</span>
+
+                        <!-- Right buttons -->
+                        <div class="flex flex-row md:flex-col gap-3 w-full md:w-auto shrink-0">
+                            <a href="/Job/Detail/@job.JobId" class="flex-1 md:flex-initial text-center border border-primary text-primary hover:bg-purple-50 font-bold px-5 py-2.5 rounded-xl transition-all text-sm whitespace-nowrap">
+                                Xem chi tiết
+                            </a>
+                            
+                            @{
+                                bool jobExpired = job.Deadline.HasValue && job.Deadline.Value < DateOnly.FromDateTime(DateTime.Now);
+                            }
+                            
+                            @if (jobExpired)
+                            {
+                                <button type="button" disabled class="flex-1 md:flex-initial bg-gray-300 text-white font-bold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap cursor-not-allowed">
+                                    Hết hạn tuyển
+                                </button>
+                            }
+                            else
+                            {
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <a href="/Job/Apply/@job.JobId" class="flex-1 md:flex-initial text-center bg-primary text-white hover:bg-opacity-90 font-bold px-5 py-2.5 rounded-xl transition-all text-sm whitespace-nowrap">
+                                        Ứng tuyển ngay
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="/Account/Login?returnUrl=/Job/Apply/@job.JobId" class="flex-1 md:flex-initial text-center bg-primary text-white hover:bg-opacity-90 font-bold px-5 py-2.5 rounded-xl transition-all text-sm whitespace-nowrap">
+                                        Ứng tuyển ngay
+                                    </a>
+                                }
+                            }
+                        </div>
                     </div>
-                    <div class="flex-1 space-y-2">
-                        @{
-                            var starDist = new[] { (5, 58), (4, 42), (3, 18), (2, 7), (1, 3) };
-                        }
-                        @foreach (var (star, count) in starDist)
-                        {
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm text-gray-500 w-3">@star</span>
-                                <svg class="w-4 h-4 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                <div class="flex-1 bg-gray-100 rounded-full h-2">
-                                    <div class="bg-yellow-400 h-2 rounded-full" style="width: @(count * 100 / 128)%"></div>
-                                </div>
-                                <span class="text-sm text-gray-400 w-6 text-right">@count</span>
-                            </div>
-                        }
-                    </div>
+                }
+            }
+            else
+            {
+                <div class="p-8 border border-dashed border-gray-200 rounded-2xl bg-[#F8FAFC] text-center text-muted italic">
+                    Hiện tại công ty chưa có vị trí tuyển dụng
                 </div>
-
-                <!-- Danh sách review -->
-                <div class="space-y-5">
-                    @{
-                        var reviews = new[] {
-                            new { Name="Nguyễn Minh Tú",   Role="Software Engineer",    Rating=5, Date="15/05/2025", Content="Môi trường làm việc rất chuyên nghiệp, đồng nghiệp thân thiện và hỗ trợ nhau tốt. Chính sách đãi ngộ cạnh tranh, có nhiều cơ hội phát triển bản thân." },
-                            new { Name="Trần Thị Hương",    Role="UI/UX Designer",        Rating=4, Date="02/05/2025", Content="Công ty có văn hóa tốt và sản phẩm thú vị. Quy trình đôi khi hơi chậm nhưng nhìn chung là môi trường lành mạnh để làm việc và học hỏi." },
-                            new { Name="Lê Văn Đức",        Role="Data Analyst",          Rating=4, Date="20/04/2025", Content="Lương thưởng hợp lý, được làm việc với công nghệ hiện đại. Ban lãnh đạo cởi mở với ý kiến đóng góp từ nhân viên." },
-                            new { Name="Phạm Quốc Bảo",     Role="DevOps Engineer",       Rating=3, Date="10/04/2025", Content="Áp lực công việc đôi khi cao, deadline gấp. Nhưng được cái học được nhiều, đặc biệt về hệ thống phân tán và cloud infrastructure." },
-                        };
-                    }
-                    @foreach (var r in reviews)
-                    {
-                        <div class="border border-gray-300 rounded-2xl p-5 hover:border-blue-300 transition-colors">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                                        @r.Name[0]
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-gray-800 text-sm">@r.Name</p>
-                                        <p class="text-gray-400 text-xs">@r.Role</p>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col items-end gap-1">
-                                    <div class="flex gap-0.5">
-                                        @for (int s = 1; s <= 5; s++) {
-                                            <svg class="w-4 h-4 @(s <= r.Rating ? "text-yellow-400" : "text-gray-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                        }
-                                    </div>
-                                    <span class="text-gray-400 text-xs">@r.Date</span>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm leading-relaxed">@r.Content</p>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Liên hệ -->
-            <div id="lienhe" class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-8 bg-white">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Liên hệ</h2>
-                <div class="flex flex-col md:flex-row gap-8">
-                    <!-- Google Maps Placeholder Image -->
-                    <div class="w-full md:w-5/12 bg-gray-100 rounded-md overflow-hidden relative border border-gray-200 min-h-[250px]">
-                        <!-- Mimicking map UI -->
-                        <div class="absolute inset-0 bg-blue-50/50 flex items-center justify-center">
-                            <div class="absolute top-2 left-2 bg-white px-3 py-1 shadow-sm rounded text-blue-600 text-xs font-medium cursor-pointer">
-                                Mở trong Maps
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <svg class="w-8 h-8 text-red-500 drop-shadow-md" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                                </svg>
-                                <span class="bg-white text-red-600 font-bold text-xs px-2 py-1 shadow mt-1 rounded">Tổng kho nội thất Govi</span>
-                            </div>
-                            <div class="absolute bottom-2 right-2 bg-white p-1 rounded shadow">
-                                <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                </svg>
-                            </div>
-                            <div class="absolute bottom-2 left-2 w-12 h-12 bg-gray-300 border border-white shadow-sm rounded"></div>
-                        </div>
-                    </div>
-
-                    <!-- Contact Details -->
-                    <div class="w-full md:w-7/12 space-y-4">
-                        <div class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <div class="text-gray-600 text-sm">
-                                <span class="font-bold text-gray-700">Địa chỉ:</span> 
-                                Trụ sở : D04, số 44-45 KĐT Geleximco, đường Lê Trọng Tấn, P. Dương Nội, Hà Đông | 
-                                IN Showroom HN/HCM: Số 5 Nguyễn Khang, Yên Hòa, Hà Nội 
-                                -----&&---- Số 53 Đinh Thị Thi, KĐT Vạn Phúc, Thủ Đức, HCM
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            <div class="text-gray-600 text-sm">
-                                <span class="font-bold text-gray-700">Quy mô:</span> 150 - 300 nhân viên
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            <div class="text-gray-600 text-sm">
-                                <span class="font-bold text-gray-700">Lĩnh vực:</span> Sản xuất và kinh doanh nội thất và các sản phẩm đồ gỗ
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            }
         </div>
     </div>
+
 </div>
+
+@section Scripts {
+    <script>
+        // Tab switching logic
+        function switchTab(tabId) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show current tab content
+            const activeContent = document.getElementById('tab-content-' + tabId);
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+            
+            // Reset tab button states
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-transparent', 'text-muted');
+            });
+            
+            // Set active button state
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-muted');
+                activeBtn.classList.add('border-primary', 'text-primary');
+            }
+
+            // Sync with URL hash
+            window.location.hash = tabId;
+        }
+
+        // Handle direct landing on specific hash tab (e.g. #reviews)
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'intro' || hash === 'reviews' || hash === 'jobs') {
+                switchTab(hash);
+            }
+        });
+
+        // Client-side Reviews pagination (5 per page)
+        document.addEventListener('DOMContentLoaded', () => {
+            const reviewItems = Array.from(document.querySelectorAll('.review-item'));
+            const reviewPageSize = 5;
+            let currentReviewPage = 1;
+            const totalReviewPages = Math.ceil(reviewItems.length / reviewPageSize);
+
+            function showReviewPage(page) {
+                if (page < 1) page = 1;
+                if (page > totalReviewPages && totalReviewPages > 0) page = totalReviewPages;
+                currentReviewPage = page;
+
+                // Hide all reviews
+                reviewItems.forEach(item => item.classList.add('hidden'));
+
+                // Show reviews for the current page
+                const start = (currentReviewPage - 1) * reviewPageSize;
+                const end = Math.min(start + reviewPageSize, reviewItems.length);
+                for (let i = start; i < end; i++) {
+                    reviewItems[i].classList.remove('hidden');
+                }
+
+                renderReviewPagination();
+            }
+
+            function renderReviewPagination() {
+                const container = document.getElementById('reviewsPagination');
+                if (!container) return;
+                container.innerHTML = '';
+
+                if (totalReviewPages <= 1) return;
+
+                const nav = document.createElement('nav');
+                nav.className = 'flex items-center space-x-2';
+
+                // Prev
+                const prev = document.createElement('button');
+                prev.type = 'button';
+                prev.className = 'w-9 h-9 flex items-center justify-center rounded border border-transparent text-muted hover:bg-gray-100 transition-colors';
+                if (currentReviewPage === 1) {
+                    prev.disabled = true;
+                    prev.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                prev.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>`;
+                prev.addEventListener('click', () => showReviewPage(currentReviewPage - 1));
+                nav.appendChild(prev);
+
+                // Numbers
+                for (let i = 1; i <= totalReviewPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = i;
+                    if (i === currentReviewPage) {
+                        btn.className = 'w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white font-medium text-sm';
+                    } else {
+                        btn.className = 'w-9 h-9 flex items-center justify-center rounded border border-transparent text-dark hover:bg-gray-100 font-medium text-sm transition-colors';
+                    }
+                    btn.addEventListener('click', () => showReviewPage(i));
+                    nav.appendChild(btn);
+                }
+
+                // Next
+                const next = document.createElement('button');
+                next.type = 'button';
+                next.className = 'w-9 h-9 flex items-center justify-center rounded border border-transparent text-muted hover:bg-gray-100 transition-colors';
+                if (currentReviewPage === totalReviewPages) {
+                    next.disabled = true;
+                    next.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                next.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>`;
+                next.addEventListener('click', () => showReviewPage(currentReviewPage + 1));
+                nav.appendChild(next);
+
+                container.appendChild(nav);
+            }
+
+            // Init review page
+            showReviewPage(1);
+        });
+    </script>
+}

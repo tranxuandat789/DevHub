@@ -42,7 +42,8 @@ public class AuthController : Controller
     /// Hiển thị trang đăng nhập cho ứng viên.
     /// </summary>
     /// <returns>View trang đăng nhập hoặc chuyển hướng đến Dashboard nếu đã đăng nhập.</returns>
-    [HttpGet]
+    [HttpGet("Auth/Login")]
+    [HttpGet("Account/Login")]
     public IActionResult Login()
     {
         if (User.Identity?.IsAuthenticated == true)
@@ -59,7 +60,9 @@ public class AuthController : Controller
     /// <param name="vm">Dữ liệu đăng nhập (Email, Mật khẩu).</param>
     /// <param name="returnUrl">Đường dẫn trả về sau khi đăng nhập thành công (tùy chọn).</param>
     /// <returns>Chuyển hướng đến Dashboard hoặc trang trả về nếu thành công, ngược lại hiển thị lỗi.</returns>
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost("Auth/Login")]
+    [HttpPost("Account/Login")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
     {
         var email = vm.Email?.Trim() ?? "";
@@ -819,6 +822,13 @@ public class AuthController : Controller
             return View(registerRecruiter);
         }
 
+        // Check số điện thoại trùng
+        if (_context.Recruiters.Any(r => r.Phone == registerRecruiter.Phone))
+        {
+            ViewBag.ErrorMessage = "Số điện thoại này đã được sử dụng bởi tài khoản khác!";
+            return View(registerRecruiter);
+        }
+
         // Generate 6-digit OTP
         var otp = new Random().Next(100000, 999999).ToString();
         Console.WriteLine($"[DevHub OTP] Generated OTP for {registerRecruiter.Email}: {otp}");
@@ -932,7 +942,9 @@ public class AuthController : Controller
                     RecruiterId = user.UserId,
                     FullName = registerRecruiter.FullName,
                     Phone = registerRecruiter.Phone,
-                    CompanyName = "Chưa cập nhật",
+                    CompanyName = registerRecruiter.CompanyName,
+                    CompanyAddress = registerRecruiter.CompanyAddress,
+                    Website = registerRecruiter.CompanyWebsite,
                     IsVerified = false,
                     ProfileCompletion = 0,
                     TotalSpent = 0,

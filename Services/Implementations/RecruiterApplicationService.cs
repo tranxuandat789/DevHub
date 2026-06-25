@@ -66,6 +66,7 @@ namespace DevHub.Services.Implementations
                 CountAll = counts.All,
                 CountPending = counts.Pending,
                 CountApproved = counts.Approved,
+                CountHired = counts.Hired,
                 CountRejected = counts.Rejected,
                 Page = page,
                 PageSize = PageSize,

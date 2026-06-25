@@ -24,4 +24,5 @@ public class JobDetailViewModel
     public string? CompanyAddress { get; set; }
     public decimal? AverageRating { get; set; }
     public bool IsVerified { get; set; }
+    public bool IsBookmarked { get; set; }
 }

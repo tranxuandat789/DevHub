@@ -54,6 +54,18 @@ public class JobPostService : IJobPostService
         // 3. Gọi repository để lưu các thay đổi này vào cơ sở dữ liệu
         await _jobPostRepository.UpdateJobPostAsync(job);
 
+        // 4. Nếu tin được duyệt lại sau khi recruiter chỉnh sửa, các ứng viên có đơn đang active
+        //    (PENDING/APPROVED) đã bị "freeze" -> báo cho họ biết tin đã hoạt động trở lại.
+        //    (Tin mới chưa có ứng viên nào nên sẽ không gửi cho ai.)
+        try
+        {
+            await _jobPostRepository.NotifyApplicantsOnJobReApprovedAsync(jobId, job.Title);
+        }
+        catch
+        {
+            // Notification failure must not roll back the approval.
+        }
+
         // Phê duyệt thành công -> Trả về true
         return true;
     }

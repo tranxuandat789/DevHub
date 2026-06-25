@@ -28,7 +28,7 @@ namespace DevHub.Controllers.Recruiter
             return dbUser?.Recruiter?.RecruiterId;
         }
 
-        // UC-14: applicants of one APPROVED job owned by the recruiter.
+        // View Applicants of one APPROVED/CLOSED job owned by the recruiter.
         [HttpGet]
         public async Task<IActionResult> Index(int? jobId, ApplicantFilter filter)
         {
@@ -48,7 +48,7 @@ namespace DevHub.Controllers.Recruiter
             return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", vm);
         }
 
-        // Cross-job thin layer: all applicants across the recruiter's jobs.
+        // Cross-job lay-out: all applicants across the recruiter's jobs.
         [HttpGet("All")]
         public async Task<IActionResult> All(ApplicantFilter filter)
         {
@@ -59,7 +59,7 @@ namespace DevHub.Controllers.Recruiter
             return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", vm);
         }
 
-        // UC-15: full candidate profile + CV.
+        // Get/View candidate profile + CV.
         [HttpGet("Details/{applicationId:int}")]
         public async Task<IActionResult> Details(int applicationId)
         {
@@ -76,7 +76,7 @@ namespace DevHub.Controllers.Recruiter
             return View("~/Views/Recruiter/RecruiterApplication/Details.cshtml", vm);
         }
 
-        // AF-01: approve application.
+        // Approve an application.
         [HttpPost("Approve/{applicationId:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int applicationId)
@@ -89,7 +89,7 @@ namespace DevHub.Controllers.Recruiter
             return RedirectToAction(nameof(Details), new { applicationId });
         }
 
-        // AF-02: reject application.
+        // Rejecting an application.
         [HttpPost("Reject/{applicationId:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int applicationId)

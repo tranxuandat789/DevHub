@@ -255,7 +255,21 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         };
 
         // Both Approved and Rejected posts return to PENDING for moderator re-review.
+        bool wasApproved = Canon(existing.Status) == "approved";
         await _jobPostRepo.UpdateJobPostAsync(updatedJP, techEntities, "PENDING");
+
+        // Freeze flow: only an APPROVED post can have active applicants. Tell them the JD is being updated.
+        if (wasApproved)
+        {
+            try
+            {
+                await _jobPostRepo.NotifyApplicantsOnJobEditAsync(jobId, updatedJP.Title);
+            }
+            catch
+            {
+                // Notification failure must not roll back the update.
+            }
+        }
 
         try
         {

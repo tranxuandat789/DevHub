@@ -41,6 +41,12 @@ namespace DevHub.Models
 
         // [#6] Recent applicants.
         public List<RecentApplicationItem> RecentApplications { get; set; } = new();
+
+        // [#1] 30-day activity time series for the statistics line chart.
+        // Labels are day buckets; the two series are applications and interviews per day.
+        public List<string> StatsLabels { get; set; } = new();
+        public List<int> StatsApplications { get; set; } = new();
+        public List<int> StatsInterviews { get; set; } = new();
     }
 
     public class JobPostApplicantCount

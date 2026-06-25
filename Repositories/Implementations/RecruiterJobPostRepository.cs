@@ -151,4 +151,37 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         }
         await _context.SaveChangesAsync();
     }
+
+    // Notify every candidate whose application on this job is still active (PENDING/APPROVED) that the
+    // recruiter has updated the posting and it is awaiting re-review. Their application stays as-is.
+    public async Task NotifyApplicantsOnJobEditAsync(int jobId, string jobTitle)
+    {
+        var targets = await _context.Applications
+            .AsNoTracking()
+            .Where(a => a.JobId == jobId
+                     && a.Status != null
+                     && (a.Status.ToUpper() == "PENDING" || a.Status.ToUpper() == "APPROVED"))
+            .Select(a => new { a.CandidateId, a.ApplicationId })
+            .ToListAsync();
+
+        if (targets.Count == 0) return;
+
+        var notifications = targets.Select(t => new Notification
+        {
+            UserId = t.CandidateId,
+            UserType = "CANDIDATE",
+            Type = "APPLICATION",
+            Title = "Tin tuyển dụng đang được cập nhật",
+            Message = $"Nhà tuyển dụng vừa cập nhật thông tin tin \"{jobTitle}\". " +
+                      "Thông tin mới sẽ có hiệu lực sau khi được kiểm duyệt. Đơn ứng tuyển của bạn vẫn được giữ nguyên.",
+            ReferenceType = "Application",
+            ReferenceId = t.ApplicationId,
+            SeverityLevel = "info",
+            IsRead = false,
+            CreatedAt = DateTime.Now
+        }).ToList();
+
+        _context.Notifications.AddRange(notifications);
+        await _context.SaveChangesAsync();
+    }
 }

@@ -248,7 +248,7 @@ namespace DevHub.Controllers
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
-        public async Task<IActionResult> RecommendedJobs(int page = 1)
+        public async Task<IActionResult> RecommendedJobs([FromServices] IBookmarkService bookmarkService, int page = 1)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int candidateId))
@@ -272,6 +272,7 @@ namespace DevHub.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalJobs = totalItems;
+            ViewBag.BookmarkedJobIds = await bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
 
             return View("~/Views/Candidate/RecommendedJob/Index.cshtml", pagedJobs);
         }

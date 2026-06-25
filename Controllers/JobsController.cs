@@ -4,7 +4,6 @@ using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Jobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace DevHub.Controllers;
 

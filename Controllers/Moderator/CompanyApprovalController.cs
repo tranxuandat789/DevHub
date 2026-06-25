@@ -34,9 +34,9 @@ namespace DevHub.Controllers.Moderator
                         LogId = a.LogId,
                         RecruiterId = r.RecruiterId,
                         CompanyName = r.CompanyName,
-                        TaxCode = r.TaxCode,
-                        BusinessLicenseUrl = r.BusinessLicenseUrl,
-                        AdditionalDocumentsUrl = r.AdditionalDocumentsUrl,
+                        TaxCode = r.TaxCode ?? string.Empty,
+                        BusinessLicenseUrl = r.BusinessLicenseUrl ?? string.Empty,
+                        AdditionalDocumentsUrl = r.AdditionalDocumentsUrl ?? string.Empty,
                         RequestedAt = a.CreatedAt
                     });
 
@@ -92,7 +92,7 @@ namespace DevHub.Controllers.Moderator
 
             var notification = new Notification
             {
-                UserId = log.EntityId.Value,
+                UserId = log.EntityId ?? 0,
                 UserType = "RECRUITER",
                 Title = "Yêu cầu xác minh công ty đã được phê duyệt",
                 Message = "Chúc mừng! Công ty của bạn đã được xác minh.",
@@ -117,7 +117,7 @@ namespace DevHub.Controllers.Moderator
 
             var notification = new Notification
             {
-                UserId = log.EntityId.Value,
+                UserId = log.EntityId ?? 0,
                 UserType = "RECRUITER",
                 Title = "Yêu cầu xác minh công ty bị từ chối",
                 Message = $"Yêu cầu xác minh của bạn đã bị từ chối. Lý do: {reason}",

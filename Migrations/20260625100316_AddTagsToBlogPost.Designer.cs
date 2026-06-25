@@ -4,6 +4,7 @@ using DevHub.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DevHub.Migrations
 {
     [DbContext(typeof(ItrecruitmentDbContext))]
-    partial class ItrecruitmentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625100316_AddTagsToBlogPost")]
+    partial class AddTagsToBlogPost
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -212,7 +215,7 @@ namespace DevHub.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("published_at");
 
-                    b.Property<int?>("PublisherId")
+                    b.Property<int>("PublisherId")
                         .HasColumnType("int")
                         .HasColumnName("publisher_id");
 
@@ -1472,7 +1475,7 @@ namespace DevHub.Migrations
                     b.HasOne("DevHub.Models.Admin", "Publisher")
                         .WithMany("BlogPosts")
                         .HasForeignKey("PublisherId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired()
                         .HasConstraintName("FK__blog_post__publi__395884C4");
 
                     b.Navigation("Approver");

@@ -20,7 +20,7 @@
         ? Model.AvatarUrl!
         : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&background=4640DE&color=fff&size=128";
 
-    string Salary(decimal? v) => v.HasValue ? v.Value.ToString("#,##0").Replace(",", ".") : null;
+    string? Salary(decimal? v) => v.HasValue ? v.Value.ToString("#,##0").Replace(",", ".") : null;
     string salaryRange = (Model.ExpectedSalaryMin.HasValue || Model.ExpectedSalaryMax.HasValue)
         ? $"{Salary(Model.ExpectedSalaryMin) ?? "?"} - {Salary(Model.ExpectedSalaryMax) ?? "?"} VND"
         : "Chưa cập nhật";

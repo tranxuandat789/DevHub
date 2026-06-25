@@ -1,38 +1,39 @@
+@model DevHub.Models.BlogPost
 @{
-    ViewData["Title"] = "Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026";
+    ViewData["Title"] = Model.Title;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="bg-white min-h-screen pt-8 pb-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Breadcrumb -->
         <nav class="flex mb-8 text-sm text-muted">
             <a href="/" class="hover:text-primary transition">Trang chủ</a>
             <span class="mx-2">/</span>
-            <a href="/CareerHandbook" class="hover:text-primary transition">Cẩm nang nghề nghiệp</a>
+            <a href="/Blog" class="hover:text-primary transition">Blog</a>
             <span class="mx-2">/</span>
-            <span class="text-dark font-medium line-clamp-1">Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026</span>
+            <span class="text-dark font-medium line-clamp-1">@Model.Title</span>
         </nav>
 
         <!-- Article Header -->
         <header class="mb-10">
             <div class="flex items-center gap-3 text-sm mb-6">
-                <span class="bg-blue-50 text-[#26A4FF] px-3 py-1 rounded-full font-medium uppercase tracking-wide text-xs">Xu hướng công nghệ</span>
+                <span class="bg-blue-50 text-[#26A4FF] px-3 py-1 rounded-full font-medium uppercase tracking-wide text-xs">Công nghệ</span>
                 <span class="text-muted">•</span>
-                <span class="text-muted">24 Thg 5, 2026</span>
-                <span class="text-muted">•</span>
-                <span class="text-muted">5 phút đọc</span>
+                <span class="text-muted">@Model.PublishedAt?.ToString("dd Thg MM, yyyy")</span>
             </div>
             <h1 class="font-epilogue font-bold text-4xl md:text-5xl leading-tight text-dark mb-8">
-                Bí quyết xây dựng CV hoàn hảo cho lập trình viên năm 2026
+                @Model.Title
             </h1>
             
             <div class="flex items-center justify-between border-y border-bordercolor py-6">
                 <div class="flex items-center gap-4">
-                    <img src="https://i.pravatar.cc/150?img=12" alt="Author" class="w-14 h-14 rounded-full object-cover" />
+                    <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl">
+                        @(Model.AuthorRecruiter?.FullName?.Substring(0, 1) ?? "A")
+                    </div>
                     <div>
-                        <p class="font-bold text-dark text-lg">Nguyễn Văn A</p>
-                        <p class="text-sm text-muted">Chuyên gia Nhân sự, TechCorp</p>
+                        <p class="font-bold text-dark text-lg">@(Model.AuthorRecruiter?.FullName ?? Model.Author ?? "Admin Vũ")</p>
+                        <p class="text-sm text-muted">Tác giả</p>
                     </div>
                 </div>
                 <!-- Social Share -->
@@ -52,80 +53,95 @@
         </header>
 
         <!-- Hero Image -->
-        <figure class="mb-12">
-            <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop" alt="Bí quyết xây dựng CV hoàn hảo" class="w-full h-auto rounded-2xl object-cover" />
-            <figcaption class="text-center text-sm text-gray-500 mt-4 italic">Ảnh minh họa: Tối ưu hóa CV lập trình viên (Nguồn: Unsplash)</figcaption>
-        </figure>
+        @if(!string.IsNullOrEmpty(Model.ThumbnailUrl))
+        {
+            <figure class="mb-12">
+                <img src="@Model.ThumbnailUrl" alt="@Model.Title" class="w-full h-auto rounded-2xl object-cover" />
+            </figure>
+        }
 
         <!-- Article Content -->
         <article class="prose prose-lg max-w-none text-muted mb-16">
-            <p class="lead text-xl text-dark font-medium mb-8">Năm 2026 đánh dấu sự lên ngôi của AI trong quy trình tuyển dụng. Để CV của bạn lọt qua các vòng lọc tự động (ATS) và tạo ấn tượng mạnh mẽ với nhà tuyển dụng (Human Recruiter), bạn cần nắm vững những nguyên tắc cốt lõi mới.</p>
-            
-            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">1. Viết CV tối ưu cho Hệ thống Theo dõi Ứng viên (ATS)</h2>
-            <p class="mb-6">Hầu hết các công ty công nghệ hiện nay sử dụng ATS (Applicant Tracking System) tích hợp AI để lọc hồ sơ ban đầu. Điều này có nghĩa là người đọc CV đầu tiên của bạn không phải là con người mà là một thuật toán.</p>
-            <ul class="list-disc pl-6 mb-8 space-y-2">
-                <li><strong>Sử dụng từ khóa chính xác:</strong> Đọc kỹ mô tả công việc (JD) và sử dụng đúng các thuật ngữ công nghệ, kỹ năng được yêu cầu. Nếu JD yêu cầu "ReactJS", đừng chỉ viết "React".</li>
-                <li><strong>Bố cục đơn giản:</strong> Tránh các thiết kế CV quá phức tạp, nhiều cột, đồ họa rườm rà. AI thích các định dạng văn bản chuẩn, dễ parse. Định dạng PDF là tốt nhất, nhưng đôi khi Word (DOCX) lại được ATS đọc dễ dàng hơn.</li>
-                <li><strong>Tránh dùng thanh kỹ năng (Skill bars):</strong> Việc bạn tự đánh giá "JavaScript: 4/5 sao" không có ý nghĩa với ATS và cũng rất chủ quan đối với nhà tuyển dụng. Thay vào đó, hãy liệt kê cụ thể các project đã làm với JavaScript.</li>
-            </ul>
-
-            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">2. Tập trung vào "Impact" (Tác động) thay vì "Duties" (Nhiệm vụ)</h2>
-            <p class="mb-4">Cách viết liệt kê nhiệm vụ như "Chịu trách nhiệm bảo trì website" đã lỗi thời. Năm 2026, nhà tuyển dụng tìm kiếm những lập trình viên có thể tạo ra giá trị kinh doanh. Hãy sử dụng công thức XYZ của Google:</p>
-            <blockquote class="border-l-4 border-[#26A4FF] pl-4 py-2 my-6 bg-blue-50/50 rounded-r-lg text-dark italic">
-                "Tôi đã hoàn thành [X] được đo lường bởi [Y], bằng cách thực hiện [Z]."
-            </blockquote>
-            <p class="mb-6"><strong>Ví dụ:</strong> Thay vì viết "Tối ưu hóa database", hãy viết "Giảm 40% thời gian tải trang (Y) thông qua việc tái cấu trúc các truy vấn chậm và áp dụng Redis caching (Z), giúp tăng tỷ lệ chuyển đổi người dùng lên 15% (X)."</p>
-
-            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">3. Làm nổi bật Portfolio và Open Source</h2>
-            <p class="mb-6">Link GitHub và trang Portfolio cá nhân của bạn hiện nay quan trọng không kém gì chiếc CV. Thực tế, nhiều nhà tuyển dụng kỹ thuật (Technical Recruiters) sẽ click thẳng vào link GitHub của bạn trước khi đọc chi tiết CV.</p>
-            <ul class="list-disc pl-6 mb-8 space-y-2">
-                <li>Ghim (Pin) những repository tốt nhất của bạn lên đầu trang GitHub.</li>
-                <li>Đảm bảo các project có README.md rõ ràng: Hướng dẫn cài đặt, công nghệ sử dụng, giải quyết vấn đề gì, và link demo trực tiếp.</li>
-                <li>Đóng góp vào Open Source, dù chỉ là những bug fix nhỏ, cũng là điểm cộng cực lớn thể hiện kỹ năng làm việc nhóm và sử dụng Git.</li>
-            </ul>
-
-            <h2 class="text-2xl font-bold text-dark mt-10 mb-4">4. Cập nhật Kỹ năng AI và Automation</h2>
-            <p class="mb-6">Là một developer năm 2026, bạn không thể không nhắc đến khả năng làm việc với AI. Việc biết cách sử dụng GitHub Copilot, ChatGPT, hoặc các công cụ AI khác để tăng hiệu suất làm việc không còn là lợi thế cạnh tranh, mà đang dần trở thành kỹ năng bắt buộc.</p>
-
-            <div class="bg-gray-50 rounded-xl p-8 my-10 border border-bordercolor">
-                <h3 class="text-xl font-bold text-dark mb-3">Tóm lại</h3>
-                <p class="mb-0">Một CV hoàn hảo năm 2026 là một tài liệu rõ ràng, có dữ liệu chứng minh thành tựu, thân thiện với ATS và liên kết mạnh mẽ đến các bằng chứng thực tế (Portfolio/GitHub). Hãy dành thời gian review lại CV của bạn sau mỗi dự án lớn để luôn sẵn sàng cho những cơ hội mới.</p>
-            </div>
+            @Html.Raw(Model.Content)
         </article>
 
         <!-- Tags -->
         <div class="flex flex-wrap gap-2 mb-16 pb-8 border-b border-bordercolor">
             <span class="text-sm font-medium text-dark mr-2 py-1">Tags:</span>
-            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">CV</a>
-            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">Tuyển dụng</a>
-            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">Xu hướng 2026</a>
-            <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">Lập trình viên</a>
+            @if (!string.IsNullOrEmpty(Model.Tags))
+            {
+                var tags = Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var tag in tags)
+                {
+                    <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">@tag.Trim()</a>
+                }
+            }
+
         </div>
 
         <!-- Related Articles -->
-        <div>
-            <h3 class="text-2xl font-bold text-dark mb-8">Bài viết liên quan</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Related 1 -->
-                <a href="/CareerHandbook/Details/2" class="group flex gap-4 bg-white rounded-xl hover:bg-gray-50 transition p-2 -ml-2">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" alt="Article" class="w-24 h-24 rounded-lg object-cover" />
-                    <div>
-                        <div class="text-xs text-[#26A4FF] font-semibold mb-1 uppercase">Kinh nghiệm phỏng vấn</div>
-                        <h4 class="text-base font-bold text-dark mb-1 group-hover:text-[#26A4FF] transition line-clamp-2">5 câu hỏi thường gặp khi phỏng vấn Senior Developer</h4>
-                        <p class="text-xs text-muted">22 Thg 5, 2026</p>
-                    </div>
-                </a>
-                
-                <!-- Related 2 -->
-                <a href="/CareerHandbook/Details/3" class="group flex gap-4 bg-white rounded-xl hover:bg-gray-50 transition p-2 -ml-2">
-                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=200&auto=format&fit=crop" alt="Article" class="w-24 h-24 rounded-lg object-cover" />
-                    <div>
-                        <div class="text-xs text-[#26A4FF] font-semibold mb-1 uppercase">Kỹ năng mềm</div>
-                        <h4 class="text-base font-bold text-dark mb-1 group-hover:text-[#26A4FF] transition line-clamp-2">Nghệ thuật giao tiếp hiệu quả trong môi trường Agile</h4>
-                        <p class="text-xs text-muted">20 Thg 5, 2026</p>
-                    </div>
-                </a>
+        @if (ViewBag.RelatedBlogs != null && ((IEnumerable<DevHub.Models.BlogPost>)ViewBag.RelatedBlogs).Any())
+        {
+            var relatedBlogs = (IEnumerable<DevHub.Models.BlogPost>)ViewBag.RelatedBlogs;
+            <div>
+                <h3 class="text-2xl font-bold text-dark mb-8">Bài viết liên quan</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    @foreach (var related in relatedBlogs)
+                    {
+                        var firstTag = !string.IsNullOrEmpty(related.Tags) ? related.Tags.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)[0].Trim() : "Bài viết";
+                        <a href="/CareerHandbook/@related.Slug" class="group flex gap-4 bg-white rounded-xl hover:bg-gray-50 transition p-2 -ml-2">
+                            <img src="@(string.IsNullOrEmpty(related.ThumbnailUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" : related.ThumbnailUrl)" alt="@related.Title" class="w-24 h-24 rounded-lg object-cover" />
+                            <div>
+                                <div class="text-xs text-[#26A4FF] font-semibold mb-1 uppercase">@firstTag</div>
+                                <h4 class="text-base font-bold text-dark mb-1 group-hover:text-[#26A4FF] transition line-clamp-2">@related.Title</h4>
+                                <p class="text-xs text-muted">@(related.PublishedAt?.ToString("dd Thg MM, yyyy") ?? related.CreatedAt?.ToString("dd Thg MM, yyyy"))</p>
+                            </div>
+                        </a>
+                    }
+                </div>
             </div>
-        </div>
+        }
+
     </div>
 </div>
+
+@section Scripts {
+    <style>
+        .prose .image-style-side {
+            float: right;
+            margin-left: 2rem;
+            max-width: 50%;
+        }
+        .prose .image-style-align-left {
+            float: left;
+            margin-right: 2rem;
+            max-width: 50%;
+        }
+        .prose .image-style-align-right {
+            float: right;
+            margin-left: 2rem;
+            max-width: 50%;
+        }
+        .prose .image-style-align-center {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .prose figure.image {
+            display: table;
+            clear: both;
+            text-align: center;
+        }
+        .prose figure.image img {
+            margin: 0 auto;
+        }
+        .prose figure.image figcaption {
+            display: table-caption;
+            caption-side: bottom;
+            word-break: break-word;
+            color: var(--tw-prose-captions);
+            font-size: 0.875em;
+            line-height: 1.4285714;
+            margin-top: 0.8571429em;
+        }
+    </style>
+}

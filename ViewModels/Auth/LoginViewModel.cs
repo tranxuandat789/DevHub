@@ -5,7 +5,7 @@ namespace DevHub.ViewModels.Auth;
 public class LoginViewModel
 {
     [Required(ErrorMessage = "Email là bắt buộc")]
-    [EmailAddress]
+    [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", ErrorMessage = "Email không đúng định dạng (vd: abc@gmail.com)")]
     public string Email { get; set; } = "";
 
     [Required(ErrorMessage = "Mật khẩu là bắt buộc")]

@@ -1,4 +1,4 @@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -51,23 +51,13 @@
         }
         
         .sidebar-popover {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            transform: translateX(-10px);
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            transition: opacity 0.15s ease;
         }
-        .sidebar-popover::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: -16px;
-            width: 16px;
-        }
-        .sidebar-item:hover .sidebar-popover.enabled {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(0);
+        .sidebar-popover.show {
+            display: block;
         }
     </style>
 </head>
@@ -210,7 +200,7 @@
         </div>
 
         <!-- Menu Items -->
-        <div class="flex-1 w-full py-4 flex flex-col gap-2 items-center" id="sidebar-menu">
+        <div class="flex-1 w-full py-4 flex flex-col gap-2 items-center overflow-y-auto" id="sidebar-menu">
             
             <!-- Dashboard -->
             <div class="sidebar-item relative group w-full flex justify-center" data-menu="dashboard">
@@ -280,6 +270,25 @@
                     <ul class="flex flex-col gap-1">
                         <li><a href="/Recruiter/RecruiterInterview" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg> Quản lý lịch phỏng vấn</a></li>
                         <li><a href="/Recruiter/RecruiterInterview/Create" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Tạo lịch phỏng vấn</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Blog -->
+            <div class="sidebar-item relative group w-full flex justify-center" data-menu="blog">
+                <a href="/RecruiterBlog" class="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-xl hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors @(ViewData["ActiveMenu"] as string == "Blogs" ? "bg-blue-500 text-white hover:text-white hover:bg-blue-600" : "")">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                    <span class="text-[11px] font-medium text-center leading-tight">Bài blog</span>
+                </a>
+                
+                <div class="sidebar-popover enabled absolute left-[88px] top-0 ml-2 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-2 w-[260px]">
+                    <div class="flex items-center gap-3 text-blue-600 font-semibold mb-2 px-3 py-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                        Bài blog
+                    </div>
+                    <ul class="flex flex-col gap-1">
+                        <li><a href="/RecruiterBlog" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg> Quản lý bài blog</a></li>
+                        <li><a href="/RecruiterBlog/Create" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Viết bài mới</a></li>
                     </ul>
                 </div>
             </div>
@@ -458,6 +467,44 @@
                     popovers.forEach(p => p.classList.add('enabled'));
                 }
             });
+
+            // JS-based popover (position:fixed, bypass overflow-hidden)
+            sidebarItems.forEach(item => {
+                const popover = item.querySelector('.sidebar-popover');
+                if (!popover) return;
+                let hideTimer;
+
+                function showPopover() {
+                    if (isExpanded) {
+                        secondaryContent.innerHTML = popover.innerHTML;
+                        highlightActiveLinks();
+                        return;
+                    }
+                    clearTimeout(hideTimer);
+                    const rect = item.getBoundingClientRect();
+                    popover.style.top = rect.top + 'px';
+                    popover.style.left = (rect.right + 8) + 'px';
+                    popover.classList.add('show');
+                }
+
+                function hidePopover() {
+                    hideTimer = setTimeout(() => popover.classList.remove('show'), 80);
+                }
+
+                item.addEventListener('mouseenter', showPopover);
+                item.addEventListener('mouseleave', hidePopover);
+                popover.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+                popover.addEventListener('mouseleave', hidePopover);
+            });
+
+            // Ẩn popover khi scroll sidebar để tránh giật
+            const sidebarMenu = document.getElementById('sidebar-menu');
+            if (sidebarMenu) {
+                let scrollTimer;
+                sidebarMenu.addEventListener('scroll', () => {
+                    document.querySelectorAll('.sidebar-popover.show').forEach(p => p.classList.remove('show'));
+                }, { passive: true });
+            }
 
         });
     </script>

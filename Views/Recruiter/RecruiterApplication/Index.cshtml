@@ -13,9 +13,13 @@
     {
         switch ((status ?? "").ToUpper())
         {
-            case "APPROVED": return ("bg-green-100 text-green-700", "Đã duyệt");
+            case "APPROVED":
+            case "FINISHED": return ("bg-green-100 text-green-700", "Đã duyệt");
+            case "HIRED": return ("bg-blue-100 text-blue-700", "Trúng tuyển");
             case "PENDING": return ("bg-amber-100 text-amber-700", "Đang chờ");
             case "REJECTED": return ("bg-red-100 text-red-700", "Từ chối");
+            case "FAILED": return ("bg-red-100 text-red-700", "Không đạt");
+            case "CANCELLED": return ("bg-gray-100 text-gray-600", "Đã hủy");
             default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "—" : status);
         }
     }
@@ -113,6 +117,7 @@
             <a href="@BuildUrl(1, "")" class="@TabCls("")">Tất cả (@Model.CountAll)</a>
             <a href="@BuildUrl(1, "PENDING")" class="@TabCls("PENDING")">Đang chờ (@Model.CountPending)</a>
             <a href="@BuildUrl(1, "APPROVED")" class="@TabCls("APPROVED")">Đã duyệt (@Model.CountApproved)</a>
+            <a href="@BuildUrl(1, "HIRED")" class="@TabCls("HIRED")">Trúng tuyển (@Model.CountHired)</a>
             <a href="@BuildUrl(1, "REJECTED")" class="@TabCls("REJECTED")">Từ chối (@Model.CountRejected)</a>
         </div>
 

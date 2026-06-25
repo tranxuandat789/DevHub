@@ -47,7 +47,7 @@
                 }
                 <a href="/Recruiter/JobPost" class="bg-[#4640DE] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-all flex items-center gap-2 shadow-md">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Đăng tin mới
+                    Quản lý tin ứng tuyển
                 </a>
             </div>
         </div>
@@ -241,9 +241,11 @@
                         var (appBadgeCss, appBadgeLabel) = app.ApplicationStatus.ToUpper() switch
                         {
                             "PENDING" => ("bg-yellow-100 text-yellow-700", "Chờ duyệt"),
-                            "REVIEWING" => ("bg-blue-100 text-blue-700", "Đang xem xét"),
-                            "ACCEPTED" => ("bg-green-100 text-green-700", "Chấp nhận"),
+                            "APPROVED" or "FINISHED" => ("bg-green-100 text-green-700", "Đã duyệt"),
+                            "HIRED" => ("bg-blue-100 text-blue-700", "Trúng tuyển"),
                             "REJECTED" => ("bg-red-100 text-red-700", "Từ chối"),
+                            "FAILED" => ("bg-red-100 text-red-700", "Không đạt"),
+                            "CANCELLED" => ("bg-gray-100 text-gray-600", "Đã hủy"),
                             _ => ("bg-gray-100 text-gray-600", app.ApplicationStatus)
                         };
                         <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">

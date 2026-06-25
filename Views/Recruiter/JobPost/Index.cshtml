@@ -146,7 +146,7 @@ else
                                     </td>
                                     <td class="p-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            @if ((j.Status ?? "").ToLower() == "approved" || (j.Status ?? "").ToLower() == "closed")
+                                            @if ((j.Status ?? "").ToLower() != "rejected")
                                             {
                                                 <a href="/Recruiter/RecruiterApplication?jobId=@j.JobId" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Xem ứng viên">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z"></path></svg>

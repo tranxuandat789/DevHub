@@ -17,7 +17,8 @@ namespace DevHub.ViewModels.Recruiter
         // Status counts for the tabs.
         public int CountAll { get; set; }
         public int CountPending { get; set; }
-        public int CountApproved { get; set; }
+        public int CountApproved { get; set; }   // APPROVED + FINISHED ("Đã duyệt")
+        public int CountHired { get; set; }       // HIRED ("Trúng tuyển")
         public int CountRejected { get; set; }
 
         // Pagination.

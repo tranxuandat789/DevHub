@@ -40,10 +40,12 @@ namespace DevHub.Repositories.Implementations
                 q = q.Where(a => a.JobId == jobId.Value);
 
             // Status (ALL when null/empty). Skipped for tab-count queries.
+            // A tab key maps to a GROUP of raw statuses (e.g. "APPROVED" tab = APPROVED + FINISHED,
+            // both displayed as "Đã duyệt"), so a status tab matches every status under that label.
             if (includeStatus && !string.IsNullOrWhiteSpace(filter.Status))
             {
-                var st = filter.Status.ToUpper();
-                q = q.Where(a => (a.Status ?? "PENDING").ToUpper() == st);
+                var statuses = MapStatusGroup(filter.Status);
+                q = q.Where(a => statuses.Contains((a.Status ?? "PENDING").ToUpper()));
             }
 
             // Cross-job: filter by job position.
@@ -84,6 +86,16 @@ namespace DevHub.Repositories.Implementations
             return q;
         }
 
+        // Maps a status-tab key to the set of raw application statuses it represents.
+        private static string[] MapStatusGroup(string tab) => tab.ToUpper() switch
+        {
+            "APPROVED" => new[] { "APPROVED", "FINISHED" }, // "Đã duyệt"
+            "HIRED" => new[] { "HIRED" },                   // "Trúng tuyển"
+            "PENDING" => new[] { "PENDING" },
+            "REJECTED" => new[] { "REJECTED" },
+            var s => new[] { s }                            // any other exact status
+        };
+
         public async Task<(List<Application> Items, int TotalCount)> GetApplicantsAsync(
             int recruiterId, int? jobId, ApplicantFilter filter, int page, int pageSize)
         {
@@ -110,7 +122,7 @@ namespace DevHub.Repositories.Implementations
             return (items, total);
         }
 
-        public async Task<(int All, int Pending, int Approved, int Rejected)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter)
+        public async Task<(int All, int Pending, int Approved, int Hired, int Rejected)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter)
         {
             // Reuse the same filters as the list (tech/experience/keyword/location/position) but ignore
             // the status filter, so each tab shows how many results exist per status under the current filters.
@@ -123,9 +135,11 @@ namespace DevHub.Repositories.Implementations
 
             int all = groups.Sum(x => x.Count);
             int pending = groups.Where(x => x.Status == "PENDING").Sum(x => x.Count);
-            int approved = groups.Where(x => x.Status == "APPROVED").Sum(x => x.Count);
+            // "Đã duyệt" tab groups APPROVED + FINISHED.
+            int approved = groups.Where(x => x.Status == "APPROVED" || x.Status == "FINISHED").Sum(x => x.Count);
+            int hired = groups.Where(x => x.Status == "HIRED").Sum(x => x.Count);
             int rejected = groups.Where(x => x.Status == "REJECTED").Sum(x => x.Count);
-            return (all, pending, approved, rejected);
+            return (all, pending, approved, hired, rejected);
         }
 
         public async Task<Application?> GetApplicationDetailAsync(int applicationId, int recruiterId)

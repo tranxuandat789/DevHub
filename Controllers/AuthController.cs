@@ -277,7 +277,7 @@ public class AuthController : Controller
     {
         // Dữ liệu giả mô phỏng Google trả về
         var fakeEmail = from == "employer" ? "test.employer@gmail.com" : "test.candidate@gmail.com";
-        var fakeName  = from == "employer" ? "Test Employer" : "Test Candidate";
+        var fakeName = from == "employer" ? "Test Employer" : "Test Candidate";
         var fakeGoogleId = from == "employer" ? "fake-google-id-employer" : "fake-google-id-candidate";
         var fakeAvatar = "";
 
@@ -796,6 +796,7 @@ public class AuthController : Controller
             "Admin" or "ADMIN" => Redirect("/AdminDashboard"),
             "Moderator" or "MODERATOR" => Redirect("/moderator/job-approvals"),
             "Recruiter" or "RECRUITER" => Redirect("/Recruiter/Dashboard"),
+            "CANDIDATE" or "Candidate" => Redirect("/Candidate/Dashboard"),
             _ => RedirectToAction("Index", "Home")
         };
     }
@@ -1028,11 +1029,11 @@ public class AuthController : Controller
     }
 
 
-public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
+    public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
     {
         // Kiểm tra ModelState (các annotation trên ViewModel đã lo validation cơ bản)
         if (!ModelState.IsValid)
-            return View("RegisterCandidate",vm);
+            return View("RegisterCandidate", vm);
 
         var email = vm.Email.Trim().ToLower();
 
@@ -1083,7 +1084,7 @@ public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
             var innerMsg = ex.InnerException?.Message ?? ex.Message;
             Console.WriteLine($"[DevHub EMAIL ERROR] {innerMsg}");
             ViewBag.ErrorMessage = $"Không thể gửi email xác thực đến {email}. Lỗi: {innerMsg}";
-            return View("RegisterCandidate",vm);
+            return View("RegisterCandidate", vm);
         }
     }
 

@@ -185,7 +185,7 @@ namespace DevHub.Controllers.Auth
             {
                 if (ModelState.TryGetValue("Email", out var emailEntry) && emailEntry.Errors.Count > 0)
                     TempData["EmailError"] = emailEntry.Errors[0].ErrorMessage;
-                
+
                 TempData["PrefillEmail"] = vm.Email;
                 return View("~/Views/Auth/ForgotPassword.cshtml", vm);
             }
@@ -197,7 +197,7 @@ namespace DevHub.Controllers.Auth
                 var token = Guid.NewGuid().ToString("N");
                 user.ResetPassworvmken = token;
                 user.ResetPasswordExpiresAt = DateTime.Now.AddHours(24);
-                
+
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
@@ -249,7 +249,7 @@ namespace DevHub.Controllers.Auth
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(vm.NewPassword);
             await _auth.UpdatePasswordAsync(user.UserId, passwordHash);
-            
+
             user.ResetPassworvmken = null;
             user.ResetPasswordExpiresAt = null;
             _context.Update(user);
@@ -302,7 +302,7 @@ namespace DevHub.Controllers.Auth
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "Người dùng Google";
             var googleId = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            var avatarUrl = claims?.FirstOrDefault(c => c.Type == "urn:google:picture")?.Value 
+            var avatarUrl = claims?.FirstOrDefault(c => c.Type == "urn:google:picture")?.Value
                             ?? claims?.FirstOrDefault(c => c.Type == "picture")?.Value;
 
             if (string.IsNullOrEmpty(email))

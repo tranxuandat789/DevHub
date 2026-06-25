@@ -60,26 +60,29 @@ namespace DevHub.Repositories.Implementations
             // Sort in-memory to prevent EF Core translation errors for complex aggregations (Max review date)
             if (sortOrder == "rating_asc")
             {
+                // Công ty chưa có review (0 sao) → ĐẦU danh sách
                 items = items
-                    .OrderBy(r => r.AverageRating ?? 0m)
-                    .ThenBy(r => r.ReviewRecruiters.Any() 
-                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
+                    .OrderBy(r => r.TotalReviews > 0 ? 1 : 0)          // 0-review lên đầu
+                    .ThenBy(r => r.AverageRating ?? 0m)
+                    .ThenBy(r => r.ReviewRecruiters.Any()
+                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue)
                         : DateTime.MinValue)
                     .ThenBy(r => r.CompanyName)
                     .ToList();
             }
             else
             {
-                // Default: rating_desc (Highest rating first)
-                // Tie-breaker: If rating is equal, order by the most recent review date descending.
+                // Default: rating_desc — Công ty chưa có review (0 sao) → CUỐI danh sách
                 items = items
-                    .OrderByDescending(r => r.AverageRating ?? 0m)
-                    .ThenByDescending(r => r.ReviewRecruiters.Any() 
-                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
+                    .OrderBy(r => r.TotalReviews > 0 ? 0 : 1)          // 0-review xuống cuối
+                    .ThenByDescending(r => r.AverageRating ?? 0m)
+                    .ThenByDescending(r => r.ReviewRecruiters.Any()
+                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue)
                         : DateTime.MinValue)
                     .ThenBy(r => r.CompanyName)
                     .ToList();
             }
+
 
             return (items, totalCount);
         }

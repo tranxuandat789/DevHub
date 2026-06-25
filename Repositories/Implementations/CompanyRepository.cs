@@ -1,0 +1,120 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using DevHub.Data;
+using DevHub.Models;
+using DevHub.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace DevHub.Repositories.Implementations
+{
+    public class CompanyRepository : ICompanyRepository
+    {
+        private readonly ItrecruitmentDbContext _context;
+
+        public CompanyRepository(ItrecruitmentDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<(List<Recruiter> Items, int TotalCount)> GetVisibleCompaniesAsync(
+            string? searchTerm, 
+            List<int>? selectedTechs, 
+            List<int>? selectedPositions, 
+            string? sortOrder,
+            int page, 
+            int pageSize)
+        {
+            var query = _context.Recruiters
+                .Include(r => r.ReviewRecruiters)
+                .Where(r => r.ProfileCompletion >= 70);
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                query = query.Where(r => r.CompanyName.Contains(term) || (r.CompanyAddress != null && r.CompanyAddress.Contains(term)));
+            }
+
+            if (selectedTechs != null && selectedTechs.Any())
+            {
+                query = query.Where(r => _context.JobPosts.Any(j => 
+                    j.RecruiterId == r.RecruiterId && 
+                    j.Status == "APPROVED" && 
+                    j.Teches.Any(t => selectedTechs.Contains(t.TechId))));
+            }
+
+            if (selectedPositions != null && selectedPositions.Any())
+            {
+                query = query.Where(r => _context.JobPosts.Any(j => 
+                    j.RecruiterId == r.RecruiterId && 
+                    j.Status == "APPROVED" && 
+                    selectedPositions.Contains(j.PositionId)));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            // Load items from database to perform safe sorting with tie-breaker details
+            var items = await query.ToListAsync();
+
+            // Sort in-memory to prevent EF Core translation errors for complex aggregations (Max review date)
+            if (sortOrder == "rating_asc")
+            {
+                items = items
+                    .OrderBy(r => r.AverageRating ?? 0m)
+                    .ThenBy(r => r.ReviewRecruiters.Any() 
+                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
+                        : DateTime.MinValue)
+                    .ThenBy(r => r.CompanyName)
+                    .ToList();
+            }
+            else
+            {
+                // Default: rating_desc (Highest rating first)
+                // Tie-breaker: If rating is equal, order by the most recent review date descending.
+                items = items
+                    .OrderByDescending(r => r.AverageRating ?? 0m)
+                    .ThenByDescending(r => r.ReviewRecruiters.Any() 
+                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
+                        : DateTime.MinValue)
+                    .ThenBy(r => r.CompanyName)
+                    .ToList();
+            }
+
+            return (items, totalCount);
+        }
+
+        public async Task<Recruiter?> GetCompanyDetailsAsync(int recruiterId)
+        {
+            return await _context.Recruiters
+                .Include(r => r.RecruiterNavigation) // Includes UserAccount for email contact
+                .Include(r => r.ReviewRecruiters)
+                    .ThenInclude(rev => rev.Candidate)
+                .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId);
+        }
+
+        public async Task<List<JobPost>> GetCompanyJobsAsync(int recruiterId)
+        {
+            return await _context.JobPosts
+                .Include(j => j.Teches) // Includes Tech stack badges for Job cards
+                .Where(j => j.RecruiterId == recruiterId && j.Status == "APPROVED")
+                .ToListAsync();
+        }
+
+        public async Task<List<CommonTechnology>> GetActiveTechnologiesAsync()
+        {
+            return await _context.CommonTechnologies
+                .Where(t => t.IsActive == true)
+                .OrderBy(t => t.TechName)
+                .ToListAsync();
+        }
+
+        public async Task<List<CommonJobPosition>> GetActiveJobPositionsAsync()
+        {
+            return await _context.CommonJobPositions
+                .Where(p => p.IsActive == true)
+                .OrderBy(p => p.PositionName)
+                .ToListAsync();
+        }
+    }
+}

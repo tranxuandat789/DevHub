@@ -21,7 +21,7 @@
                     </div>
                 }
 
-                <form asp-action="Login" asp-controller="Auth" method="post">
+                <form asp-action="Login" asp-controller="Auth" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]" method="post">
                     @Html.AntiForgeryToken()
 
                     <div class="mb-5">

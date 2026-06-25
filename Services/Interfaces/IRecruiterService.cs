@@ -1,4 +1,4 @@
-﻿//AnhPT-01/06/2026
+//AnhPT-01/06/2026
 using DevHub.Models;
 using DevHub.ViewModels.Recruiter;
 
@@ -9,5 +9,6 @@ public interface IRecruiterService
     Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId);
     Task UpdateProfileAsync(Recruiter recruiter, RecruiterProfileViewModel updateVm);
     Task SendVerificationRequestAsync(int recruiterId);
+    Task<bool> HasPendingVerificationRequestAsync(int recruiterId);
     Task ChangePasswordAsync(int recruiterId, RecruiterChangePasswordViewModel vm);
 }

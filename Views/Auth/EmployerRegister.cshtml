@@ -60,6 +60,21 @@
                         </button>
                     </div>
 
+                    <div class="mb-4">
+                        <input type="text" placeholder="Tên công ty (chỉ chữ cái và số)" name="CompanyName" id="companyNameID" value="@Model?.CompanyName"
+                               class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <input type="text" placeholder="Địa chỉ công ty (ví dụ: 123 Nguyễn Huệ, Quận 1, TP.HCM)" name="CompanyAddress" id="companyAddressID" value="@Model?.CompanyAddress"
+                               class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <input type="url" placeholder="Website công ty (ví dụ: https://company.com)" name="CompanyWebsite" id="companyWebsiteID" value="@Model?.CompanyWebsite"
+                               class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" required />
+                    </div>
+
                     <div class="mb-6 flex items-start gap-3">
                         <div class="flex items-center h-5 mt-0.5">
                             <input id="terms" type="checkbox" class="w-4 h-4 text-primary bg-white border-bordercolor rounded focus:ring-primary focus:ring-2" required>

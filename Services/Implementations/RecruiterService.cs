@@ -163,6 +163,11 @@ namespace DevHub.Services.Implementations
             }
         }
 
+        public async Task<bool> HasPendingVerificationRequestAsync(int recruiterId)
+        {
+            return await _recruiterProfileRepository.HasPendingVerificationRequestAsync(recruiterId);
+        }
+
         // Change the recruiter's login password after verifying.
         public async Task ChangePasswordAsync(int recruiterId, RecruiterChangePasswordViewModel vm)
         {

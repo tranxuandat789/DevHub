@@ -43,6 +43,7 @@ namespace DevHub.Controllers.Recruiter
 
             // Google-login accounts (no local password) -> hide the "current password" box.
             ViewBag.IsGoogleAccount = string.IsNullOrEmpty(dbUser.PasswordHash) || dbUser.PasswordHash == "GOOGLE_OAUTH";
+            ViewBag.HasPendingRequest = await _recruiterService.HasPendingVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
 
             return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
         }

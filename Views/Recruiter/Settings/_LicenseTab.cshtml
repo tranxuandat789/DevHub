@@ -205,7 +205,8 @@
     @{
         int completeness = Model.ProfileCompletion ?? 0;
         bool isVerified = Model.IsVerified == true;
-        bool canRequestVerify = completeness > 95 && hasLicense && !isVerified;
+        bool hasPendingRequest = ViewBag.HasPendingRequest == true;
+        bool canRequestVerify = completeness > 95 && hasLicense && !isVerified && !hasPendingRequest;
     }
 
     <!--Tab 3 — Send Company verification request-->
@@ -223,7 +224,7 @@
             <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500
                         @(completeness > 95 ? "bg-green-500" : completeness > 60 ? "bg-amber-400" : "bg-red-400")"
-                     style="width: @(Math.Min(completeness, 100))%"></div>
+                      style="width: @(Math.Min(completeness, 100))%"></div>
             </div>
         </div>
 
@@ -242,6 +243,20 @@
                 </div>
             </div>
         }
+        else if (hasPendingRequest)
+        {
+            <div class="flex items-center gap-3 px-5 py-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-yellow-800">Đang chờ xác thực</p>
+                    <p class="text-xs text-yellow-600">Yêu cầu xác minh tài khoản của bạn đang chờ duyệt. Vui lòng không gửi lại.</p>
+                </div>
+            </div>
+        }
         else if (canRequestVerify)
         {
             <!--reach profile completeness condition, be able to sendd request-->
@@ -253,7 +268,7 @@
                 <p class="text-sm text-blue-800">Hồ sơ đã đủ điều kiện xác minh. Nhấn nút bên dưới để gửi yêu cầu.</p>
             </div>
 
-            <form asp-action="RequestVerification" asp-controller="Settings" method="post">
+            <form asp-action="RequestVerification" asp-controller="Settings" method="post" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
                 @Html.AntiForgeryToken()
                 <div class="flex justify-end">
                     <button type="submit"

@@ -1,391 +1,732 @@
+@model DevHub.ViewModels.Company.CompanySearchPageViewModel
 @{
-    ViewData["Title"] = "Tất cả công ty";
+    ViewData["Title"] = "Danh sách công ty";
 }
 
-<!-- Top Header Section -->
-<section class="py-12 border-b border-bordercolor relative overflow-hidden" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 75% 35%, rgba(139, 92, 246, 0.18), transparent 35%);">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<!-- Custom Styles for UI Redesign -->
+<style>
+    /* Design Tokens & Colors */
+    :root {
+        --color-primary: #4F46E5;
+        --color-secondary: #6366F1;
+        --color-success: #22C55E;
+        --color-bg: #F8FAFC;
+        --color-card: #FFFFFF;
+        --color-text-main: #0F172A;
+        --color-text-sub: #64748B;
+        --color-border: #E2E8F0;
+    }
+
+    /* Global Body/Page overrides */
+    body {
+        background-color: var(--color-bg) !important;
+        color: var(--color-text-main) !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    /* Scrollbars */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #F1F5F9;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+    }
+
+    /* Search Hero Section */
+    .search-hero {
+        background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Custom Checkboxes */
+    .custom-checkbox {
+        position: relative;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #CBD5E1;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .custom-checkbox:checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+    .custom-checkbox:checked::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 5px;
+        height: 9px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    /* Sidebar Accordions */
+    .accordion-header {
+        cursor: pointer;
+        user-select: none;
+    }
+    .accordion-content {
+        transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+        max-height: 500px;
+        overflow: hidden;
+    }
+    .accordion-content.collapsed {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Company Cards list */
+    .company-card {
+        background-color: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .company-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(79, 70, 229, 0.08);
+        border-color: #C7D2FE;
+    }
+
+    /* Limit sidebar height on desktop to match 5 cards page height (approx 980px) */
+    @@media (min-width: 1024px) {
+        #filterSidebar {
+            max-height: 980px;
+            overflow-y: auto;
+        }
+    }
+
+
+    /* Mobile Drawer/Offcanvas for filters */
+    .mobile-filter-drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 320px;
+        max-width: 85vw;
+        background-color: #FFFFFF;
+        z-index: 2000;
+        box-shadow: 20px 0 30px rgba(0, 0, 0, 0.15);
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+    }
+    .mobile-filter-drawer.open {
+        transform: translateX(0);
+    }
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1999;
+        display: none;
+    }
+    .drawer-overlay.active {
+        display: block;
+    }
+
+    /* Logo Fallbacks */
+    .logo-avatar {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+        color: #FFFFFF;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-radius: 14px;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.15);
+    }
+
+    /* Shield rank badge (itviec style) */
+    .rank-badge {
+        width: 56px;
+        height: 72px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 6px 20px;
+        clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+        font-weight: 900;
+        color: white;
+        gap: 4px;
+        align-self: center;
+    }
+    .rank-badge-num { font-size: 24px; line-height: 1; letter-spacing: -0.5px; }
+    .rank-badge-1 { background: linear-gradient(175deg, #F9C430 0%, #E8940A 100%); }
+    .rank-badge-2 { background: linear-gradient(175deg, #C2C2C2 0%, #8A8A8A 100%); }
+    .rank-badge-3 { background: linear-gradient(175deg, #D4895A 0%, #9E5A28 100%); }
+</style>
+
+<!-- Search Hero Section -->
+<section class="search-hero py-16 px-4 md:px-8 relative overflow-hidden">
+    <div class="w-full px-4 sm:px-8 md:px-12 relative z-10">
         <!-- Breadcrumb -->
-        <div class="text-sm text-muted mb-4 flex items-center space-x-2">
+        <div class="text-xs md:text-sm text-slate-500 mb-4 flex items-center space-x-2 font-medium">
             <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             <a href="/" class="hover:text-primary transition-colors">Trang chủ</a>
             <span>&rsaquo;</span>
-            <span class="text-dark font-medium">Tất cả công ty</span>
+            <span class="text-slate-800 font-semibold">Khám phá công ty</span>
         </div>
 
-        <!-- Title -->
-        <h1 class="text-[32px] md:text-[40px] font-bold text-dark mb-8">
-            Tất cả <span class="text-[#26A4FF]">công ty</span> <span class="text-muted text-[20px] font-normal">(128+ công ty IT)</span>
-        </h1>
-
-        <!-- Search Bar -->
-        <div class="bg-white p-3 shadow-[0_15px_40px_-10px_rgba(139,92,246,0.3)] hover:shadow-[0_20px_50px_-15px_rgba(139,92,246,0.4)] transition-shadow duration-300 md:rounded-full rounded-3xl flex flex-col md:flex-row items-center border border-purple-100 relative z-20">
-            <div class="flex items-center flex-1 w-full px-4 py-2 border-b md:border-b-0 md:border-r border-bordercolor mb-2 md:mb-0">
-                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input type="text" id="searchInput" placeholder="Tên công ty hoặc từ khóa..." class="w-full focus:outline-none text-dark placeholder-gray-400">
-            </div>
-            <div class="flex items-center flex-1 w-full px-4 py-2 mb-2 md:mb-0 relative">
-                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <select class="w-full focus:outline-none text-dark appearance-none bg-transparent cursor-pointer">
-                    <option>Toàn quốc</option>
-                    <option>TP Hà Nội</option>
-                    <option>TP Hồ Chí Minh</option>
-                    <option>Đà Nẵng</option>
-                </select>
-            </div>
-            <button class="w-full md:w-auto bg-primary text-white font-bold py-3.5 px-8 md:rounded-full rounded-[20px] hover:bg-opacity-90 transition-all whitespace-nowrap text-[16px] flex-shrink-0 shadow-md">
-                Tìm kiếm
-            </button>
+        <div class="max-w-4xl">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                Khám phá môi trường làm việc <span class="text-primary">tuyệt vời nhất</span>
+            </h1>
+            <p class="text-slate-500 text-sm md:text-base mb-8 max-w-xl font-normal leading-relaxed">
+                Đọc đánh giá thực tế từ ứng viên và tìm hiểu thông tin phúc lợi, văn hoá của @Model.TotalCount+ doanh nghiệp hàng đầu.
+            </p>
         </div>
+
+        <!-- Modern Search Box (LinkedIn style) -->
+        <form method="GET" action="/Company/Search" id="searchHeroForm" class="max-w-3xl">
+            <input type="hidden" name="sortOrder" value="@Model.SortOrder" />
+            @foreach (var tech in Model.SelectedTechs)
+            {
+                <input type="hidden" name="selectedTechs" value="@tech" />
+            }
+            @foreach (var pos in Model.SelectedPositions)
+            {
+                <input type="hidden" name="selectedPositions" value="@pos" />
+            }
+
+            <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-lg flex flex-col md:flex-row items-center gap-2">
+                <div class="flex items-center flex-1 w-full px-3 py-2 border-r-0 md:border-r border-slate-100">
+                    <svg class="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên công ty hoặc địa chỉ..." class="w-full focus:outline-none text-slate-800 placeholder-slate-400 bg-transparent text-[15px] font-medium">
+                </div>
+                <button type="submit" class="w-full md:w-auto bg-primary text-white font-bold py-3.5 px-8 rounded-xl hover:bg-opacity-90 hover:shadow-md transition-all whitespace-nowrap text-[15px]">
+                    Tìm kiếm công ty
+                </button>
+            </div>
+        </form>
     </div>
 </section>
 
-<!-- Main Content -->
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8">
-    <!-- Sidebar Filters -->
-    <div class="w-full md:w-1/4 flex-shrink-0">
-        <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] p-5 bg-white h-fit">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="font-bold text-dark text-[16px]">Bộ lọc</h3>
-                <button id="resetFilters" class="text-primary text-[13px] font-medium hover:underline">Đặt lại</button>
-            </div>
+<!-- Main Layout Grid -->
+<section class="w-full px-4 sm:px-8 md:px-12 py-12">
+    <!-- Main Search filter form -->
+    <form method="GET" action="/Company/Search" id="filterForm" class="w-full">
+        <!-- Preserve text search input -->
+        <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
 
-            <!-- Filter: Lĩnh vực IT -->
-            <div class="mb-5 border-b border-gray-100 pb-5">
-                <div class="flex justify-between items-center mb-3 cursor-pointer select-none filter-header">
-                    <h4 class="font-bold text-dark text-[14px]">Lĩnh vực IT</h4>
-                    <svg class="w-4 h-4 text-dark transition-transform duration-300 filter-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                </div>
-                <div class="space-y-2.5 filter-content">
-                    @{
-                        var itFields = new[] {
-                            "Phần mềm & Ứng dụng", "Web Development", "Mobile Development",
-                            "AI / Machine Learning", "Data Science & Analytics", "DevOps & Cloud",
-                            "Cyber Security", "Game Development", "UI/UX Design",
-                            "QA & Testing", "Blockchain", "IoT & Embedded"
-                        };
-                    }
-                    @foreach (var field in itFields)
-                    {
-                        <label class="flex items-center space-x-3 cursor-pointer group">
-                            <input type="checkbox" class="industry-filter form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" value="@field">
-                            <span class="text-muted text-[14px] group-hover:text-dark transition-colors">@field</span>
-                        </label>
-                    }
-                </div>
-            </div>
-
-            <!-- Filter: Quy mô công ty -->
-            <div class="mb-5 border-b border-gray-100 pb-5">
-                <div class="flex justify-between items-center mb-3 cursor-pointer select-none filter-header">
-                    <h4 class="font-bold text-dark text-[14px]">Quy mô công ty</h4>
-                    <svg class="w-4 h-4 text-dark transition-transform duration-300 filter-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                </div>
-                <div class="space-y-2.5 filter-content">
-                    @{
-                        var sizes = new[] { "1 - 50 nhân viên", "51 - 200 nhân viên", "201 - 500 nhân viên", "500 - 1000 nhân viên", "1000+ nhân viên" };
-                    }
-                    @foreach (var size in sizes)
-                    {
-                        <label class="flex items-center space-x-3 cursor-pointer group">
-                            <input type="radio" name="companySize" class="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary" value="@size">
-                            <span class="text-muted text-[14px] group-hover:text-dark transition-colors">@size</span>
-                        </label>
-                    }
-                </div>
-            </div>
-
-            <!-- Filter: Loại công ty -->
-            <div>
-                <div class="flex justify-between items-center mb-3 cursor-pointer select-none filter-header">
-                    <h4 class="font-bold text-dark text-[14px]">Loại hình công ty</h4>
-                    <svg class="w-4 h-4 text-dark transition-transform duration-300 filter-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                </div>
-                <div class="space-y-2.5 filter-content">
-                    @{
-                        var types = new[] { "Công ty sản phẩm", "Công ty dịch vụ / Outsource", "Startup", "Tập đoàn đa quốc gia", "Công ty nước ngoài tại VN" };
-                    }
-                    @foreach (var type in types)
-                    {
-                        <label class="flex items-center space-x-3 cursor-pointer group">
-                            <input type="checkbox" class="type-filter form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary" value="@type">
-                            <span class="text-muted text-[14px] group-hover:text-dark transition-colors">@type</span>
-                        </label>
-                    }
-                </div>
-            </div>
-
-            <!-- Filter: Đánh giá -->
-            <div class="mt-5 pt-5 border-t border-gray-100">
-                <div class="flex justify-between items-center mb-3 cursor-pointer select-none filter-header">
-                    <h4 class="font-bold text-dark text-[14px]">Đánh giá</h4>
-                    <svg class="w-4 h-4 text-dark transition-transform duration-300 filter-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                </div>
-                <div class="space-y-2.5 filter-content">
-                    @foreach (var star in new[] { 5, 4, 3 })
-                    {
-                        <label class="flex items-center space-x-2 cursor-pointer group">
-                            <input type="radio" name="minRating" class="form-radio h-4 w-4 text-primary border-gray-300 focus:ring-primary" value="@star">
-                            <span class="flex items-center gap-0.5">
-                                @for (int s = 1; s <= 5; s++)
-                                {
-                                    <svg class="w-4 h-4 @(s <= star ? "text-yellow-400" : "text-gray-200")" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                }
-                                <span class="text-muted text-[12px] ml-1">@star★ trở lên</span>
-                            </span>
-                        </label>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Company Grid -->
-    <div class="flex-1">
-        <!-- Sort Bar -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <p class="text-muted text-[15px]">Hiển thị <span class="font-bold text-dark" id="resultCount">12</span> trong số <span class="font-bold text-dark">128</span> công ty</p>
-            <div class="flex items-center gap-3">
-                <span class="text-muted text-[14px]">Sắp xếp theo:</span>
-                <select id="sortSelect" class="border border-bordercolor rounded-lg px-3 py-2 text-dark text-[14px] focus:outline-none focus:border-primary bg-white">
-                    <option value="relevance">Phù hợp nhất</option>
-                    <option value="jobs">Nhiều việc làm nhất</option>
-                    <option value="rating">Đánh giá cao nhất</option>
-                    <option value="name">Tên A - Z</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Industry Quick Filter Pills -->
-        <div class="flex flex-wrap gap-2 mb-6" id="industryPills">
-            <button class="pill-btn active px-4 py-1.5 rounded-full text-[13px] font-medium border border-primary bg-primary text-white transition-all" data-value="all">Tất cả</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="Web Development">Web Dev</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="Mobile Development">Mobile</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="AI / Machine Learning">AI / ML</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="Data Science & Analytics">Data</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="DevOps & Cloud">DevOps</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="Cyber Security">Security</button>
-            <button class="pill-btn px-4 py-1.5 rounded-full text-[13px] font-medium border border-bordercolor text-muted hover:border-primary hover:text-primary transition-all" data-value="UI/UX Design">UI/UX</button>
-        </div>
-
-        <!-- Company Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="companyGrid">
-
-            @{
-                var companies = new[] {
-                    new { Name = "FPT Software",    Industry = "Phần mềm & Ứng dụng", Type = "Công ty sản phẩm",             Size = "1000+ nhân viên",     Jobs = 45, Rating = 4.5, Reviews = 312, Tags = new[]{"Web Development","Mobile Development"}, Initials="F" },
-                    new { Name = "VNG Corporation", Industry = "Web Development",       Type = "Startup",                      Size = "1000+ nhân viên",     Jobs = 32, Rating = 4.2, Reviews = 198, Tags = new[]{"Web Development","AI / Machine Learning"}, Initials="V" },
-                    new { Name = "Tiki",            Industry = "Web Development",       Type = "Startup",                      Size = "500 - 1000 nhân viên", Jobs = 28, Rating = 3.8, Reviews = 145, Tags = new[]{"Data Science & Analytics","DevOps & Cloud"}, Initials="T" },
-                    new { Name = "Grab Vietnam",    Industry = "Mobile Development",   Type = "Công ty nước ngoài tại VN",   Size = "1000+ nhân viên",     Jobs = 20, Rating = 4.7, Reviews = 423, Tags = new[]{"Mobile Development","Data Science & Analytics"}, Initials="G" },
-                    new { Name = "Shopee Vietnam",  Industry = "Web Development",       Type = "Công ty nước ngoài tại VN",   Size = "1000+ nhân viên",     Jobs = 37, Rating = 4.1, Reviews = 267, Tags = new[]{"Web Development","DevOps & Cloud"}, Initials="S" },
-                    new { Name = "KMS Technology",  Industry = "Phần mềm & Ứng dụng", Type = "Công ty dịch vụ / Outsource", Size = "500 - 1000 nhân viên", Jobs = 18, Rating = 4.6, Reviews = 189, Tags = new[]{"QA & Testing","Web Development"}, Initials="K" },
-                    new { Name = "Axon Active",     Industry = "Phần mềm & Ứng dụng", Type = "Công ty dịch vụ / Outsource", Size = "201 - 500 nhân viên",  Jobs = 12, Rating = 4.4, Reviews = 97,  Tags = new[]{"Web Development","QA & Testing"}, Initials="A" },
-                    new { Name = "Nashtech",        Industry = "Phần mềm & Ứng dụng", Type = "Công ty nước ngoài tại VN",   Size = "201 - 500 nhân viên",  Jobs = 15, Rating = 3.9, Reviews = 112, Tags = new[]{"DevOps & Cloud","Web Development"}, Initials="N" },
-                    new { Name = "TymeX",           Industry = "AI / Machine Learning",Type = "Startup",                      Size = "51 - 200 nhân viên",   Jobs = 10, Rating = 4.3, Reviews = 58,  Tags = new[]{"AI / Machine Learning","Cyber Security"}, Initials="TX" },
-                    new { Name = "Fossil Group VN", Industry = "IoT & Embedded",       Type = "Công ty nước ngoài tại VN",   Size = "201 - 500 nhân viên",  Jobs = 8,  Rating = 3.6, Reviews = 44,  Tags = new[]{"IoT & Embedded","Mobile Development"}, Initials="FG" },
-                    new { Name = "Got It Vietnam",  Industry = "AI / Machine Learning",Type = "Startup",                      Size = "51 - 200 nhân viên",   Jobs = 14, Rating = 4.8, Reviews = 76,  Tags = new[]{"AI / Machine Learning","Data Science & Analytics"}, Initials="GI" },
-                    new { Name = "Designveloper",   Industry = "UI/UX Design",          Type = "Công ty dịch vụ / Outsource", Size = "1 - 50 nhân viên",     Jobs = 6,  Rating = 4.0, Reviews = 33,  Tags = new[]{"UI/UX Design","Web Development"}, Initials="D" },
-                };
-            }
-
-            @foreach (var company in companies)
-            {
-                <div class="company-card border border-[#DEDEDE] rounded-xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col bg-white group"
-                     data-industry="@company.Industry"
-                     data-size="@company.Size"
-                     data-type="@company.Type"
-                     data-name="@company.Name"
-                     data-jobs="@company.Jobs"
-                     data-rating="@company.Rating.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)">
-                    <!-- Card body -->
-                    <a href="/Companies/Details/1" class="p-6 flex flex-col items-center justify-center flex-1 cursor-pointer">
-                        <div class="w-[80px] h-[80px] mb-4 rounded-[16px] flex items-center justify-center bg-black flex-shrink-0">
-                            <span class="font-bold text-white text-[18px] tracking-wider uppercase">@company.Initials</span>
-                        </div>
-                        <h3 class="font-bold text-dark text-[16px] text-center group-hover:text-primary transition-colors leading-tight mb-2">@company.Name</h3>
-                        <!-- Stars -->
-                        <div class="flex items-center gap-0.5 mb-2">
-                            @{ int fullS = (int)Math.Floor(company.Rating); bool half = (company.Rating % 1) >= 0.5; }
-                            @for (int s = 1; s <= 5; s++)
-                            {
-                                <svg class="w-3.5 h-3.5 @(s <= fullS ? "text-yellow-400" : (s == fullS + 1 && half ? "text-yellow-300" : "text-gray-200"))" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            }
-                            <span class="text-[12px] font-bold text-dark ml-1">@company.Rating.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)</span>
-                            <span class="text-[11px] text-muted">(@company.Reviews)</span>
-                        </div>
-                        <!-- Tags -->
-                        <div class="flex flex-wrap gap-1 justify-center">
-                            @foreach (var tag in company.Tags)
-                            {
-                                <span class="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-[11px] font-medium border border-primary/20">@tag</span>
-                            }
-                        </div>
-                    </a>
-                    <!-- Footer -->
-                    <a href="/Jobs" class="bg-[#F8F8F8] py-3 flex items-center justify-center text-muted font-medium text-[14px] hover:text-primary hover:bg-primary/5 transition-colors border-t border-[#F1F1F1]">
-                        @company.Jobs việc đang tuyển
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
-            }
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden py-16 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <p class="text-[18px] font-bold text-dark mb-2">Không tìm thấy công ty nào</p>
-            <p class="text-muted text-[14px]">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
-        </div>
-
-        <!-- Pagination -->
-        <div class="mt-10 flex justify-center" id="paginationArea">
-            <nav class="flex items-center space-x-2">
-                <button class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-muted hover:bg-gray-100 transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <button class="w-10 h-10 flex items-center justify-center rounded border border-primary bg-primary text-white font-medium">1</button>
-                <button class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-dark hover:bg-gray-100 font-medium transition-colors">2</button>
-                <button class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-dark hover:bg-gray-100 font-medium transition-colors">3</button>
-                <span class="text-muted px-2">...</span>
-                <button class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-dark hover:bg-gray-100 font-medium transition-colors">11</button>
-                <button class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-muted hover:bg-gray-100 transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex flex-col lg:flex-row gap-8 w-full items-start">
+            
+            <!-- Sidebar Filter Left (1/4 Layout width, sticky on desktop) -->
+            <div class="w-full lg:w-1/4 lg:sticky lg:top-6 flex-shrink-0">
+                <!-- Mobile Toggle Button (Visible on tablet/mobile only) -->
+                <button id="mobileFilterBtn" type="button" class="lg:hidden w-full flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-bold mb-4 shadow-sm hover:bg-slate-50 transition-colors">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Bộ lọc tìm kiếm
+                    </span>
+                    <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
-            </nav>
+
+                <!-- Filter Container Content -->
+                <div id="filterSidebar" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+                    
+                    <!-- Sorting Group (Accordion) -->
+                    <div class="border-b border-slate-100 pb-3">
+                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="sort">
+                            <span class="font-bold text-slate-800 text-[15px]">Sắp xếp theo đánh giá</span>
+                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div class="accordion-content pt-2 space-y-2" id="accordion-sort">
+                            <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                <input type="radio" name="sortOrder" value="rating_desc" @(Model.SortOrder == "rating_asc" ? "" : "checked") class="text-primary focus:ring-primary w-4 h-4 border-slate-300" onchange="this.form.submit()" />
+                                <span>Đánh giá giảm dần</span>
+                            </label>
+                            <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                <input type="radio" name="sortOrder" value="rating_asc" @(Model.SortOrder == "rating_asc" ? "checked" : "") class="text-primary focus:ring-primary w-4 h-4 border-slate-300" onchange="this.form.submit()" />
+                                <span>Đánh giá tăng dần</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Tech Stack Filter (Accordion) -->
+                    <div class="border-b border-slate-100 pb-3">
+                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="tech">
+                            <span class="font-bold text-slate-800 text-[15px]">Tech Stack</span>
+                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div class="accordion-content pt-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5" id="accordion-tech">
+                            @foreach (var tech in Model.AvailableTechs)
+                            {
+                                var isChecked = Model.SelectedTechs.Contains(tech.TechId) ? "checked" : "";
+                                <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                    <input type="checkbox" name="selectedTechs" value="@tech.TechId" @isChecked class="custom-checkbox" />
+                                    <span class="truncate">@tech.TechName</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Job Position Filter (Accordion) -->
+                    <div class="border-b border-slate-100 pb-3">
+                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="position">
+                            <span class="font-bold text-slate-800 text-[15px]">Vị trí tuyển dụng</span>
+                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div class="accordion-content pt-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5" id="accordion-position">
+                            @foreach (var pos in Model.AvailablePositions)
+                            {
+                                var isChecked = Model.SelectedPositions.Contains(pos.PositionId) ? "checked" : "";
+                                <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                    <input type="checkbox" name="selectedPositions" value="@pos.PositionId" @isChecked class="custom-checkbox" />
+                                    <span class="truncate" title="@pos.PositionName">@pos.PositionName</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+
+                    <!-- City Filter (Accordion - Option A visually mocked) -->
+                    <div class="border-b border-slate-100 pb-3">
+                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="city">
+                            <span class="font-bold text-slate-800 text-[15px]">Thành phố</span>
+                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div class="accordion-content pt-2.5 space-y-2.5" id="accordion-city">
+                            <label class="flex items-center justify-between text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                <span class="flex items-center gap-3">
+                                    <input type="checkbox" name="mockCity" value="hn" class="custom-checkbox" />
+                                    <span>Hà Nội</span>
+                                </span>
+                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold">18</span>
+                            </label>
+                            <label class="flex items-center justify-between text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                <span class="flex items-center gap-3">
+                                    <input type="checkbox" name="mockCity" value="hcm" class="custom-checkbox" />
+                                    <span>Hồ Chí Minh</span>
+                                </span>
+                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold">22</span>
+                            </label>
+                            <label class="flex items-center justify-between text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                <span class="flex items-center gap-3">
+                                    <input type="checkbox" name="mockCity" value="dn" class="custom-checkbox" />
+                                    <span>Đà Nẵng</span>
+                                </span>
+                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold">5</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Filter action buttons -->
+                    <div class="flex flex-col gap-2.5 pt-3">
+                        <button type="submit" class="w-full bg-primary text-white font-bold py-3 px-4 rounded-xl hover:bg-opacity-90 transition-all text-[14px] shadow-sm">
+                            Áp dụng bộ lọc
+                        </button>
+                        <a href="/Company/Search" class="w-full border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl hover:bg-slate-50 transition-all text-[14px] text-center">
+                            Xoá bộ lọc
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Results Panel Right (3/4 Layout width) -->
+            <div class="w-full lg:w-3/4 flex-grow">
+                <!-- Result Count Bar -->
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-slate-500 text-sm font-medium">
+                        Hiển thị <span class="font-extrabold text-slate-800" id="resultCount">0</span> trong số <span class="font-extrabold text-slate-800">@Model.TotalCount</span> công ty
+                    </p>
+                </div>
+
+                <!-- Company cards list -->
+                <div class="flex flex-col gap-5 w-full" id="companyGrid">
+                    @foreach (var company in Model.Companies)
+                    {
+                        <div class="company-card w-full p-5 lg:h-[180px] flex flex-col md:flex-row justify-between gap-5 relative overflow-hidden">
+                            
+                            <!-- Logo and Details Block -->
+                            <div class="flex items-center gap-4 flex-1 min-w-0">
+
+                                <!-- Shield Rank Badge (Top 1/2/3 only) -->
+                                @if (company.SystemRank <= 3)
+                                {
+                                     <div class="rank-badge rank-badge-@company.SystemRank">
+                                         <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                             <path d="M0 16 L2 7 L6.5 11 L11 0 L15.5 11 L20 7 L22 16 Z" fill="white"/>
+                                         </svg>
+                                         <span class="rank-badge-num">@company.SystemRank</span>
+                                     </div>
+                                }
+
+                                <!-- Logo Block (Fallback Initial-based Avatar if empty) -->
+                                <a href="/Company/Detail/@company.RecruiterId" class="w-[72px] h-[72px] rounded-xl flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden shadow-2xs">
+                                    @if (!string.IsNullOrEmpty(company.CompanyLogoUrl))
+                                    {
+                                        <img src="@company.CompanyLogoUrl" alt="Logo" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        var letter = !string.IsNullOrEmpty(company.CompanyName) ? company.CompanyName[0].ToString() : "C";
+                                        <div class="logo-avatar w-full h-full flex items-center justify-center text-xl">
+                                            @letter
+                                        </div>
+                                    }
+                                </a>
+
+                                <!-- Text Metadata -->
+                                <div class="space-y-1.5 min-w-0 flex-1">
+                                    <!-- Title & Ratings on the same row next to name -->
+                                    <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                                        <h3 class="font-extrabold text-lg text-slate-900 hover:text-primary transition-colors truncate mb-0 leading-snug">
+                                            <a href="/Company/Detail/@company.RecruiterId">@company.CompanyName</a>
+                                        </h3>
+                                        
+
+
+                                        <!-- Ratings Star Display next to company name -->
+                                        @if (company.TotalReviews > 0)
+                                        {
+                                            <span class="flex items-center gap-0.5 text-amber-500 font-bold text-sm" title="Đánh giá từ ứng viên">
+                                                <span class="text-base leading-none">★</span>
+                                                <span>@company.AverageRating?.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)</span>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="flex items-center gap-0.5 text-slate-350 font-medium text-xs italic" title="Chưa có đánh giá">
+                                                <span class="text-sm leading-none">☆</span>
+                                                <span>0.0</span>
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <!-- Subtitle Metainfo: Industry • Scale • Address -->
+                                    <p class="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-x-2 gap-y-1 mb-0">
+                                        <span>@(company.Industry ?? "Lĩnh vực khác")</span>
+                                        <span class="text-slate-300">•</span>
+                                        <span>@(company.SystemRank == 1 ? "1000+ nhân viên" : (company.SystemRank == 2 ? "150 - 500 nhân viên" : "50 - 150 nhân viên"))</span>
+                                        <span class="text-slate-300">•</span>
+                                        <span class="truncate">📍 @(company.CompanyAddress ?? "Địa chỉ đang cập nhật")</span>
+                                    </p>
+
+                                    <!-- Tech Stack Badges / Chips -->
+                                    @if (company.TechStacks != null && company.TechStacks.Any())
+                                    {
+                                        <div class="flex flex-wrap gap-1.5 pt-1.5">
+                                            @foreach (var tech in company.TechStacks.Take(5))
+                                            {
+                                                <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60 shadow-3xs">
+                                                    @tech
+                                                </span>
+                                            }
+                                            @if (company.TechStacks.Count > 5)
+                                            {
+                                                <span class="bg-slate-100 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60 shadow-3xs">
+                                                    +@(company.TechStacks.Count - 5)
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Right aligned Action items and Job Counts -->
+                            <div class="flex flex-row md:flex-col justify-between md:justify-center items-center md:items-end gap-3.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 md:pl-5 min-w-full md:min-w-[190px]">
+                                
+                                <!-- Job counts badge (Blue) -->
+                                <a href="/Company/Detail/@company.RecruiterId#jobs" class="inline-flex items-center gap-1.5 bg-[#EEF2FF] text-[#4F46E5] hover:bg-[#E0E7FF] px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-colors tracking-wide">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>@company.JobCount việc làm đang tuyển ›</span>
+                                </a>
+
+                                <!-- Primary Detail CTA button -->
+                                <div class="flex items-center gap-2">
+                                    <a href="/Company/Detail/@company.RecruiterId" class="bg-primary hover:bg-[#4338CA] text-white px-4 py-2 font-bold rounded-lg text-xs transition-all shadow-3xs text-center">
+                                        Xem chi tiết
+                                    </a>
+                                </div>
+
+                                <!-- Unrated Notice subtitle if unrated -->
+                                @if (company.TotalReviews == 0)
+                                {
+                                    <span class="text-[10px] text-slate-400 italic hidden md:inline leading-tight">hiện chưa có đánh giá công ty</span>
+                                }
+                            </div>
+
+                        </div>
+                    }
+                </div>
+
+                <!-- Empty State (Beautiful modern illustration notice) -->
+                <div id="emptyState" class="@(Model.Companies.Any() ? "hidden" : "") py-20 text-center bg-white border border-slate-200 rounded-2xl p-8 shadow-3xs">
+                    <div class="w-20 h-20 bg-slate-50 text-slate-350 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                        <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Không tìm thấy công ty nào</h3>
+                    <p class="text-slate-400 text-sm max-w-xs mx-auto leading-relaxed">Chúng tôi không thể tìm thấy kết quả phù hợp. Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm khác.</p>
+                </div>
+
+                <!-- Pagination Container -->
+                <div class="mt-10 flex justify-center" id="paginationContainer">
+                    <!-- Javascript will render pagination elements dynamically -->
+                </div>
+
+            </div>
+
         </div>
-    </div>
+    </form>
 </section>
+
+<!-- Mobile Filter Drawer overlay (Dimmer) -->
+<div id="drawerOverlay" class="drawer-overlay"></div>
+
+<!-- Mobile Filter Drawer container -->
+<div id="mobileFilterDrawer" class="mobile-filter-drawer p-6 flex flex-col gap-6">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Bộ lọc tìm kiếm
+        </h2>
+        <button id="closeDrawerBtn" type="button" class="text-slate-400 hover:text-slate-800 text-2xl font-bold leading-none p-1">&times;</button>
+    </div>
+    
+    <!-- We will clone sidebar filters here dynamically using JS to avoid duplicate ID inputs form post clashes -->
+    <div id="drawerFilterBody" class="flex-grow overflow-y-auto pr-1 custom-scrollbar"></div>
+</div>
 
 @section Scripts {
     <script>
-        // ─── Filter & Search Logic ───────────────────────────────────────
-        function applyFilters() {
-            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
-            const activePill = document.querySelector('.pill-btn.active')?.dataset.value || 'all';
-            const checkedIndustries = [...document.querySelectorAll('.industry-filter:checked')].map(el => el.value);
-            const selectedSize = document.querySelector('input[name="companySize"]:checked')?.value || '';
-            const checkedTypes = [...document.querySelectorAll('.type-filter:checked')].map(el => el.value);
-            const minRating = parseFloat(document.querySelector('input[name="minRating"]:checked')?.value || '0');
-            const sortVal = document.getElementById('sortSelect').value;
-
-            const grid = document.getElementById('companyGrid');
-            const cards = [...document.querySelectorAll('.company-card')];
-            let visible = 0;
-
-            cards.forEach(card => {
-                const name = card.dataset.name.toLowerCase();
-                const size = card.dataset.size;
-                const type = card.dataset.type;
-                const rating = parseFloat(card.dataset.rating || '0');
-
-                let show = true;
-                if (searchVal && !name.includes(searchVal)) show = false;
-                if (activePill !== 'all' && !card.innerHTML.includes(activePill)) show = false;
-                if (checkedIndustries.length > 0 && !checkedIndustries.some(f => card.innerHTML.includes(f))) show = false;
-                if (selectedSize && size !== selectedSize) show = false;
-                if (checkedTypes.length > 0 && !checkedTypes.includes(type)) show = false;
-                if (minRating > 0 && rating < minRating) show = false;
-
-                card.style.display = show ? '' : 'none';
-                if (show) visible++;
-            });
-
-            // Sort
-            const visibleCards = cards.filter(c => c.style.display !== 'none');
-            visibleCards.sort((a, b) => {
-                if (sortVal === 'jobs')   return parseInt(b.dataset.jobs) - parseInt(a.dataset.jobs);
-                if (sortVal === 'rating') return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
-                if (sortVal === 'name')   return a.dataset.name.localeCompare(b.dataset.name);
-                return 0;
-            });
-            visibleCards.forEach(c => grid.appendChild(c));
-
-            document.getElementById('resultCount').textContent = visible;
-            document.getElementById('emptyState').classList.toggle('hidden', visible > 0);
-            document.getElementById('paginationArea').style.display = visible > 0 ? '' : 'none';
-        }
-
-        // ─── Pill Buttons ────────────────────────────────────────────────
-        document.querySelectorAll('.pill-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.pill-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
-                    b.classList.add('border-bordercolor', 'text-muted');
-                });
-                btn.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
-                btn.classList.remove('border-bordercolor', 'text-muted');
-                applyFilters();
-            });
-        });
-
-        // ─── Search input ────────────────────────────────────────────────
-        document.getElementById('searchInput').addEventListener('input', applyFilters);
-        document.getElementById('sortSelect').addEventListener('change', applyFilters);
-
-        // ─── Sidebar checkboxes / radios ─────────────────────────────────
-        document.querySelectorAll('.industry-filter, .type-filter, input[name="companySize"], input[name="minRating"]').forEach(el => {
-            el.addEventListener('change', applyFilters);
-        });
-
-        // ─── Reset ───────────────────────────────────────────────────────
-        document.getElementById('resetFilters').addEventListener('click', () => {
-            document.querySelectorAll('.industry-filter, .type-filter').forEach(el => el.checked = false);
-            document.querySelectorAll('input[name="companySize"], input[name="minRating"]').forEach(el => el.checked = false);
-            document.getElementById('searchInput').value = '';
-            document.querySelectorAll('.pill-btn').forEach(b => {
-                b.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
-                b.classList.add('border-bordercolor', 'text-muted');
-            });
-            document.querySelector('.pill-btn[data-value="all"]').classList.add('active', 'bg-primary', 'text-white', 'border-primary');
-            document.querySelector('.pill-btn[data-value="all"]').classList.remove('border-bordercolor', 'text-muted');
-            applyFilters();
-        });
-
-        // ─── Collapsible Filter Sections ─────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
-            const filterContents = document.querySelectorAll('.filter-content');
-            filterContents.forEach(content => {
-                content.style.maxHeight = content.scrollHeight + 'px';
-                content.style.overflow = 'hidden';
-                content.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
-            });
-
-            document.querySelectorAll('.filter-header').forEach(header => {
+            
+            // 1. Accordion expand/collapse toggle logic
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            accordionHeaders.forEach(header => {
                 header.addEventListener('click', () => {
-                    const content = header.nextElementSibling;
-                    const icon = header.querySelector('.filter-icon');
-                    if (content.style.maxHeight && content.style.maxHeight !== '0px') {
-                        content.style.maxHeight = '0px';
-                        content.style.opacity = '0';
-                        icon.classList.add('rotate-180');
-                    } else {
-                        content.style.maxHeight = content.scrollHeight + 'px';
-                        content.style.opacity = '1';
-                        icon.classList.remove('rotate-180');
+                    const contentId = 'accordion-' + header.getAttribute('data-accordion');
+                    const content = document.getElementById(contentId);
+                    const caret = header.querySelector('svg');
+                    
+                    if (content) {
+                        content.classList.toggle('collapsed');
+                        if (caret) {
+                            if (content.classList.contains('collapsed')) {
+                                caret.style.transform = 'rotate(-90deg)';
+                            } else {
+                                caret.style.transform = 'rotate(0deg)';
+                            }
+                        }
                     }
                 });
             });
+
+            // 2. Mobile filter offcanvas drawer logic
+            const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+            const mobileFilterDrawer = document.getElementById('mobileFilterDrawer');
+            const drawerOverlay = document.getElementById('drawerOverlay');
+            const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+            const drawerFilterBody = document.getElementById('drawerFilterBody');
+            const filterSidebar = document.getElementById('filterSidebar');
+
+            if (mobileFilterBtn && mobileFilterDrawer && drawerOverlay && closeDrawerBtn) {
+                mobileFilterBtn.addEventListener('click', () => {
+                    // Populate drawer with filters from sidebar
+                    if (drawerFilterBody.children.length === 0 && filterSidebar) {
+                        // Clone filters and append to the drawer filter body
+                        const clonedFilters = filterSidebar.cloneNode(true);
+                        // Remove IDs or duplicate classes if necessary
+                        clonedFilters.classList.remove('bg-white', 'border', 'border-slate-200', 'p-6', 'shadow-sm');
+                        clonedFilters.classList.add('space-y-5', 'pb-16');
+                        
+                        // Set up accordion logic for cloned drawer filters
+                        const clonedAccordionHeaders = clonedFilters.querySelectorAll('.accordion-header');
+                        clonedAccordionHeaders.forEach(header => {
+                            header.addEventListener('click', () => {
+                                const contentId = 'accordion-' + header.getAttribute('data-accordion');
+                                const content = clonedFilters.querySelector('#' + contentId);
+                                const caret = header.querySelector('svg');
+                                
+                                if (content) {
+                                    content.classList.toggle('collapsed');
+                                    if (caret) {
+                                        if (content.classList.contains('collapsed')) {
+                                            caret.style.transform = 'rotate(-90deg)';
+                                        } else {
+                                            caret.style.transform = 'rotate(0deg)';
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        
+                        drawerFilterBody.appendChild(clonedFilters);
+                    }
+                    
+                    mobileFilterDrawer.classList.add('open');
+                    drawerOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden'; // Lock scroll background
+                });
+
+                const closeDrawer = () => {
+                    mobileFilterDrawer.classList.remove('open');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                };
+
+                closeDrawerBtn.addEventListener('click', closeDrawer);
+                drawerOverlay.addEventListener('click', closeDrawer);
+            }
+
+
+
+            // 4. Client-side pagination logic
+            const cards = Array.from(document.querySelectorAll('.company-card'));
+            const pageSize = 5;
+            let currentPage = 1;
+
+            // Load current page from URL query parameters if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlPage = parseInt(urlParams.get('page'));
+            if (urlPage && urlPage > 0) {
+                currentPage = urlPage;
+            }
+
+            const totalPages = Math.ceil(cards.length / pageSize);
+
+            function showPage(page) {
+                if (page < 1) page = 1;
+                if (page > totalPages && totalPages > 0) page = totalPages;
+                currentPage = page;
+
+                // Hide all cards
+                cards.forEach(card => card.classList.add('hidden'));
+
+                // Show cards for the current page
+                const start = (currentPage - 1) * pageSize;
+                const end = Math.min(start + pageSize, cards.length);
+                for (let i = start; i < end; i++) {
+                    cards[i].classList.remove('hidden');
+                }
+
+                // Render pagination buttons
+                renderPagination();
+
+                // Update URL page query parameter without reload
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('page', currentPage);
+                window.history.pushState({}, document.title, currentUrl.pathname + currentUrl.search);
+
+                // Update result count text label
+                const resultCount = document.getElementById('resultCount');
+                if (resultCount) {
+                    if (cards.length === 0) {
+                        resultCount.textContent = "0";
+                    } else {
+                        resultCount.textContent = `${start + 1} - ${end}`;
+                    }
+                }
+
+                // Handle empty state visibility
+                const emptyState = document.getElementById('emptyState');
+                if (emptyState) {
+                    if (cards.length === 0) {
+                        emptyState.classList.remove('hidden');
+                    } else {
+                        emptyState.classList.add('hidden');
+                    }
+                }
+            }
+
+            function renderPagination() {
+                const container = document.getElementById('paginationContainer');
+                if (!container) return;
+                container.innerHTML = '';
+
+                if (totalPages <= 1) return;
+
+                const nav = document.createElement('nav');
+                nav.className = 'flex items-center space-x-2';
+
+                // Prev Page Button
+                const prevBtn = document.createElement('button');
+                prevBtn.type = 'button';
+                prevBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors';
+                if (currentPage === 1) {
+                    prevBtn.disabled = true;
+                    prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                prevBtn.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>`;
+                prevBtn.addEventListener('click', () => showPage(currentPage - 1));
+                nav.appendChild(prevBtn);
+
+                // Number Pages Buttons
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.type = 'button';
+                    pageBtn.textContent = i;
+                    if (i === currentPage) {
+                        pageBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white font-bold shadow-sm';
+                    } else {
+                        pageBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl border border-transparent text-slate-700 hover:bg-slate-100 font-bold transition-colors';
+                    }
+                    pageBtn.addEventListener('click', () => showPage(i));
+                    nav.appendChild(pageBtn);
+                }
+
+                // Next Page Button
+                const nextBtn = document.createElement('button');
+                nextBtn.type = 'button';
+                nextBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors';
+                if (currentPage === totalPages) {
+                    nextBtn.disabled = true;
+                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                nextBtn.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>`;
+                nextBtn.addEventListener('click', () => showPage(currentPage + 1));
+                nav.appendChild(nextBtn);
+
+                container.appendChild(nav);
+            }
+
+            // Initialize visual page display
+            showPage(currentPage);
         });
     </script>
 }

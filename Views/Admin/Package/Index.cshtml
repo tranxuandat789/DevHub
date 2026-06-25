@@ -1,6 +1,125 @@
+@model IEnumerable<DevHub.Models.ServicePackage>
 @{
-    ViewData["Title"] = "Kiem Tra Goi Dang Ky";
+    ViewData["Title"] = "Danh Sách Gói Dịch Vụ";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+    string searchTerm = ViewBag.SearchTerm ?? "";
+    string statusFilter = ViewBag.StatusFilter ?? "all";
+    string sortOrder = ViewBag.SortOrder ?? "newest";
 }
 
-<h1>Kiem Tra Goi Dang Ky</h1>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Quản lý Gói dịch vụ</h1>
+        <p class="text-muted">Xem danh sách các gói dịch vụ đã được tạo bởi Moderator.</p>
+    </div>
+</div>
+
+<!-- Filters & Sort -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" method="get" action="/admin/packages">
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm</label>
+            <input type="text" name="searchTerm" value="@searchTerm" placeholder="Tên gói..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Trạng thái gói</label>
+            <select name="statusFilter" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="all" selected="@(statusFilter == "all")">Tất cả</option>
+                <option value="active" selected="@(statusFilter == "active")">Đang kích hoạt</option>
+                <option value="inactive" selected="@(statusFilter == "inactive")">Đã vô hiệu hóa</option>
+            </select>
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp theo</label>
+            <select name="sortOrder" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="newest" selected="@(sortOrder == "newest")">Mới nhất</option>
+                <option value="price_asc" selected="@(sortOrder == "price_asc")">Giá (Thấp đến cao)</option>
+                <option value="price_desc" selected="@(sortOrder == "price_desc")">Giá (Cao đến thấp)</option>
+                <option value="duration_desc" selected="@(sortOrder == "duration_desc")">Thời hạn (Dài nhất)</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-16">ID</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Tên Gói</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-right">Giá</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Giới hạn bài</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Thời hạn</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-muted font-medium">#@item.ServiceId</td>
+                            <td class="py-4 px-6">
+                                <div class="font-bold text-dark">@item.PackageName</div>
+                                <div class="text-xs text-muted mt-1 truncate max-w-xs">@item.Title</div>
+                            </td>
+                            <td class="py-4 px-6 text-right font-bold text-primary">@item.Price.ToString("N0")</td>
+                            <td class="py-4 px-6 text-center text-muted">@(item.MaxPosts > 0 ? $"{item.MaxPosts} bài" : "Không giới hạn")</td>
+                            <td class="py-4 px-6 text-center text-muted">@(item.DurationDays > 0 ? $"{item.DurationDays} ngày" : "Vĩnh viễn")</td>
+                            <td class="py-4 px-6">
+                                @if (item.IsActive == true)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Đang kích hoạt
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        Vô hiệu hóa
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="py-4 px-6 text-center text-muted">Không tìm thấy dữ liệu.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+            <div class="text-sm text-muted">
+                Hiển thị trang @currentPage / @totalPages (@totalCount gói dịch vụ)
+            </div>
+            <div class="flex space-x-1">
+                <a href="/admin/packages?page=@(currentPage - 1)&searchTerm=@searchTerm&statusFilter=@statusFilter&sortOrder=@sortOrder" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 @(currentPage <= 1 ? "pointer-events-none opacity-50" : "")">Trang trước</a>
+                
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <a href="/admin/packages?page=@i&searchTerm=@searchTerm&statusFilter=@statusFilter&sortOrder=@sortOrder" class="px-3 py-1 border border-[#D6DDEB] rounded @(i == currentPage ? "bg-primary text-white" : "text-muted hover:bg-gray-50")">@i</a>
+                }
+
+                <a href="/admin/packages?page=@(currentPage + 1)&searchTerm=@searchTerm&statusFilter=@statusFilter&sortOrder=@sortOrder" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 @(currentPage >= totalPages ? "pointer-events-none opacity-50" : "")">Trang sau</a>
+            </div>
+        </div>
+    }
+</div>

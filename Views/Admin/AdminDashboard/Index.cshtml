@@ -4,13 +4,13 @@
 }
 
 <div class="mb-8">
-    <h1 class="text-[32px] font-bold text-dark mb-2">Tổng quan Doanh thu (Dashboard)</h1>
-    <p class="text-muted">Báo cáo hiệu suất kinh doanh và dòng tiền từ hệ thống JobHuntly.</p>
+    <h1 class="text-[32px] font-bold text-dark mb-2">Tổng quan Hoạt động (Dashboard)</h1>
+    <p class="text-muted">Báo cáo hiệu suất kinh doanh, dòng tiền và người dùng từ hệ thống JobHuntly.</p>
 </div>
 
 <!-- Filters -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
-    <form method="get" asp-action="Index" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <form method="get" asp-action="Index" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
         <div class="w-full">
             <label class="block text-dark font-medium mb-2 text-sm">Chọn Tháng</label>
             <select name="month" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
@@ -54,35 +54,28 @@
                 Cập nhật báo cáo
             </button>
         </div>
+        <div>
+            <a href="@Url.Action("ExportTransactionsCsv", "AdminDashboard")" class="w-full flex items-center justify-center bg-green-600 text-white font-bold px-6 py-2.5 rounded-lg hover:bg-green-700 transition-all shadow-sm">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Xuất CSV
+            </a>
+        </div>
     </form>
 </div>
 
-<!-- Summary Cards -->
+<!-- Financial Summary Cards -->
+<h3 class="font-bold text-dark text-lg mb-4">Doanh thu & Tài chính</h3>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <!-- Total Revenue Card -->
     <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] relative overflow-hidden">
         <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-50"></div>
         <div class="flex items-start justify-between relative z-10">
             <div>
-                <p class="text-muted font-medium text-sm mb-1">Tổng thu nhập (Tháng @Model.SelectedMonth/@Model.SelectedYear)</p>
+                <p class="text-muted font-medium text-sm mb-1">Doanh thu (Tháng @Model.SelectedMonth/@Model.SelectedYear)</p>
                 <h3 class="text-3xl font-bold text-dark mb-2">@Model.TotalRevenueMonth.ToString("N0")đ</h3>
             </div>
             <div class="w-12 h-12 rounded-full bg-primary bg-opacity-10 text-primary flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-        </div>
-    </div>
-
-    <!-- Active Packages Card -->
-    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] relative overflow-hidden">
-        <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full opacity-50"></div>
-        <div class="flex items-start justify-between relative z-10">
-            <div>
-                <p class="text-muted font-medium text-sm mb-1">Số lượt mua gói dịch vụ</p>
-                <h3 class="text-3xl font-bold text-dark mb-2">@Model.TotalPackagesMonth</h3>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
             </div>
         </div>
     </div>
@@ -100,12 +93,74 @@
             </div>
         </div>
     </div>
+
+    <!-- Active Packages Card -->
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full opacity-50"></div>
+        <div class="flex items-start justify-between relative z-10">
+            <div>
+                <p class="text-muted font-medium text-sm mb-1">Số lượt bán ra (Tháng @Model.SelectedMonth)</p>
+                <h3 class="text-3xl font-bold text-dark mb-2">@Model.TotalPackagesMonth</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Charts / Detailed Data Section Placeholder -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Users & Activity Summary Cards -->
+<h3 class="font-bold text-dark text-lg mb-4">Thống kê Người dùng & Hoạt động</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Candidates Card -->
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-500 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </div>
+        <div>
+            <p class="text-muted text-sm font-medium">Tổng Ứng viên</p>
+            <h3 class="text-2xl font-bold text-dark">@Model.TotalCandidates.ToString("N0")</h3>
+        </div>
+    </div>
+    
+    <!-- Recruiters Card -->
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+        </div>
+        <div>
+            <p class="text-muted text-sm font-medium">Nhà tuyển dụng</p>
+            <h3 class="text-2xl font-bold text-dark">@Model.TotalRecruiters.ToString("N0")</h3>
+        </div>
+    </div>
+
+    <!-- Active Job Posts Card -->
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        </div>
+        <div>
+            <p class="text-muted text-sm font-medium">Tin tuyển dụng</p>
+            <h3 class="text-2xl font-bold text-dark">@Model.ActiveJobPosts.ToString("N0")</h3>
+        </div>
+    </div>
+
+    <!-- Applications Card -->
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        </div>
+        <div>
+            <p class="text-muted text-sm font-medium">Lượt Apply CV</p>
+            <h3 class="text-2xl font-bold text-dark">@Model.TotalAppliedCVs.ToString("N0")</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Charts / Detailed Data Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
     <!-- Line Chart Placeholder -->
-    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB]">
+    <div class="lg:col-span-2 bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB]">
         <h3 class="font-bold text-dark text-lg mb-6">Biểu đồ Doanh thu Nửa đầu năm @Model.SelectedYear</h3>
         <div class="h-64 flex items-end justify-between gap-2 border-b border-l border-gray-200 p-4 pb-0 pl-0 relative">
             <!-- Dynamic Bar Chart -->
@@ -146,41 +201,166 @@
         </div>
     </div>
 
-    <!-- Recent Transactions Table -->
-    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden flex flex-col">
-        <div class="p-6 border-b border-[#D6DDEB] flex justify-between items-center">
-            <h3 class="font-bold text-dark text-lg">Giao dịch Gói Dịch vụ gần nhất</h3>
-            <a href="/admin/transaction" class="text-sm font-bold text-primary hover:underline">Xem tất cả</a>
-        </div>
-        <div class="flex-1 overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-[#D6DDEB]">
-                        <th class="py-3 px-6 text-dark font-bold text-xs uppercase">Công ty</th>
-                        <th class="py-3 px-6 text-dark font-bold text-xs uppercase">Gói đã mua</th>
-                        <th class="py-3 px-6 text-dark font-bold text-xs uppercase text-right">Số tiền</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm">
-                    @if(Model.RecentTransactions.Any())
-                    {
-                        foreach (var txn in Model.RecentTransactions)
-                        {
-                            <tr class="border-b border-gray-100">
-                                <td class="py-4 px-6 font-medium text-dark">@txn.CompanyName</td>
-                                <td class="py-4 px-6 text-muted">@txn.PackageName</td>
-                                <td class="py-4 px-6 font-bold text-green-600 text-right">+@txn.Amount.ToString("N0")đ</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="3" class="py-4 px-6 text-center text-muted">Chưa có giao dịch nào</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <!-- Package Distribution Pie Chart -->
+    <div class="lg:col-span-1 bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB] flex flex-col">
+        <h3 class="font-bold text-dark text-lg mb-6">Tỷ trọng Gói Dịch vụ</h3>
+        <div class="flex-1 w-full flex items-center justify-center min-h-[250px]">
+            @if (Model.PackageDistribution.Any())
+            {
+                <canvas id="packagePieChart"></canvas>
+            }
+            else
+            {
+                <p class="text-muted text-sm text-center">Chưa có dữ liệu</p>
+            }
         </div>
     </div>
 </div>
+
+<!-- Recent Transactions Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden mb-8">
+    <div class="p-6 border-b border-[#D6DDEB] flex justify-between items-center">
+        <h3 class="font-bold text-dark text-lg">Giao dịch Gói Dịch vụ gần nhất</h3>
+        <a href="/AdminSubscription" class="text-sm font-bold text-primary hover:underline">Xem tất cả</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-3 px-6 text-dark font-bold text-xs uppercase">Công ty</th>
+                    <th class="py-3 px-6 text-dark font-bold text-xs uppercase">Gói đã mua</th>
+                    <th class="py-3 px-6 text-dark font-bold text-xs uppercase text-right">Số tiền</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if(Model.RecentTransactions.Any())
+                {
+                    foreach (var txn in Model.RecentTransactions)
+                    {
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-4 px-6 font-medium text-dark">@txn.CompanyName</td>
+                            <td class="py-4 px-6 text-muted">@txn.PackageName</td>
+                            <td class="py-4 px-6 font-bold text-green-600 text-right">+@txn.Amount.ToString("N0")đ</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="py-4 px-6 text-center text-muted">Chưa có giao dịch nào</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Top Recruiters Table Section -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="p-6 border-b border-[#D6DDEB] flex items-center justify-between">
+        <div>
+            <h3 class="font-bold text-dark text-lg">Top Nhà tuyển dụng tiêu biểu</h3>
+            <p class="text-muted text-sm mt-1">Danh sách 5 nhà tuyển dụng đã chi tiêu nhiều nhất trên hệ thống.</p>
+        </div>
+        <div class="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-xs uppercase w-20 text-center">Xếp hạng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-xs uppercase">Tên Công ty</th>
+                    <th class="py-4 px-6 text-dark font-bold text-xs uppercase text-right">Tổng chi tiêu</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if (Model.TopRecruiters != null && Model.TopRecruiters.Any())
+                {
+                    int rank = 1;
+                    foreach (var recruiter in Model.TopRecruiters)
+                    {
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-center">
+                                @if (rank == 1)
+                                {
+                                    <span class="inline-flex w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 items-center justify-center font-bold shadow-sm">1</span>
+                                }
+                                else if (rank == 2)
+                                {
+                                    <span class="inline-flex w-8 h-8 rounded-full bg-gray-200 text-gray-600 items-center justify-center font-bold shadow-sm">2</span>
+                                }
+                                else if (rank == 3)
+                                {
+                                    <span class="inline-flex w-8 h-8 rounded-full bg-orange-100 text-orange-700 items-center justify-center font-bold shadow-sm">3</span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex w-8 h-8 rounded-full bg-blue-50 text-blue-600 items-center justify-center font-bold">@rank</span>
+                                }
+                            </td>
+                            <td class="py-4 px-6">
+                                <div class="font-bold text-dark text-base">@recruiter.CompanyName</div>
+                                <div class="text-xs text-muted mt-1">ID: #@recruiter.RecruiterId</div>
+                            </td>
+                            <td class="py-4 px-6 text-right">
+                                <span class="font-bold text-primary text-base">@recruiter.TotalSpent.ToString("N0")đ</span>
+                            </td>
+                        </tr>
+                        rank++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="py-6 px-6 text-center text-muted">Chưa có dữ liệu nhà tuyển dụng.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var ctx = document.getElementById('packagePieChart');
+            if (ctx) {
+                var data = {
+                    labels: [@Html.Raw(string.Join(",", Model.PackageDistribution.Keys.Select(k => $"'{k}'")))],
+                    datasets: [{
+                        data: [@string.Join(",", Model.PackageDistribution.Values)],
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',   // indigo-500
+                            'rgba(16, 185, 129, 0.8)',   // emerald-500
+                            'rgba(244, 63, 94, 0.8)',    // rose-500
+                            'rgba(245, 158, 11, 0.8)',   // amber-500
+                            'rgba(14, 165, 233, 0.8)'    // sky-500
+                        ],
+                        borderWidth: 0
+                    }]
+                };
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: { family: "'Inter', sans-serif" }
+                                }
+                            }
+                        },
+                        cutout: '75%'
+                    }
+                });
+            }
+        });
+    </script>
+}

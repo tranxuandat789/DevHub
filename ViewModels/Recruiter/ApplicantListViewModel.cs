@@ -2,7 +2,7 @@ using DevHub.Models;
 
 namespace DevHub.ViewModels.Recruiter
 {
-    // ViewModel for the applicant list screen (UC-14) — per-job and cross-job.
+    // ViewModel for the applicant list for each-job and cross-job.
     public class ApplicantListViewModel
     {
         public bool IsCrossJob { get; set; }
@@ -17,7 +17,8 @@ namespace DevHub.ViewModels.Recruiter
         // Status counts for the tabs.
         public int CountAll { get; set; }
         public int CountPending { get; set; }
-        public int CountApproved { get; set; }
+        public int CountApproved { get; set; }   // APPROVED + FINISHED ("Đã duyệt")
+        public int CountHired { get; set; }       // HIRED ("Trúng tuyển")
         public int CountRejected { get; set; }
 
         // Pagination.

@@ -27,9 +27,9 @@ public class RecruiterRepository : IRecruiterRepository
 
     public async Task<Recruiter> GetProfileAsync(int recruiterId)
         {
-            return await _db.Recruiters
+            return (await _db.Recruiters
                 .Include(r => r.RecruiterNavigation) //retirve email from user_account
-                .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId);
+                .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId))!;
         }
 
     public async Task UpdateProfileAsync(Recruiter recruiter)
@@ -55,8 +55,8 @@ public class RecruiterRepository : IRecruiterRepository
 
     public async Task<Recruiter> GetProfileForUpdateAsync(int recruiterId)
     {
-        return await _db.Recruiters
-            .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId);
+        return (await _db.Recruiters
+            .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId))!;
     }
 
     public async Task<bool> CheckTaxCodeExistAsync(string taxCode, int excludeRecruiterId)

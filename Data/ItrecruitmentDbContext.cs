@@ -177,9 +177,24 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
-            entity.Property(e => e.IsPublished)
+            entity.Property(e => e.Status)
+                .HasColumnName("status");
+            entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
-                .HasColumnName("is_published");
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.ApproverId)
+                .HasColumnName("approver_id");
+            entity.Property(e => e.ApprovedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("approved_at");
+            entity.Property(e => e.RejectReason)
+                .HasColumnName("reject_reason");
+            entity.Property(e => e.RejectedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("rejected_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
             entity.Property(e => e.PublishedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("published_at");
@@ -193,10 +208,13 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
+            entity.Property(e => e.Tags)
+                .HasMaxLength(500)
+                .HasColumnName("tags");
 
             entity.HasOne(d => d.Publisher).WithMany(p => p.BlogPosts)
                 .HasForeignKey(d => d.PublisherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK__blog_post__publi__395884C4");
             entity.HasOne(d => d.AuthorRecruiter)
                 .WithMany(p => p.BlogPosts)
@@ -267,6 +285,9 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.PreferredLocation)
                 .HasMaxLength(100)
                 .HasColumnName("preferred_location");
+            entity.Property(e => e.PreferredWorkingModel)
+                .HasMaxLength(50)
+                .HasColumnName("preferred_working_model");
             entity.Property(e => e.ProfileCompletion)
                 .HasDefaultValue(0)
                 .HasColumnName("profile_completion");

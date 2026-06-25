@@ -38,6 +38,7 @@ public class AuthController : Controller
         _emailHelper = emailHelper;
     }
 
+
     /// <summary>
     /// Hiển thị trang đăng nhập cho ứng viên.
     /// </summary>
@@ -798,6 +799,7 @@ public class AuthController : Controller
             _ => RedirectToAction("Index", "Home")
         };
     }
+
     [HttpGet]
     public IActionResult EmployerRegister()
     {
@@ -1249,4 +1251,3 @@ public async Task<IActionResult> Register(RegisterCandidateViewModel vm)
         }
     }
 }
-

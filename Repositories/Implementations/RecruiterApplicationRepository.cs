@@ -16,15 +16,21 @@ namespace DevHub.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<JobPost?> GetOwnedApprovedJobAsync(int jobId, int recruiterId)
+        public async Task<JobPost?> GetOwnedJobAsync(int jobId, int recruiterId)
             => await _context.JobPosts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(j => j.JobId == jobId
                                        && j.RecruiterId == recruiterId
-                                       && j.Status != null && j.Status.ToUpper() == "APPROVED");
+                                       // The recruiter may VIEW the applicant list for any non-rejected job, including a
+                                       // job that just went back to PENDING (re-review). The list is read-only while
+                                       // PENDING — approve/reject is gated separately. Only REJECTED jobs are blocked.
+                                       && j.Status != null
+                                       && j.Status.ToUpper() != "REJECTED");
 
         // Builds the base query for applications visible to this recruiter, applying all filters.
-        private IQueryable<Application> BuildFilteredQuery(int recruiterId, int? jobId, ApplicantFilter filter)
+        // includeStatus = false => skip the status filter (used by CountByStatusAsync so each tab
+        // count reflects the other active filters but not the status itself).
+        private IQueryable<Application> BuildFilteredQuery(int recruiterId, int? jobId, ApplicantFilter filter, bool includeStatus = true)
         {
             var q = _context.Applications
                 .AsNoTracking()
@@ -33,11 +39,13 @@ namespace DevHub.Repositories.Implementations
             if (jobId.HasValue)
                 q = q.Where(a => a.JobId == jobId.Value);
 
-            // Status (ALL when null/empty).
-            if (!string.IsNullOrWhiteSpace(filter.Status))
+            // Status (ALL when null/empty). Skipped for tab-count queries.
+            // A tab key maps to a GROUP of raw statuses (e.g. "APPROVED" tab = APPROVED + FINISHED,
+            // both displayed as "Đã duyệt"), so a status tab matches every status under that label.
+            if (includeStatus && !string.IsNullOrWhiteSpace(filter.Status))
             {
-                var st = filter.Status.ToUpper();
-                q = q.Where(a => (a.Status ?? "PENDING").ToUpper() == st);
+                var statuses = MapStatusGroup(filter.Status);
+                q = q.Where(a => statuses.Contains((a.Status ?? "PENDING").ToUpper()));
             }
 
             // Cross-job: filter by job position.
@@ -78,6 +86,16 @@ namespace DevHub.Repositories.Implementations
             return q;
         }
 
+        // Maps a status-tab key to the set of raw application statuses it represents.
+        private static string[] MapStatusGroup(string tab) => tab.ToUpper() switch
+        {
+            "APPROVED" => new[] { "APPROVED", "FINISHED" }, // "Đã duyệt"
+            "HIRED" => new[] { "HIRED" },                   // "Trúng tuyển"
+            "PENDING" => new[] { "PENDING" },
+            "REJECTED" => new[] { "REJECTED" },
+            var s => new[] { s }                            // any other exact status
+        };
+
         public async Task<(List<Application> Items, int TotalCount)> GetApplicantsAsync(
             int recruiterId, int? jobId, ApplicantFilter filter, int page, int pageSize)
         {
@@ -104,11 +122,11 @@ namespace DevHub.Repositories.Implementations
             return (items, total);
         }
 
-        public async Task<(int All, int Pending, int Approved, int Rejected)> CountByStatusAsync(int recruiterId, int? jobId)
+        public async Task<(int All, int Pending, int Approved, int Hired, int Rejected)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter)
         {
-            var q = _context.Applications.AsNoTracking().Where(a => a.Job.RecruiterId == recruiterId);
-            if (jobId.HasValue)
-                q = q.Where(a => a.JobId == jobId.Value);
+            // Reuse the same filters as the list (tech/experience/keyword/location/position) but ignore
+            // the status filter, so each tab shows how many results exist per status under the current filters.
+            var q = BuildFilteredQuery(recruiterId, jobId, filter, includeStatus: false);
 
             var groups = await q
                 .GroupBy(a => (a.Status ?? "PENDING").ToUpper())
@@ -117,9 +135,11 @@ namespace DevHub.Repositories.Implementations
 
             int all = groups.Sum(x => x.Count);
             int pending = groups.Where(x => x.Status == "PENDING").Sum(x => x.Count);
-            int approved = groups.Where(x => x.Status == "APPROVED").Sum(x => x.Count);
+            // "Đã duyệt" tab groups APPROVED + FINISHED.
+            int approved = groups.Where(x => x.Status == "APPROVED" || x.Status == "FINISHED").Sum(x => x.Count);
+            int hired = groups.Where(x => x.Status == "HIRED").Sum(x => x.Count);
             int rejected = groups.Where(x => x.Status == "REJECTED").Sum(x => x.Count);
-            return (all, pending, approved, rejected);
+            return (all, pending, approved, hired, rejected);
         }
 
         public async Task<Application?> GetApplicationDetailAsync(int applicationId, int recruiterId)
@@ -131,18 +151,37 @@ namespace DevHub.Repositories.Implementations
                 .Include(a => a.Job)
                 .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.RecruiterId == recruiterId);
 
-        public async Task<Application?> UpdateStatusIfPendingAsync(int applicationId, int recruiterId, string newStatus)
+        public async Task<(Application? App, string? JobStatus)> GetApplicationWithJobStatusAsync(int applicationId, int recruiterId)
         {
             var app = await _context.Applications
+                .AsNoTracking()
                 .Include(a => a.Job)
                 .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.RecruiterId == recruiterId);
 
-            if (app == null) return null;
-            if ((app.Status ?? "PENDING").ToUpper() != "PENDING") return null;
+            return (app, app?.Job?.Status);
+        }
 
-            app.Status = newStatus.ToUpper();
-            await _context.SaveChangesAsync();
-            return app;
+        public async Task<Application?> UpdateStatusIfPendingAsync(int applicationId, int recruiterId, string newStatus)
+        {
+            var status = newStatus.ToUpper();
+
+            // Atomic guard against a race (e.g. two recruiters on a shared account approving at once)
+            // The job-frozen guard (a.Job.Status != PENDING) is also enforced here so an approve/reject
+            // can never change if the job was sent back to re-review between the gate check and now.
+            var rows = await _context.Applications
+                .Where(a => a.ApplicationId == applicationId
+                         && a.Job.RecruiterId == recruiterId
+                         && (a.Status == null || a.Status.ToUpper() == "PENDING")
+                         && (a.Job.Status == null || a.Job.Status.ToUpper() != "PENDING"))
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, status));
+
+            if (rows == 0) return null; // not found, not owned, or already processed by someone else
+
+            // Reload (include Job) to supply CandidateId / job title for the notification.
+            return await _context.Applications
+                .AsNoTracking()
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
         }
 
         public async Task CreateCandidateNotificationAsync(int candidateId, string title, string message, string severity, int applicationId)
@@ -178,6 +217,11 @@ namespace DevHub.Repositories.Implementations
                 .OrderBy(p => p.PositionName)
                 .ToListAsync();
 
+        // Temporar: this returns the set of distinct locations across the recruiter's
+        // applicants and is deliberately NOT narrowed by the current tech/experience/keyword filters.
+        // The location dropdown must stay stable so the user can switch locations without options
+        // disappearing. Do NOT make it "dynamic" off the filtered query — that hurts UX and adds an
+        // extra dependent query per filter change.
         public async Task<List<string>> GetCandidateLocationOptionsAsync(int recruiterId, int? jobId)
         {
             var q = _context.Applications.AsNoTracking().Where(a => a.Job.RecruiterId == recruiterId);

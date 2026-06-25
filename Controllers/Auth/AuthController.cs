@@ -1,10 +1,567 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using DevHub.Data;
+using DevHub.Models;
+using DevHub.Services.Interfaces;
+using DevHub.ViewModels.Auth;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Net.Http.Headers;
 
 namespace DevHub.Controllers.Auth
 {
-    [Route("auth")]
+    [Route("Auth")]
     public class AuthController : Controller
     {
+        private readonly IAuthService _auth;
+        private readonly ItrecruitmentDbContext _context;
+        private readonly DevHub.Helpers.EmailHelper _emailHelper;
+
+        private const string KeyGoogleEmail = "GoogleEmail";
+        private const string KeyGoogleId = "GoogleId";
+        private const string KeyGoogleName = "GoogleName";
+        private const string KeyGoogleAvatar = "GoogleAvatar";
+        private const string KeyGoogleFrom = "GoogleFrom";
+
+        public AuthController(IAuthService auth, DevHub.Helpers.EmailHelper emailHelper, ItrecruitmentDbContext context)
+        {
+            _context = context;
+            _auth = auth;
+            _emailHelper = emailHelper;
+        }
+
+        [HttpGet("Login")]
+        public IActionResult Login()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToDashboard();
+            return View("~/Views/Auth/LoginCandidate.cshtml", new LoginViewModel());
+        }
+
+        [HttpPost("Login"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (ModelState.TryGetValue("Email", out var emailEntry) && emailEntry.Errors.Count > 0)
+                    TempData["EmailError"] = emailEntry.Errors[0].ErrorMessage;
+                if (ModelState.TryGetValue("Password", out var passwordEntry) && passwordEntry.Errors.Count > 0)
+                    TempData["PasswordError"] = passwordEntry.Errors[0].ErrorMessage;
+
+                TempData["PrefillEmail"] = vm.Email;
+                return View("~/Views/Auth/LoginCandidate.cshtml", vm);
+            }
+
+            var email = vm.Email?.Trim() ?? "";
+            var password = vm.Password?.Trim() ?? "";
+
+            var user = await _auth.FindUserByEmailAsync(email);
+            if (user is null)
+            {
+                TempData["GeneralError"] = "Email hoặc mật khẩu không chính xác";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/LoginCandidate.cshtml", vm);
+            }
+
+            if (user.IsActive != true)
+            {
+                TempData["GeneralError"] = "Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ.";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/LoginCandidate.cshtml", vm);
+            }
+
+            if (user.UserType?.Trim().ToUpper() == "RECRUITER")
+            {
+                TempData["GeneralError"] = "Tài khoản nhà tuyển dụng vui lòng đăng nhập tại trang dành riêng.";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/LoginCandidate.cshtml", vm);
+            }
+
+            if (user.PasswordHash == "GOOGLE_OAUTH" || string.IsNullOrEmpty(user.PasswordHash))
+            {
+                TempData["GeneralError"] = "Tài khoản này chỉ đăng nhập được bằng Google.";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/LoginCandidate.cshtml", vm);
+            }
+
+            if (!_auth.VerifyPassword(password, user.PasswordHash!))
+            {
+                TempData["GeneralError"] = "Email hoặc mật khẩu không chính xác";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/LoginCandidate.cshtml", vm);
+            }
+
+            await SignInAsync(user, vm.RememberMe);
+            await _auth.UpdateLastLoginAsync(user.UserId);
+            TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
+
+            if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+            return RedirectToDashboard(user.UserType);
+        }
+
+        [HttpGet("EmployerLogin")]
+        public IActionResult EmployerLogin()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+                return RedirectToDashboard();
+            return View("~/Views/Auth/EmployerLogin.cshtml", new LoginViewModel()); // Assuming this was the view for employer login
+        }
+
+        [HttpPost("EmployerLogin"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> EmployerLogin(LoginViewModel vm, string? returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (ModelState.TryGetValue("Email", out var emailEntry) && emailEntry.Errors.Count > 0)
+                    TempData["EmailError"] = emailEntry.Errors[0].ErrorMessage;
+                if (ModelState.TryGetValue("Password", out var passwordEntry) && passwordEntry.Errors.Count > 0)
+                    TempData["PasswordError"] = passwordEntry.Errors[0].ErrorMessage;
+
+                TempData["PrefillEmail"] = vm.Email;
+                return View("~/Views/Auth/EmployerLogin.cshtml", vm);
+            }
+
+            var email = vm.Email?.Trim() ?? "";
+            var password = vm.Password?.Trim() ?? "";
+
+            var user = await _auth.FindUserByEmailAsync(email);
+            if (user is null)
+            {
+                TempData["GeneralError"] = "Email hoặc mật khẩu không chính xác";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/EmployerLogin.cshtml", vm);
+            }
+
+            if (user.IsActive != true)
+            {
+                TempData["GeneralError"] = "Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ.";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/EmployerLogin.cshtml", vm);
+            }
+
+            if (user.UserType?.Trim().ToUpper() == "CANDIDATE")
+            {
+                TempData["GeneralError"] = "Tài khoản ứng viên vui lòng đăng nhập tại trang dành riêng.";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/EmployerLogin.cshtml", vm);
+            }
+
+            if (user.PasswordHash == "GOOGLE_OAUTH" || string.IsNullOrEmpty(user.PasswordHash))
+            {
+                TempData["GeneralError"] = "Tài khoản này chỉ đăng nhập được bằng Google.";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/EmployerLogin.cshtml", vm);
+            }
+
+            if (!_auth.VerifyPassword(password, user.PasswordHash!))
+            {
+                TempData["GeneralError"] = "Email hoặc mật khẩu không chính xác";
+                TempData["PrefillEmail"] = email;
+                return View("~/Views/Auth/EmployerLogin.cshtml", vm);
+            }
+
+            await SignInAsync(user, vm.RememberMe);
+            await _auth.UpdateLastLoginAsync(user.UserId);
+            TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
+
+            if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+            return RedirectToDashboard(user.UserType);
+        }
+
+        [HttpGet("ForgotPassword")]
+        public IActionResult ForgotPassword()
+        {
+            return View("~/Views/Auth/ForgotPassword.cshtml", new ForgotPasswordViewModel());
+        }
+
+        [HttpPost("ForgotPassword"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (ModelState.TryGetValue("Email", out var emailEntry) && emailEntry.Errors.Count > 0)
+                    TempData["EmailError"] = emailEntry.Errors[0].ErrorMessage;
+                
+                TempData["PrefillEmail"] = vm.Email;
+                return View("~/Views/Auth/ForgotPassword.cshtml", vm);
+            }
+
+            var email = vm.Email?.Trim() ?? "";
+            var user = await _auth.FindUserByEmailAsync(email);
+            if (user != null && user.IsActive == true)
+            {
+                var token = Guid.NewGuid().ToString("N");
+                user.ResetPassworvmken = token;
+                user.ResetPasswordExpiresAt = DateTime.Now.AddHours(24);
+                
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
+                var resetLink = Url.Action("ResetPassword", "Auth", new { email = user.Email, token = token }, Request.Scheme);
+                var emailBody = $"<p>Vui lòng click vào link sau để khôi phục mật khẩu: <a href='{resetLink}'>Khôi phục mật khẩu</a></p>";
+                await _emailHelper.SendEmailAsync(user.Email, "Khôi phục mật khẩu", emailBody);
+            }
+
+            TempData["SuccessMsg"] = "Nếu email này tồn tại trong hệ thống, chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu.";
+            return View("~/Views/Auth/ForgotPassword.cshtml", vm);
+        }
+
+        [HttpGet("ResetPassword")]
+        public IActionResult ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Login");
+            }
+
+            TempData["ResetEmail"] = email;
+            TempData["ResetToken"] = token;
+            return View("~/Views/Auth/ResetPassword.cshtml", new ResetPasswordViewModel());
+        }
+
+        [HttpPost("ResetPassword"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel vm, string email, string token)
+        {
+            if (!ModelState.IsValid)
+            {
+                if (ModelState.TryGetValue("NewPassword", out var newPassEntry) && newPassEntry.Errors.Count > 0)
+                    TempData["NewPasswordError"] = newPassEntry.Errors[0].ErrorMessage;
+                if (ModelState.TryGetValue("ConfirmPassword", out var confirmPassEntry) && confirmPassEntry.Errors.Count > 0)
+                    TempData["ConfirmPasswordError"] = confirmPassEntry.Errors[0].ErrorMessage;
+
+                TempData["ResetEmail"] = email;
+                TempData["ResetToken"] = token;
+                return View("~/Views/Auth/ResetPassword.cshtml", vm);
+            }
+
+            var user = await _auth.FindUserByEmailAsync(email);
+            if (user == null || user.ResetPassworvmken != token || user.ResetPasswordExpiresAt < DateTime.Now)
+            {
+                TempData["ErrorMessage"] = "Link khôi phục mật khẩu không hợp lệ hoặc đã hết hạn.";
+                TempData["ResetEmail"] = email;
+                TempData["ResetToken"] = token;
+                return View("~/Views/Auth/ResetPassword.cshtml", vm);
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(vm.NewPassword);
+            await _auth.UpdatePasswordAsync(user.UserId, passwordHash);
+            
+            user.ResetPassworvmken = null;
+            user.ResetPasswordExpiresAt = null;
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMsg"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập.";
+            return RedirectToAction("Login");
+        }
+
+        [HttpGet("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home", new { area = "" });
+        }
+
+        [HttpGet("EmployerLogout")]
+        public async Task<IActionResult> EmployerLogout()
+        {
+            await HttpContext.SignOutAsync("EmployerCookies");
+            return Redirect("/Home/Employer");
+        }
+
+        [HttpGet("AdminLogout")]
+        public async Task<IActionResult> AdminLogout()
+        {
+            await HttpContext.SignOutAsync("AdminCookies");
+            return RedirectToAction("Login", "Auth");
+        }
+
+        [HttpGet("GoogleLogin")]
+        public IActionResult GoogleLogin(string? from = null)
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "Auth", new { from = from });
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("GoogleResponse")]
+        public async Task<IActionResult> GoogleResponse(string? from = null)
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+            {
+                TempData["GeneralError"] = "Đăng nhập bằng Google thất bại. Xin thử lại.";
+                return from == "recruiter" ? RedirectToAction("EmployerLogin") : RedirectToAction("Login");
+            }
+
+            var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "Người dùng Google";
+            var googleId = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var avatarUrl = claims?.FirstOrDefault(c => c.Type == "urn:google:picture")?.Value 
+                            ?? claims?.FirstOrDefault(c => c.Type == "picture")?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["GeneralError"] = "Không thềElấy được email từ Google.";
+                return from == "recruiter" ? RedirectToAction("EmployerLogin") : RedirectToAction("Login");
+            }
+
+            var user = await _auth.FindUserByEmailAsync(email);
+            if (user != null)
+            {
+                if (user.IsActive != true)
+                {
+                    TempData["GeneralError"] = "Tài khoản của bạn đã bị khóa.";
+                    return from == "recruiter" ? RedirectToAction("EmployerLogin") : RedirectToAction("Login");
+                }
+
+                if (from == "recruiter" && user.UserType?.Trim().ToUpper() != "RECRUITER")
+                {
+                    TempData["GeneralError"] = "Tài khoản ứng viên vui lòng đăng nhập tại trang dành cho ứng viên.";
+                    return RedirectToAction("EmployerLogin");
+                }
+                if (from != "recruiter" && user.UserType?.Trim().ToUpper() == "RECRUITER")
+                {
+                    TempData["GeneralError"] = "Tài khoản này là nhà tuyển dụng, vui lòng đăng nhập trang Recruiter.";
+                    return RedirectToAction("Login");
+                }
+
+                await SignInAsync(user, true, avatarUrl);
+                await _auth.UpdateLastLoginAsync(user.UserId);
+                TempData["SuccessMsg"] = "Đăng nhập Google thành công!";
+                return RedirectToDashboard(user.UserType);
+            }
+            else
+            {
+                TempData["InfoMsg"] = "Email này chưa có tài khoản. Hãy tiếp tục đăng ký.";
+                HttpContext.Session.SetString(KeyGoogleEmail, email);
+                if (!string.IsNullOrEmpty(googleId)) HttpContext.Session.SetString(KeyGoogleId, googleId);
+                HttpContext.Session.SetString(KeyGoogleName, name);
+                if (!string.IsNullOrEmpty(avatarUrl)) HttpContext.Session.SetString(KeyGoogleAvatar, avatarUrl);
+
+                if (from == "recruiter")
+                {
+                    HttpContext.Session.SetString(KeyGoogleFrom, "recruiter");
+                    return RedirectToAction("GoogleEmployerInfo", "Auth");
+                }
+                else
+                {
+                    HttpContext.Session.SetString(KeyGoogleFrom, "candidate");
+                    return RedirectToAction("GoogleCandidateRegister", "Auth");
+                }
+            }
+        }
+
+        [HttpGet("GoogleCandidateRegister")]
+        public async Task<IActionResult> GoogleCandidateRegister()
+        {
+            var email = HttpContext.Session.GetString(KeyGoogleEmail);
+            var name = HttpContext.Session.GetString(KeyGoogleName);
+            var avatarUrl = HttpContext.Session.GetString(KeyGoogleAvatar);
+
+            if (string.IsNullOrEmpty(email)) return RedirectToAction("Login");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (await _context.UserAccounts.AnyAsync(u => u.Email == email))
+                {
+                    TempData["GeneralError"] = "Email này đã tồn tại.";
+                    return RedirectToAction("Login");
+                }
+
+                var user = new UserAccount
+                {
+                    Email = email,
+                    PasswordHash = "GOOGLE_OAUTH",
+                    UserType = "CANDIDATE",
+                    IsActive = true,
+                    CreatedAt = DateTime.Now,
+                    LastUpdated = DateTime.Now
+                };
+                _context.UserAccounts.Add(user);
+                await _context.SaveChangesAsync();
+
+                var candidate = new DevHub.Models.Candidate
+                {
+                    CandidateId = user.UserId,
+                    FullName = name ?? "Người dùng Google",
+                    ImageUrl = avatarUrl
+                };
+                _context.Candidates.Add(candidate);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                await SignInAsync(user, true, avatarUrl);
+                TempData["SuccessMsg"] = "Đăng ký thành công qua Google!";
+                return RedirectToDashboard("CANDIDATE");
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                TempData["GeneralError"] = "Lỗi khi tạo tài khoản ứng viên qua Google. Xin thử lại.";
+                return RedirectToAction("Login");
+            }
+        }
+
+        [HttpGet("GoogleEmployerInfo")]
+        public IActionResult GoogleEmployerInfo()
+        {
+            var email = HttpContext.Session.GetString(KeyGoogleEmail);
+            var name = HttpContext.Session.GetString(KeyGoogleName);
+            if (string.IsNullOrEmpty(email)) return RedirectToAction("EmployerLogin");
+
+            return View("~/Views/Auth/GoogleEmployerInfo.cshtml", new GoogleEmployerInfoViewModel
+            {
+                Email = email,
+                FullName = name ?? ""
+            });
+        }
+
+        [HttpPost("GoogleEmployerInfo"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> GoogleEmployerInfo(GoogleEmployerInfoViewModel vm)
+        {
+            var email = HttpContext.Session.GetString(KeyGoogleEmail);
+            var avatarUrl = HttpContext.Session.GetString(KeyGoogleAvatar);
+
+            if (string.IsNullOrEmpty(email) || vm.Email != email)
+            {
+                return RedirectToAction("EmployerLogin");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/Auth/GoogleEmployerInfo.cshtml", vm);
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (await _context.UserAccounts.AnyAsync(u => u.Email == email))
+                {
+                    TempData["GeneralError"] = "Email này đã tồn tại.";
+                    return View("~/Views/Auth/GoogleEmployerInfo.cshtml", vm);
+                }
+
+                var user = new UserAccount
+                {
+                    Email = email,
+                    PasswordHash = "GOOGLE_OAUTH",
+                    UserType = "RECRUITER",
+                    IsActive = true,
+                    CreatedAt = DateTime.Now,
+                    LastUpdated = DateTime.Now
+                };
+                _context.UserAccounts.Add(user);
+                await _context.SaveChangesAsync();
+
+                var recruiter = new DevHub.Models.Recruiter
+                {
+                    RecruiterId = user.UserId,
+                    FullName = vm.FullName,
+                    Phone = vm.Phone,
+                    CompanyName = "Chưa cập nhật",
+                    CompanyLogoUrl = avatarUrl,
+                    IsVerified = false,
+                    ProfileCompletion = 0,
+                    TotalSpent = 0,
+                    AverageRating = 0,
+                    TotalReviews = 0
+                };
+                _context.Recruiters.Add(recruiter);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                await SignInAsync(user, true, avatarUrl);
+                TempData["SuccessMsg"] = "Đăng ký thành công qua Google!";
+                return RedirectToDashboard("RECRUITER");
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                TempData["GeneralError"] = "Lỗi khi tạo tài khoản nhà tuyển dụng qua Google. Xin thử lại.";
+                return View("~/Views/Auth/GoogleEmployerInfo.cshtml", vm);
+            }
+        }
+
+        private async Task SignInAsync(UserAccount user, bool rememberMe, string? googleAvatar = null)
+        {
+            var fullName = "";
+            if (user.UserType?.Trim().ToUpper() == "CANDIDATE")
+            {
+                fullName = !string.IsNullOrEmpty(user.Candidate?.FullName) ? user.Candidate.FullName : user.Email;
+            }
+            else if (user.UserType?.Trim().ToUpper() == "RECRUITER")
+            {
+                fullName = !string.IsNullOrEmpty(user.Recruiter?.CompanyName) ? user.Recruiter.CompanyName : user.Email;
+            }
+            if (string.IsNullOrEmpty(fullName)) fullName = user.Email;
+
+            var avatarUrl = "";
+            if (user.UserType?.Trim().ToUpper() == "CANDIDATE")
+            {
+                avatarUrl = !string.IsNullOrEmpty(user.Candidate?.ImageUrl) ? user.Candidate.ImageUrl : googleAvatar;
+            }
+            else if (user.UserType?.Trim().ToUpper() == "RECRUITER")
+            {
+                avatarUrl = !string.IsNullOrEmpty(user.Recruiter?.CompanyLogoUrl) ? user.Recruiter.CompanyLogoUrl : googleAvatar;
+            }
+            avatarUrl ??= "";
+
+            var (roleClaim, scheme) = (user.UserType?.Trim().ToUpper()) switch
+            {
+                "RECRUITER" => ("RECRUITER", "EmployerCookies"),
+                "ADMIN" => ("ADMIN", "AdminCookies"),
+                "MODERATOR" => ("MODERATOR", "AdminCookies"),
+                _ => ("CANDIDATE", CookieAuthenticationDefaults.AuthenticationScheme)
+            };
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new(ClaimTypes.Email,          user.Email),
+                new(ClaimTypes.Role,           roleClaim),
+                new(ClaimTypes.Name,           user.Email),
+                new("FullName",                fullName),
+                new("AvatarUrl",               avatarUrl)
+            };
+
+            if (roleClaim == "ADMIN")
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+            }
+            else if (roleClaim == "MODERATOR")
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "Moderator"));
+            }
+
+            var identity = new ClaimsIdentity(claims, scheme);
+            var principal = new ClaimsPrincipal(identity);
+            var props = new AuthenticationProperties
+            {
+                IsPersistent = rememberMe,
+                ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null
+            };
+
+            await HttpContext.SignInAsync(scheme, principal, props);
+        }
+
+        private IActionResult RedirectToDashboard(string? userType = null)
+        {
+            userType ??= User.FindFirstValue(ClaimTypes.Role);
+
+            return (userType?.Trim().ToUpper()) switch
+            {
+                "Admin" or "ADMIN" => Redirect("/AdminDashboard"),
+                "Moderator" or "MODERATOR" => Redirect("/moderator/job-approvals"),
+                "Recruiter" or "RECRUITER" => Redirect("/Recruiter/Dashboard"),
+                _ => RedirectToAction("Index", "Home", new { area = "" })
+            };
+        }
     }
 }

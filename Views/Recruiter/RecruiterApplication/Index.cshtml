@@ -13,9 +13,13 @@
     {
         switch ((status ?? "").ToUpper())
         {
-            case "APPROVED": return ("bg-green-100 text-green-700", "Đã duyệt");
+            case "APPROVED":
+            case "FINISHED": return ("bg-green-100 text-green-700", "Đã duyệt");
+            case "HIRED": return ("bg-blue-100 text-blue-700", "Trúng tuyển");
             case "PENDING": return ("bg-amber-100 text-amber-700", "Đang chờ");
             case "REJECTED": return ("bg-red-100 text-red-700", "Từ chối");
+            case "FAILED": return ("bg-red-100 text-red-700", "Không đạt");
+            case "CANCELLED": return ("bg-gray-100 text-gray-600", "Đã hủy");
             default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "—" : status);
         }
     }
@@ -94,12 +98,26 @@
         </div>
     </div>
 
+    @if (!Model.IsCrossJob && (Model.JobStatus ?? "").ToUpper() == "PENDING")
+    {
+        <div class="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <div>
+                <p class="font-medium">Tin tuyển dụng đang chờ kiểm duyệt lại</p>
+                <p class="mt-0.5 text-yellow-700">Danh sách ứng viên ở chế độ chỉ xem. Chức năng duyệt / từ chối sẽ mở lại sau khi tin được phê duyệt.</p>
+            </div>
+        </div>
+    }
+
     <!-- Status tabs -->
     <div class="bg-white rounded-xl border border-[#F6F5FD] p-4 shadow-sm">
         <div class="flex items-center space-x-1 border-b border-gray-100 overflow-x-auto pb-2 mb-4">
             <a href="@BuildUrl(1, "")" class="@TabCls("")">Tất cả (@Model.CountAll)</a>
             <a href="@BuildUrl(1, "PENDING")" class="@TabCls("PENDING")">Đang chờ (@Model.CountPending)</a>
             <a href="@BuildUrl(1, "APPROVED")" class="@TabCls("APPROVED")">Đã duyệt (@Model.CountApproved)</a>
+            <a href="@BuildUrl(1, "HIRED")" class="@TabCls("HIRED")">Trúng tuyển (@Model.CountHired)</a>
             <a href="@BuildUrl(1, "REJECTED")" class="@TabCls("REJECTED")">Từ chối (@Model.CountRejected)</a>
         </div>
 
@@ -309,9 +327,18 @@
     <style>
         .choices { margin-bottom: 0; }
         .choices__inner { background: #fff; border-radius: 0.5rem; border: 1px solid #e5e7eb; min-height: 42px; padding: 4px 8px; font-size: 14px; }
-        .choices.is-focused .choices__inner { border-color: #4640DE; box-shadow: 0 0 0 1px #4640DE; }
-        .choices__list--multiple .choices__item { background: #4640DE; border: none; border-radius: 6px; font-size: 12px; }
-        .choices__list--dropdown .choices__item--selectable.is-highlighted { background: #4640DE; color: #fff; }
+        /* Focus: viền + ring xanh dương */
+        .choices.is-focused .choices__inner,
+        .choices.is-open .choices__inner { border-color: #2563EB; box-shadow: 0 0 0 1px #2563EB; }
+        /* Chip đã chọn (tech multi-select) */
+        .choices__list--multiple .choices__item { background: #2563EB; border: none; border-radius: 6px; font-size: 12px; }
+        .choices__list--multiple .choices__item.is-highlighted { background: #1D4ED8; }
+        .choices__list--multiple .choices__button:hover { opacity: .85; }
+        /* Option đang toggle/hover trong dropdown */
+        .choices__list--dropdown .choices__item--selectable.is-highlighted,
+        .choices__list[aria-expanded] .choices__item--selectable.is-highlighted { background: #2563EB; color: #fff; }
+        /* Option đã được chọn */
+        .choices__list--dropdown .choices__item--selectable.is-selected { color: #2563EB; font-weight: 600; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

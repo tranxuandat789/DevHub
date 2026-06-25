@@ -1,0 +1,532 @@
+@model DevHub.Models.BlogPost
+@{
+    ViewData["Title"] = "Chỉnh sửa bài viết";
+    ViewData["ActiveMenu"] = "Blogs";
+    Layout = "_RecruiterLayout";
+}
+
+<div class="mb-8">
+    <a href="/RecruiterBlog" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Quay lại danh sách bài viết
+    </a>
+    <h1 class="text-[32px] font-bold text-dark mb-2">Chỉnh sửa bài viết</h1>
+    <p class="text-muted text-sm">Cập nhật nội dung bài viết chia sẻ kiến thức trên nền tảng DevHub.</p>
+</div>
+
+<form id="blogForm" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Cột trái: Nội dung chính -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <div class="mb-6">
+                <div class="flex justify-between mb-2">
+                    <label class="block text-dark font-bold text-sm">Tiêu đề bài viết <span class="text-red-500">*</span></label>
+                    <span class="text-xs text-muted" id="titleCount">@(Model.Title?.Length ?? 0)/200</span>
+                </div>
+                <input type="text" id="Title" name="Title" maxlength="200" value="@Model.Title"
+                    placeholder="Nhập tiêu đề hấp dẫn..."
+                    class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-dark font-medium"
+                    required oninput="document.getElementById('titleCount').innerText = this.value.length + '/200'">
+                <span id="TitleError" class="text-red-500 text-xs hidden mt-1">Vui lòng nhập tiêu đề bài viết.</span>
+            </div>
+
+
+            <div class="mb-6">
+                <label class="block text-dark font-bold text-sm mb-2">Nội dung chi tiết <span class="text-red-500">*</span></label>
+                <!-- Quill Editor -->
+                <div id="editor" class="w-full rounded-lg bg-white"></div>
+                <input type="hidden" id="Content" name="Content" required>
+                <span id="ContentError" class="text-red-500 text-xs hidden mt-1">Vui lòng nhập nội dung bài viết.</span>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- Cột phải: Cài đặt và Publish -->
+    <div class="space-y-6">
+        <!-- Đăng bài -->
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <div class="flex flex-col gap-2.5">
+                <button type="button" id="btnDraft" onclick="saveDraft()"
+                    class="w-full bg-white text-dark font-medium text-sm px-4 py-2.5 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 flex justify-center items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    <span>Lưu bản nháp</span>
+                </button>
+                <button type="button" onclick="previewPost()"
+                    class="w-full bg-white text-dark font-medium text-sm px-4 py-2.5 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 flex justify-center items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    Xem trước
+                </button>
+                <button type="button" id="btnPublish" onclick="submitPost()"
+                    class="w-full bg-primary text-white font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-all flex justify-center items-center gap-2 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Cập nhật</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Thumbnail -->
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <h3 class="font-bold text-dark text-base mb-4 border-b pb-2">Ảnh đại diện <span class="text-red-500">*</span></h3>
+            <div class="relative group cursor-pointer border-2 border-dashed border-[#D6DDEB] rounded-lg overflow-hidden flex flex-col items-center justify-center text-center min-h-[160px] bg-gray-50"
+                onclick="document.getElementById('thumbnail-upload').click()">
+                <img id="thumbnail-preview" src="@Model.ThumbnailUrl" alt="Preview"
+                    class="absolute inset-0 w-full h-full object-cover @(string.IsNullOrEmpty(Model.ThumbnailUrl) ? "hidden" : "")">
+                <div id="thumbnail-placeholder" class="p-6 transition-opacity group-hover:opacity-50 @(!string.IsNullOrEmpty(Model.ThumbnailUrl) ? "hidden" : "")">
+                    <svg class="w-8 h-8 text-gray-400 mb-2 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p class="text-[13px] text-dark font-medium">Click để tải ảnh lên</p>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity z-10 @(string.IsNullOrEmpty(Model.ThumbnailUrl) ? "hidden" : "")" id="thumbnail-overlay">
+                    <div class="bg-white text-dark text-xs font-medium px-3 py-1.5 rounded flex items-center gap-1 shadow-sm">Thay đổi ảnh</div>
+                </div>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-2 text-center">JPG, PNG tối đa 5MB. Đề xuất: 1200x630px</p>
+            <input type="file" id="thumbnail-upload" class="hidden" accept="image/*">
+            <input type="hidden" id="ThumbnailUrl" name="ThumbnailUrl" value="@Model.ThumbnailUrl">
+        </div>
+
+        <!-- Danh mục -->
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <label class="block text-dark font-bold text-base mb-3">Danh mục <span class="text-red-500">*</span></label>
+            <select name="Category" class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary text-dark text-sm bg-gray-50">
+                <option value="tech">Công nghệ thông tin</option>
+                <option value="career">Kỹ năng mềm</option>
+                <option value="news">Tin tức tuyển dụng</option>
+            </select>
+        </div>
+
+        <!-- Tags -->
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <label class="block text-dark font-bold text-base mb-3">Thẻ (Tags)</label>
+            <div id="tags-container" class="flex flex-wrap gap-2 mb-3 empty:hidden"></div>
+            <div class="flex gap-2">
+                <select id="tagSelect" class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2.5 focus:outline-none focus:border-primary text-dark text-sm bg-gray-50">
+                    <option value="">Chọn thẻ...</option>
+                    <option value="C#">C#</option>
+                    <option value="ASP.NET">ASP.NET</option>
+                    <option value="MVC">MVC</option>
+                    <option value="SQL Server">SQL Server</option>
+                    <option value="React">React</option>
+                    <option value="Frontend">Frontend</option>
+                    <option value="Backend">Backend</option>
+                    <option value="other">Khác</option>
+                </select>
+            </div>
+            <div id="customTagContainer" class="mt-3 hidden">
+                <input type="text" id="customTagInput" placeholder="Nhập thẻ và nhấn Enter..."
+                    class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-dark text-sm bg-gray-50">
+            </div>
+            <input type="hidden" id="Tags" name="Tags" value="@Model.Tags">
+        </div>
+
+        <!-- Thông tin bài viết -->
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <h3 class="font-bold text-dark text-base mb-4 border-b pb-2">Thông tin bài viết</h3>
+            <ul class="space-y-4 text-sm text-dark">
+                <li class="flex justify-between items-center">
+                    <span class="flex items-center gap-2 text-muted">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        Số từ
+                    </span>
+                    <strong id="wordCount">0 từ</strong>
+                </li>
+                <li class="flex justify-between items-center">
+                    <span class="flex items-center gap-2 text-muted">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        Ngày tạo
+                    </span>
+                    <strong>@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</strong>
+                </li>
+                <li class="flex flex-col gap-2 mt-2">
+                    <label class="flex items-center gap-2 text-muted font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        Tác giả
+                    </label>
+                    <input type="text" id="Author" name="Author" readonly disabled
+                        class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed text-dark font-medium"
+                        value="@(string.IsNullOrEmpty(Model.Author) ? "Admin Vũ" : Model.Author)">
+                </li>
+            </ul>
+        </div>
+    </div>
+</form>
+
+<!-- Modal Preview -->
+<div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-lg text-dark">Xem trước bài viết</h3>
+            <button type="button" onclick="document.getElementById('previewModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 bg-white">
+            <h1 id="previewTitle" class="text-3xl font-bold text-dark mb-4"></h1>
+            <div class="flex items-center gap-3 text-sm text-muted mb-6">
+                <span id="previewAuthor" class="font-medium text-dark"></span>
+                <span>•</span>
+                <span id="previewDate"></span>
+            </div>
+            <img id="previewThumbnail" src="" class="w-full rounded-lg mb-8 hidden object-cover max-h-[400px]">
+            <div id="previewContent" class="ql-editor" style="padding:0"></div>
+        </div>
+        <div class="px-6 py-4 border-t bg-gray-50 flex justify-end">
+            <button type="button" onclick="document.getElementById('previewModal').classList.add('hidden')"
+                class="bg-white text-dark font-medium px-6 py-2 rounded-lg border border-[#D6DDEB] hover:bg-gray-100 transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="/lib/quill/quill.snow.css">
+    <style>
+        .ql-toolbar { border-radius: 8px 8px 0 0 !important; border-color: #D6DDEB !important; }
+        .ql-formats { display: inline-flex !important; align-items: center; margin-right: 12px !important; }
+        .ql-container { border-radius: 0 0 8px 8px !important; border-color: #D6DDEB !important; }
+        .ql-editor { min-height: 400px; font-size: 15px; line-height: 1.7; }
+        .ql-editor.ql-blank::before { color: #9CA3AF; font-style: normal; }
+        /* Font picker labels */
+        .ql-snow .ql-picker.ql-font { width: 130px; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before { content: 'Arial'; font-family: Arial; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before { content: 'Times New Roman'; font-family: 'Times New Roman', serif; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before { content: 'Courier New'; font-family: 'Courier New', monospace; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before { content: 'Georgia'; font-family: Georgia, serif; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before { content: 'Verdana'; font-family: Verdana, sans-serif; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Tahoma"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Tahoma"]::before { content: 'Tahoma'; font-family: Tahoma, sans-serif; }
+        /* Size picker labels */
+        .ql-snow .ql-picker.ql-size { width: 72px; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: '12px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: '14px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: '16px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: '18px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { content: '20px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: '24px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { content: '28px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: '32px'; }
+        .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="36px"]::before,
+        .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="36px"]::before { content: '36px'; }
+        /* Image alignment floating toolbar */
+        #img-align-tool { position:absolute; background:#fff; border:1px solid #D6DDEB; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,.15); display:flex; gap:2px; padding:3px; z-index:999; }
+        #img-align-tool button { width:28px; height:28px; border:none; background:none; cursor:pointer; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#444; font-size:14px; }
+        #img-align-tool button:hover { background:#f0f4ff; color:#0066cc; }
+        .ql-editor img { cursor:pointer; }
+        .ql-editor img.img-selected { outline: 2px solid #0066cc; }
+    </style>
+    <script src="/lib/quill/quill.js"></script>
+    <script>
+        // Quill v2: dùng attributors/style để apply inline font-family
+        const FontAttr = Quill.import('attributors/style/font');
+        FontAttr.whitelist = ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', 'Tahoma'];
+        Quill.register(FontAttr, true);
+
+        const SizeAttr = Quill.import('attributors/style/size');
+        SizeAttr.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px'];
+        Quill.register(SizeAttr, true);
+
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: 'Viết nội dung bài viết tại đây...',
+            modules: {
+                toolbar: [
+                    [{ 'font': FontAttr.whitelist }],
+                    [{ 'size': SizeAttr.whitelist }],
+                    [{ 'header': [1, 2, 3, 4, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    [{ 'indent': '-1' }, { 'indent': '+1' }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'image', 'blockquote'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Giữ selection khi click toolbar
+        quill.getModule('toolbar').container.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+
+        // Load nội dung hiện tại vào editor
+        quill.root.innerHTML = @Html.Raw(Json.Serialize(Model.Content ?? ""));
+
+        // Cập nhật word count ban đầu
+        (function () {
+            const text = quill.getText().trim();
+            const words = text === '' ? 0 : text.split(/\s+/).length;
+            document.getElementById('wordCount').innerText = words + ' từ';
+        })();
+
+        // Custom image upload
+        quill.getModule('toolbar').addHandler('image', () => {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+            input.onchange = () => {
+                const file = input.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('upload', file);
+                fetch('/RecruiterBlog/UploadImage', { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.url) {
+                            const range = quill.getSelection(true);
+                            quill.insertEmbed(range.index, 'image', res.url);
+                        }
+                    })
+                    .catch(err => console.error('Upload lỗi:', err));
+            };
+        });
+
+        // Image alignment mini-toolbar
+        quill.root.style.position = 'relative';
+        quill.root.addEventListener('click', function(e) {
+            document.getElementById('img-align-tool')?.remove();
+            document.querySelectorAll('.ql-editor img.img-selected').forEach(i => i.classList.remove('img-selected'));
+            if (e.target.tagName !== 'IMG') return;
+            const img = e.target;
+            img.classList.add('img-selected');
+            const tool = document.createElement('div');
+            tool.id = 'img-align-tool';
+            tool.innerHTML = `
+                <button type="button" title="Căn trái" onclick="alignImg(this,'left')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg></button>
+                <button type="button" title="Căn giữa" onclick="alignImg(this,'center')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+                <button type="button" title="Căn phải" onclick="alignImg(this,'right')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg></button>
+            `;
+            window._alignTarget = img;
+            const editorRect = quill.root.getBoundingClientRect();
+            const imgRect = img.getBoundingClientRect();
+            tool.style.top = (imgRect.top - editorRect.top - 38) + 'px';
+            tool.style.left = (imgRect.left - editorRect.left) + 'px';
+            quill.root.appendChild(tool);
+            setTimeout(() => {
+                document.addEventListener('click', function hide(ev) {
+                    if (!tool.contains(ev.target) && ev.target !== img) {
+                        tool.remove();
+                        img.classList.remove('img-selected');
+                        document.removeEventListener('click', hide);
+                    }
+                });
+            }, 100);
+        });
+
+        window.alignImg = function(btn, align) {
+            const img = window._alignTarget;
+            if (!img) return;
+            img.style.display = 'block';
+            img.style.float = 'none';
+            if (align === 'center') { img.style.margin = '8px auto'; }
+            else if (align === 'right') { img.style.margin = '8px 0 8px auto'; }
+            else { img.style.margin = '8px 0'; }
+            document.getElementById('img-align-tool')?.remove();
+            img.classList.remove('img-selected');
+        };
+
+        // Word count
+        quill.on('text-change', () => {
+            const text = quill.getText().trim();
+            const words = text === '' ? 0 : text.split(/\s+/).length;
+            document.getElementById('wordCount').innerText = words + ' từ';
+        });
+
+        // Thumbnail upload
+        document.getElementById('thumbnail-upload').addEventListener('change', function (e) {
+            if (e.target.files && e.target.files[0]) {
+                const formData = new FormData();
+                formData.append('file', e.target.files[0]);
+                fetch('/RecruiterBlog/UploadThumbnail', { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('ThumbnailUrl').value = data.url;
+                            updateThumbnailPreview(data.url);
+                        } else {
+                            alert(data.message || 'Có lỗi xảy ra khi tải ảnh lên.');
+                        }
+                    })
+                    .catch(() => alert('Đã xảy ra lỗi khi tải ảnh lên.'));
+            }
+        });
+
+        function updateThumbnailPreview(url) {
+            const preview = document.getElementById('thumbnail-preview');
+            const placeholder = document.getElementById('thumbnail-placeholder');
+            const overlay = document.getElementById('thumbnail-overlay');
+            if (url && url.trim() !== '') {
+                preview.src = url;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                overlay.classList.remove('hidden');
+            } else {
+                preview.src = '';
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Tags
+        let selectedTags = [];
+        const tagSelect = document.getElementById('tagSelect');
+        const customTagContainer = document.getElementById('customTagContainer');
+        const customTagInput = document.getElementById('customTagInput');
+        const tagsContainer = document.getElementById('tags-container');
+        const tagsHiddenInput = document.getElementById('Tags');
+
+        tagSelect.addEventListener('change', function () {
+            if (this.value === 'other') {
+                customTagContainer.classList.remove('hidden');
+                customTagInput.focus();
+            } else if (this.value !== '') {
+                customTagContainer.classList.add('hidden');
+                addTag(this.value);
+                this.value = '';
+            } else {
+                customTagContainer.classList.add('hidden');
+            }
+        });
+
+        customTagInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = this.value.trim();
+                if (val) {
+                    addTag(val);
+                    this.value = '';
+                    customTagContainer.classList.add('hidden');
+                    tagSelect.value = '';
+                }
+            }
+        });
+
+        function addTag(tag) {
+            if (!selectedTags.includes(tag)) {
+                selectedTags.push(tag);
+                const opt = tagSelect.querySelector(`option[value="${tag}"]`);
+                if (opt) opt.hidden = true;
+                renderTags();
+            }
+        }
+
+        window.removeTag = function (tag) {
+            selectedTags = selectedTags.filter(t => t !== tag);
+            const opt = tagSelect.querySelector(`option[value="${tag}"]`);
+            if (opt) opt.hidden = false;
+            renderTags();
+        };
+
+        function renderTags() {
+            tagsContainer.innerHTML = '';
+            selectedTags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'bg-blue-50 border border-blue-100 text-blue-600 px-3 py-1.5 rounded-full text-[13px] flex items-center gap-1.5 font-medium';
+                span.innerHTML = `${tag} <button type="button" class="text-blue-400 hover:text-blue-600 rounded-full w-4 h-4 flex items-center justify-center" onclick="removeTag('${tag}')">&times;</button>`;
+                tagsContainer.appendChild(span);
+            });
+            tagsHiddenInput.value = selectedTags.join(',');
+        }
+
+        // Init tags từ model
+        (function initExistingTags() {
+            const existing = document.getElementById('Tags').value;
+            if (existing) {
+                existing.split(',').forEach(t => {
+                    const tag = t.trim();
+                    if (tag) addTag(tag);
+                });
+            }
+        })();
+
+        // Preview
+        function previewPost() {
+            const title = document.getElementById('Title').value || 'Chưa có tiêu đề';
+            const author = document.getElementById('Author').value || 'Admin';
+            const content = quill.root.innerHTML;
+            const thumbnail = document.getElementById('ThumbnailUrl').value;
+
+            document.getElementById('previewTitle').innerText = title;
+            document.getElementById('previewAuthor').innerText = author;
+            document.getElementById('previewDate').innerText = new Date().toLocaleDateString('vi-VN');
+
+            const previewThumb = document.getElementById('previewThumbnail');
+            if (thumbnail) { previewThumb.src = thumbnail; previewThumb.classList.remove('hidden'); }
+            else { previewThumb.classList.add('hidden'); }
+
+            document.getElementById('previewContent').innerHTML = content || '<p class="text-gray-400 italic">Chưa có nội dung</p>';
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function saveDraft() { submitForm('draft'); }
+        function submitPost() { submitForm('publish'); }
+
+        function submitForm(actionType) {
+            const contentHtml = quill.root.innerHTML === '<p><br></p>' ? '' : quill.root.innerHTML;
+            document.getElementById('Content').value = contentHtml;
+            const form = document.getElementById('blogForm');
+            
+            let isValid = true;
+            if (!document.getElementById('Title').value.trim()) {
+                document.getElementById('TitleError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('TitleError').classList.add('hidden');
+            }
+            if (!contentHtml.trim() || contentHtml === '<p><br></p>') {
+                document.getElementById('ContentError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('ContentError').classList.add('hidden');
+            }
+
+            if (!isValid) return;
+
+            const formData = new FormData(form);
+            formData.set('actionType', actionType === 'draft' ? 'draft' : 'publish');
+            
+            const btnDraft = document.getElementById('btnDraft');
+            const btnPublish = document.getElementById('btnPublish');
+            const targetBtn = actionType === 'draft' ? btnDraft : btnPublish;
+            const originalHtml = targetBtn.innerHTML;
+            
+            targetBtn.disabled = true;
+            targetBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            targetBtn.innerHTML = `<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>Đang xử lý...</span>`;
+
+            fetch(`/RecruiterBlog/EditPost/@Model.BlogId`, { method: 'POST', body: formData })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/RecruiterBlog';
+                    } else {
+                        alert('Có lỗi xảy ra, vui lòng thử lại.');
+                        targetBtn.disabled = false;
+                        targetBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                        targetBtn.innerHTML = originalHtml;
+                    }
+                })
+                .catch(() => {
+                    alert('Có lỗi xảy ra, vui lòng thử lại.');
+                    targetBtn.disabled = false;
+                    targetBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    targetBtn.innerHTML = originalHtml;
+                });
+        }
+    </script>
+}

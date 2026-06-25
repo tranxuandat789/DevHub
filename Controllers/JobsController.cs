@@ -10,11 +10,13 @@ namespace DevHub.Controllers;
 public class JobsController : Controller
 {
     private readonly IJobSearchService _jobSearchService;
+    private readonly IBookmarkService _bookmarkService;
     private readonly IApplicationService _applicationService;
 
-    public JobsController(IJobSearchService jobSearchService, IApplicationService applicationService)
+    public JobsController(IJobSearchService jobSearchService, IBookmarkService bookmarkService, IApplicationService applicationService)
     {
         _jobSearchService = jobSearchService;
+        _bookmarkService = bookmarkService;
         _applicationService = applicationService;
     }
 
@@ -23,6 +25,15 @@ public class JobsController : Controller
     public async Task<IActionResult> Index([FromQuery] JobSearchFilterViewModel filter)
     {
         var model = await _jobSearchService.SearchJobsAsync(filter);
+
+        // Load bookmark IDs nếu ứng viên đã đăng nhập
+        if (User.Identity?.IsAuthenticated == true && User.IsInRole("CANDIDATE") || User.IsInRole("Candidate"))
+        {
+            var candidateIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(candidateIdStr, out int candidateId))
+                model.BookmarkedJobIds = await _bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
+        }
+
         return View("~/Views/Candidate/Job/Index.cshtml", model);
     }
 
@@ -36,6 +47,16 @@ public class JobsController : Controller
 
         if (model is null)
             return NotFound();
+
+        if (User.Identity?.IsAuthenticated == true && (User.IsInRole("CANDIDATE") || User.IsInRole("Candidate")))
+        {
+            var candidateIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(candidateIdStr, out int candidateId))
+            {
+                var bookmarkedJobIds = await _bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
+                model.IsBookmarked = bookmarkedJobIds.Contains(id);
+            }
+        }
 
         return View("~/Views/Candidate/Job/Details.cshtml", model);
     }

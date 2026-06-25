@@ -1,6 +1,173 @@
+@model DevHub.Models.UserAccount
+
 @{
-    ViewData["Title"] = "Chi Tiet Nguoi Dung";
+    ViewData["Title"] = "Chi Tiết Người Dùng";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+    var userType = Model.UserType?.ToLower() ?? "";
+    var name = Model.Email;
+    var imageUrl = "https://ui-avatars.com/api/?name=" + Model.Email + "&background=random";
+
+    if (userType == "candidate" && Model.Candidate != null)
+    {
+        name = Model.Candidate.FullName ?? Model.Email;
+        if (!string.IsNullOrEmpty(Model.Candidate.ImageUrl)) imageUrl = Model.Candidate.ImageUrl;
+    }
+    else if (userType == "recruiter" && Model.Recruiter != null)
+    {
+        name = Model.Recruiter.CompanyName ?? Model.Recruiter.FullName ?? Model.Email;
+        if (!string.IsNullOrEmpty(Model.Recruiter.CompanyLogoUrl)) imageUrl = Model.Recruiter.CompanyLogoUrl;
+    }
 }
 
-<h1>Chi Tiet Nguoi Dung</h1>
+<div class="mb-8">
+    <a href="/moderator/users" class="inline-flex items-center text-primary hover:underline font-medium mb-4">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Quay lại danh sách
+    </a>
+    <h1 class="text-[32px] font-bold text-dark mb-2">Chi tiết Người dùng</h1>
+    <p class="text-muted">Xem thông tin chi tiết của người dùng.</p>
+</div>
+
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 border border-[#D6DDEB]">
+    <div class="flex flex-col md:flex-row gap-8">
+        <div class="w-full md:w-1/3 flex flex-col items-center border-b md:border-b-0 md:border-r border-[#D6DDEB] pb-8 md:pb-0 md:pr-8">
+            <img src="@imageUrl" alt="Avatar" class="w-32 h-32 object-cover rounded-full border-4 border-gray-100 shadow-md mb-4" onerror="this.src='https://ui-avatars.com/api/?name=@(name)&background=random'" />
+            <h2 class="text-xl font-bold text-dark text-center mb-1">@name</h2>
+            <p class="text-muted text-sm text-center mb-4">@Model.Email</p>
+            
+            <div class="flex gap-2">
+                @if (userType == "candidate")
+                {
+                    <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">Ứng viên</span>
+                }
+                else if (userType == "recruiter")
+                {
+                    <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">Nhà tuyển dụng</span>
+                }
+                else if (userType == "admin")
+                {
+                    <span class="bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">Quản trị viên</span>
+                }
+                else if (userType == "moderator")
+                {
+                    <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">Kiểm duyệt viên</span>
+                }
+                else
+                {
+                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-semibold">@Model.UserType</span>
+                }
+
+                @if (Model.IsActive ?? true)
+                {
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                        Hoạt động
+                    </span>
+                }
+                else
+                {
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                        Bị Khóa
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="w-full md:w-2/3">
+            <h3 class="text-lg font-bold text-dark mb-6 border-b border-[#D6DDEB] pb-2">Thông tin tài khoản</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm text-muted mb-1">Email</label>
+                    <div class="font-medium text-dark">@Model.Email</div>
+                </div>
+                <div>
+                    <label class="block text-sm text-muted mb-1">Ngày tham gia</label>
+                    <div class="font-medium text-dark">@(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</div>
+                </div>
+
+                @if (userType == "candidate" && Model.Candidate != null)
+                {
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Họ và Tên</label>
+                        <div class="font-medium text-dark">@(Model.Candidate.FullName ?? "-")</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Số điện thoại</label>
+                        <div class="font-medium text-dark">@(Model.Candidate.Phone ?? "-")</div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm text-muted mb-1">Địa chỉ</label>
+                        <div class="font-medium text-dark">@(Model.Candidate.Address ?? "-")</div>
+                    </div>
+                }
+                else if (userType == "recruiter" && Model.Recruiter != null)
+                {
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Họ và Tên</label>
+                        <div class="font-medium text-dark">@(Model.Recruiter.FullName ?? "-")</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Số điện thoại</label>
+                        <div class="font-medium text-dark">@(Model.Recruiter.Phone ?? "-")</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Tên Công Ty</label>
+                        <div class="font-medium text-dark">@(Model.Recruiter.CompanyName ?? "-")</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Vị trí công tác</label>
+                        <div class="font-medium text-dark">@(Model.Recruiter.Position ?? "-")</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Website</label>
+                        <div class="font-medium text-dark">
+                            @if(!string.IsNullOrEmpty(Model.Recruiter.Website))
+                            {
+                                <a href="@Model.Recruiter.Website" target="_blank" class="text-blue-600 hover:underline">@Model.Recruiter.Website</a>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted mb-1">Tổng chi tiêu</label>
+                        <div class="font-bold text-primary">@(Model.Recruiter.TotalSpent?.ToString("N0") ?? "0") VNĐ</div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm text-muted mb-1">Mô tả công ty</label>
+                        <div class="font-medium text-dark">@(Model.Recruiter.CompanyDescription ?? "-")</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 border border-[#D6DDEB] mt-8">
+    <h3 class="text-lg font-bold text-dark mb-6 border-b border-[#D6DDEB] pb-2">Lịch sử Thao tác (Báo cáo)</h3>
+    <div class="space-y-4">
+        @if (ViewBag.History != null && ((IEnumerable<DevHub.Models.AuditLog>)ViewBag.History).Any())
+        {
+            foreach (var log in (IEnumerable<DevHub.Models.AuditLog>)ViewBag.History)
+            {
+                <div class="p-4 border border-[#D6DDEB] rounded-lg bg-gray-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="font-bold text-dark">@log.Action</div>
+                        <span class="text-xs text-muted">@(log.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "")</span>
+                    </div>
+                    <p class="text-sm text-muted">Giá trị thay đổi: <span class="font-medium text-dark">@log.OldValue</span> &rarr; <span class="font-medium text-dark">@log.NewValue</span></p>
+                    <p class="text-xs text-muted mt-2">Người thực hiện ID: @log.UserId - IP: @log.IpAddress</p>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="p-4 border border-[#D6DDEB] rounded-lg bg-gray-50">
+                <div class="font-bold text-dark mb-2">Chưa có lịch sử thao tác</div>
+                <p class="text-sm text-muted">Tài khoản này chưa có ghi nhận thao tác nào từ ban quản trị.</p>
+            </div>
+        }
+    </div>
+</div>

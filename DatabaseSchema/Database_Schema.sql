@@ -55,6 +55,7 @@ CREATE TABLE [candidate] (
     [expected_salary_min] DECIMAL(18, 2) NULL,
     [expected_salary_max] DECIMAL(18, 2) NULL,
     [preferred_location] NVARCHAR(100) NULL,
+    [preferred_working_model] NVARCHAR(50) NULL,
     [experience_years] INT NULL,
     [cv_searchable] BIT DEFAULT 1,
     [profile_completion] INT DEFAULT 0,

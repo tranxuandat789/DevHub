@@ -1,3 +1,4 @@
+@model DevHub.ViewModels.Auth.VerifyOTPViewModel
 @{
     ViewData["Title"] = "Xác thực mã OTP";
 }
@@ -25,9 +26,9 @@
                 </div>
             }
 
-            <form action="/Auth/VerifyOTP" method="POST" id="otpForm">
+            <form asp-controller="Auth" asp-action="VerifyOTP" method="POST" id="otpForm">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="otp" id="otpValue" />
+                <input type="hidden" asp-for="OTP" id="otpValue" />
                 <div class="flex justify-between gap-2 mb-8">
                     <input type="text" maxlength="1" class="w-10 sm:w-12 h-14 text-center text-xl font-bold border border-bordercolor rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" required />
                     <input type="text" maxlength="1" class="w-10 sm:w-12 h-14 text-center text-xl font-bold border border-bordercolor rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" required />

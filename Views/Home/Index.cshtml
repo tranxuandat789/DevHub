@@ -220,14 +220,23 @@
 
                 @if (otherBlogs.Any())
                 {
-                    <!-- Right Small Articles (2x2 Grid) -->
-                    <div class="w-full lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Right Small Articles -->
+                    <div class="w-full lg:w-1/2 grid @(otherBlogs.Count <= 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2") auto-rows-fr gap-6">
                         @foreach(var blog in otherBlogs)
                         {
+                            var excerpt = string.IsNullOrEmpty(blog.Content)
+                                ? ""
+                                : System.Text.RegularExpressions.Regex.Replace(blog.Content, "<.*?>", string.Empty);
+                            if (excerpt.Length > 90) excerpt = excerpt.Substring(0, 90).TrimEnd() + "...";
+
                             <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
                                 <img src="@(string.IsNullOrEmpty(blog.ThumbnailUrl) ? "https://picsum.photos/seed/blog" + blog.BlogId + "/400/200" : blog.ThumbnailUrl)" alt="@blog.Title" class="w-full h-36 object-cover" />
-                                <div class="p-6 flex flex-col flex-grow">
-                                    <h4 class="text-lg font-bold text-dark mb-4 line-clamp-2 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/Blog/@blog.Slug'">@blog.Title</h4>
+                                <div class="p-5 flex flex-col flex-grow">
+                                    <h4 class="text-base font-bold text-dark mb-2 line-clamp-2 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/Blog/@blog.Slug'">@blog.Title</h4>
+                                    @if (!string.IsNullOrEmpty(excerpt))
+                                    {
+                                        <p class="text-muted text-xs font-inter leading-relaxed mb-3 line-clamp-2">@excerpt</p>
+                                    }
                                     <a href="/Blog/@blog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
                                         Đọc ngay
                                         <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>

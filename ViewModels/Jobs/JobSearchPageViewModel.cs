@@ -16,5 +16,8 @@ public class JobSearchPageViewModel
     public List<(int TechId, string TechName, int JobCount)> TopTechs { get; set; } = new();
     public List<(string Location, int JobCount)> TopLocations { get; set; } = new();
     public List<(int RecruiterId, string CompanyName, string? LogoUrl, int JobCount)> TopCompanies { get; set; } = new();
+
+    // Set các JobId mà ứng viên đã bookmark (chỉ có giá trị khi đã đăng nhập)
+    public HashSet<int> BookmarkedJobIds { get; set; } = new();
 }
 

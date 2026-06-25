@@ -28,6 +28,14 @@
     string salaryRange = (Model.ExpectedSalaryMin.HasValue || Model.ExpectedSalaryMax.HasValue)
         ? $"{Salary(Model.ExpectedSalaryMin) ?? "?"} - {Salary(Model.ExpectedSalaryMax) ?? "?"} VND"
         : "Chưa cập nhật";
+
+    // CV file type: browsers render PDF/images inline in an <iframe>; doc/docx/others cannot,
+    // so for those we show a message + a forced-download button instead of a blank preview.
+    string cvExt = !string.IsNullOrEmpty(Model.CvUrl)
+        ? System.IO.Path.GetExtension(Model.CvUrl).TrimStart('.').ToLowerInvariant()
+        : "";
+    var previewableCvExts = new[] { "pdf", "png", "jpg", "jpeg", "gif", "webp" };
+    bool cvPreviewable = previewableCvExts.Contains(cvExt);
 }
 
 <div class="space-y-6">
@@ -178,16 +186,30 @@
                     }
                 </div>
                 <div class="flex-1 w-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden relative">
-                    @if (!string.IsNullOrEmpty(Model.CvUrl))
-                    {
-                        <iframe src="@Model.CvUrl" class="absolute inset-0 w-full h-full" title="CV"></iframe>
-                    }
-                    else
+                    @if (string.IsNullOrEmpty(Model.CvUrl))
                     {
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                             <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             <p class="text-sm font-medium text-dark mb-1">@(Model.CvTitle ?? "Không có CV đính kèm")</p>
                             <p class="text-xs text-muted">Ứng viên chưa cung cấp đường dẫn CV.</p>
+                        </div>
+                    }
+                    else if (cvPreviewable)
+                    {
+                        <iframe src="@Model.CvUrl" class="absolute inset-0 w-full h-full" title="CV"></iframe>
+                    }
+                    else
+                    {
+                        <!-- Định dạng không xem trực tiếp được (doc/docx...) -> báo + nút tải xuống -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <p class="text-sm font-medium text-dark mb-1">@(Model.CvTitle ?? "CV đính kèm")</p>
+                            <p class="text-xs text-muted mb-1">Định dạng <span class="font-semibold uppercase">@cvExt</span> không thể xem trực tiếp trong trình duyệt.</p>
+                            <p class="text-xs text-muted mb-4">Vui lòng tải xuống để xem nội dung.</p>
+                            <a href="@Model.CvUrl" download class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Tải xuống CV (@cvExt.ToUpper())
+                            </a>
                         </div>
                     }
                 </div>

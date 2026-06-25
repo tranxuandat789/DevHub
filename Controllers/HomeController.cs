@@ -33,7 +33,7 @@ namespace DevHub.Controllers
                 .Include(j => j.Recruiter)
                 .Include(j => j.Position)
                 .Include(j => j.Teches)
-                .Where(j => j.Status.ToLower() == "approved")
+                .Where(j => j.Status != null && j.Status.ToLower() == "approved")
                 .OrderByDescending(j => j.PriorityScore)
                 .ThenByDescending(j => j.CreatedAt)
                 .Take(6)
@@ -49,7 +49,7 @@ namespace DevHub.Controllers
                     RecruiterId = r.RecruiterId,
                     CompanyName = r.CompanyName,
                     CompanyLogoUrl = r.CompanyLogoUrl,
-                    JobCount = _context.JobPosts.Count(j => j.RecruiterId == r.RecruiterId && j.Status.ToLower() == "approved")
+                    JobCount = _context.JobPosts.Count(j => j.RecruiterId == r.RecruiterId && j.Status != null && j.Status.ToLower() == "approved")
                 })
                 .OrderByDescending(c => c.JobCount)
                 .Take(8)
@@ -58,7 +58,7 @@ namespace DevHub.Controllers
             // Lấy danh sách 5 bài viết cẩm nang/blog đã được xuất bản (IsPublished)
             // Sắp xếp giảm dần theo ngày xuất bản mới nhất
             var featuredBlogs = await _context.BlogPosts
-                .Where(b => b.IsPublished == true)
+                .Where(b => b.Status == 1 && b.IsDeleted != true)
                 .OrderByDescending(b => b.PublishedAt)
                 .Take(5)
                 .ToListAsync();
@@ -103,17 +103,7 @@ namespace DevHub.Controllers
             return View("~/Views/Moderator/JobApproval/Index.cshtml");
         }
 
-        [Route("ModeratorBlog")]
-        public IActionResult ModeratorBlogPreview()
-        {
-            return View("~/Views/Moderator/Blog/Index.cshtml");
-        }
 
-        [Route("ModeratorBlog/Create")]
-        public IActionResult ModeratorBlogCreatePreview()
-        {
-            return View("~/Views/Moderator/Blog/Create.cshtml");
-        }
 
         [Route("ModeratorUser")]
         public IActionResult ModeratorUserPreview()

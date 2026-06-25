@@ -66,9 +66,9 @@
         <div class="flex items-center gap-3">
             @if (Model.CanReject)
             {
-                <form method="post" action="/Recruiter/RecruiterApplication/Reject/@Model.ApplicationId" onsubmit="return confirm('Từ chối hồ sơ ứng viên này?');">
+                <form id="rejectForm" method="post" action="/Recruiter/RecruiterApplication/Reject/@Model.ApplicationId">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="px-4 py-2 bg-white border border-gray-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm flex items-center gap-2">
+                    <button type="button" data-decision="reject" class="js-decision-btn px-4 py-2 bg-white border border-gray-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         Từ chối
                     </button>
@@ -76,9 +76,9 @@
             }
             @if (Model.CanApprove)
             {
-                <form method="post" action="/Recruiter/RecruiterApplication/Approve/@Model.ApplicationId" onsubmit="return confirm('Duyệt hồ sơ ứng viên này?');">
+                <form id="approveForm" method="post" action="/Recruiter/RecruiterApplication/Approve/@Model.ApplicationId">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
+                    <button type="button" data-decision="approve" class="js-decision-btn px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Phê duyệt
                     </button>
@@ -199,3 +199,63 @@
         </div>
     </div>
 </div>
+
+<!-- Custom confirm modal for Approve / Reject (no default JS confirm) -->
+<div id="decisionModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-md w-full mx-4 p-8" style="font-family:Inter,sans-serif">
+        <div id="decisionIcon" class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <h3 id="decisionTitle" class="text-lg font-bold text-[#25324B] text-center mb-2"></h3>
+        <p id="decisionMessage" class="text-[#515B6F] text-sm text-center mb-6"></p>
+        <div class="flex gap-3">
+            <button type="button" id="decisionCancel" class="flex-1 px-6 py-2.5 bg-white border border-gray-200 text-dark text-[15px] font-bold rounded-lg hover:bg-gray-50 transition-colors">Hủy</button>
+            <button type="button" id="decisionConfirm" class="flex-1 px-6 py-2.5 text-white text-[15px] font-bold rounded-lg transition-colors">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = document.getElementById('decisionModal');
+            var iconBox = document.getElementById('decisionIcon');
+            var titleEl = document.getElementById('decisionTitle');
+            var msgEl = document.getElementById('decisionMessage');
+            var confirmBtn = document.getElementById('decisionConfirm');
+            var cancelBtn = document.getElementById('decisionCancel');
+            var candidateName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FullName));
+            var targetForm = null;
+
+            function openModal(decision) {
+                if (decision === 'approve') {
+                    targetForm = document.getElementById('approveForm');
+                    iconBox.className = 'w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4 bg-green-100 text-green-600';
+                    titleEl.textContent = 'Xác nhận phê duyệt';
+                    msgEl.innerHTML = 'Bạn sắp <b>phê duyệt</b> hồ sơ của <b>' + candidateName + '</b>. Ứng viên sẽ nhận thông báo và bạn có thể lên lịch phỏng vấn.';
+                    confirmBtn.className = 'flex-1 px-6 py-2.5 text-white text-[15px] font-bold rounded-lg transition-colors bg-green-600 hover:bg-green-700';
+                    confirmBtn.textContent = 'Phê duyệt';
+                } else {
+                    targetForm = document.getElementById('rejectForm');
+                    iconBox.className = 'w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4 bg-red-100 text-red-600';
+                    titleEl.textContent = 'Xác nhận từ chối';
+                    msgEl.innerHTML = 'Bạn sắp <b>từ chối</b> hồ sơ của <b>' + candidateName + '</b>. Ứng viên sẽ nhận thông báo về quyết định này.';
+                    confirmBtn.className = 'flex-1 px-6 py-2.5 text-white text-[15px] font-bold rounded-lg transition-colors bg-red-600 hover:bg-red-700';
+                    confirmBtn.textContent = 'Từ chối';
+                }
+                modal.classList.remove('hidden');
+            }
+
+            function closeModal() { modal.classList.add('hidden'); targetForm = null; }
+
+            document.querySelectorAll('.js-decision-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () { openModal(this.getAttribute('data-decision')); });
+            });
+
+            cancelBtn.addEventListener('click', closeModal);
+            confirmBtn.addEventListener('click', function () { if (targetForm) targetForm.submit(); });
+            modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+        });
+    </script>
+}

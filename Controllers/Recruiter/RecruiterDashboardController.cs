@@ -16,17 +16,20 @@ namespace DevHub.Controllers.Recruiter
         private readonly IRecruiterDashboardRepository _dashboardRepo;
         private readonly IRecruiterRepository _recruiterRepo;
         private readonly IRecruiterPackageHistoryRepository _packageRepo;
+        private readonly ILogger<RecruiterDashboardController> _logger;
 
         public RecruiterDashboardController(
             IAuthService authService,
             IRecruiterDashboardRepository dashboardRepo,
             IRecruiterRepository recruiterRepo,
-            IRecruiterPackageHistoryRepository packageRepo)
+            IRecruiterPackageHistoryRepository packageRepo,
+            ILogger<RecruiterDashboardController> logger)
         {
             _authService = authService;
             _dashboardRepo = dashboardRepo;
             _recruiterRepo = recruiterRepo;
             _packageRepo = packageRepo;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -40,6 +43,8 @@ namespace DevHub.Controllers.Recruiter
             var recruiter = dbUser.Recruiter;
             int recruiterId = recruiter.RecruiterId;
 
+            try
+            {
             // 2. Pull real data.
             var posts = await _dashboardRepo.GetJobPostsAsync(recruiterId);        // all posts, newest first
             var interviews = await _dashboardRepo.GetInterviewsAsync(recruiterId);
@@ -136,6 +141,15 @@ namespace DevHub.Controllers.Recruiter
             };
 
             return View("~/Views/Recruiter/RecruiterDashboard/Index.cshtml", viewModel);
+            }
+            catch (Exception ex)
+            {
+                // Data retrieval failed — render the page with a safe empty model + an error banner
+                // instead of throwing an unhandled exception.
+                _logger.LogError(ex, "Failed to load recruiter dashboard for recruiter {RecruiterId}", recruiterId);
+                ViewBag.LoadError = "Không thể tải dữ liệu bảng điều khiển. Vui lòng thử lại sau.";
+                return View("~/Views/Recruiter/RecruiterDashboard/Index.cshtml", new RecruiterDashboard());
+            }
         }
     }
 }

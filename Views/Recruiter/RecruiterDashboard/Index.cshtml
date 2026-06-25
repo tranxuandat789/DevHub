@@ -7,7 +7,15 @@
 
 <div class="w-full pt-6 pb-10">
     <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
-        
+
+        @if (ViewBag.LoadError != null)
+        {
+            <div class="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                <span>@ViewBag.LoadError</span>
+            </div>
+        }
+
         <!-- Header -->
         <div class="mb-8 flex justify-between items-center">
             <div>
@@ -198,12 +206,7 @@
                     <h3 class="text-xl font-bold text-gray-900">Thống kê ứng tuyển & Phỏng vấn</h3>
                     <p class="text-sm text-gray-500 mt-1">Biểu đồ thể hiện sự tương tác của ứng viên trong 30 ngày qua</p>
                 </div>
-                <select class="bg-gray-50 border border-[#F6F5FD] text-gray-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-sm outline-none font-medium cursor-pointer">
-                    <option value="7">7 ngày qua</option>
-                    <option value="30" selected>30 ngày qua</option>
-                    <option value="90">3 tháng qua</option>
-                    <option value="365">1 năm qua</option>
-                </select>
+                <span class="bg-gray-50 border border-[#F6F5FD] text-gray-600 rounded-lg px-3 py-2 text-sm font-medium">30 ngày qua</span>
             </div>
             <div class="relative h-[380px] w-full">
                 <canvas id="dashboardChart"></canvas>
@@ -296,7 +299,14 @@
                                 {
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-8 py-5">
-                                            <div class="font-bold text-gray-900 text-base">@job.Title</div>
+                                            @if ((job.Status ?? "").ToUpper() != "REJECTED")
+                                            {
+                                                <a href="/Recruiter/RecruiterApplication?jobId=@job.JobId" class="font-bold text-gray-900 text-base hover:text-blue-600 hover:underline transition-colors" title="Xem danh sách ứng viên">@job.Title</a>
+                                            }
+                                            else
+                                            {
+                                                <div class="font-bold text-gray-900 text-base">@job.Title</div>
+                                            }
                                             <div class="text-gray-500 text-xs mt-1">@job.CreatedAt?.ToString("dd/MM/yyyy")</div>
                                         </td>
                                         <td class="px-8 py-5">
@@ -541,8 +551,9 @@
                                 pointBackgroundColor: '#ffffff',
                                 pointBorderColor: '#8B5CF6',
                                 pointBorderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6,
+                                pointStyle: 'triangle',
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
                                 fill: true,
                                 tension: 0.4
                             }

@@ -204,9 +204,22 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-gray-900">Thống kê ứng tuyển & Phỏng vấn</h3>
-                    <p class="text-sm text-gray-500 mt-1">Biểu đồ thể hiện sự tương tác của ứng viên trong 30 ngày qua</p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Biểu đồ thể hiện sự tương tác của ứng viên
+                        @switch (Model.StatsRange)
+                        {
+                            case "7": <text>trong 7 ngày qua</text> break;
+                            case "year": <text>trong 1 năm qua (theo tháng)</text> break;
+                            default: <text>trong 30 ngày qua</text> break;
+                        }
+                    </p>
                 </div>
-                <span class="bg-gray-50 border border-[#F6F5FD] text-gray-600 rounded-lg px-3 py-2 text-sm font-medium">30 ngày qua</span>
+                <select onchange="window.location.href='/recruiter/dashboard?range=' + this.value"
+                        class="bg-gray-50 border border-[#F6F5FD] text-gray-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-sm outline-none font-medium cursor-pointer">
+                    <option value="7" selected="@(Model.StatsRange == "7")">7 ngày qua</option>
+                    <option value="30" selected="@(Model.StatsRange == "30")">30 ngày qua</option>
+                    <option value="year" selected="@(Model.StatsRange == "year")">1 năm qua (theo tháng)</option>
+                </select>
             </div>
             <div class="relative h-[380px] w-full">
                 <canvas id="dashboardChart"></canvas>

@@ -57,7 +57,7 @@ namespace DevHub.Controllers.Recruiter
                 .ToList();
 
             // Recent posts shown in the table (top 5 newest) + their applicant avatars.
-            var recentPosts = posts.Take(5).ToList();
+            var recentPosts = posts.Where(j=>j.Status=="APPROVED").Take(5).ToList();
             var avatarsByJob = await _dashboardRepo.GetApplicantAvatarsByJobAsync(recentPosts.Select(p => p.JobId).ToList(), 3);
 
             var jobApplicantCounts = recentPosts.Select(j => new JobPostApplicantCount

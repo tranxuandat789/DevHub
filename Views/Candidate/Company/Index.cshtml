@@ -275,78 +275,53 @@
                     </div>
 
                     <!-- Tech Stack Filter (Accordion) -->
-                    <div class="border-b border-slate-100 pb-3">
-                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="tech">
-                            <span class="font-bold text-slate-800 text-[15px]">Tech Stack</span>
-                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                        <div class="accordion-content pt-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5" id="accordion-tech">
-                            @foreach (var tech in Model.AvailableTechs)
-                            {
-                                var isChecked = Model.SelectedTechs.Contains(tech.TechId) ? "checked" : "";
-                                <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
-                                    <input type="checkbox" name="selectedTechs" value="@tech.TechId" @isChecked class="custom-checkbox" />
-                                    <span class="truncate">@tech.TechName</span>
-                                </label>
-                            }
-                        </div>
-                    </div>
+<div class="border-b border-slate-100 pb-3">
+    <div class="accordion-header flex justify-between items-center py-2" data-accordion="tech">
+        <span class="font-bold text-slate-800 text-[15px]">Tech Stack</span>
+        <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    </div>
+    <!-- Outer: animation container -->
+    <div class="accordion-content" id="accordion-tech">
+        <!-- Inner: scroll container -->
+        <div class="pt-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5">
+            @foreach (var tech in Model.AvailableTechs)
+            {
+                var isChecked = Model.SelectedTechs.Contains(tech.TechId) ? "checked" : "";
+                <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                    <input type="checkbox" name="selectedTechs" value="@tech.TechId" @isChecked class="custom-checkbox" />
+                    <span class="truncate">@tech.TechName</span>
+                </label>
+            }
+        </div>
+    </div>
+</div>
 
-                    <!-- Job Position Filter (Accordion) -->
-                    <div class="border-b border-slate-100 pb-3">
-                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="position">
-                            <span class="font-bold text-slate-800 text-[15px]">Vị trí tuyển dụng</span>
-                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                        <div class="accordion-content pt-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5" id="accordion-position">
-                            @foreach (var pos in Model.AvailablePositions)
-                            {
-                                var isChecked = Model.SelectedPositions.Contains(pos.PositionId) ? "checked" : "";
-                                <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
-                                    <input type="checkbox" name="selectedPositions" value="@pos.PositionId" @isChecked class="custom-checkbox" />
-                                    <span class="truncate" title="@pos.PositionName">@pos.PositionName</span>
-                                </label>
-                            }
-                        </div>
-                    </div>
+<!-- Job Position Filter (Accordion) -->
+<div class="border-b border-slate-100 pb-3">
+    <div class="accordion-header flex justify-between items-center py-2" data-accordion="position">
+        <span class="font-bold text-slate-800 text-[15px]">Vị trí tuyển dụng</span>
+        <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    </div>
+    <!-- Outer: animation container -->
+    <div class="accordion-content" id="accordion-position">
+        <!-- Inner: scroll container -->
+        <div class="pt-2.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5">
+            @foreach (var pos in Model.AvailablePositions)
+            {
+                var isChecked = Model.SelectedPositions.Contains(pos.PositionId) ? "checked" : "";
+                <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                    <input type="checkbox" name="selectedPositions" value="@pos.PositionId" @isChecked class="custom-checkbox" />
+                    <span class="truncate" title="@pos.PositionName">@pos.PositionName</span>
+                </label>
+            }
+        </div>
+    </div>
+</div>
 
-
-                    <!-- City Filter (Accordion - Option A visually mocked) -->
-                    <div class="border-b border-slate-100 pb-3">
-                        <div class="accordion-header flex justify-between items-center py-2" data-accordion="city">
-                            <span class="font-bold text-slate-800 text-[15px]">Thành phố</span>
-                            <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                        <div class="accordion-content pt-2.5 space-y-2.5" id="accordion-city">
-                            <label class="flex items-center justify-between text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
-                                <span class="flex items-center gap-3">
-                                    <input type="checkbox" name="mockCity" value="hn" class="custom-checkbox" />
-                                    <span>Hà Nội</span>
-                                </span>
-                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold">18</span>
-                            </label>
-                            <label class="flex items-center justify-between text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
-                                <span class="flex items-center gap-3">
-                                    <input type="checkbox" name="mockCity" value="hcm" class="custom-checkbox" />
-                                    <span>Hồ Chí Minh</span>
-                                </span>
-                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold">22</span>
-                            </label>
-                            <label class="flex items-center justify-between text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
-                                <span class="flex items-center gap-3">
-                                    <input type="checkbox" name="mockCity" value="dn" class="custom-checkbox" />
-                                    <span>Đà Nẵng</span>
-                                </span>
-                                <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-400 font-bold">5</span>
-                            </label>
-                        </div>
-                    </div>
 
                     <!-- Filter action buttons -->
                     <div class="flex flex-col gap-2.5 pt-3">
@@ -504,7 +479,7 @@
 
                 <!-- Pagination Container -->
                 <div class="mt-10 flex justify-center" id="paginationContainer">
-                    <!-- Javascript will render pagination elements dynamically -->
+                    <!-- Javript will render pagination elements dynamically -->
                 </div>
 
             </div>

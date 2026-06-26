@@ -391,7 +391,7 @@ CREATE TABLE [review_recruiter] (
 -- =====================================================
 CREATE TABLE [blog_post] (
     [blog_id] INT PRIMARY KEY IDENTITY(1,1),
-    [publisher_id] INT NOT NULL,
+    [publisher_id] INT NULL,
     [author_id] INT NULL,
     [title] NVARCHAR(255) NULL,
     [author] NVARCHAR(100) NULL,

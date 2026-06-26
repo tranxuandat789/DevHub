@@ -521,9 +521,9 @@
                 gradientBlue.addColorStop(0, 'rgba(37, 99, 235, 0.15)');
                 gradientBlue.addColorStop(1, 'rgba(37, 99, 235, 0)');
 
-                const gradientPurple = ctx.createLinearGradient(0, 0, 0, 380);
-                gradientPurple.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
-                gradientPurple.addColorStop(1, 'rgba(139, 92, 246, 0)');
+                const gradientOrange = ctx.createLinearGradient(0, 0, 0, 380);
+                gradientOrange.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
+                gradientOrange.addColorStop(1, 'rgba(249, 115, 22, 0)');
 
                 new Chart(ctx, {
                     type: 'line',
@@ -547,11 +547,11 @@
                             {
                                 label: 'Lượt phỏng vấn',
                                 data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsInterviews)),
-                                borderColor: '#8B5CF6',
-                                backgroundColor: gradientPurple,
+                                borderColor: '#F97316',
+                                backgroundColor: gradientOrange,
                                 borderWidth: 3,
                                 pointBackgroundColor: '#ffffff',
-                                pointBorderColor: '#8B5CF6',
+                                pointBorderColor: '#F97316',
                                 pointBorderWidth: 2,
                                 pointStyle: 'triangle',
                                 pointRadius: 6,

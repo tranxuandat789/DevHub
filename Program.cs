@@ -228,6 +228,7 @@ builder.Services.AddScoped<IRecruiterJobPostService, RecruiterJobPostService>();
 builder.Services.AddScoped<IJobSearchService, JobSearchService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IRecruiterApplicationService, RecruiterApplicationService>();
+builder.Services.AddScoped<IRecruiterDashboardService, RecruiterDashboardService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 
 

@@ -47,6 +47,7 @@ namespace DevHub.Models
         public List<string> StatsLabels { get; set; } = new();
         public List<int> StatsApplications { get; set; } = new();
         public List<int> StatsInterviews { get; set; } = new();
+        public string StatsRange { get; set; } = "30";   // "7" | "30" | "year"
     }
 
     public class JobPostApplicantCount

@@ -181,13 +181,53 @@ else
                     <p class="text-sm text-muted">Trang <span class="font-bold text-dark">@Model.Page</span> / <span class="font-bold text-dark">@Model.TotalPages</span> — tổng <span class="font-bold text-dark">@Model.TotalCount</span> tin</p>
                     @if (Model.TotalPages > 1)
                     {
+                        // 3-page sliding window centered on the current page, with ellipses + prev/next arrows.
+                        var cur = Model.Page;
+                        var tp = Model.TotalPages;
+                        var start = cur - 1;
+                        var end = cur + 1;
+                        if (start < 1) { start = 1; end = Math.Min(tp, 3); }
+                        if (end > tp) { end = tp; start = Math.Max(1, tp - 2); }
+
                         <div class="flex items-center gap-1">
-                            @for (int p = 1; p <= Model.TotalPages; p++)
+                            @if (cur > 1)
                             {
-                                var cls = p == Model.Page
+                                <a href="@Url.Action("Index", new { q = Model.Keyword, status = Model.Status, page = cur - 1 })" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors" title="Trang trước">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-300 cursor-not-allowed"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></span>
+                            }
+
+                            @if (start > 1)
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center text-muted">…</span>
+                            }
+
+                            @for (int p = start; p <= end; p++)
+                            {
+                                var cls = p == cur
                                     ? "w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-medium text-sm"
                                     : "w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors text-sm font-medium";
                                 <a href="@Url.Action("Index", new { q = Model.Keyword, status = Model.Status, page = p })" class="@cls">@p</a>
+                            }
+
+                            @if (end < tp)
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center text-muted">…</span>
+                            }
+
+                            @if (cur < tp)
+                            {
+                                <a href="@Url.Action("Index", new { q = Model.Keyword, status = Model.Status, page = cur + 1 })" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-dark hover:text-primary hover:border-primary transition-colors" title="Trang sau">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-300 cursor-not-allowed"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
                             }
                         </div>
                     }

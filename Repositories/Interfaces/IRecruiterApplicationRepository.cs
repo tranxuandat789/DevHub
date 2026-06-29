@@ -26,12 +26,22 @@ namespace DevHub.Repositories.Interfaces
         // approve/reject while the job is frozen (PENDING re-review).
         Task<(Application? App, string? JobStatus)> GetApplicationWithJobStatusAsync(int applicationId, int recruiterId);
 
+        // Candidate-centric profile: candidate info + full application history at this recruiter's company.
+        // Returns null when the candidate has no application to any of the recruiter's jobs (no access).
+        Task<CandidateProfileHistoryViewModel?> GetCandidateProfileHistoryAsync(int recruiterId, int candidateId);
+
+        // Count of applications this candidate submitted to the recruiter's jobs (for the "view full history" link).
+        Task<int> CountApplicationsAtCompanyAsync(int candidateId, int recruiterId);
+
         // Approve/Reject: only updates when the application belongs to the recruiter and is PENDING.
         // Returns the updated application (for notification) or null when it was not eligible.
         Task<Application?> UpdateStatusIfPendingAsync(int applicationId, int recruiterId, string newStatus);
 
         // Creates a notification addressed to a candidate.
         Task CreateCandidateNotificationAsync(int candidateId, string title, string message, string severity, int applicationId);
+
+        // Candidate contact (email + full name) for sending approve/reject emails.
+        Task<(string? Email, string FullName)> GetCandidateContactAsync(int candidateId);
 
         // Dropdown options (values are bound from these lists only).
         Task<List<CommonTechnology>> GetActiveTechOptionsAsync();

@@ -1,0 +1,188 @@
+@model DevHub.ViewModels.Recruiter.CandidateProfileHistoryViewModel
+@{
+    Layout = "_RecruiterLayout";
+    ViewData["Title"] = "Hồ sơ ứng viên";
+    ViewData["ActiveMenu"] = "Candidates";
+
+    (string Cls, string Label) AppBadge(string? status)
+    {
+        switch ((status ?? "").ToUpper())
+        {
+            case "APPROVED":
+            case "FINISHED": return ("bg-green-100 text-green-700", "Đã duyệt");
+            case "HIRED": return ("bg-blue-100 text-blue-700", "Trúng tuyển");
+            case "PENDING": return ("bg-amber-100 text-amber-700", "Đang chờ");
+            case "REJECTED": return ("bg-red-100 text-red-700", "Từ chối");
+            case "FAILED": return ("bg-red-100 text-red-700", "Không đạt");
+            case "CANCELLED": return ("bg-gray-100 text-gray-600", "Đã hủy");
+            default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "—" : status);
+        }
+    }
+
+    (string Cls, string Label) InterviewBadge(string? status)
+    {
+        switch ((status ?? "").ToUpper())
+        {
+            case "SCHEDULED": return ("bg-blue-100 text-blue-700", "Đã lên lịch");
+            case "FINISHED": return ("bg-green-100 text-green-700", "Đã phỏng vấn");
+            case "EXPIRED": return ("bg-gray-100 text-gray-600", "Quá hạn");
+            case "CANCELLED": return ("bg-red-100 text-red-700", "Đã hủy");
+            case "PENDING": return ("bg-amber-100 text-amber-700", "Chờ xác nhận");
+            default: return ("bg-gray-100 text-gray-600", status ?? "—");
+        }
+    }
+
+    string avatar = !string.IsNullOrEmpty(Model.AvatarUrl)
+        ? Model.AvatarUrl!
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&background=4640DE&color=fff&size=128";
+
+    string? Salary(decimal? v) => v.HasValue ? v.Value.ToString("#,##0").Replace(",", ".") : null;
+    string salaryRange = (Model.ExpectedSalaryMin.HasValue || Model.ExpectedSalaryMax.HasValue)
+        ? $"{Salary(Model.ExpectedSalaryMin) ?? "?"} - {Salary(Model.ExpectedSalaryMax) ?? "?"} VND"
+        : "Chưa cập nhật";
+}
+
+<div class="space-y-6">
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">@TempData["Error"]</div>
+    }
+
+    <!-- Header -->
+    <div>
+        <div class="flex items-center gap-2 text-sm text-muted mb-2">
+            <a href="/Recruiter/RecruiterApplication/All" class="hover:text-primary transition-colors flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Tất cả ứng viên
+            </a>
+            <span>/</span>
+            <span class="text-dark">Hồ sơ ứng viên</span>
+        </div>
+        <h1 class="text-2xl font-bold text-dark">Hồ sơ: @Model.FullName</h1>
+        <p class="text-muted text-sm mt-1">Lịch sử ứng tuyển tại công ty của bạn (@Model.TotalApplications đơn)</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Candidate info -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 shadow-sm">
+                <div class="flex items-center gap-4 mb-6">
+                    <img src="@avatar" alt="Avatar" class="w-16 h-16 rounded-full object-cover border border-gray-200">
+                    <div>
+                        <h2 class="text-xl font-bold text-dark">@Model.FullName</h2>
+                        @if (Model.HasActiveApplication)
+                        {
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700 mt-1">Đang ứng tuyển</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <div><p class="text-xs text-muted mb-0.5">Email</p><p class="text-sm font-medium text-dark">@Model.Email</p></div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            <div><p class="text-xs text-muted mb-0.5">Số điện thoại</p><p class="text-sm font-medium text-dark">@Model.Phone</p></div>
+                        </div>
+                    }
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <div><p class="text-xs text-muted mb-0.5">Khu vực mong muốn</p><p class="text-sm font-medium text-dark">@(Model.PreferredLocation ?? Model.Address ?? "Chưa cập nhật")</p></div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                        <div><p class="text-xs text-muted mb-0.5">Mức lương mong muốn</p><p class="text-sm font-medium text-dark">@salaryRange</p></div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
+                        <div><p class="text-xs text-muted mb-0.5">Kinh nghiệm</p><p class="text-sm font-medium text-dark">@(Model.ExperienceYears.HasValue ? $"{Model.ExperienceYears} năm" : "Chưa cập nhật")</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 shadow-sm">
+                <h3 class="text-sm font-bold text-dark uppercase tracking-wider mb-4">Kỹ năng chuyên môn</h3>
+                <div class="flex flex-wrap gap-2">
+                    @if (Model.Skills.Count == 0)
+                    {
+                        <span class="text-sm text-muted">Ứng viên chưa cập nhật kỹ năng.</span>
+                    }
+                    @foreach (var s in Model.Skills)
+                    {
+                        <span class="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg">@s.TechName@(string.IsNullOrEmpty(s.Level) ? "" : $" · {s.Level}")</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Application history -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-dark mb-1">Lịch sử ứng tuyển</h3>
+                <p class="text-sm text-muted mb-5">@Model.TotalApplications đơn ứng tuyển vào các tin của bạn</p>
+
+                <div class="space-y-4">
+                    @foreach (var app in Model.ApplicationHistory)
+                    {
+                        var ab = AppBadge(app.ApplicationStatus);
+                        <div class="border border-gray-100 rounded-xl p-4 hover:border-primary/30 transition-colors">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <a href="/Recruiter/RecruiterApplication/Details/@app.ApplicationId" class="font-bold text-dark hover:text-primary transition-colors">@app.JobTitle</a>
+                                        @if (app.IsFrozen)
+                                        {
+                                            <span title="Tin đang chờ kiểm duyệt lại" class="inline-flex items-center text-amber-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
+                                            </span>
+                                        }
+                                    </div>
+                                    <p class="text-xs text-muted mt-0.5">
+                                        Ứng tuyển: @(app.AppliedAt?.ToString("dd/MM/yyyy") ?? "-")
+                                        @if (!string.IsNullOrEmpty(app.CvTitle)) { <span> · CV: @app.CvTitle</span> }
+                                    </p>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold @ab.Cls whitespace-nowrap">@ab.Label</span>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(app.CoverLetterSnippet))
+                            {
+                                <p class="text-sm text-gray-600 italic mb-2 line-clamp-2">"@app.CoverLetterSnippet"</p>
+                            }
+
+                            @if (app.LatestInterviewAt.HasValue)
+                            {
+                                var ib = InterviewBadge(app.InterviewStatus);
+                                <div class="flex items-center gap-2 text-xs bg-gray-50 rounded-lg px-3 py-2 mt-2">
+                                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span class="font-medium text-dark">PV: @app.LatestInterviewAt.Value.ToString("dd/MM HH:mm")</span>
+                                    @if (!string.IsNullOrEmpty(app.InterviewLocation)) { <span class="text-muted">· @app.InterviewLocation</span> }
+                                    @if (!string.IsNullOrEmpty(app.MeetingLink)) { <a href="@app.MeetingLink" target="_blank" class="text-primary hover:underline">· Link</a> }
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold @ib.Cls ml-auto">@ib.Label</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-xs text-muted mt-2">Chưa có phỏng vấn</p>
+                            }
+
+                            <div class="flex justify-end mt-3">
+                                <a href="/Recruiter/RecruiterApplication/Details/@app.ApplicationId" class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                                    Xem chi tiết
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

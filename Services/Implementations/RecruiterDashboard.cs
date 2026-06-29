@@ -35,7 +35,7 @@ namespace DevHub.Services.Implementations
                 .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED" || s == "PENDING"; })
                 .ToList();
             var completed = interviews
-                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "COMPLETED" || s == "CLOSED"; })
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "FINISHED" || s == "COMPLETED" || s == "CLOSED"; })
                 .ToList();
 
             // Recent posts (top 5 newest) + applicant avatars.

@@ -236,5 +236,95 @@ namespace DevHub.Repositories.Implementations
                 .Select(l => l!)
                 .ToListAsync();
         }
+
+        public async Task<(string? Email, string FullName)> GetCandidateContactAsync(int candidateId)
+        {
+            var c = await _context.Candidates
+                .AsNoTracking()
+                .Include(x => x.CandidateNavigation)
+                .FirstOrDefaultAsync(x => x.CandidateId == candidateId);
+            return (c?.CandidateNavigation?.Email, c?.FullName ?? "");
+        }
+
+        public async Task<int> CountApplicationsAtCompanyAsync(int candidateId, int recruiterId)
+            => await _context.Applications
+                .AsNoTracking()
+                .CountAsync(a => a.CandidateId == candidateId && a.Job.RecruiterId == recruiterId);
+
+        public async Task<CandidateProfileHistoryViewModel?> GetCandidateProfileHistoryAsync(int recruiterId, int candidateId)
+        {
+            // Access gate: the recruiter must have at least one application link with this candidate.
+            var hasAccess = await _context.Applications
+                .AsNoTracking()
+                .AnyAsync(a => a.CandidateId == candidateId && a.Job.RecruiterId == recruiterId);
+            if (!hasAccess) return null;
+
+            var candidate = await _context.Candidates
+                .AsNoTracking()
+                .Include(c => c.CandidateNavigation)
+                .Include(c => c.CandidateSkills).ThenInclude(s => s.Tech)
+                .FirstOrDefaultAsync(c => c.CandidateId == candidateId);
+            if (candidate == null) return null;
+
+            var applications = await _context.Applications
+                .AsNoTracking()
+                .Where(a => a.CandidateId == candidateId && a.Job.RecruiterId == recruiterId)
+                .Include(a => a.Job)
+                .Include(a => a.Cv)
+                .OrderByDescending(a => a.AppliedAt)
+                .ToListAsync();
+
+            // Latest interview per application — load flat, group in memory (avoids GroupBy translation issues).
+            var appIds = applications.Select(a => a.ApplicationId).ToList();
+            var interviews = await _context.Interviews
+                .AsNoTracking()
+                .Where(i => appIds.Contains(i.ApplicationId))
+                .ToListAsync();
+            var latestInterviewByApp = interviews
+                .GroupBy(i => i.ApplicationId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(i => i.ScheduledTime).First());
+
+            return new CandidateProfileHistoryViewModel
+            {
+                CandidateId = candidate.CandidateId,
+                FullName = candidate.FullName,
+                AvatarUrl = candidate.ImageUrl,
+                Email = candidate.CandidateNavigation?.Email,
+                Phone = candidate.Phone,
+                Gender = candidate.Gender,
+                Address = candidate.Address,
+                PreferredLocation = candidate.PreferredLocation,
+                SocialMediaUrl = candidate.SocialMediaUrl,
+                ExperienceYears = candidate.ExperienceYears,
+                ExpectedSalaryMin = candidate.ExpectedSalaryMin,
+                ExpectedSalaryMax = candidate.ExpectedSalaryMax,
+                Skills = candidate.CandidateSkills
+                    .Where(s => s.Tech != null)
+                    .Select(s => new SkillItem { TechName = s.Tech.TechName, Level = s.Level })
+                    .ToList(),
+
+                ApplicationHistory = applications.Select(a =>
+                {
+                    latestInterviewByApp.TryGetValue(a.ApplicationId, out var iv);
+                    return new CandidateApplicationHistoryItem
+                    {
+                        ApplicationId = a.ApplicationId,
+                        JobId = a.JobId,
+                        JobTitle = a.Job?.Title ?? "",
+                        JobStatus = (a.Job?.Status ?? "").ToUpper(),
+                        ApplicationStatus = (a.Status ?? "PENDING").ToUpper(),
+                        AppliedAt = a.AppliedAt,
+                        CvTitle = a.Cv?.Title,
+                        CoverLetterSnippet = a.CoverLetter != null && a.CoverLetter.Length > 100
+                            ? a.CoverLetter.Substring(0, 100) + "…"
+                            : a.CoverLetter,
+                        LatestInterviewAt = iv?.ScheduledTime,
+                        InterviewStatus = iv?.Status?.ToUpper(),
+                        InterviewLocation = iv?.Location,
+                        MeetingLink = iv?.MeetingLink,
+                    };
+                }).ToList()
+            };
+        }
     }
 }

@@ -76,6 +76,23 @@ namespace DevHub.Controllers.Recruiter
             return View("~/Views/Recruiter/RecruiterApplication/Details.cshtml", vm);
         }
 
+        // Candidate Profile: full application history of one candidate across all the recruiter's jobs.
+        [HttpGet("Candidate/{candidateId:int}")]
+        public async Task<IActionResult> CandidateProfile(int candidateId)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            var vm = await _appService.GetCandidateProfileHistoryAsync(recruiterId.Value, candidateId);
+            if (vm == null)
+            {
+                TempData["Error"] = "Không tìm thấy hồ sơ ứng viên hoặc ứng viên chưa ứng tuyển vào công ty bạn.";
+                return RedirectToAction(nameof(All));
+            }
+
+            return View("~/Views/Recruiter/RecruiterApplication/CandidateProfile.cshtml", vm);
+        }
+
         // Approve an application.
         [HttpPost("Approve/{applicationId:int}")]
         [ValidateAntiForgeryToken]

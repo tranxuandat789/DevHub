@@ -31,6 +31,9 @@ namespace DevHub.ViewModels.Recruiter
         public string Status { get; set; } = "PENDING";
         public DateTime? AppliedAt { get; set; }
 
+        // How many applications this candidate has at the recruiter's company (for the "view full history" link).
+        public int TotalApplicationsAtCompany { get; set; }
+
         // Status of the parent job. When the recruiter has just edited an APPROVED job it returns to
         // PENDING for moderator re-review; while it is PENDING the application is "frozen" (read-only).
         public string JobStatus { get; set; } = "";

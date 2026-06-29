@@ -267,7 +267,14 @@
                                     <div class="flex items-center gap-3">
                                         <img src="@Avatar(a.AvatarUrl, a.FullName)" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
                                         <div>
-                                            <a href="/Recruiter/RecruiterApplication/Details/@a.ApplicationId" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors">@a.FullName</a>
+                                            @if (Model.IsCrossJob)
+                                            {
+                                                <a href="/Recruiter/RecruiterApplication/Candidate/@a.CandidateId" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors" title="Xem toàn bộ lịch sử ứng tuyển">@a.FullName</a>
+                                            }
+                                            else
+                                            {
+                                                <a href="/Recruiter/RecruiterApplication/Details/@a.ApplicationId" class="text-[15px] font-bold text-dark group-hover:text-primary transition-colors">@a.FullName</a>
+                                            }
                                             <p class="text-sm text-muted mt-0.5">@(a.ExperienceYears.HasValue ? $"{a.ExperienceYears} năm kinh nghiệm" : "Chưa cập nhật kinh nghiệm")</p>
                                         </div>
                                     </div>

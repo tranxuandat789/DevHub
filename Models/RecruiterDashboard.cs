@@ -19,10 +19,10 @@ namespace DevHub.Models
         public bool IsVerified { get; set; }
         public bool HasPendingVerification { get; set; }
 
-        // [#8] Conversion rate (scheduled interviews / applications).
+        // [#8] Conversion rate: interviews (scheduled + completed) / applications.
         public double InterviewConversionRate =>
             TotalApplications > 0
-                ? Math.Round((double)TotalScheduledInterviews / TotalApplications * 100, 1)
+                ? Math.Round((double)(TotalScheduledInterviews + TotalCompletedInterviews) / TotalApplications * 100, 1)
                 : 0;
 
         // [#3] Active service package.

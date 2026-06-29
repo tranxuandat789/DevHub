@@ -15,6 +15,10 @@ namespace DevHub.Services.Interfaces
         // UC-15. Returns null when the application is not visible to the recruiter.
         Task<CandidateProfileViewModel?> GetCandidateProfileAsync(int recruiterId, int applicationId);
 
+        // Candidate Profile (cross-application history). Returns null when the candidate has no
+        // application to any of the recruiter's jobs.
+        Task<CandidateProfileHistoryViewModel?> GetCandidateProfileHistoryAsync(int recruiterId, int candidateId);
+
         Task<(bool Success, string Message)> ApproveAsync(int recruiterId, int applicationId);
         Task<(bool Success, string Message)> RejectAsync(int recruiterId, int applicationId);
     }

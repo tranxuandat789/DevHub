@@ -1,4 +1,4 @@
-﻿@model IEnumerable<DevHub.Models.BlogPost>
+@model IEnumerable<DevHub.Models.BlogPost>
 
 @{
     ViewData["Title"] = "Quản lý bài blog";
@@ -40,7 +40,9 @@
             <select name="status" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-sm transition-colors text-muted">
                 <option value="" selected="@(string.IsNullOrEmpty(ViewBag.Status))">Tất cả</option>
                 <option value="1" selected="@(ViewBag.Status == "1")">Đã xuất bản</option>
+                <option value="3" selected="@(ViewBag.Status == "3")">Đang chờ duyệt</option>
                 <option value="0" selected="@(ViewBag.Status == "0")">Bản nháp</option>
+                <option value="4" selected="@(ViewBag.Status == "4")">Bị từ chối</option>
                 <option value="2" selected="@(ViewBag.Status == "2")">Ẩn</option>
             </select>
         </div>

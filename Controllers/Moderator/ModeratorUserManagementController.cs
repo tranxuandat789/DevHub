@@ -108,6 +108,15 @@ namespace DevHub.Controllers.Moderator
             
             ViewBag.History = history;
 
+            // Lấy tên moderator cho từng log
+            var moderatorIds = history.Where(h => h.UserId.HasValue).Select(h => h.UserId!.Value).Distinct().ToList();
+            var moderatorNames = await _context.UserAccounts
+                .Where(u => moderatorIds.Contains(u.UserId))
+                .ToDictionaryAsync(u => u.UserId, u => u.Candidate != null ? u.Candidate.FullName ?? u.Email
+                    : u.Recruiter != null ? u.Recruiter.FullName ?? u.Email
+                    : u.Email);
+            ViewBag.ModeratorNames = moderatorNames;
+
             return View("~/Views/Moderator/ModeratorUserManagement/Details.cshtml", user);
         }
 
@@ -138,13 +147,17 @@ namespace DevHub.Controllers.Moderator
             int moderatorId = 0;
             int.TryParse(userIdStr, out moderatorId);
 
+            string oldStatusVi = oldStatus ? "Hoạt động" : "Khóa";
+            string newStatusVi = (user.IsActive == true) ? "Hoạt động" : "Khóa";
+            string newValueStr = newStatusVi + (string.IsNullOrEmpty(request?.Reason) ? "" : $" (Lý do: {request.Reason})");
+
             var auditLog = new AuditLog
             {
-                Action = user.IsActive == true ? "Unlock User Account" : "Lock User Account",
+                Action = user.IsActive == true ? "Mở khóa tài khoản" : "Khóa tài khoản",
                 EntityId = user.UserId,
                 EntityType = "UserAccount",
-                OldValue = oldStatus.ToString(),
-                NewValue = user.IsActive.ToString() + (string.IsNullOrEmpty(request?.Reason) ? "" : $" (Reason: {request.Reason})"),
+                OldValue = oldStatusVi,
+                NewValue = newValueStr,
                 UserId = moderatorId,
                 UserType = "Moderator",
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
@@ -159,7 +172,14 @@ namespace DevHub.Controllers.Moderator
                 {
                     var emailHelper = new DevHub.Helpers.EmailHelper(_config);
                     string subject = "Thông báo: Tài khoản của bạn đã bị khóa";
-                    string body = $"Chào bạn,<br/><br/>Tài khoản của bạn trên DevHub đã bị khóa bởi quản trị viên.<br/><strong>Lý do:</strong> {request.Reason}<br/><br/>Vui lòng liên hệ với ban quản trị nếu bạn có thắc mắc.";
+                    string content = $@"
+                        <p>Chào bạn,</p>
+                        <p>Tài khoản của bạn trên DevHub đã bị khóa bởi quản trị viên.</p>
+                        <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin:16px 0;'>
+                            <p style='margin:0;color:#856404;'><strong>Lý do:</strong> {request.Reason}</p>
+                        </div>
+                        <p>Vui lòng liên hệ với ban quản trị nếu bạn có thắc mắc.</p>";
+                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Tài khoản bị khóa", content);
                     await emailHelper.SendEmailAsync(user.Email, subject, body);
                 } 
                 catch (System.Exception ex) 

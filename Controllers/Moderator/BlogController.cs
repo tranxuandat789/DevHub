@@ -52,6 +52,7 @@ namespace DevHub.Controllers.Moderator
         {
             var blog = await _blogPostService.GetPostByIdAsync(id);
             if (blog == null) return NotFound();
+            ViewData["IsPreview"] = true;
             return View("~/Views/Blog/Details.cshtml", blog);
         }
 
@@ -122,17 +123,15 @@ namespace DevHub.Controllers.Moderator
                 if (!string.IsNullOrEmpty(recruiterEmail))
                 {
                     var reasonText = string.IsNullOrWhiteSpace(reason) ? "Không có lý do cụ thể." : reason;
-                    var body = $@"
-<div style='font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;background:#f9fafb;border-radius:12px;'>
-  <h2 style='color:#1a1a2e;'>Bài viết đã bị ẩn</h2>
-  <p style='color:#555;'>Xin chào <strong>{recruiterName}</strong>,</p>
-  <p style='color:#555;'>Bài viết <strong>&quot;{blogTitle}&quot;</strong> của bạn đã bị ẩn khỏi trang cẩm nang nghề nghiệp.</p>
-  <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin:16px 0;'>
-    <p style='margin:0;color:#856404;'><strong>Lý do:</strong> {reasonText}</p>
-  </div>
-  <p style='color:#555;'>Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi qua email hỗ trợ.</p>
-  <p style='color:#555;'>Trân trọng,<br/><strong>Đội ngũ DevHub</strong></p>
-</div>";
+                    var content = $@"
+                        <p style='color:#555;'>Xin chào <strong>{recruiterName}</strong>,</p>
+                        <p style='color:#555;'>Bài viết <strong>&quot;{blogTitle}&quot;</strong> của bạn đã bị ẩn khỏi trang cẩm nang nghề nghiệp.</p>
+                        <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin:16px 0;'>
+                            <p style='margin:0;color:#856404;'><strong>Lý do:</strong> {reasonText}</p>
+                        </div>
+                        <p style='color:#555;'>Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi qua email hỗ trợ.</p>
+                        <p style='color:#555;'>Trân trọng,<br/><strong>Đội ngũ DevHub</strong></p>";
+                    var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Bài viết đã bị ẩn", content);
                     await new DevHub.Helpers.EmailHelper(_config).SendEmailAsync(recruiterEmail, "Thông báo: Bài viết bị ẩn", body);
                 }
             }
@@ -167,17 +166,15 @@ namespace DevHub.Controllers.Moderator
             if (!string.IsNullOrEmpty(recruiterEmail))
             {
                 var reasonText = string.IsNullOrWhiteSpace(reason) ? "Không có lý do cụ thể." : reason;
-                var body = $@"
-<div style='font-family:Inter,sans-serif;max-width:600px;margin:auto;padding:32px;background:#f9fafb;border-radius:12px;'>
-  <h2 style='color:#1a1a2e;'>Bài viết đã bị xóa</h2>
-  <p style='color:#555;'>Xin chào <strong>{recruiterName}</strong>,</p>
-  <p style='color:#555;'>Bài viết <strong>&quot;{blogTitle}&quot;</strong> của bạn đã bị xóa bởi quản trị viên.</p>
-  <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin:16px 0;'>
-    <p style='margin:0;color:#856404;'><strong>Lý do:</strong> {reasonText}</p>
-  </div>
-  <p style='color:#555;'>Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi qua email hỗ trợ.</p>
-  <p style='color:#555;'>Trân trọng,<br/><strong>Đội ngũ DevHub</strong></p>
-</div>";
+                var content = $@"
+                    <p style='color:#555;'>Xin chào <strong>{recruiterName}</strong>,</p>
+                    <p style='color:#555;'>Bài viết <strong>&quot;{blogTitle}&quot;</strong> của bạn đã bị xóa bởi quản trị viên.</p>
+                    <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin:16px 0;'>
+                        <p style='margin:0;color:#856404;'><strong>Lý do:</strong> {reasonText}</p>
+                    </div>
+                    <p style='color:#555;'>Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi qua email hỗ trợ.</p>
+                    <p style='color:#555;'>Trân trọng,<br/><strong>Đội ngũ DevHub</strong></p>";
+                var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Bài viết đã bị xóa", content);
                 await new DevHub.Helpers.EmailHelper(_config).SendEmailAsync(recruiterEmail, "Thông báo: Bài viết bị xóa", body);
             }
 

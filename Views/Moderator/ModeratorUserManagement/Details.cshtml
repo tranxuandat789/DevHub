@@ -152,13 +152,17 @@
         {
             foreach (var log in (IEnumerable<DevHub.Models.AuditLog>)ViewBag.History)
             {
+                var moderatorNames = (Dictionary<int, string>)ViewBag.ModeratorNames;
+                string performerName = log.UserId.HasValue && moderatorNames.ContainsKey(log.UserId.Value)
+                    ? moderatorNames[log.UserId.Value]
+                    : "Không rõ";
                 <div class="p-4 border border-[#D6DDEB] rounded-lg bg-gray-50">
                     <div class="flex justify-between items-start mb-2">
                         <div class="font-bold text-dark">@log.Action</div>
                         <span class="text-xs text-muted">@(log.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "")</span>
                     </div>
-                    <p class="text-sm text-muted">Giá trị thay đổi: <span class="font-medium text-dark">@log.OldValue</span> &rarr; <span class="font-medium text-dark">@log.NewValue</span></p>
-                    <p class="text-xs text-muted mt-2">Người thực hiện ID: @log.UserId - IP: @log.IpAddress</p>
+                    <p class="text-sm text-muted">Trạng thái: <span class="font-medium text-dark">@log.OldValue</span> &rarr; <span class="font-medium text-dark">@log.NewValue</span></p>
+                    <p class="text-xs text-muted mt-2">Người thực hiện: <span class="font-medium text-dark">@performerName</span></p>
                 </div>
             }
         }

@@ -57,6 +57,11 @@
         }
     }
 
+    if (ViewData["IsPreview"] as bool? == true)
+    {
+        isLoggedIn = false;
+    }
+
     string fullName = User.FindFirstValue("FullName") ?? User.FindFirstValue(ClaimTypes.Email) ?? "";
     string claimAvatar = User.FindFirstValue("AvatarUrl") ?? "";
 

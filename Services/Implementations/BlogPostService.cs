@@ -54,7 +54,14 @@ namespace DevHub.Services.Implementations
             {
                 if (int.TryParse(status, out int parsedStatus))
                 {
-                    query = query.Where(b => b.Status == parsedStatus);
+                    if (parsedStatus == 2)
+                    {
+                        query = query.Where(b => b.Status == 2 || b.Status == 5);
+                    }
+                    else
+                    {
+                        query = query.Where(b => b.Status == parsedStatus);
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<DevHub.Models.BlogPost>
+@model IEnumerable<DevHub.Models.BlogPost>
 
 @{
     ViewData["Title"] = "Quan Ly Blog";
@@ -34,7 +34,7 @@
                 <option value="" selected="@(string.IsNullOrEmpty(ViewBag.Status))">Tất cả</option>
                 <option value="1" selected="@(ViewBag.Status == "1")">Đã xuất bản</option>
                 <option value="3" selected="@(ViewBag.Status == "3")">Chờ duyệt</option>
-                <option value="4" selected="@(ViewBag.Status == "4")">Bị từ chối</option>
+                <option value="4" selected="@(ViewBag.Status == "4")">Từ chối</option>
                 <option value="2" selected="@(ViewBag.Status == "2")">Ẩn</option>
             </select>
         </div>

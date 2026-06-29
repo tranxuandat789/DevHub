@@ -4,8 +4,10 @@
 // Date: 31/06/2026
 // =========================================================================
 using System.Diagnostics;
+using System.Security.Claims;
 using DevHub.Data;
 using DevHub.Models;
+using DevHub.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +17,13 @@ namespace DevHub.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ItrecruitmentDbContext _context;
+        private readonly IBookmarkService _bookmarkService;
 
-        public HomeController(ILogger<HomeController> logger, ItrecruitmentDbContext context)
+        public HomeController(ILogger<HomeController> logger, ItrecruitmentDbContext context, IBookmarkService bookmarkService)
         {
             _logger = logger;
             _context = context;
+            _bookmarkService = bookmarkService;
         }
 
         /// <summary>
@@ -70,6 +74,14 @@ namespace DevHub.Controllers
                 FeaturedCompanies = featuredCompanies,
                 FeaturedBlogs = featuredBlogs
             };
+
+            // Load BookmarkedJobIds nếu ứng viên đã đăng nhập
+            if (User.Identity?.IsAuthenticated == true && (User.IsInRole("CANDIDATE") || User.IsInRole("Candidate")))
+            {
+                var candidateIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(candidateIdStr, out int candidateId))
+                    viewModel.BookmarkedJobIds = await _bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
+            }
 
             return View(viewModel);
         }

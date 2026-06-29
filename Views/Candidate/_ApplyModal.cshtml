@@ -96,6 +96,48 @@
         document.getElementById('apply-cv-title').textContent = candidateData.defaultCvTitle;
         document.getElementById('apply-coverletter').value = '';
 
+        // Kiểm tra các trường bắt buộc trước khi mở modal
+        const missingFields = [];
+        if (!candidateData.fullName || candidateData.fullName.trim() === '')
+            missingFields.push('Họ và tên');
+        if (!candidateData.phone || candidateData.phone.trim() === '')
+            missingFields.push('Số điện thoại');
+        if (!candidateData.defaultCvId)
+            missingFields.push('CV ứng tuyển');
+
+        if (missingFields.length > 0) {
+            const listHtml = missingFields.map(f => `<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>${f}</li>`).join('');
+            Swal.fire({
+                html: `
+                    <div class="flex flex-col items-center pt-4 pb-2">
+                        <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
+                            <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-[20px] font-bold text-gray-800 mb-2">Hồ sơ chưa hoàn chỉnh</h2>
+                        <p class="text-gray-500 text-[13px] mb-4">Vui lòng cập nhật các thông tin sau trước khi ứng tuyển:</p>
+                        <ul class="text-left text-[14px] text-red-500 font-semibold space-y-2 w-full px-6">${listHtml}</ul>
+                    </div>
+                `,
+                showConfirmButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Cập nhật hồ sơ',
+                cancelButtonText: 'Đóng',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
+                    confirmButton: 'w-full bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all mt-4 block',
+                    cancelButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3.5 px-6 rounded-xl transition-all mt-2 block'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/Candidate/Profile';
+                }
+            });
+            return;
+        }
+
         const modal = document.getElementById('apply-modal');
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';

@@ -49,6 +49,15 @@ public class ApplicationService : IApplicationService
         if (candidate == null)
             return (false, "Không tìm thấy thông tin ứng viên.");
 
+        // Kiểm tra các trường bắt buộc (defence in depth)
+        var missingFields = new List<string>();
+        if (string.IsNullOrWhiteSpace(candidate.FullName))
+            missingFields.Add("Họ và tên");
+        if (string.IsNullOrWhiteSpace(candidate.Phone))
+            missingFields.Add("Số điện thoại");
+        if (missingFields.Any())
+            return (false, $"Vui lòng cập nhật thông tin còn thiếu trước khi ứng tuyển: {string.Join(", ", missingFields)}.");
+
         if ((candidate.ProfileCompletion ?? 0) < 70)
             return (false, "Hồ sơ của bạn chưa đạt 70%. Vui lòng cập nhật hồ sơ trước khi ứng tuyển.");
 

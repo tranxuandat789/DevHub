@@ -594,19 +594,15 @@ public class AuthController : Controller
         try
         {
             var subject = "Mã xác thực OTP đặt lại mật khẩu - DevHub";
-            var body = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
-                    <h2 style='color: #4640DE; text-align: center;'>Đặt lại mật khẩu DevHub</h2>
-                    <p>Xin chào,</p>
-                    <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng sử dụng mã OTP dưới đây để xác thực:</p>
-                    <div style='text-align: center; margin: 30px 0;'>
-                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
-                    </div>
-                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 5 phút.</p>
-                    <p>Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email này.</p>
-                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-                </div>";
+            var content = $@"
+                <p>Xin chào,</p>
+                <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng sử dụng mã OTP dưới đây để xác thực:</p>
+                <div style='text-align: center; margin: 30px 0;'>
+                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                </div>
+                <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 5 phút.</p>
+                <p>Nếu bạn không gửi yêu cầu này, vui lòng bỏ qua email này.</p>";
+            var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Đặt lại mật khẩu DevHub", content);
 
             await _emailHelper.SendEmailAsync(email, subject, body);
         }
@@ -764,19 +760,15 @@ public class AuthController : Controller
         try
         {
             var subject = "Mã xác thực OTP đặt lại mật khẩu - DevHub";
-            var body = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
-                    <h2 style='color: #4640DE; text-align: center;'>Đặt lại mật khẩu DevHub</h2>
-                    <p>Xin chào,</p>
-                    <p>Chúng tôi nhận được yêu cầu gửi lại mã OTP cho tài khoản của bạn. Vui lòng sử dụng mã OTP dưới đây để xác thực:</p>
-                    <div style='text-align: center; margin: 30px 0;'>
-                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
-                    </div>
-                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 5 phút.</p>
-                    <p>Nếu bạn không gửi yêu cầu này, vui lòng bỏ quan email này.</p>
-                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-                </div>";
+            var content = $@"
+                <p>Xin chào,</p>
+                <p>Chúng tôi nhận được yêu cầu gửi lại mã OTP cho tài khoản của bạn. Vui lòng sử dụng mã OTP dưới đây để xác thực:</p>
+                <div style='text-align: center; margin: 30px 0;'>
+                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                </div>
+                <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 5 phút.</p>
+                <p>Nếu bạn không gửi yêu cầu này, vui lòng bỏ quan email này.</p>";
+            var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Đặt lại mật khẩu DevHub", content);
 
             await _emailHelper.SendEmailAsync(email, subject, body);
             return Json(new { success = true, message = "Mã OTP mới đã được gửi." });
@@ -846,19 +838,15 @@ public class AuthController : Controller
         try
         {
             var subject = "Mã xác thực OTP đăng ký Nhà tuyển dụng - DevHub";
-            var body = $@"
-            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
-                <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Nhà tuyển dụng DevHub</h2>
+            var content = $@"
                 <p>Xin chào {registerRecruiter.FullName},</p>
                 <p>Cảm ơn bạn đã lựa chọn DevHub. Vui lòng sử dụng mã OTP dưới đây để hoàn tất quá trình đăng ký tài khoản nhà tuyển dụng của bạn:</p>
                 <div style='text-align: center; margin: 30px 0;'>
                     <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
                 </div>
                 <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
-                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
-                <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-            </div>";
+                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>";
+            var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Xác thực đăng ký Nhà tuyển dụng DevHub", content);
 
             await _emailHelper.SendEmailAsync(registerRecruiter.Email, subject, body);
             return RedirectToAction("EmployerVerifyOTP");
@@ -1005,19 +993,15 @@ public class AuthController : Controller
         try
         {
             var subject = "Mã xác thực OTP đăng ký Nhà tuyển dụng - DevHub";
-            var body = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
-                    <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Nhà tuyển dụng DevHub</h2>
-                    <p>Xin chào {registerRecruiter.FullName},</p>
-                    <p>Chúng tôi đã gửi lại mã xác thực OTP đăng ký tài khoản nhà tuyển dụng của bạn. Vui lòng sử dụng mã dưới đây:</p>
-                    <div style='text-align: center; margin: 30px 0;'>
-                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
-                    </div>
-                    <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
-                    <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
-                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-                </div>";
+            var content = $@"
+                <p>Xin chào {registerRecruiter.FullName},</p>
+                <p>Chúng tôi đã gửi lại mã xác thực OTP đăng ký tài khoản nhà tuyển dụng của bạn. Vui lòng sử dụng mã dưới đây:</p>
+                <div style='text-align: center; margin: 30px 0;'>
+                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
+                </div>
+                <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
+                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>";
+            var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Xác thực đăng ký Nhà tuyển dụng DevHub", content);
 
             await _emailHelper.SendEmailAsync(registerRecruiter.Email, subject, body);
             return Json(new { success = true });
@@ -1059,22 +1043,15 @@ public class AuthController : Controller
         try
         {
             var subject = "Mã xác thực OTP đăng ký Ứng viên - DevHub";
-            var body = $@"
-            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;
-                        border: 1px solid #D6DDEB; border-radius: 8px;'>
-                <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Ứng viên DevHub</h2>
+            var content = $@"
                 <p>Xin chào {vm.FullName},</p>
                 <p>Cảm ơn bạn đã lựa chọn DevHub. Vui lòng dùng mã OTP dưới đây để hoàn tất đăng ký:</p>
                 <div style='text-align: center; margin: 30px 0;'>
-                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE;
-                                 background: #F7F5FC; padding: 15px 30px; border-radius: 8px;
-                                 border: 1px dashed #4640DE;'>{otp}</span>
+                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
                 </div>
                 <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
-                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
-                <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-            </div>";
+                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>";
+            var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Xác thực đăng ký Ứng viên DevHub", content);
 
             await _emailHelper.SendEmailAsync(email, subject, body);
             return RedirectToAction(nameof(CandidateVerifyOTP));
@@ -1226,22 +1203,15 @@ public class AuthController : Controller
         try
         {
             var subject = "Gửi lại mã xác thực OTP đăng ký Ứng viên - DevHub";
-            var body = $@"
-            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;
-                        border: 1px solid #D6DDEB; border-radius: 8px;'>
-                <h2 style='color: #4640DE; text-align: center;'>Xác thực đăng ký Ứng viên DevHub</h2>
+            var content = $@"
                 <p>Xin chào {vm.FullName},</p>
                 <p>Chúng tôi đã gửi lại mã xác thực OTP theo yêu cầu của bạn:</p>
                 <div style='text-align: center; margin: 30px 0;'>
-                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE;
-                                 background: #F7F5FC; padding: 15px 30px; border-radius: 8px;
-                                 border: 1px dashed #4640DE;'>{otp}</span>
+                    <span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4640DE; background: #F7F5FC; padding: 15px 30px; border-radius: 8px; border: 1px dashed #4640DE;'>{otp}</span>
                 </div>
                 <p style='color: #FF3B30;'>Mã OTP này có hiệu lực trong vòng 15 phút.</p>
-                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>
-                <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-                <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
-            </div>";
+                <p>Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email này.</p>";
+            var body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Xác thực đăng ký Ứng viên DevHub", content);
 
             await _emailHelper.SendEmailAsync(vm.Email, subject, body);
             return Json(new { success = true });

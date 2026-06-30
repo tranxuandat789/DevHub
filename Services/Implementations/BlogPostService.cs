@@ -80,6 +80,17 @@ namespace DevHub.Services.Implementations
             var blogs = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .Select(b => new BlogPost
+                {
+                    BlogId       = b.BlogId,
+                    Title        = b.Title,
+                    ThumbnailUrl = b.ThumbnailUrl,
+                    Author       = b.Author,
+                    AuthorId     = b.AuthorId,
+                    Status       = b.Status,
+                    CreatedAt    = b.CreatedAt,
+                    AuthorRecruiter = b.AuthorRecruiter
+                })
                 .ToListAsync();
 
             return (blogs, totalPages, totalItems);
@@ -220,19 +231,16 @@ namespace DevHub.Services.Implementations
             {
                 var emailHelper = new DevHub.Helpers.EmailHelper(_config);
                 string subject = "DevHub - Bài viết của bạn đã được duyệt";
-                string body = $@"
-                    <div style=""font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"">
-                        <h2 style=""color:#4f46e5;"">🎉 Bài viết đã được duyệt!</h2>
-                        <p>Chào <b>{blog.Author ?? blog.AuthorRecruiter.RecruiterNavigation.Email}</b>,</p>
-                        <p>Bài viết <b>{blog.Title}</b> của bạn đã được moderator duyệt và xuất bản thành công trên nền tảng DevHub.</p>
-                        <p style=""margin-top:20px;"">
-                            <a href=""https://devhub.vn/Blog/{blog.Slug}"" 
-                               style=""background:#4f46e5;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;"">
-                                Xem bài viết
-                            </a>
-                        </p>
-                        <p style=""margin-top:24px;color:#6b7280;"">Trân trọng,<br/>Đội ngũ DevHub</p>
-                    </div>";
+                string content = $@"
+                    <p>Chào <b>{blog.Author ?? blog.AuthorRecruiter.RecruiterNavigation.Email}</b>,</p>
+                    <p>Bài viết <b>{blog.Title}</b> của bạn đã được moderator duyệt và xuất bản thành công trên nền tảng DevHub.</p>
+                    <p style='margin-top:20px;'>
+                        <a href='https://devhub.vn/Blog/{blog.Slug}'
+                           style='background:#4640DE;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>
+                            Xem bài viết
+                        </a>
+                    </p>";
+                string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("🎉 Bài viết đã được duyệt!", content);
                 try
                 {
                     await emailHelper.SendEmailAsync(blog.AuthorRecruiter.RecruiterNavigation.Email, subject, body);
@@ -262,7 +270,14 @@ namespace DevHub.Services.Implementations
             {
                 var emailHelper = new DevHub.Helpers.EmailHelper(_config);
                 string subject = "DevHub - Thông báo từ chối bài viết blog";
-                string body = $"<p>Chào bạn,</p><p>Bài viết <b>{blog.Title}</b> của bạn đã bị từ chối với lý do:</p><p><i>{reason}</i></p><p>Vui lòng đăng nhập vào hệ thống để chỉnh sửa và gửi lại.</p><p>Trân trọng,<br/>Đội ngũ DevHub</p>";
+                string content = $@"
+                    <p>Chào bạn,</p>
+                    <p>Bài viết <b>{blog.Title}</b> của bạn đã bị từ chối với lý do:</p>
+                    <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:12px 16px;border-radius:4px;margin:16px 0;'>
+                        <p style='margin:0;color:#856404;'><i>{reason}</i></p>
+                    </div>
+                    <p>Vui lòng đăng nhập vào hệ thống để chỉnh sửa và gửi lại bài viết.</p>";
+                string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Thông báo từ chối bài viết", content);
                 try 
                 {
                     await emailHelper.SendEmailAsync(blog.AuthorRecruiter.RecruiterNavigation.Email, subject, body);

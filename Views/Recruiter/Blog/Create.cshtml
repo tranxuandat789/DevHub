@@ -234,6 +234,7 @@
         #img-align-tool button:hover { background:#f0f4ff; color:#0066cc; }
         .ql-editor img { cursor:pointer; }
         .ql-editor img.img-selected { outline: 2px solid #0066cc; }
+        #img-resize-handle { position:absolute; width:12px; height:12px; background:#4640DE; border:2px solid #fff; border-radius:50%; cursor:nwse-resize; z-index:1000; box-shadow:0 1px 3px rgba(0,0,0,0.3); display:none; }
     </style>
     <script src="/lib/quill/quill.js"></script>
     <script>
@@ -245,6 +246,22 @@
         const SizeAttr = Quill.import('attributors/style/size');
         SizeAttr.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px'];
         Quill.register(SizeAttr, true);
+
+        // Custom Image Blot: giữ lại inline style (margin/float) khi Quill re-render
+        const BaseImageBlot = Quill.import('formats/image');
+        class StyledImage extends BaseImageBlot {
+            static create(value) {
+                const node = super.create(typeof value === 'string' ? value : value.src);
+                if (value && value.style) node.setAttribute('style', value.style);
+                return node;
+            }
+            static value(node) {
+                return { src: node.getAttribute('src'), style: node.getAttribute('style') || '' };
+            }
+        }
+        StyledImage.blotName = 'image';
+        StyledImage.tagName = 'IMG';
+        Quill.register(StyledImage, true);
 
         const quill = new Quill('#editor', {
             theme: 'snow',
@@ -293,14 +310,17 @@
             };
         });
 
-        // Image alignment mini-toolbar
+        // Image alignment mini-toolbar & resize handle
         quill.root.style.position = 'relative';
         quill.root.addEventListener('click', function(e) {
             document.getElementById('img-align-tool')?.remove();
+            document.getElementById('img-resize-handle')?.remove();
             document.querySelectorAll('.ql-editor img.img-selected').forEach(i => i.classList.remove('img-selected'));
             if (e.target.tagName !== 'IMG') return;
             const img = e.target;
             img.classList.add('img-selected');
+            
+            // Align tool
             const tool = document.createElement('div');
             tool.id = 'img-align-tool';
             tool.innerHTML = `
@@ -308,18 +328,58 @@
                 <button type="button" title="Căn giữa" onclick="alignImg(this,'center')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
                 <button type="button" title="Căn phải" onclick="alignImg(this,'right')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg></button>
             `;
-            tool.dataset.img = img.src;
             window._alignTarget = img;
-            // Position relative to editor
-            const editorRect = quill.root.getBoundingClientRect();
-            const imgRect = img.getBoundingClientRect();
-            tool.style.top = (imgRect.top - editorRect.top - 38) + 'px';
-            tool.style.left = (imgRect.left - editorRect.left) + 'px';
-            quill.root.appendChild(tool);
+            
+            // Resize handle
+            const handle = document.createElement('div');
+            handle.id = 'img-resize-handle';
+            
+            function updateToolsPos() {
+                const imgRect = img.getBoundingClientRect();
+                tool.style.top = (imgRect.top + window.scrollY - 38) + 'px';
+                tool.style.left = (imgRect.left + window.scrollX) + 'px';
+                
+                handle.style.display = 'block';
+                handle.style.top = (imgRect.bottom + window.scrollY - 6) + 'px';
+                handle.style.left = (imgRect.right + window.scrollX - 6) + 'px';
+            }
+            
+            updateToolsPos();
+            document.body.appendChild(tool);
+            document.body.appendChild(handle);
+            
+            // Drag to resize
+            let isResizing = false;
+            handle.addEventListener('pointerdown', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation(); // Ngăn hành vi mặc định
+                isResizing = true;
+                const startX = ev.clientX;
+                const startWidth = img.offsetWidth;
+                
+                function doDrag(dragEvent) {
+                    const diffX = dragEvent.clientX - startX;
+                    img.style.width = Math.max(50, startWidth + diffX) + 'px';
+                    img.style.height = 'auto'; // giữ tỉ lệ
+                    updateToolsPos();
+                }
+                
+                function stopDrag() {
+                    document.removeEventListener('pointermove', doDrag);
+                    document.removeEventListener('pointerup', stopDrag);
+                    setTimeout(() => { isResizing = false; }, 100);
+                }
+                
+                document.addEventListener('pointermove', doDrag);
+                document.addEventListener('pointerup', stopDrag);
+            });
+
             setTimeout(() => {
                 document.addEventListener('click', function hide(ev) {
-                    if (!tool.contains(ev.target) && ev.target !== img) {
+                    if (isResizing) return;
+                    if (!tool.contains(ev.target) && ev.target !== img && ev.target !== handle) {
                         tool.remove();
+                        handle.remove();
                         img.classList.remove('img-selected');
                         document.removeEventListener('click', hide);
                     }
@@ -333,11 +393,14 @@
             img.style.display = 'block';
             img.style.float = 'none';
             if (align === 'center') { img.style.margin = '8px auto'; }
-            else if (align === 'right') { img.style.marginLeft = 'auto'; img.style.marginRight = '0'; img.style.margin = '8px 0 8px auto'; }
+            else if (align === 'right') { img.style.margin = '8px 0 8px auto'; }
             else { img.style.margin = '8px 0'; }
             document.getElementById('img-align-tool')?.remove();
+            document.getElementById('img-resize-handle')?.remove();
             img.classList.remove('img-selected');
         };
+
+        // Removed custom image drag/drop logic as requested
 
         // Word count
         quill.on('text-change', () => {

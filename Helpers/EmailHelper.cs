@@ -51,5 +51,15 @@ namespace DevHub.Helpers
                 await client.SendMailAsync(mailMessage);
             }
         }
+        public static string GetBaseTemplate(string title, string content)
+        {
+            return $@"
+<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+    <h2 style='color: #4640DE; text-align: center;'>{title}</h2>
+    {content}
+    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+</div>";
+        }
     }
 }

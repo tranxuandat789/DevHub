@@ -57,8 +57,10 @@ namespace DevHub.Controllers.Candidate
                     .Select(b => b.Job?.ExperienceLevel).Where(v => !string.IsNullOrEmpty(v))
                     .Distinct().Order().ToList()!,
                 LocationOptions = allBookmarks
-                    .Select(b => b.Job?.Location).Where(v => !string.IsNullOrEmpty(v))
-                    .Distinct().Order().ToList()!,
+                    .Where(b => b.Job != null)
+                    .SelectMany(b => b.Job!.Provinces.Select(p => p.ProvinceName))
+                    .Where(v => !string.IsNullOrEmpty(v))
+                    .Distinct().Order().ToList(),
                 FilterWorkingModel = workingModel,
                 FilterLevel = level,
                 FilterLocation = location

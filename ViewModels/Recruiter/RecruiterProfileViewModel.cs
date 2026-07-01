@@ -4,8 +4,8 @@ namespace DevHub.ViewModels.Recruiter
 {
     public class RecruiterProfileViewModel
     {
-        // Only letters, digits, commas and blanks are allowed for free-text info fields.
-        private const string TextPattern = @"^[\p{L}0-9\s,.]*$";
+        // Free-text info fields: letters, digits, blanks and the punctuation , . - _ ( ) are allowed.
+        private const string TextPattern = @"^[\p{L}0-9\s,.\-_()]*$";
 
         [Required(ErrorMessage = "Họ và tên không được để trống.")]
         [StringLength(100, ErrorMessage = "Họ và tên không được vượt quá 100 ký tự.")]

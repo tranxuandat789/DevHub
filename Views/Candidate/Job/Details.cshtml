@@ -42,7 +42,22 @@
                         <div>
                             <p class="text-[13px] text-gray-500 mb-0.5">Mức lương</p>
                             <p class="text-[15px] font-semibold text-[#4F46E5]">
-                                @if (Model.SalaryMin.HasValue && Model.SalaryMax.HasValue)
+                                @{
+                                    var salaryType = (Model.SalaryType ?? "RANGE").ToUpperInvariant();
+                                }
+                                @if (salaryType == "NEGOTIABLE" || (!Model.SalaryMin.HasValue && !Model.SalaryMax.HasValue))
+                                {
+                                    <span>Thỏa thuận</span>
+                                }
+                                else if (salaryType == "FROM" && Model.SalaryMin.HasValue)
+                                {
+                                    <span>Từ @Model.SalaryMin.Value.ToString("N0") triệu</span>
+                                }
+                                else if (salaryType == "UPTO" && Model.SalaryMax.HasValue)
+                                {
+                                    <span>Đến @Model.SalaryMax.Value.ToString("N0") triệu</span>
+                                }
+                                else if (Model.SalaryMin.HasValue && Model.SalaryMax.HasValue)
                                 {
                                     <span>@Model.SalaryMin.Value.ToString("N0") - @Model.SalaryMax.Value.ToString("N0") triệu</span>
                                 }
@@ -50,13 +65,9 @@
                                 {
                                     <span>Từ @Model.SalaryMin.Value.ToString("N0") triệu</span>
                                 }
-                                else if (Model.SalaryMax.HasValue)
-                                {
-                                    <span>Đến @Model.SalaryMax.Value.ToString("N0") triệu</span>
-                                }
                                 else
                                 {
-                                    <span>Thỏa thuận</span>
+                                    <span>Đến @Model.SalaryMax!.Value.ToString("N0") triệu</span>
                                 }
                             </p>
                         </div>
@@ -72,7 +83,7 @@
                         </div>
                         <div>
                             <p class="text-[13px] text-gray-500 mb-0.5">Khu vực tuyển</p>
-                            <p class="text-[15px] font-medium text-[#1E293B]">@(string.IsNullOrEmpty(Model.Location) ? "Toàn quốc" : Model.Location)</p>
+                            <p class="text-[15px] font-medium text-[#1E293B]">@(Model.Provinces != null && Model.Provinces.Any() ? string.Join(", ", Model.Provinces) : "Toàn quốc")</p>
                         </div>
                     </div>
 

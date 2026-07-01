@@ -8,9 +8,12 @@ public class JobDetailViewModel
     public int JobId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string PositionName { get; set; } = string.Empty;
-    public string? Location { get; set; }
+    // Tỉnh/thành nơi làm việc (many-to-many). Thay cho trường location cũ.
+    public List<string> Provinces { get; set; } = new();
     public string? WorkingModel { get; set; }
     public string? ExperienceLevel { get; set; }
+    // RANGE | FROM | UPTO | NEGOTIABLE — quyết định cách hiển thị mức lương.
+    public string SalaryType { get; set; } = "RANGE";
     public decimal? SalaryMin { get; set; }
     public decimal? SalaryMax { get; set; }
     public int? HiringQuota { get; set; }

@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DevHub.ViewModels.Recruiter
 {
-    public class JobPostCreateViewModel
+    public class JobPostCreateViewModel : IValidatableObject
     {
-        // Only letters (incl. Vietnamese), digits and blanks are allowed for free-text info fields.
-        private const string TextPattern = @"^[\p{L}0-9\s,.]+$";
+        // Free-text info fields: letters (incl. Vietnamese), digits, blanks and the punctuation
+        // , . - _ ( ) are allowed.
+        private const string TextPattern = @"^[\p{L}0-9\s,.\-_()]+$";
 
         [Required(ErrorMessage = "Tiêu đề bài đăng không được để trống.")]
         [StringLength(200, ErrorMessage = "Tiêu đề không được vượt quá 200 ký tự.")]
@@ -37,20 +38,24 @@ namespace DevHub.ViewModels.Recruiter
         [Required(ErrorMessage = "Yêu cầu cấp bậc/Kinh nghiệm không được để trống.")]
         public string ExperienceLevel { get; set; } = null!;
 
-        [Required(ErrorMessage = "Địa điểm làm việc không được để trống.")]
-        [RegularExpression(TextPattern, ErrorMessage = "Địa điểm chỉ được chứa chữ, số và khoảng trắng.")]
-        public string Location { get; set; } = null!;
+        // Tỉnh/thành nơi làm việc (chọn 1 hoặc nhiều từ bảng province).
+        [Required(ErrorMessage = "Vui lòng chọn ít nhất một tỉnh/thành làm việc.")]
+        [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một tỉnh/thành làm việc.")]
+        public List<int> ProvinceIds { get; set; } = new List<int>();
 
         [Required(ErrorMessage = "Hình thức làm việc không được để trống.")]
         public string WorkingModel { get; set; } = null!;
 
-        [Required(ErrorMessage = "Mức lương tối thiểu không được để trống.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Mức lương tối thiểu phải là số dương.")]
-        public decimal SalaryMin { get; set; }
+        // Loại lương: RANGE (khoảng cụ thể) | UPTO (lên đến) | NEGOTIABLE (thỏa thuận) | FROM (từ).
+        [Required(ErrorMessage = "Vui lòng chọn loại lương.")]
+        public string SalaryType { get; set; } = "RANGE";
 
-        [Required(ErrorMessage = "Mức lương tối đa không được để trống.")]
+        // Nullable: NEGOTIABLE không cần lương, UPTO chỉ cần tối đa. Kiểm tra theo SalaryType ở Validate().
+        [Range(0, double.MaxValue, ErrorMessage = "Mức lương tối thiểu phải là số dương.")]
+        public decimal? SalaryMin { get; set; }
+
         [Range(0, double.MaxValue, ErrorMessage = "Mức lương tối đa phải là số dương.")]
-        public decimal SalaryMax { get; set; }
+        public decimal? SalaryMax { get; set; }
 
         [Required(ErrorMessage = "Số lượng tuyển dụng không được để trống.")]
         [Range(1, 1000, ErrorMessage = "Số lượng tuyển dụng phải nằm trong khoảng từ 1 đến 1000 người.")]
@@ -61,5 +66,35 @@ namespace DevHub.ViewModels.Recruiter
 
         [RegularExpression(TextPattern, ErrorMessage = "Kỹ năng chỉ được chứa chữ, số và khoảng trắng.")]
         public string? Skill { get; set; }
+
+        // Kiểm tra lương phụ thuộc loại lương đã chọn.
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var type = (SalaryType ?? "").ToUpperInvariant();
+            switch (type)
+            {
+                case "RANGE":
+                    if (SalaryMin is null)
+                        yield return new ValidationResult("Vui lòng nhập mức lương tối thiểu.", new[] { nameof(SalaryMin) });
+                    if (SalaryMax is null)
+                        yield return new ValidationResult("Vui lòng nhập mức lương tối đa.", new[] { nameof(SalaryMax) });
+                    if (SalaryMin is not null && SalaryMax is not null && SalaryMax < SalaryMin)
+                        yield return new ValidationResult("Mức lương tối đa phải lớn hơn hoặc bằng mức lương tối thiểu.", new[] { nameof(SalaryMax) });
+                    break;
+                case "FROM":
+                    if (SalaryMin is null)
+                        yield return new ValidationResult("Vui lòng nhập mức lương tối thiểu.", new[] { nameof(SalaryMin) });
+                    break;
+                case "UPTO":
+                    if (SalaryMax is null)
+                        yield return new ValidationResult("Vui lòng nhập mức lương tối đa.", new[] { nameof(SalaryMax) });
+                    break;
+                case "NEGOTIABLE":
+                    break;
+                default:
+                    yield return new ValidationResult("Loại lương không hợp lệ.", new[] { nameof(SalaryType) });
+                    break;
+            }
+        }
     }
 }

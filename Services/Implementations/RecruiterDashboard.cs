@@ -73,7 +73,7 @@ namespace DevHub.Services.Implementations
             return new RecruiterDashboard
             {
                 TotalJobPosts            = posts.Count,
-                TotalApplications        = posts.Sum(j => j.ApplicationCount ?? 0),
+                TotalApplications        = await _dashboardRepo.CountApplicationsAsync(recruiterId),
                 TotalScheduledInterviews = scheduled.Count,
                 TotalCompletedInterviews = completed.Count,
 

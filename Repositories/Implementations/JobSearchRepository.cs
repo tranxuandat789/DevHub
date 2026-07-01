@@ -23,6 +23,7 @@ public class JobSearchRepository : IJobSearchRepository
             .Include(j => j.Recruiter)
             .Include(j => j.Position)
             .Include(j => j.Teches)
+            .Include(j => j.Provinces)
             .Where(j => j.Status == "APPROVED");
 
         // Filter: search by title or skill
@@ -57,9 +58,9 @@ public class JobSearchRepository : IJobSearchRepository
         if (filter.TechId.HasValue)
             query = query.Where(j => j.Teches.Any(t => t.TechId == filter.TechId.Value));
 
-        // Quick-filter: thành phố
+        // Quick-filter: thành phố (giờ qua bảng province nối nhiều-nhiều)
         if (!string.IsNullOrWhiteSpace(filter.FilterLocation))
-            query = query.Where(j => j.Location == filter.FilterLocation);
+            query = query.Where(j => j.Provinces.Any(p => p.ProvinceName == filter.FilterLocation));
 
         // Quick-filter: công ty
         if (filter.RecruiterId.HasValue)
@@ -87,6 +88,7 @@ public class JobSearchRepository : IJobSearchRepository
             .Include(j => j.Recruiter)
             .Include(j => j.Position)
             .Include(j => j.Teches)
+            .Include(j => j.Provinces)
             .FirstOrDefaultAsync(j => j.JobId == id);
     }
 
@@ -132,14 +134,17 @@ public class JobSearchRepository : IJobSearchRepository
             .ToListAsync();
     }
 
-    /// Top N locations có nhiều APPROVED job nhất.
+    /// Top N tỉnh/thành có nhiều APPROVED job nhất (qua bảng province nối nhiều-nhiều).
     public async Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top)
     {
-        return await _context.JobPosts
+        return await _context.Provinces
             .AsNoTracking()
-            .Where(j => j.Status == "APPROVED" && j.Location != null)
-            .GroupBy(j => j.Location!)
-            .Select(g => new { Location = g.Key, JobCount = g.Count() })
+            .Select(p => new
+            {
+                Location = p.ProvinceName,
+                JobCount = p.JobPosts.Count(j => j.Status == "APPROVED")
+            })
+            .Where(x => x.JobCount > 0)
             .OrderByDescending(x => x.JobCount)
             .Take(top)
             .Select(x => ValueTuple.Create(x.Location, x.JobCount))

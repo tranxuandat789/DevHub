@@ -29,8 +29,10 @@ namespace DevHub.ViewModels.Recruiter
         [Required(ErrorMessage = "Yêu cầu cấp bậc/Kinh nghiệm không được để trống.")]
         public string ExperienceLevel { get; set; } = null!;
 
-        [Required(ErrorMessage = "Địa điểm làm việc không được để trống.")]
-        public string Location { get; set; } = null!;
+        // Tỉnh/thành nơi làm việc (chọn 1 hoặc nhiều từ bảng province).
+        [Required(ErrorMessage = "Vui lòng chọn ít nhất một tỉnh/thành làm việc.")]
+        [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một tỉnh/thành làm việc.")]
+        public List<int> ProvinceIds { get; set; } = new List<int>();
 
         [Required(ErrorMessage = "Hình thức làm việc không được để trống.")]
         public string WorkingModel { get; set; } = null!;

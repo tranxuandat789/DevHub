@@ -109,4 +109,10 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
                      && a.AppliedAt >= fromDate)
             .Select(a => a.AppliedAt!.Value)
             .ToListAsync();
+
+    // Live count of all applications to the recruiter's jobs (matches the applicant-list total).
+    public async Task<int> CountApplicationsAsync(int recruiterId)
+        => await _context.Applications
+            .AsNoTracking()
+            .CountAsync(a => a.Job.RecruiterId == recruiterId);
 }

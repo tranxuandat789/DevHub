@@ -100,6 +100,7 @@ namespace DevHub.Repositories.Implementations
         {
             return await _context.JobPosts
                 .Include(j => j.Teches) // Includes Tech stack badges for Job cards
+                .Include(j => j.Provinces)
                 .Where(j => j.RecruiterId == recruiterId && j.Status == "APPROVED")
                 .ToListAsync();
         }

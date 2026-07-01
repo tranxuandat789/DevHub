@@ -25,6 +25,22 @@
 
     var badge = StatusBadge(Model.Status);
     string Money(decimal? v) => v.HasValue ? v.Value.ToString("#,##0", new System.Globalization.CultureInfo("vi-VN")) : "-";
+
+    string SalaryDisplay()
+    {
+        var type = (Model.SalaryType ?? "RANGE").ToUpperInvariant();
+        if (type == "NEGOTIABLE" || (!Model.SalaryMin.HasValue && !Model.SalaryMax.HasValue))
+            return "Thỏa thuận";
+        if (type == "UPTO" && Model.SalaryMax.HasValue)
+            return $"Lên đến {Money(Model.SalaryMax)} VND";
+        if (type == "FROM" && Model.SalaryMin.HasValue)
+            return $"Từ {Money(Model.SalaryMin)} VND";
+        if (Model.SalaryMin.HasValue && Model.SalaryMax.HasValue)
+            return $"{Money(Model.SalaryMin)} - {Money(Model.SalaryMax)} VND";
+        if (Model.SalaryMin.HasValue)
+            return $"Từ {Money(Model.SalaryMin)} VND";
+        return $"Lên đến {Money(Model.SalaryMax)} VND";
+    }
 }
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -74,7 +90,7 @@
             <div><span class="text-muted">Cấp bậc:</span> <span class="font-medium text-dark">@Model.ExperienceLevel</span></div>
             <div><span class="text-muted">Hình thức:</span> <span class="font-medium text-dark">@Model.WorkingModel</span></div>
             <div><span class="text-muted">Địa điểm:</span> <span class="font-medium text-dark">@Model.Location</span></div>
-            <div><span class="text-muted">Mức lương:</span> <span class="font-medium text-dark">@Money(Model.SalaryMin) - @Money(Model.SalaryMax) VND</span></div>
+            <div><span class="text-muted">Mức lương:</span> <span class="font-medium text-dark">@SalaryDisplay()</span></div>
             <div><span class="text-muted">Chỉ tiêu tuyển:</span> <span class="font-medium text-dark">@(Model.HiringQuota?.ToString() ?? "-")</span></div>
             <div><span class="text-muted">Ngày đăng:</span> <span class="font-medium text-dark">@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "-")</span></div>
             <div><span class="text-muted">Hạn nhận CV:</span> <span class="font-medium text-dark">@(Model.Deadline?.ToString("dd/MM/yyyy") ?? "-")</span></div>

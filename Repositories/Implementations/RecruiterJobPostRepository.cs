@@ -57,22 +57,24 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
             .AsNoTracking()
             .Include(j => j.Position)
             .Include(j => j.Teches)
+            .Include(j => j.Provinces)
             .FirstOrDefaultAsync(j => j.JobId == jobId && j.RecruiterId == recruiterId);
     }
 
-    // Edit job post fields: sync tech stacks, other fields.
-    public async Task UpdateJobPostAsync(JobPost source, List<CommonTechnology> techs, string newStatus)
+    // Edit job post fields: sync tech stacks, provinces, other fields.
+    public async Task UpdateJobPostAsync(JobPost source, List<CommonTechnology> techs, List<Province> provinces, string newStatus)
     {
         var job = await _context.JobPosts
             .Include(j => j.Teches)
+            .Include(j => j.Provinces)
             .FirstOrDefaultAsync(j => j.JobId == source.JobId && j.RecruiterId == source.RecruiterId)
             ?? throw new KeyNotFoundException("Không tìm thấy tin tuyển dụng.");
 
         job.Title = source.Title;
         job.PositionId = source.PositionId;
-        job.Location = source.Location;
         job.Skill = source.Skill;
         job.WorkingModel = source.WorkingModel;
+        job.SalaryType = source.SalaryType;
         job.SalaryMin = source.SalaryMin;
         job.SalaryMax = source.SalaryMax;
         job.ExperienceLevel = source.ExperienceLevel;
@@ -86,6 +88,11 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         job.Teches.Clear();
         foreach (var tech in techs)
             job.Teches.Add(tech);
+
+        // sync provinces
+        job.Provinces.Clear();
+        foreach (var province in provinces)
+            job.Provinces.Add(province);
 
         // Status back to ''pending'' after edit, need moderated again.
         job.Status = newStatus;

@@ -36,6 +36,7 @@ public class JobPostRepository : IJobPostRepository
         var query = _context.JobPosts
             .Include(j => j.Recruiter)
             .Include(j => j.Position)
+            .Include(j => j.Provinces)
             .Where(j => j.Status != null && j.Status.ToUpper() == "PENDING");
 
         // 2. Bộ lọc theo ngày bắt đầu.
@@ -76,7 +77,9 @@ public class JobPostRepository : IJobPostRepository
     public async Task<JobPost?> GetJobPostByIdAsync(int id)
     {
         // Trả về bài đăng đầu tiên tìm thấy thỏa mãn điều kiện JobId == id, hoặc trả về null nếu không tìm thấy
-        return await _context.JobPosts.FirstOrDefaultAsync(j => j.JobId == id);
+        return await _context.JobPosts
+            .Include(j => j.Provinces)
+            .FirstOrDefaultAsync(j => j.JobId == id);
     }
 
     // Cập nhật thông tin của một bài đăng tuyển dụng hiện có

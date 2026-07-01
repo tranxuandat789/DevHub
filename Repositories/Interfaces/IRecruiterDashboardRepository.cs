@@ -13,4 +13,8 @@ public interface IRecruiterDashboardRepository
 
     // [#1] AppliedAt timestamps of applications to this recruiter's jobs since fromDate (for the 30-day chart).
     Task<List<DateTime>> GetApplicationDatesAsync(int recruiterId, DateTime fromDate);
+
+    // Real (live) count of applications to all of this recruiter's jobs — matches the applicant list
+    // total, instead of summing the denormalized job_post.application_count column.
+    Task<int> CountApplicationsAsync(int recruiterId);
 }

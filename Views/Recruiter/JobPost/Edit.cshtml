@@ -7,6 +7,7 @@
 
     var jobId = ViewBag.JobId;
     var selectedTechs = ViewBag.SelectedTechIds as List<int> ?? new List<int>();
+    var selectedProvinces = ViewBag.SelectedProvinceIds as List<int> ?? Model.ProvinceIds ?? new List<int>();
 
     // Originating list filters, carried so cancel/save returns to the same filtered list.
     var q = ViewBag.Q as string;
@@ -86,8 +87,19 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-dark mb-2">Địa điểm làm việc <span class="text-red-500">*</span></label>
-                        <input type="text" name="Location" value="@Model.Location" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="VD: Quận 1, TP. Hồ Chí Minh" required>
+                        <label class="block text-sm font-bold text-dark mb-2">Địa điểm làm việc (Tỉnh/Thành) <span class="text-red-500">*</span></label>
+                        <div id="province-choices">
+                            <select id="province-dropdown" name="ProvinceIds" multiple required>
+                                @if (ViewBag.Provinces != null)
+                                {
+                                    foreach (var province in (List<DevHub.Models.Province>)ViewBag.Provinces)
+                                    {
+                                        <option value="@province.ProvinceId" selected="@(selectedProvinces.Contains(province.ProvinceId))">@province.ProvinceName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <small class="text-muted block mt-1">Chọn một hoặc nhiều tỉnh/thành nơi làm việc.</small>
                     </div>
 
                     <div>
@@ -133,7 +145,34 @@
                         #tech-choices .choices__list--dropdown { border-color:#D6DDEB; border-radius:0.5rem; }
                         #tech-choices .choices__list--dropdown .choices__item--selectable.is-highlighted { background:#F7F5FC; color:#25324B; }
                         #tech-choices .choices__input { background:transparent; font-size:14px; }
+                        /* Province reuses the same theme */
+                        #province-choices .choices { margin-bottom: 0; }
+                        #province-choices .choices__inner { background:#fff; border:1px solid #D6DDEB; border-radius:0.5rem; min-height:48px; padding:6px 8px; font-size:14px; }
+                        #province-choices .choices.is-focused .choices__inner { border-color:#4640DE; box-shadow:0 0 0 1px #4640DE; }
+                        #province-choices .choices__list--multiple .choices__item { background:#4640DE; border:1px solid #4640DE; border-radius:9999px; padding:4px 12px; font-size:13px; font-weight:600; }
+                        #province-choices .choices__list--multiple .choices__item .choices__button { border-left-color:rgba(255,255,255,0.5); margin-left:8px; }
+                        #province-choices .choices__list--dropdown { border-color:#D6DDEB; border-radius:0.5rem; }
+                        #province-choices .choices__list--dropdown .choices__item--selectable.is-highlighted { background:#F7F5FC; color:#25324B; }
+                        #province-choices .choices__input { background:transparent; font-size:14px; }
                     </style>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const provinceDropdown = document.getElementById('province-dropdown');
+                        if (provinceDropdown && window.Choices) {
+                            new Choices(provinceDropdown, {
+                                removeItemButton: true,
+                                duplicateItemsAllowed: false,
+                                placeholder: true,
+                                placeholderValue: 'Chọn tỉnh/thành...',
+                                searchPlaceholderValue: 'Tìm tỉnh/thành...',
+                                shouldSort: false,
+                                itemSelectText: 'Nhấn để chọn',
+                                noResultsText: 'Không tìm thấy tỉnh/thành',
+                                noChoicesText: 'Đã chọn hết tỉnh/thành'
+                            });
+                        }
+                    });
+                    </script>
 
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Kỹ năng mềm (Skills)</label>
@@ -146,13 +185,24 @@
             <div>
                 <h2 class="text-lg font-bold text-dark mb-4 pb-2 border-b border-gray-100">3. Mức lương & Chế độ phúc lợi</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-dark mb-2">Lương tối thiểu (VND) <span class="text-red-500">*</span></label>
-                        <input type="text" inputmode="numeric" name="SalaryMin" value="@((long)Model.SalaryMin)" class="money-input w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="VD: 10.000.000" required>
+                    @{
+                        var editSalaryType = string.IsNullOrEmpty(Model.SalaryType) ? "RANGE" : Model.SalaryType.ToUpperInvariant();
+                    }
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-dark mb-2">Loại lương <span class="text-red-500">*</span></label>
+                        <select id="salary-type" name="SalaryType" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" required>
+                            <option value="RANGE" selected="@(editSalaryType == "RANGE" || editSalaryType == "FROM")">Khoảng lương cụ thể</option>
+                            <option value="UPTO" selected="@(editSalaryType == "UPTO")">Lên đến (tối đa)</option>
+                            <option value="NEGOTIABLE" selected="@(editSalaryType == "NEGOTIABLE")">Thỏa thuận</option>
+                        </select>
                     </div>
-                    <div>
+                    <div id="salary-min-group">
+                        <label class="block text-sm font-bold text-dark mb-2">Lương tối thiểu (VND) <span class="text-red-500">*</span></label>
+                        <input type="text" inputmode="numeric" name="SalaryMin" id="salary-min" value="@(Model.SalaryMin != null ? ((long)Model.SalaryMin).ToString() : "")" class="money-input w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="VD: 10.000.000">
+                    </div>
+                    <div id="salary-max-group">
                         <label class="block text-sm font-bold text-dark mb-2">Lương tối đa (VND) <span class="text-red-500">*</span></label>
-                        <input type="text" inputmode="numeric" name="SalaryMax" value="@((long)Model.SalaryMax)" class="money-input w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="VD: 25.000.000" required>
+                        <input type="text" inputmode="numeric" name="SalaryMax" id="salary-max" value="@(Model.SalaryMax != null ? ((long)Model.SalaryMax).ToString() : "")" class="money-input w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="VD: 25.000.000">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-dark mb-2">Chế độ phúc lợi (Benefits) <span class="text-red-500">*</span></label>
@@ -264,6 +314,36 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', function () {
             moneyInputs.forEach(function (el) { el.value = (el.value || '').replace(/\./g, ''); });
         });
+    }
+
+    // Show/hide salary min & max based on the selected salary type.
+    function updateSalaryFieldsVisibility() {
+        var salaryType = document.getElementById('salary-type');
+        if (!salaryType) return;
+        var type = salaryType.value;
+        var minGroup = document.getElementById('salary-min-group');
+        var maxGroup = document.getElementById('salary-max-group');
+        var minInput = document.getElementById('salary-min');
+        var maxInput = document.getElementById('salary-max');
+
+        if (type === 'NEGOTIABLE') {
+            minGroup.classList.add('hidden'); maxGroup.classList.add('hidden');
+            minInput.required = false; maxInput.required = false;
+            minInput.value = ''; maxInput.value = '';
+        } else if (type === 'UPTO') {
+            minGroup.classList.add('hidden'); maxGroup.classList.remove('hidden');
+            minInput.required = false; maxInput.required = true;
+            minInput.value = '';
+        } else { // RANGE
+            minGroup.classList.remove('hidden'); maxGroup.classList.remove('hidden');
+            minInput.required = true; maxInput.required = true;
+        }
+    }
+
+    var salaryTypeEl = document.getElementById('salary-type');
+    if (salaryTypeEl) {
+        updateSalaryFieldsVisibility();
+        salaryTypeEl.addEventListener('change', updateSalaryFieldsVisibility);
     }
 });
 </script>

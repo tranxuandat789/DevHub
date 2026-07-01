@@ -198,6 +198,7 @@ builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>(
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
 builder.Services.AddScoped<IJobSearchRepository, JobSearchRepository>();
+builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
 builder.Services.AddScoped<IRecruiterApplicationRepository, RecruiterApplicationRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 

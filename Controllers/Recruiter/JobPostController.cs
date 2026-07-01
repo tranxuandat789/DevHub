@@ -17,13 +17,15 @@ namespace DevHub.Controllers.Recruiter
         private readonly IRecruiterJobPostService _jobPostService;
         private readonly ICommonJobPositionRepository _positionRepo;
         private readonly ICommonTechnologyRepository _techRepo;
+        private readonly IProvinceRepository _provinceRepo;
 
-        public JobPostController(IAuthService authService, IRecruiterJobPostService jobPostService, ICommonJobPositionRepository positionRepo, ICommonTechnologyRepository techRepo)
+        public JobPostController(IAuthService authService, IRecruiterJobPostService jobPostService, ICommonJobPositionRepository positionRepo, ICommonTechnologyRepository techRepo, IProvinceRepository provinceRepo)
         {
             _authService = authService;
             _jobPostService = jobPostService;
             _positionRepo = positionRepo;
             _techRepo = techRepo;
+            _provinceRepo = provinceRepo;
         }
 
         // Management page: check profile completeness, then render filtered/paginated posts.
@@ -92,6 +94,7 @@ namespace DevHub.Controllers.Recruiter
 
             ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
             ViewBag.Techs = await _techRepo.GetAllActiveAsync();
+            ViewBag.Provinces = await _provinceRepo.GetAllAsync();
             ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
             // Remaining posts in the active package, shown on the create form.
             ViewBag.PostsRemaining = postsRemaining;
@@ -163,8 +166,10 @@ namespace DevHub.Controllers.Recruiter
             // Load positions and techs for dropdowns, also pass current tech-stack and status for displaying in the view.
             ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
             ViewBag.Techs = await _techRepo.GetAllActiveAsync();
+            ViewBag.Provinces = await _provinceRepo.GetAllAsync();
             ViewBag.JobId = job.JobId;
             ViewBag.SelectedTechIds = job.Teches.Select(t => t.TechId).ToList();
+            ViewBag.SelectedProvinceIds = job.Provinces.Select(p => p.ProvinceId).ToList();
             ViewBag.CurrentStatus = job.Status;
             ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
 
@@ -177,10 +182,11 @@ namespace DevHub.Controllers.Recruiter
                 Requirement = job.Requirement ?? "",
                 Benefit = job.Benefit ?? "",
                 ExperienceLevel = job.ExperienceLevel ?? "",
-                Location = job.Location,
+                ProvinceIds = job.Provinces.Select(p => p.ProvinceId).ToList(),
                 WorkingModel = job.WorkingModel,
-                SalaryMin = job.SalaryMin ?? 0,
-                SalaryMax = job.SalaryMax ?? 0,
+                SalaryType = string.IsNullOrEmpty(job.SalaryType) ? "RANGE" : job.SalaryType,
+                SalaryMin = job.SalaryMin,
+                SalaryMax = job.SalaryMax,
                 HiringQuota = job.HiringQuota ?? 1,
                 Deadline = job.Deadline ?? DateOnly.FromDateTime(DateTime.Today),
                 Skill = job.Skill
@@ -206,6 +212,7 @@ namespace DevHub.Controllers.Recruiter
                 ViewBag.Techs = await _techRepo.GetAllActiveAsync();
                 ViewBag.JobId = id;
                 ViewBag.SelectedTechIds = vm.TechnologyIds ?? new List<int>();
+                ViewBag.SelectedProvinceIds = vm.ProvinceIds ?? new List<int>();
                 ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
                 return View(vm);
             }
@@ -232,6 +239,7 @@ namespace DevHub.Controllers.Recruiter
                 ViewBag.Techs = await _techRepo.GetAllActiveAsync();
                 ViewBag.JobId = id;
                 ViewBag.SelectedTechIds = vm.TechnologyIds ?? new List<int>();
+                ViewBag.SelectedProvinceIds = vm.ProvinceIds ?? new List<int>();
                 return View(vm);
             }
         }

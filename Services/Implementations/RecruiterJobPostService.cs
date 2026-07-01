@@ -29,12 +29,27 @@ public class RecruiterJobPostService : IRecruiterJobPostService
     private static string? NormalizeSpaces(string? s) =>
         string.IsNullOrWhiteSpace(s) ? s : Regex.Replace(s.Trim(), @"\s+", " ");
 
+    // Normalize salary fields to match the chosen salary_type (recruiter picks the type explicitly).
+    // NEGOTIABLE -> no bounds; UPTO -> only max; FROM -> only min; RANGE -> both.
+    private static (string Type, decimal? Min, decimal? Max) NormalizeSalary(string? salaryType, decimal? min, decimal? max)
+    {
+        var type = (salaryType ?? "RANGE").ToUpperInvariant();
+        return type switch
+        {
+            "NEGOTIABLE" => ("NEGOTIABLE", null, null),
+            "UPTO"       => ("UPTO", null, max),
+            "FROM"       => ("FROM", min, null),
+            _            => ("RANGE", min, max),
+        };
+    }
+
     //Repository Instance
     private readonly ICommonTechnologyRepository _techRepo;
     private readonly ICommonJobPositionRepository _positionRepo;
     private readonly IRecruiterPackageHistoryRepository _packageRepo;
     private readonly IRecruiterRepository _profileRepo;
     private readonly IRecruiterJobPostRepository _jobPostRepo;
+    private readonly IProvinceRepository _provinceRepo;
 
     //Constructor Injection
     public RecruiterJobPostService(
@@ -42,13 +57,15 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         ICommonJobPositionRepository positionRepo,
         IRecruiterPackageHistoryRepository packageRepo,
         IRecruiterRepository profileRepo,
-        IRecruiterJobPostRepository jobPostRepo)
+        IRecruiterJobPostRepository jobPostRepo,
+        IProvinceRepository provinceRepo)
     {
         _techRepo = techRepo;
         _positionRepo = positionRepo;
         _packageRepo = packageRepo;
         _profileRepo = profileRepo;
         _jobPostRepo = jobPostRepo;
+        _provinceRepo = provinceRepo;
     }
 
     // Compute posting eligibility: profile completeness + active package with remaining quota.
@@ -101,9 +118,18 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         if (techEntities.Count != uniqueTechIds.Count)
             throw new InvalidOperationException("Danh sách công nghệ được chọn không hợp lệ.");
 
-        // Validate salary range.
-        if (vm.SalaryMax < vm.SalaryMin)
+        // Resolve salary by chosen type + validate range for RANGE.
+        var (salaryType, salaryMin, salaryMax) = NormalizeSalary(vm.SalaryType, vm.SalaryMin, vm.SalaryMax);
+        if (salaryType == "RANGE" && salaryMin.HasValue && salaryMax.HasValue && salaryMax < salaryMin)
             throw new InvalidOperationException("Mức lương tối đa phải lớn hơn hoặc bằng mức lương tối thiểu.");
+
+        // Validate selected provinces.
+        var uniqueProvinceIds = vm.ProvinceIds.Distinct().ToList();
+        if (uniqueProvinceIds.Count == 0)
+            throw new InvalidOperationException("Vui lòng chọn ít nhất một tỉnh/thành làm việc.");
+        var provinceEntities = await _provinceRepo.GetByIdsAsync(uniqueProvinceIds);
+        if (provinceEntities.Count != uniqueProvinceIds.Count)
+            throw new InvalidOperationException("Danh sách tỉnh/thành được chọn không hợp lệ.");
 
         var job = new JobPost
         {
@@ -116,10 +142,10 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             Benefit = NormalizeSpaces(vm.Benefit),
             Skill = NormalizeSpaces(vm.Skill),
             ExperienceLevel = vm.ExperienceLevel,
-            Location = NormalizeSpaces(vm.Location),
             WorkingModel = vm.WorkingModel,
-            SalaryMin = vm.SalaryMin,
-            SalaryMax = vm.SalaryMax,
+            SalaryType = salaryType,
+            SalaryMin = salaryMin,
+            SalaryMax = salaryMax,
             HiringQuota = vm.HiringQuota,
             Deadline = vm.Deadline,
             Status = "PENDING",
@@ -129,6 +155,10 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         //Add list of tech stack to the job post
         foreach (var tech in techEntities)
             job.Teches.Add(tech);
+
+        //Add selected provinces to the job post
+        foreach (var province in provinceEntities)
+            job.Provinces.Add(province);
 
         var createdJob = await _jobPostRepo.CreateJobPostAndDecrementQuotaAsync(job, package.Id);
 
@@ -231,8 +261,17 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         if (techEntities.Count != uniqueTechIds.Count)
             throw new InvalidOperationException("Danh sách công nghệ được chọn không hợp lệ.");
 
-        //check if min salary > max salary
-        if (vm.SalaryMax < vm.SalaryMin)
+        //check selected provinces
+        var uniqueProvinceIds = vm.ProvinceIds.Distinct().ToList();
+        if (uniqueProvinceIds.Count == 0)
+            throw new InvalidOperationException("Vui lòng chọn ít nhất một tỉnh/thành làm việc.");
+        var provinceEntities = await _provinceRepo.GetByIdsAsync(uniqueProvinceIds);
+        if (provinceEntities.Count != uniqueProvinceIds.Count)
+            throw new InvalidOperationException("Danh sách tỉnh/thành được chọn không hợp lệ.");
+
+        //resolve salary by chosen type + validate range for RANGE
+        var (salaryType, salaryMin, salaryMax) = NormalizeSalary(vm.SalaryType, vm.SalaryMin, vm.SalaryMax);
+        if (salaryType == "RANGE" && salaryMin.HasValue && salaryMax.HasValue && salaryMax < salaryMin)
             throw new InvalidOperationException("Mức lương tối đa phải lớn hơn hoặc bằng mức lương tối thiểu.");
 
         var updatedJP = new JobPost
@@ -241,11 +280,11 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             RecruiterId = recruiterId,
             Title = NormalizeSpaces(vm.Title),
             PositionId = vm.PositionId,
-            Location = NormalizeSpaces(vm.Location),
             Skill = NormalizeSpaces(vm.Skill),
             WorkingModel = vm.WorkingModel,
-            SalaryMin = vm.SalaryMin,
-            SalaryMax = vm.SalaryMax,
+            SalaryType = salaryType,
+            SalaryMin = salaryMin,
+            SalaryMax = salaryMax,
             ExperienceLevel = vm.ExperienceLevel,
             Description = NormalizeSpaces(vm.Description),
             Requirement = NormalizeSpaces(vm.Requirement),
@@ -256,7 +295,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
 
         // Both Approved and Rejected posts return to PENDING for moderator re-review.
         bool wasApproved = Canon(existing.Status) == "approved";
-        await _jobPostRepo.UpdateJobPostAsync(updatedJP, techEntities, "PENDING");
+        await _jobPostRepo.UpdateJobPostAsync(updatedJP, techEntities, provinceEntities, "PENDING");
 
         // Freeze flow: only an APPROVED post can have active applicants. Tell them the JD is being updated.
         if (wasApproved)

@@ -37,6 +37,7 @@ namespace DevHub.Controllers
                 .Include(j => j.Recruiter)
                 .Include(j => j.Position)
                 .Include(j => j.Teches)
+                .Include(j => j.Provinces)
                 .Where(j => j.Status != null && j.Status.ToLower() == "approved")
                 .OrderByDescending(j => j.PriorityScore)
                 .ThenByDescending(j => j.CreatedAt)

@@ -11,7 +11,7 @@ public interface IRecruiterJobPostRepository
     Task NotifyApplicantsOnJobEditAsync(int jobId, string jobTitle);
     Task<List<JobPost>> GetJobPostsByRecruiterAsync(int recruiterId);
     Task<JobPost?> GetJobPostForEditAsync(int jobId, int recruiterId);
-    Task UpdateJobPostAsync(JobPost source, List<CommonTechnology> techs, string newStatus);
+    Task UpdateJobPostAsync(JobPost source, List<CommonTechnology> techs, List<Province> provinces, string newStatus);
     Task DeleteJobPostAsync(int jobId, int recruiterId);
     Task CloseJobPostAsync(int jobId, int recruiterId);
 }

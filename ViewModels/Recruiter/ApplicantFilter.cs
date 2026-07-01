@@ -34,10 +34,10 @@ namespace DevHub.ViewModels.Recruiter
 
         public static readonly IReadOnlyList<Bucket> All = new List<Bucket>
         {
-            new("0-1", "0 - 1 năm", 0, 1),
-            new("2-3", "2 - 3 năm", 2, 3),
-            new("4-5", "4 - 5 năm", 4, 5),
-            new("5+",  "Trên 5 năm", 6, null),   // Min = 6 để KHÔNG overlap với bucket "4-5" (ứng viên 5 năm chỉ rơi vào "4-5")
+            new("0-1", "Intern/Fresher(0 - 1 năm)", 0, 1),
+            new("2-3", "Junior(2 - 3 năm)", 2, 3),
+            new("4-5", "Middle(4 - 5 năm)", 4, 5),
+            new("5+",  "Senior(Trên 5 năm)", 6, null),   // Min = 6 để KHÔNG overlap với bucket "4-5" (ứng viên 5 năm chỉ rơi vào "4-5")
         };
 
         public static Bucket? Find(string? key)

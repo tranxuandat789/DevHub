@@ -46,6 +46,8 @@ public partial class ItrecruitmentDbContext : DbContext
 
     public virtual DbSet<Promotion> Promotions { get; set; }
 
+    public virtual DbSet<Province> Provinces { get; set; }
+
     public virtual DbSet<Recruiter> Recruiters { get; set; }
 
     public virtual DbSet<RecruiterPackageHistory> RecruiterPackageHistories { get; set; }
@@ -481,9 +483,10 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.ExperienceLevel)
                 .HasMaxLength(50)
                 .HasColumnName("experience_level");
-            entity.Property(e => e.Location)
-                .HasMaxLength(100)
-                .HasColumnName("location");
+            entity.Property(e => e.SalaryType)
+                .HasMaxLength(20)
+                .HasDefaultValue("RANGE")
+                .HasColumnName("salary_type");
             entity.Property(e => e.ModeratorId).HasColumnName("moderator_id");
             entity.Property(e => e.PositionId).HasColumnName("position_id");
             entity.Property(e => e.RecruiterPackageHistoryId).HasColumnName("recruiter_package_history_id");
@@ -554,6 +557,40 @@ public partial class ItrecruitmentDbContext : DbContext
                         j.IndexerProperty<int>("JobId").HasColumnName("job_id");
                         j.IndexerProperty<int>("TechId").HasColumnName("tech_id");
                     });
+
+            entity.HasMany(d => d.Provinces).WithMany(p => p.JobPosts)
+                .UsingEntity<Dictionary<string, object>>(
+                    "JobPostProvince",
+                    r => r.HasOne<Province>().WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_job_post_province_province"),
+                    l => l.HasOne<JobPost>().WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_job_post_province_job"),
+                    j =>
+                    {
+                        j.HasKey("JobId", "ProvinceId").HasName("PK_job_post_province");
+                        j.ToTable("job_post_province");
+                        j.HasIndex(new[] { "ProvinceId" }, "idx_job_post_province_province");
+                        j.IndexerProperty<int>("JobId").HasColumnName("job_id");
+                        j.IndexerProperty<int>("ProvinceId").HasColumnName("province_id");
+                    });
+        });
+
+        modelBuilder.Entity<Province>(entity =>
+        {
+            entity.HasKey(e => e.ProvinceId).HasName("PK_province");
+
+            entity.ToTable("province");
+
+            entity.HasIndex(e => e.ProvinceName, "UQ_province_name").IsUnique();
+
+            entity.Property(e => e.ProvinceId).HasColumnName("province_id");
+            entity.Property(e => e.ProvinceName)
+                .HasMaxLength(100)
+                .HasColumnName("province_name");
         });
 
         modelBuilder.Entity<Notification>(entity =>

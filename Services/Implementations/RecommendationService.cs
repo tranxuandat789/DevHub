@@ -28,6 +28,7 @@ namespace DevHub.Services.Implementations
             var activeJobs = await _db.JobPosts
                 .Include(j => j.Teches)
                 .Include(j => j.Recruiter)
+                .Include(j => j.Provinces)
                 .Where(j => j.Status == "APPROVED" && j.Deadline >= DateOnly.FromDateTime(DateTime.Now))
                 .OrderByDescending(j => j.CreatedAt)
                 .Take(200)

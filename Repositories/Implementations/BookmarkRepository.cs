@@ -20,6 +20,8 @@ public class BookmarkRepository : IBookmarkRepository
             .Where(b => b.CandidateId == candidateId)
             .Include(b => b.Job)
                 .ThenInclude(j => j.Recruiter)
+            .Include(b => b.Job)
+                .ThenInclude(j => j.Provinces)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
     }
@@ -70,6 +72,8 @@ public class BookmarkRepository : IBookmarkRepository
             .Where(b => b.CandidateId == candidateId)
             .Include(b => b.Job)
                 .ThenInclude(j => j.Recruiter)
+            .Include(b => b.Job)
+                .ThenInclude(j => j.Provinces)
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(filterWorkingModel))
@@ -79,7 +83,7 @@ public class BookmarkRepository : IBookmarkRepository
             query = query.Where(b => b.Job.ExperienceLevel == filterLevel);
 
         if (!string.IsNullOrEmpty(filterLocation))
-            query = query.Where(b => b.Job.Location != null && b.Job.Location.Contains(filterLocation));
+            query = query.Where(b => b.Job.Provinces.Any(p => p.ProvinceName.Contains(filterLocation)));
 
         var totalCount = await query.CountAsync();
 

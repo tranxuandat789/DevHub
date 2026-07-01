@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace DevHub.Models;
 
@@ -13,11 +15,12 @@ public partial class JobPost
 
     public int PositionId { get; set; }
 
-    public string Location { get; set; } = null!;
-
     public string? Skill { get; set; }
 
     public string WorkingModel { get; set; } = null!;
+
+    // How salary should be interpreted/displayed: RANGE | FROM | UPTO | NEGOTIABLE.
+    public string SalaryType { get; set; } = "RANGE";
 
     public decimal? SalaryMin { get; set; }
 
@@ -65,4 +68,17 @@ public partial class JobPost
     public virtual CommonJobPosition Position { get; set; } = null!;
 
     public virtual ICollection<CommonTechnology> Teches { get; set; } = new List<CommonTechnology>();
+
+    // Provinces this job targets (job_post_province junction). Replaces the old
+    // free-text `location` column.
+    public virtual ICollection<Province> Provinces { get; set; } = new List<Province>();
+
+    // Convenience display string built from the linked provinces so existing
+    // read-only callers (`@job.Location`, JSON, in-memory VM projections) keep
+    // working. NOT mapped to the database — requires Provinces to be loaded.
+    [NotMapped]
+    public string Location =>
+        Provinces != null && Provinces.Count > 0
+            ? string.Join(", ", Provinces.Select(p => p.ProvinceName))
+            : string.Empty;
 }

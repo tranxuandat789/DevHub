@@ -84,7 +84,7 @@ author: Hoang Minh Kien
                                 <div class="font-bold text-dark">@job.Title</div>
                                 <div class="text-xs text-muted mt-1">@job.Location • @job.WorkingModel</div>
                             </td>
-                            <td class="py-4 px-6 text-muted">@(job.Recruiter?.CompanyName ?? "N/A")</td>
+                            <td class="py-4 px-6 text-muted">@(job.Company?.CompanyName ?? "N/A")</td>
                             <td class="py-4 px-6 text-muted">@(job.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</td>
                             <td class="py-4 px-6">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">

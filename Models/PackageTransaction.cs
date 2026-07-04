@@ -7,7 +7,7 @@ public partial class PackageTransaction
 {
     public int TransactionId { get; set; }
 
-    public int RecruiterId { get; set; }
+    public int CompanyId { get; set; }
 
     public int? ServiceId { get; set; }
 
@@ -39,9 +39,9 @@ public partial class PackageTransaction
 
     public virtual Promotion? Promotion { get; set; }
 
-    public virtual Recruiter Recruiter { get; set; } = null!;
+    public virtual Company Company { get; set; } = null!;
 
     public virtual ServicePackage? Service { get; set; }
 
-    public virtual ICollection<RecruiterPackageHistory> RecruiterPackageHistories { get; set; } = new List<RecruiterPackageHistory>();
+    public virtual ICollection<CompanyPackageHistory> CompanyPackageHistories { get; set; } = new List<CompanyPackageHistory>();
 }

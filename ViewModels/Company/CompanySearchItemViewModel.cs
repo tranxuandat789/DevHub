@@ -4,7 +4,7 @@ namespace DevHub.ViewModels.Company
 {
     public class CompanySearchItemViewModel
     {
-        public int RecruiterId { get; set; }
+        public int CompanyId { get; set; }
         public string CompanyName { get; set; } = null!;
         public string? CompanyLogoUrl { get; set; }
         public string? CompanyAddress { get; set; }

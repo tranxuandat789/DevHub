@@ -9,7 +9,7 @@ public partial class JobPost
 {
     public int JobId { get; set; }
 
-    public int RecruiterId { get; set; }
+    public int CompanyId { get; set; }
 
     public string Title { get; set; } = null!;
 
@@ -49,8 +49,8 @@ public partial class JobPost
     public DateTime? ApprovedAt { get; set; }
 
     public int? ModeratorId { get; set; }
-    //    public int RecruiterPackageHistoryId { get; set; --> to
-    public int? RecruiterPackageHistoryId { get; set; }
+    //    public int CompanyPackageHistoryId { get; set; --> to
+    public int? CompanyPackageHistoryId { get; set; }
 
     public string? RejectedReason { get; set; }
 
@@ -60,10 +60,10 @@ public partial class JobPost
 
     public virtual Admin? Moderator { get; set; }
 
-    public virtual Recruiter Recruiter { get; set; } = null!;
+    public virtual Company Company { get; set; } = null!;
 
-    // public virtual RecruiterPackageHistory RecruiterPackageHistory { get; set; } --> to 
-    public virtual RecruiterPackageHistory? RecruiterPackageHistory { get; set; }
+    // public virtual CompanyPackageHistory CompanyPackageHistory { get; set; } --> to 
+    public virtual CompanyPackageHistory? CompanyPackageHistory { get; set; }
 
     public virtual CommonJobPosition Position { get; set; } = null!;
 

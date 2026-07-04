@@ -50,13 +50,21 @@ public partial class ItrecruitmentDbContext : DbContext
 
     public virtual DbSet<Recruiter> Recruiters { get; set; }
 
-    public virtual DbSet<RecruiterPackageHistory> RecruiterPackageHistories { get; set; }
+    public virtual DbSet<Company> Companies { get; set; }
 
-    public virtual DbSet<ReviewRecruiter> ReviewRecruiters { get; set; }
+    public virtual DbSet<Article> Articles { get; set; }
+
+    public virtual DbSet<CompanyPackageHistory> CompanyPackageHistories { get; set; }
+
+    public virtual DbSet<ReviewCompany> ReviewCompanies { get; set; }
 
     public virtual DbSet<ServicePackage> ServicePackages { get; set; }
 
     public virtual DbSet<UserAccount> UserAccounts { get; set; }
+
+    public virtual DbSet<ModTierAssignment> ModTierAssignments { get; set; }
+
+    public virtual DbSet<CompanyInvitation> CompanyInvitations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
@@ -167,61 +175,41 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.ToTable("blog_post");
 
             entity.HasIndex(e => e.Slug, "UQ__blog_pos__32DD1E4C47481A2E").IsUnique();
+            entity.HasIndex(e => e.Tag).IsUnique();
 
             entity.Property(e => e.BlogId).HasColumnName("blog_id");
-            entity.Property(e => e.Author)
-                .HasMaxLength(100)
-                .HasColumnName("author");
-            entity.Property(e => e.AuthorId)
-                .HasColumnName("author_id");
+            entity.Property(e => e.PublisherId).HasColumnName("publisher_id");
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .HasColumnName("title");
+            entity.Property(e => e.Slug)
+                .HasMaxLength(255)
+                .HasColumnName("slug");
+            entity.Property(e => e.Tag)
+                .HasMaxLength(255)
+                .HasColumnName("tag");
             entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.ThumbnailUrl)
+                .HasMaxLength(500)
+                .HasColumnName("thumbnail_url");
+            entity.Property(e => e.IsPublished)
+                .HasDefaultValue(false)
+                .HasColumnName("is_published");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
-            entity.Property(e => e.Status)
-                .HasColumnName("status");
-            entity.Property(e => e.IsDeleted)
-                .HasDefaultValue(false)
-                .HasColumnName("is_deleted");
-            entity.Property(e => e.ApproverId)
-                .HasColumnName("approver_id");
-            entity.Property(e => e.ApprovedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("approved_at");
-            entity.Property(e => e.RejectReason)
-                .HasColumnName("reject_reason");
-            entity.Property(e => e.RejectedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("rejected_at");
-            entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("updated_at");
             entity.Property(e => e.PublishedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("published_at");
-            entity.Property(e => e.PublisherId).HasColumnName("publisher_id");
-            entity.Property(e => e.Slug)
-                .HasMaxLength(255)
-                .HasColumnName("slug");
-            entity.Property(e => e.ThumbnailUrl)
-                .HasMaxLength(500)
-                .HasColumnName("thumbnail_url");
-            entity.Property(e => e.Title)
-                .HasMaxLength(255)
-                .HasColumnName("title");
-            entity.Property(e => e.Tags)
-                .HasMaxLength(500)
-                .HasColumnName("tags");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(3)
+                .HasColumnName("status");
 
             entity.HasOne(d => d.Publisher).WithMany(p => p.BlogPosts)
                 .HasForeignKey(d => d.PublisherId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK__blog_post__publi__395884C4");
-            entity.HasOne(d => d.AuthorRecruiter)
-                .WithMany(p => p.BlogPosts)
-                .HasForeignKey(d => d.AuthorId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__blog_post__publisher");
         });
 
         modelBuilder.Entity<Bookmark>(entity =>
@@ -462,7 +450,7 @@ public partial class ItrecruitmentDbContext : DbContext
 
             entity.ToTable("job_post");
 
-            entity.HasIndex(e => e.RecruiterId, "idx_job_post_recruiter");
+            entity.HasIndex(e => e.CompanyId, "idx_job_post_company");
 
             entity.HasIndex(e => e.Status, "idx_job_post_status");
 
@@ -489,11 +477,11 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasColumnName("salary_type");
             entity.Property(e => e.ModeratorId).HasColumnName("moderator_id");
             entity.Property(e => e.PositionId).HasColumnName("position_id");
-            entity.Property(e => e.RecruiterPackageHistoryId).HasColumnName("recruiter_package_history_id");
+            entity.Property(e => e.CompanyPackageHistoryId).HasColumnName("company_package_history_id");
             entity.Property(e => e.PriorityScore)
                 .HasDefaultValue(0)
                 .HasColumnName("priority_score");
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
             entity.Property(e => e.RejectedReason)
                 .HasMaxLength(500)
                 .HasColumnName("rejected_reason");
@@ -529,13 +517,13 @@ public partial class ItrecruitmentDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__job_post__positi__60A75C0F");
 
-            entity.HasOne(d => d.Recruiter).WithMany()
-                .HasForeignKey(d => d.RecruiterId)
+            entity.HasOne(d => d.Company).WithMany(p => p.JobPosts)
+                .HasForeignKey(d => d.CompanyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__job_post__recruiter");
+                .HasConstraintName("FK__job_post__company");
 
-            entity.HasOne(d => d.RecruiterPackageHistory).WithMany(p => p.JobPosts)
-                .HasForeignKey(d => d.RecruiterPackageHistoryId)
+            entity.HasOne(d => d.CompanyPackageHistory).WithMany(p => p.JobPosts)
+                .HasForeignKey(d => d.CompanyPackageHistoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__job_post__package_history");
 
@@ -670,7 +658,7 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("transaction_type");
             entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
             entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.Description)
                 .HasMaxLength(500)
@@ -687,10 +675,10 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasForeignKey(d => d.PromotionId)
                 .HasConstraintName("FK__package_transaction__promotion");
 
-            entity.HasOne(d => d.Recruiter).WithMany(p => p.PackageTransactions)
-                .HasForeignKey(d => d.RecruiterId)
+            entity.HasOne(d => d.Company).WithMany(p => p.PackageTransactions)
+                .HasForeignKey(d => d.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__package_transaction__recruiter");
+                .HasConstraintName("FK__package_transaction__company");
 
             entity.HasOne(d => d.Service).WithMany(p => p.PackageTransactions)
                 .HasForeignKey(d => d.ServiceId)
@@ -739,69 +727,142 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.RecruiterId)
                 .ValueGeneratedNever()
                 .HasColumnName("recruiter_id");
-            entity.Property(e => e.AdditionalDocumentsUrl)
-                .HasMaxLength(500)
-                .HasColumnName("additional_documents_url");
-            entity.Property(e => e.AverageRating)
-                .HasDefaultValue(0.00m)
-                .HasColumnType("decimal(3, 2)")
-                .HasColumnName("average_rating");
-            entity.Property(e => e.BusinessLicenseUrl)
-                .HasMaxLength(500)
-                .HasColumnName("business_license_url");
-            entity.Property(e => e.CompanyAddress)
-                .HasMaxLength(255)
-                .HasColumnName("company_address");
-            entity.Property(e => e.CompanyDescription).HasColumnName("company_description");
-            entity.Property(e => e.CompanyLogoUrl)
-                .HasMaxLength(500)
-                .HasColumnName("company_logo_url");
-            entity.Property(e => e.CompanyName)
-                .HasMaxLength(255)
-                .HasColumnName("company_name");
             entity.Property(e => e.FullName)
                 .HasMaxLength(255)
                 .HasColumnName("full_name");
-            entity.Property(e => e.Industry)
-                .HasMaxLength(100)
-                .HasColumnName("industry");
-            entity.Property(e => e.IsVerified)
-                .HasDefaultValue(false)
-                .HasColumnName("is_verified");
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .HasColumnName("phone");
             entity.Property(e => e.Position)
                 .HasMaxLength(100)
                 .HasColumnName("position");
-            entity.Property(e => e.ProfileCompletion)
-                .HasDefaultValue(0)
-                .HasColumnName("profile_completion");
-            entity.Property(e => e.TaxCode)
-                .HasMaxLength(50)
-                .HasColumnName("tax_code");
-            entity.Property(e => e.TotalReviews)
-                .HasDefaultValue(0)
-                .HasColumnName("total_reviews");
-            entity.Property(e => e.TotalSpent)
-                .HasDefaultValue(0m)
-                .HasColumnType("decimal(18, 2)")
-                .HasColumnName("total_spent");
-            entity.Property(e => e.Website)
-                .HasMaxLength(255)
-                .HasColumnName("website");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
+            entity.Property(e => e.IsCompanyAdmin)
+                .HasDefaultValue(false)
+                .HasColumnName("is_company_admin");
 
             entity.HasOne(d => d.RecruiterNavigation).WithOne(p => p.Recruiter)
                 .HasForeignKey<Recruiter>(d => d.RecruiterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__recruiter__recru__534D60F1");
+
+            entity.HasOne(d => d.Company).WithMany(p => p.Recruiters)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__recruiter__company");
         });
 
-        modelBuilder.Entity<RecruiterPackageHistory>(entity =>
+        modelBuilder.Entity<Company>(entity =>
+        {
+            entity.HasKey(e => e.CompanyId);
+
+            entity.ToTable("company");
+
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
+            entity.Property(e => e.CompanyName)
+                .HasMaxLength(255)
+                .HasColumnName("company_name");
+            entity.Property(e => e.CompanyAddress)
+                .HasMaxLength(255)
+                .HasColumnName("company_address");
+            entity.Property(e => e.CompanyLogoUrl)
+                .HasMaxLength(500)
+                .HasColumnName("company_logo_url");
+            entity.Property(e => e.CompanyDescription).HasColumnName("company_description");
+            entity.Property(e => e.Website)
+                .HasMaxLength(255)
+                .HasColumnName("website");
+            entity.Property(e => e.Industry)
+                .HasMaxLength(100)
+                .HasColumnName("industry");
+            entity.Property(e => e.TaxCode)
+                .HasMaxLength(50)
+                .HasColumnName("tax_code");
+            entity.Property(e => e.BusinessLicenseUrl)
+                .HasMaxLength(500)
+                .HasColumnName("business_license_url");
+            entity.Property(e => e.AdditionalDocumentsUrl)
+                .HasMaxLength(500)
+                .HasColumnName("additional_documents_url");
+            entity.Property(e => e.TotalSpent)
+                .HasDefaultValue(0m)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("total_spent");
+            entity.Property(e => e.AverageRating)
+                .HasDefaultValue(0.00m)
+                .HasColumnType("decimal(3, 2)")
+                .HasColumnName("average_rating");
+            entity.Property(e => e.TotalReviews)
+                .HasDefaultValue(0)
+                .HasColumnName("total_reviews");
+            entity.Property(e => e.IsVerified)
+                .HasDefaultValue(false)
+                .HasColumnName("is_verified");
+            entity.Property(e => e.ProfileCompletion)
+                .HasDefaultValue(0)
+                .HasColumnName("profile_completion");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("PENDING")
+                .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<Article>(entity =>
+        {
+            entity.HasKey(e => e.ArticleId);
+
+            entity.ToTable("article");
+
+            entity.HasIndex(e => e.Slug).IsUnique();
+
+            entity.Property(e => e.ArticleId).HasColumnName("article_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .HasColumnName("title");
+            entity.Property(e => e.Slug)
+                .HasMaxLength(255)
+                .HasColumnName("slug");
+            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.ThumbnailUrl)
+                .HasMaxLength(500)
+                .HasColumnName("thumbnail_url");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("PENDING")
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.ApprovedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("approved_at");
+            entity.Property(e => e.ApproverId).HasColumnName("approver_id");
+            entity.Property(e => e.RejectReason)
+                .HasMaxLength(500)
+                .HasColumnName("reject_reason");
+
+            entity.HasOne(d => d.Company).WithMany(p => p.Articles)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__article__company");
+
+            entity.HasOne(d => d.Approver).WithMany()
+                .HasForeignKey(d => d.ApproverId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK__article__approver");
+        });
+
+        modelBuilder.Entity<CompanyPackageHistory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__recruite__3213E83FA34D72CF");
 
-            entity.ToTable("recruiter_package_history");
+            entity.ToTable("company_package_history");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
@@ -820,36 +881,36 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("price_at_purchase")
                 .HasDefaultValue(0m);
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
             entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.StartDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("start_date");
 
-            entity.HasOne(d => d.Recruiter).WithMany(p => p.RecruiterPackageHistories)
-                .HasForeignKey(d => d.RecruiterId)
+            entity.HasOne(d => d.Company).WithMany(p => p.CompanyPackageHistories)
+                .HasForeignKey(d => d.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__recruiter_history__recruiter");
 
-            entity.HasOne(d => d.Service).WithMany(p => p.RecruiterPackageHistories)
+            entity.HasOne(d => d.Service).WithMany(p => p.CompanyPackageHistories)
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__recruiter_history__service");
 
-            entity.HasOne(d => d.Transaction).WithMany(p => p.RecruiterPackageHistories)
+            entity.HasOne(d => d.Transaction).WithMany(p => p.CompanyPackageHistories)
                 .HasForeignKey(d => d.TransactionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__recruiter_history__transaction");
         });
 
-        modelBuilder.Entity<ReviewRecruiter>(entity =>
+        modelBuilder.Entity<ReviewCompany>(entity =>
         {
             entity.HasKey(e => e.ReviewId).HasName("PK__review_r__60883D90CFCBFACD");
 
-            entity.ToTable("review_recruiter");
+            entity.ToTable("review_company");
 
-            entity.HasIndex(e => new { e.CandidateId, e.RecruiterId }, "UQ_candidate_recruiter_review").IsUnique();
+            entity.HasIndex(e => new { e.CandidateId, e.CompanyId }, "UQ_candidate_company_review").IsUnique();
 
             entity.Property(e => e.ReviewId).HasColumnName("review_id");
             entity.Property(e => e.CandidateId).HasColumnName("candidate_id");
@@ -864,7 +925,7 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasColumnName("is_anonymous");
             entity.Property(e => e.Pros).HasColumnName("pros");
             entity.Property(e => e.Rating).HasColumnName("rating");
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -884,13 +945,13 @@ public partial class ItrecruitmentDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(d => d.ModeratorId)
                   .OnDelete(DeleteBehavior.ClientSetNull);
-            entity.HasOne(d => d.Candidate).WithMany(p => p.ReviewRecruiters)
+            entity.HasOne(d => d.Candidate).WithMany(p => p.ReviewCompanies)
                 .HasForeignKey(d => d.CandidateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__review_re__candi__2DE6D218");
 
-            entity.HasOne(d => d.Recruiter).WithMany(p => p.ReviewRecruiters)
-                .HasForeignKey(d => d.RecruiterId)
+            entity.HasOne(d => d.Company).WithMany(p => p.ReviewCompanies)
+                .HasForeignKey(d => d.CompanyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__review_re__recru__2EDAF651");
         });
@@ -984,6 +1045,63 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.UserType)
                 .HasMaxLength(20)
                 .HasColumnName("user_type");
+        });
+
+        modelBuilder.Entity<ModTierAssignment>(entity =>
+        {
+            entity.HasKey(e => e.AssignmentId);
+
+            entity.ToTable("mod_tier_assignment");
+
+            entity.Property(e => e.AssignmentId).HasColumnName("assignment_id");
+            entity.Property(e => e.ModeratorId).HasColumnName("moderator_id");
+            entity.Property(e => e.ServiceId).HasColumnName("service_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Moderator).WithMany()
+                .HasForeignKey(d => d.ModeratorId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__mod_tier__moderator");
+
+            entity.HasOne(d => d.Service).WithMany()
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__mod_tier__service");
+        });
+
+        modelBuilder.Entity<CompanyInvitation>(entity =>
+        {
+            entity.HasKey(e => e.InvitationId);
+
+            entity.ToTable("company_invitation");
+
+            entity.Property(e => e.InvitationId).HasColumnName("invitation_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
+            entity.Property(e => e.Token)
+                .HasMaxLength(255)
+                .HasColumnName("token");
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("datetime")
+                .HasColumnName("expires_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("PENDING")
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Company).WithMany(p => p.CompanyInvitations)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__company_invitation__company");
         });
 
         OnModelCreatingPartial(modelBuilder);

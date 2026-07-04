@@ -33,10 +33,10 @@ namespace DevHub.Controllers.Moderator
                     {
                         LogId = a.LogId,
                         RecruiterId = r.RecruiterId,
-                        CompanyName = r.CompanyName,
-                        TaxCode = r.TaxCode ?? string.Empty,
-                        BusinessLicenseUrl = r.BusinessLicenseUrl ?? string.Empty,
-                        AdditionalDocumentsUrl = r.AdditionalDocumentsUrl ?? string.Empty,
+                        CompanyName = r.Company.CompanyName,
+                        TaxCode = r.Company.TaxCode ?? string.Empty,
+                        BusinessLicenseUrl = r.Company.BusinessLicenseUrl ?? string.Empty,
+                        AdditionalDocumentsUrl = r.Company.AdditionalDocumentsUrl ?? string.Empty,
                         RequestedAt = a.CreatedAt
                     });
 
@@ -82,10 +82,10 @@ namespace DevHub.Controllers.Moderator
             var log = await _db.AuditLogs.FindAsync(id);
             if (log == null || log.OldValue != null) return BadRequest("Invalid request.");
 
-            var recruiter = await _db.Recruiters.FindAsync(log.EntityId);
-            if (recruiter != null)
+            var company = await _db.Companies.FindAsync(log.EntityId);
+            if (company != null)
             {
-                recruiter.IsVerified = true;
+                company.IsVerified = true;
             }
 
             log.OldValue = "Approved";

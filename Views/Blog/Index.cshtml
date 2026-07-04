@@ -91,10 +91,10 @@
                         <div class="flex items-center justify-between mt-6">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
-                                    @((featured.AuthorRecruiter?.FullName ?? featured.Author ?? "A")[0])
+                                    @((featured.Publisher?.FullName ?? "Admin")[0])
                                 </div>
                                 <div>
-                                    <p class="text-sm font-bold text-dark">@(featured.AuthorRecruiter?.FullName ?? featured.Author ?? "Admin")</p>
+                                    <p class="text-sm font-bold text-dark">@(featured.Publisher?.FullName ?? "Admin")</p>
                                 </div>
                             </div>
                             <span class="text-[#26A4FF] font-medium flex items-center gap-1">
@@ -129,9 +129,9 @@
                             <div class="flex items-center justify-between mt-auto pt-4">
                                 <div class="flex items-center gap-2">
                                     <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-bold">
-                                        @((article.AuthorRecruiter?.FullName ?? article.Author ?? "A")[0])
+                                        @((article.Publisher?.FullName ?? "Admin")[0])
                                     </div>
-                                    <span class="text-sm font-medium text-dark line-clamp-1">@(article.AuthorRecruiter?.FullName ?? article.Author ?? "Admin")</span>
+                                    <span class="text-sm font-medium text-dark line-clamp-1">@(article.Publisher?.FullName ?? "Admin")</span>
                                 </div>
                                 <span class="text-xs text-muted">@(article.PublishedAt?.ToString("dd/MM/yyyy") ?? article.CreatedAt?.ToString("dd/MM/yyyy"))</span>
                             </div>

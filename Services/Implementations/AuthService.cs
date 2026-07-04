@@ -9,6 +9,7 @@ public class AuthService : IAuthService
     private readonly IUserAccountRepository _userRepo;
     private readonly ICandidateRepository   _candidateRepo;
     private readonly IRecruiterRepository   _recruiterRepo;
+    private readonly ICompanyRepository   _companyRepo;
 
     // AuthService is registered Scoped (one instance per request). FindUserByEmailAsync
     // is called both by the controller and by the shared layout (_RecruiterLayout) within
@@ -18,11 +19,13 @@ public class AuthService : IAuthService
     public AuthService(
         IUserAccountRepository userRepo,
         ICandidateRepository   candidateRepo,
-        IRecruiterRepository   recruiterRepo)
+        IRecruiterRepository   recruiterRepo,
+        ICompanyRepository companyRepo)
     {
         _userRepo      = userRepo;
         _candidateRepo = candidateRepo;
         _recruiterRepo = recruiterRepo;
+        _companyRepo = companyRepo;
     }
 
     public Task<UserAccount?> FindUserByEmailAsync(string email)
@@ -84,13 +87,22 @@ public class AuthService : IAuthService
             LastUpdated  = DateTime.UtcNow
         });
 
+        var company = await _companyRepo.AddCompanyAsync(new Company
+        {
+            CompanyName = fullName ?? email,
+            CompanyLogoUrl = avatarUrl,
+            IsVerified = false,
+            ProfileCompletion = 0,
+            
+        });
+
         var recruiter = await _recruiterRepo.AddAsync(new Recruiter
         {
             RecruiterId    = user.UserId,
             FullName       = fullName ?? email,
-            CompanyName    = fullName ?? email,
+            CompanyId      = company.CompanyId,
             Phone          = phone,
-            CompanyLogoUrl = avatarUrl
+            IsCompanyAdmin = true
         });
 
         user.Recruiter = recruiter;

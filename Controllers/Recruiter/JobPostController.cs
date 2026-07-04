@@ -38,7 +38,7 @@ namespace DevHub.Controllers.Recruiter
                 return NotFound();
 
             // Check: company profile must be >= 90% complete to access the management page.
-            if ((dbUser.Recruiter.ProfileCompletion ?? 0) < 90)
+            if ((dbUser.Recruiter?.Company?.ProfileCompletion ?? 0) < 90)
             {
                 ViewBag.ProfileIncomplete = true;
                 return View(new JobPostManageViewModel());
@@ -79,14 +79,14 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
-            var (canPost, hasPackage, postsRemaining, profileCompletion) = await _jobPostService.GetActivePackageInfoAsync(dbUser.Recruiter.RecruiterId);
-            if (profileCompletion < 90)
+            var info = await _jobPostService.GetActivePackageInfoAsync(dbUser.Recruiter.RecruiterId);
+            if (info.ProfileCompletion < 90)
             {
                 TempData["Error"] = "Bạn cần hoàn thành đủ mục thông tin công ty";
                 return RedirectToAction("Index", "Settings");
             }
 
-            if (!hasPackage || postsRemaining <= 0)
+            if (!info.HasActivePackage || info.PostsRemaining <= 0)
             {
                 TempData["Error"] = "Tài khoản không đủ lượt đăng. Vui lòng mua gói dịch vụ.";
                 return Redirect("/Recruiter/JobPost");
@@ -97,7 +97,7 @@ namespace DevHub.Controllers.Recruiter
             ViewBag.Provinces = await _provinceRepo.GetAllAsync();
             ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
             // Remaining posts in the active package, shown on the create form.
-            ViewBag.PostsRemaining = postsRemaining;
+            ViewBag.PostsRemaining = info.PostsRemaining;
 
             return View();
         }
@@ -306,3 +306,7 @@ namespace DevHub.Controllers.Recruiter
         }
     }
 }
+
+
+
+

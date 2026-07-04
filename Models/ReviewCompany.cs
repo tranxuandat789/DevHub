@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
 
-public partial class ReviewRecruiter
+public partial class ReviewCompany
 {
     public int ReviewId { get; set; }
 
     public int CandidateId { get; set; }
 
-    public int RecruiterId { get; set; }
+    public int CompanyId { get; set; }
 
     public int Rating { get; set; }
 
@@ -35,7 +35,7 @@ public partial class ReviewRecruiter
 
     public virtual Candidate Candidate { get; set; } = null!;
 
-    public virtual Recruiter Recruiter { get; set; } = null!;
+    public virtual Company Company { get; set; } = null!;
 
     public virtual Admin? Moderator { get; set; }
 }

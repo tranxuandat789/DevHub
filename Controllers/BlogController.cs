@@ -19,8 +19,8 @@ namespace DevHub.Controllers
         {
             int pageSize = 9; // 9 items per page (3x3 grid)
             var query = _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .Where(b => b.IsDeleted != true && b.Status == 1)
+                .Include(b => b.Publisher)
+                .Where(b => b.Status == 1)
                 .OrderByDescending(b => b.PublishedAt ?? b.CreatedAt);
 
             var totalItems = await query.CountAsync();
@@ -42,8 +42,8 @@ namespace DevHub.Controllers
         public async Task<IActionResult> Details(string slug)
         {
             var blog = await _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .FirstOrDefaultAsync(b => b.Slug == slug && b.IsDeleted != true && b.Status == 1);
+                .Include(b => b.Publisher)
+                .FirstOrDefaultAsync(b => b.Slug == slug && b.Status == 1);
 
             if (blog == null)
             {

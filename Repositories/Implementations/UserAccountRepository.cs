@@ -16,7 +16,7 @@ public class UserAccountRepository : IUserAccountRepository
         => _db.UserAccounts
               .AsNoTracking()
               .Include(u => u.Candidate)
-              .Include(u => u.Recruiter)
+              .Include(u => u.Recruiter).ThenInclude(r => r.Company)
               .Include(u => u.Admin)
               .FirstOrDefaultAsync(u => u.Email == email);
 
@@ -24,7 +24,7 @@ public class UserAccountRepository : IUserAccountRepository
         => _db.UserAccounts
               .AsNoTracking()
               .Include(u => u.Candidate)
-              .Include(u => u.Recruiter)
+              .Include(u => u.Recruiter).ThenInclude(r => r.Company)
               .Include(u => u.Admin)
               .FirstOrDefaultAsync(u => u.GoogleId == googleId);
 

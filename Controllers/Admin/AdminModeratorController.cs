@@ -14,10 +14,12 @@ namespace DevHub.Controllers.Admin
     public class AdminModeratorController : Controller
     {
         private readonly IAdminService _adminService;
+        private readonly IModAssignmentService _modAssignmentService;
 
-        public AdminModeratorController(IAdminService adminService)
+        public AdminModeratorController(IAdminService adminService, IModAssignmentService modAssignmentService)
         {
             _adminService = adminService;
+            _modAssignmentService = modAssignmentService;
         }
 
         // GET: /AdminModerator

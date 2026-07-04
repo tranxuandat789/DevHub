@@ -87,13 +87,13 @@
                     <div class="border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 rounded-[20px] bg-white hover:shadow-[0_15px_40px_rgba(70,64,222,0.14)] hover:border-primary transition-all duration-300 flex flex-col h-full cursor-pointer" onclick="window.location='/Jobs/Details/@job.JobId'">
                         <div class="flex justify-between items-start mb-4">
                             <div class="w-12 h-12 flex items-center justify-center">
-                                @if (job.Recruiter != null && !string.IsNullOrEmpty(job.Recruiter.CompanyLogoUrl))
+                                @if (job.Company != null && !string.IsNullOrEmpty(job.Company.CompanyLogoUrl))
                                 {
-                                    <img src="@job.Recruiter.CompanyLogoUrl" alt="@job.Recruiter.CompanyName" class="w-full h-full object-contain rounded" />
+                                    <img src="@job.Company.CompanyLogoUrl" alt="@job.Company.CompanyName" class="w-full h-full object-contain rounded" />
                                 }
                                 else
                                 {
-                                    <span class="font-bold text-3xl text-dark italic">@(job.Recruiter?.CompanyName?.Substring(0, 1) ?? "C")</span>
+                                    <span class="font-bold text-3xl text-dark italic">@(job.Company?.CompanyName?.Substring(0, 1) ?? "C")</span>
                                 }
                             </div>
                             @{
@@ -113,7 +113,7 @@
                         
                         <h3 class="text-lg font-bold text-dark mb-1 hover:text-primary transition-colors cursor-pointer line-clamp-2">@job.Title</h3>
                         <div class="flex items-center text-muted text-sm gap-2 mb-4 font-inter">
-                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> @job.Recruiter?.CompanyName</span>
+                            <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> @job.Company?.CompanyName</span>
                             <span>•</span>
                             <span class="truncate max-w-[120px]">@(job.Location ?? "Không xác định")</span>
                         </div>

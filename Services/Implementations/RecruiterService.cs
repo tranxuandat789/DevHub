@@ -38,17 +38,17 @@ namespace DevHub.Services.Implementations
                 recruiter.FullName,
                 recruiter.Position,
                 recruiter.Phone,
-                recruiter.CompanyName,
-                recruiter.CompanyAddress,
-                recruiter.CompanyLogoUrl,
-                recruiter.CompanyDescription,
-                recruiter.Website,
-                recruiter.Industry,
-                recruiter.TaxCode
+                recruiter.Company.CompanyName,
+                recruiter.Company.CompanyAddress,
+                recruiter.Company.CompanyLogoUrl,
+                recruiter.Company.CompanyDescription,
+                recruiter.Company.Website,
+                recruiter.Company.Industry,
+                recruiter.Company.TaxCode
             };
             //Check if this recruiter has been upload licenses or not
-            bool hasLicense = !string.IsNullOrEmpty(recruiter.BusinessLicenseUrl);
-            bool hasAdditionalDocs = !string.IsNullOrEmpty(recruiter.AdditionalDocumentsUrl);
+            bool hasLicense = !string.IsNullOrEmpty(recruiter.Company.BusinessLicenseUrl);
+            bool hasAdditionalDocs = !string.IsNullOrEmpty(recruiter.Company.AdditionalDocumentsUrl);
 
             int companyFields = companyProfile.Count(field => !string.IsNullOrEmpty(field));
 
@@ -60,16 +60,16 @@ namespace DevHub.Services.Implementations
                 FullName = recruiter.FullName,
                 Position = recruiter.Position,
                 Phone = recruiter.Phone,
-                CompanyName = recruiter.CompanyName,
-                CompanyAddress = recruiter.CompanyAddress,
-                CompanyLogoUrl = recruiter.CompanyLogoUrl,
-                CompanyDescription = recruiter.CompanyDescription,
-                Website = recruiter.Website,
-                Industry = recruiter.Industry,
-                TaxCode = recruiter.TaxCode,
-                BusinessLicenseUrl = recruiter.BusinessLicenseUrl,
-                AdditionalDocumentsUrl = recruiter.AdditionalDocumentsUrl,
-                IsVerified = recruiter.IsVerified,
+                CompanyName = recruiter.Company.CompanyName,
+                CompanyAddress = recruiter.Company.CompanyAddress,
+                CompanyLogoUrl = recruiter.Company.CompanyLogoUrl,
+                CompanyDescription = recruiter.Company.CompanyDescription,
+                Website = recruiter.Company.Website,
+                Industry = recruiter.Company.Industry,
+                TaxCode = recruiter.Company.TaxCode,
+                BusinessLicenseUrl = recruiter.Company.BusinessLicenseUrl,
+                AdditionalDocumentsUrl = recruiter.Company.AdditionalDocumentsUrl,
+                IsVerified = recruiter.Company.IsVerified,
                 ProfileCompleteness = profileCompleteness
             };
         }
@@ -82,7 +82,7 @@ namespace DevHub.Services.Implementations
             int recruiterId = existingRecruiter.RecruiterId;
 
             // Business rule: ensure TaxCode is unique.,
-            if (!string.IsNullOrEmpty(updateVm.TaxCode) && updateVm.TaxCode != existingRecruiter.TaxCode)
+            if (!string.IsNullOrEmpty(updateVm.TaxCode) && updateVm.TaxCode != existingRecruiter.Company.TaxCode)
             {
                 bool isTaken = await _recruiterProfileRepository.CheckTaxCodeExistAsync(updateVm.TaxCode, recruiterId);
                 if (isTaken)
@@ -93,15 +93,15 @@ namespace DevHub.Services.Implementations
             existingRecruiter.FullName = NormalizeSpaces(updateVm.FullName);
             existingRecruiter.Position = NormalizeSpaces(updateVm.Position);
             existingRecruiter.Phone = updateVm.Phone;
-            existingRecruiter.CompanyName = NormalizeSpaces(updateVm.CompanyName);
-            existingRecruiter.CompanyAddress = NormalizeSpaces(updateVm.CompanyAddress);
-            existingRecruiter.CompanyLogoUrl = updateVm.CompanyLogoUrl;
-            existingRecruiter.CompanyDescription = NormalizeSpaces(updateVm.CompanyDescription);
-            existingRecruiter.Website = updateVm.Website;
-            existingRecruiter.Industry = NormalizeSpaces(updateVm.Industry);
-            existingRecruiter.TaxCode = updateVm.TaxCode;
-            existingRecruiter.BusinessLicenseUrl = updateVm.BusinessLicenseUrl;
-            existingRecruiter.AdditionalDocumentsUrl = updateVm.AdditionalDocumentsUrl;
+            existingRecruiter.Company.CompanyName = NormalizeSpaces(updateVm.CompanyName);
+            existingRecruiter.Company.CompanyAddress = NormalizeSpaces(updateVm.CompanyAddress);
+            existingRecruiter.Company.CompanyLogoUrl = updateVm.CompanyLogoUrl;
+            existingRecruiter.Company.CompanyDescription = NormalizeSpaces(updateVm.CompanyDescription);
+            existingRecruiter.Company.Website = updateVm.Website;
+            existingRecruiter.Company.Industry = NormalizeSpaces(updateVm.Industry);
+            existingRecruiter.Company.TaxCode = updateVm.TaxCode;
+            existingRecruiter.Company.BusinessLicenseUrl = updateVm.BusinessLicenseUrl;
+            existingRecruiter.Company.AdditionalDocumentsUrl = updateVm.AdditionalDocumentsUrl;
 
             // Recalculate profile completeness
             var companyProfile = new List<string?>
@@ -109,20 +109,23 @@ namespace DevHub.Services.Implementations
                 existingRecruiter.FullName,
                 existingRecruiter.Position,
                 existingRecruiter.Phone,
-                existingRecruiter.CompanyName,
-                existingRecruiter.CompanyAddress,
-                existingRecruiter.CompanyLogoUrl,
-                existingRecruiter.CompanyDescription,
-                existingRecruiter.Website,
-                existingRecruiter.Industry,
-                existingRecruiter.TaxCode
+                existingRecruiter.Company.CompanyLogoUrl,
+                existingRecruiter.Company.CompanyName,
+                existingRecruiter.Company.CompanyAddress,
+                existingRecruiter.Company.CompanyDescription,
+                existingRecruiter.Company.Website,
+                existingRecruiter.Company.Industry,
+                existingRecruiter.Company.TaxCode
             };
-            bool hasLicense = !string.IsNullOrEmpty(existingRecruiter.BusinessLicenseUrl);
-            bool hasAdditionalDocs = !string.IsNullOrEmpty(existingRecruiter.AdditionalDocumentsUrl);
+            bool hasLicense = !string.IsNullOrEmpty(existingRecruiter.Company.BusinessLicenseUrl);
+            bool hasAdditionalDocs = !string.IsNullOrEmpty(existingRecruiter.Company.AdditionalDocumentsUrl);
             int companyFields = companyProfile.Count(field => !string.IsNullOrEmpty(field));
             int profileCompleteness = companyFields * 9 + (hasLicense ? 7 : 0) + (hasAdditionalDocs ? 3 : 0);
 
-            existingRecruiter.ProfileCompletion = profileCompleteness;
+            if(existingRecruiter.Company != null)
+            {
+                existingRecruiter.Company.ProfileCompletion = profileCompleteness;
+            }
 
             //save changes to database  
             await _recruiterProfileRepository.UpdateProfileAsync(existingRecruiter);
@@ -136,13 +139,13 @@ namespace DevHub.Services.Implementations
                 throw new KeyNotFoundException("Recruiter not found");
 
             // Gate: profile completeness must exceed 96%.
-            if ((recruiter.ProfileCompletion ?? 0) <= 96)
+            if ((recruiter.Company.ProfileCompletion ?? 0) <= 96)
                 throw new InvalidOperationException("Hồ sơ công ty cần hoàn thiện trên 96% mới có thể gửi yêu cầu xác thực.");
 
-            if (string.IsNullOrEmpty(recruiter.BusinessLicenseUrl))
+            if (string.IsNullOrEmpty(recruiter.Company.BusinessLicenseUrl))
                 throw new InvalidOperationException("Vui lòng cung cấp Giấy phép kinh doanh hợp lệ để thực hiện xác thực");
 
-            if (recruiter.IsVerified == true)
+            if (recruiter.Company.IsVerified == true)
                 throw new InvalidOperationException("Công ty của bạn đã được xác thực.");
 
             // Check if there is already a pending request
@@ -154,7 +157,7 @@ namespace DevHub.Services.Implementations
             // create verification request for moderators, do not throw if repository fails to create log
             try
             {
-                string details = $"Recruiter {recruiter.RecruiterId} requests verification. Company: {recruiter.CompanyName}, TaxCode: {recruiter.TaxCode}";
+                string details = $"Recruiter {recruiter.RecruiterId} requests verification. Company: {recruiter.Company.CompanyName}, TaxCode: {recruiter.Company.TaxCode}";
                 await _recruiterProfileRepository.CreateVerificationRequestAsync(recruiter.RecruiterId, details);
             }
             catch
@@ -203,3 +206,5 @@ namespace DevHub.Services.Implementations
         }
     }
 }
+
+

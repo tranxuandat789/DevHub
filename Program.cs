@@ -191,9 +191,9 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IPackageTransactionRepository, PackageTransactionRepository>();
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
-builder.Services.AddScoped<IRecruiterPackageHistoryRepository, RecruiterPackageHistoryRepository>();
+builder.Services.AddScoped<ICompanyPackageHistoryRepository, CompanyPackageHistoryRepository>();
 builder.Services.AddScoped<IRecruiterDashboardRepository, RecruiterDashboardRepository>();
-builder.Services.AddScoped<IReviewRecruiterRepository, ReviewRecruiterRepository>();
+builder.Services.AddScoped<IReviewCompanyRepository, ReviewCompanyRepository>();
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
@@ -201,6 +201,7 @@ builder.Services.AddScoped<IJobSearchRepository, JobSearchRepository>();
 builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
 builder.Services.AddScoped<IRecruiterApplicationRepository, RecruiterApplicationRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -219,8 +220,8 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPackageTransactionService, PackageTransactionService>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
 builder.Services.AddScoped<IRecruiterService, RecruiterService>();
-builder.Services.AddScoped<IRecruiterPackageHistoryService, RecruiterPackageHistoryService>();
-builder.Services.AddScoped<IReviewRecruiterService, ReviewRecruiterService>();
+builder.Services.AddScoped<ICompanyPackageHistoryService, CompanyPackageHistoryService>();
+builder.Services.AddScoped<IReviewCompanieservice, ReviewCompanieservice>();
 builder.Services.AddScoped<IServicePackageService, ServicePackageService>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -231,6 +232,8 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IRecruiterApplicationService, RecruiterApplicationService>();
 builder.Services.AddScoped<IRecruiterDashboardService, RecruiterDashboardService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
+builder.Services.AddScoped<IArticleService, ArticleService>();
 
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -33,5 +33,5 @@ public partial class ServicePackage
 
     public virtual ICollection<PackageTransaction> PackageTransactions { get; set; } = new List<PackageTransaction>();
 
-    public virtual ICollection<RecruiterPackageHistory> RecruiterPackageHistories { get; set; } = new List<RecruiterPackageHistory>();
+    public virtual ICollection<CompanyPackageHistory> CompanyPackageHistories { get; set; } = new List<CompanyPackageHistory>();
 }

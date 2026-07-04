@@ -1,7 +1,7 @@
-﻿using DevHub.Services.Interfaces;
+using DevHub.Services.Interfaces;
 
 namespace DevHub.Services.Implementations;
 
-public class ReviewRecruiterService : IReviewRecruiterService
+public class ReviewCompanieservice : IReviewCompanieservice
 {
 }

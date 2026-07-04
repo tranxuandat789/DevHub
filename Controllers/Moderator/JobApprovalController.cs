@@ -76,8 +76,12 @@ namespace DevHub.Controllers.Moderator
             }
 
             // 1. Phân trang ngay ở SQL (Skip/Take) — Service trả về (trang hiện tại, tổng số bài)
+            // Extract current moderator ID
+            int moderatorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            // Fetch pending jobs
             const int pageSize = 10;
-            var (pageItems, totalCount) = await _jobPostService.GetPendingJobsAsync(fromDate, toDate, sortOrder, page, pageSize);
+            var (pageItems, totalCount) = await _jobPostService.GetPendingJobsAsync(moderatorId, fromDate, toDate, sortOrder, page, pageSize);
 
             // 2. Tính số trang + clamp trang hiện tại cho UI (cùng cách clamp với repository)
             int totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));

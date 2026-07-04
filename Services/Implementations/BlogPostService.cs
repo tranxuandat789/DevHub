@@ -23,15 +23,10 @@ namespace DevHub.Services.Implementations
             _config = config;
         }
 
-        public async Task<(IEnumerable<BlogPost> Blogs, int TotalPages, int TotalItems)> GetFilteredBlogsAsync(string keyword, string dateFrom, string status, string sortBy, int page, int pageSize, int? authorId = null, bool forModerator = false)
+        public async Task<(IEnumerable<BlogPost> Blogs, int TotalPages, int TotalItems)> GetFilteredBlogsAsync(string keyword, string dateFrom, string status, string sortBy, int page, int pageSize, bool forModerator = false)
         {
             var query = _blogPostRepository.GetAllActive();
 
-            if (authorId.HasValue)
-            {
-                query = query.Where(b => b.AuthorId == authorId.Value);
-            }
-            
             if (forModerator)
             {
                 // Moderators should only see Pending (3), Approved/Published (1), Rejected (4), Hidden (2)
@@ -42,7 +37,7 @@ namespace DevHub.Services.Implementations
             if (!string.IsNullOrEmpty(keyword))
             {
                 string searchTrimmed = keyword.Trim();
-                query = query.Where(b => b.Title.Contains(searchTrimmed));
+                query = query.Where(b => b.Title != null && b.Title.Contains(searchTrimmed));
             }
 
             if (!string.IsNullOrEmpty(dateFrom) && DateTime.TryParse(dateFrom, out DateTime parsedDate))
@@ -85,18 +80,16 @@ namespace DevHub.Services.Implementations
                     BlogId       = b.BlogId,
                     Title        = b.Title,
                     ThumbnailUrl = b.ThumbnailUrl,
-                    Author       = b.Author,
-                    AuthorId     = b.AuthorId,
                     Status       = b.Status,
                     CreatedAt    = b.CreatedAt,
-                    AuthorRecruiter = b.AuthorRecruiter
+                    Publisher    = b.Publisher
                 })
                 .ToListAsync();
 
             return (blogs, totalPages, totalItems);
         }
 
-        public async Task CreatePostAsync(BlogPostCreateViewModel model, int? publisherId, int? authorId)
+        public async Task CreatePostAsync(BlogPostCreateViewModel model, int? publisherId)
         {
             var blog = new BlogPost
             {
@@ -104,11 +97,8 @@ namespace DevHub.Services.Implementations
                 Content = model.Content,
                 ThumbnailUrl = model.ThumbnailUrl,
                 PublisherId = publisherId,
-                AuthorId = authorId,
-                Author = model.Author,
-                Tags = model.Tags,
+                Tag = model.Tags ?? "",
                 CreatedAt = DateTime.Now,
-                IsDeleted = false,
                 Slug = Regex.Replace(model.Title.ToLower(), @"[^a-z0-9\s-]", "").Replace(" ", "-") + "-" + DateTime.Now.Ticks
             };
 
@@ -118,8 +108,6 @@ namespace DevHub.Services.Implementations
             }
             else
             {
-                // If created by recruiter without publisher, it's pending (3).
-                // If created by moderator, it's published (1).
                 if (publisherId.HasValue)
                 {
                     blog.Status = 1; // Published
@@ -137,7 +125,7 @@ namespace DevHub.Services.Implementations
         public async Task<BlogPost?> GetPostByIdAsync(int id)
         {
             var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null || blog.IsDeleted == true)
+            if (blog == null)
                 return null;
             return blog;
         }
@@ -145,14 +133,13 @@ namespace DevHub.Services.Implementations
         public async Task<bool> EditPostAsync(int id, BlogPostEditViewModel model)
         {
             var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null || blog.IsDeleted == true)
+            if (blog == null)
                 return false;
 
             blog.Title = model.Title;
             blog.Content = model.Content;
             blog.ThumbnailUrl = model.ThumbnailUrl;
-            blog.Author = model.Author;
-            blog.Tags = model.Tags;
+            blog.Tag = model.Tags ?? "";
             
             blog.Slug = Regex.Replace(model.Title.ToLower(), @"[^a-z0-9\s-]", "").Replace(" ", "-") + "-" + DateTime.Now.Ticks;
 
@@ -162,8 +149,6 @@ namespace DevHub.Services.Implementations
             }
             else
             {
-                // If the user editing is a recruiter (publisherId not involved here, but generally if they edit, it should become pending if it wasn't already published? Or maybe they just can't edit published without re-approval? Let's say if action is publish, it goes to Pending Approval unless they are Moderator)
-                // Wait, we need to know who is editing. Let's just say if they click publish:
                 if (blog.PublisherId != null) 
                 {
                     blog.Status = 1; // Published
@@ -185,7 +170,7 @@ namespace DevHub.Services.Implementations
         public async Task<bool> ToggleVisibilityAsync(int id)
         {
             var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null || blog.IsDeleted == true) return false;
+            if (blog == null) return false;
 
             if (blog.Status == 1)
             {
@@ -204,90 +189,9 @@ namespace DevHub.Services.Implementations
         public async Task<bool> DeletePostAsync(int id)
         {
             var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null || blog.IsDeleted == true) return false;
+            if (blog == null) return false;
 
-            blog.IsDeleted = true;
-            await _blogPostRepository.UpdateAsync(blog);
-            return true;
-        }
-
-        public async Task<bool> ApprovePostAsync(int id, int approverId)
-        {
-            var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null || blog.IsDeleted == true) return false;
-
-            blog.Status = 1; // Published
-            blog.ApproverId = approverId;
-            blog.ApprovedAt = DateTime.Now;
-            if (blog.PublishedAt == null)
-            {
-                blog.PublishedAt = DateTime.Now;
-            }
-
-            await _blogPostRepository.UpdateAsync(blog);
-
-            // Gửi email thông báo cho recruiter
-            if (blog.AuthorRecruiter?.RecruiterNavigation?.Email != null)
-            {
-                var emailHelper = new DevHub.Helpers.EmailHelper(_config);
-                string subject = "DevHub - Bài viết của bạn đã được duyệt";
-                string content = $@"
-                    <p>Chào <b>{blog.Author ?? blog.AuthorRecruiter.RecruiterNavigation.Email}</b>,</p>
-                    <p>Bài viết <b>{blog.Title}</b> của bạn đã được moderator duyệt và xuất bản thành công trên nền tảng DevHub.</p>
-                    <p style='margin-top:20px;'>
-                        <a href='https://devhub.vn/Blog/{blog.Slug}'
-                           style='background:#4640DE;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;'>
-                            Xem bài viết
-                        </a>
-                    </p>";
-                string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("🎉 Bài viết đã được duyệt!", content);
-                try
-                {
-                    await emailHelper.SendEmailAsync(blog.AuthorRecruiter.RecruiterNavigation.Email, subject, body);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine("Error sending approval email: " + ex.Message);
-                }
-            }
-
-            return true;
-        }
-
-        public async Task<bool> RejectPostAsync(int id, int approverId, string reason)
-        {
-            var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null || blog.IsDeleted == true) return false;
-
-            blog.Status = 4; // Rejected
-            blog.ApproverId = approverId;
-            blog.RejectedAt = DateTime.Now;
-            blog.RejectReason = reason;
-
-            await _blogPostRepository.UpdateAsync(blog);
-
-            if (blog.AuthorRecruiter?.RecruiterNavigation?.Email != null)
-            {
-                var emailHelper = new DevHub.Helpers.EmailHelper(_config);
-                string subject = "DevHub - Thông báo từ chối bài viết blog";
-                string content = $@"
-                    <p>Chào bạn,</p>
-                    <p>Bài viết <b>{blog.Title}</b> của bạn đã bị từ chối với lý do:</p>
-                    <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:12px 16px;border-radius:4px;margin:16px 0;'>
-                        <p style='margin:0;color:#856404;'><i>{reason}</i></p>
-                    </div>
-                    <p>Vui lòng đăng nhập vào hệ thống để chỉnh sửa và gửi lại bài viết.</p>";
-                string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Thông báo từ chối bài viết", content);
-                try 
-                {
-                    await emailHelper.SendEmailAsync(blog.AuthorRecruiter.RecruiterNavigation.Email, subject, body);
-                } 
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine("Error sending rejection email: " + ex.Message);
-                }
-            }
-
+            await _blogPostRepository.DeleteAsync(blog);
             return true;
         }
     }

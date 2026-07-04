@@ -25,6 +25,6 @@ public interface IJobSearchRepository
     Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top);
 
     /// Top companies có nhiều APPROVED job nhất.
-    Task<List<(int RecruiterId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top);
+    Task<List<(int CompanyId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top);
 }
 

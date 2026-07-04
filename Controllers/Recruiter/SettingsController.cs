@@ -75,15 +75,15 @@ namespace DevHub.Controllers.Recruiter
                 Position = model.Position,
                 Phone = model.Phone,
                 // preserve other fields of recruiter entity which are not in the account form.
-                CompanyName = dbUser.Recruiter.CompanyName,
-                CompanyAddress = dbUser.Recruiter.CompanyAddress,
-                CompanyLogoUrl = dbUser.Recruiter.CompanyLogoUrl,
-                CompanyDescription = dbUser.Recruiter.CompanyDescription,
-                Website = dbUser.Recruiter.Website,
-                Industry = dbUser.Recruiter.Industry,
-                TaxCode = dbUser.Recruiter.TaxCode,
-                BusinessLicenseUrl = dbUser.Recruiter.BusinessLicenseUrl,
-                AdditionalDocumentsUrl = dbUser.Recruiter.AdditionalDocumentsUrl
+                CompanyName = dbUser.Recruiter.Company.CompanyName,
+                CompanyAddress = dbUser.Recruiter.Company.CompanyAddress,
+                CompanyLogoUrl = dbUser.Recruiter.Company.CompanyLogoUrl,
+                CompanyDescription = dbUser.Recruiter.Company.CompanyDescription,
+                Website = dbUser.Recruiter.Company.Website,
+                Industry = dbUser.Recruiter.Company.Industry,
+                TaxCode = dbUser.Recruiter.Company.TaxCode,
+                BusinessLicenseUrl = dbUser.Recruiter.Company.BusinessLicenseUrl,
+                AdditionalDocumentsUrl = dbUser.Recruiter.Company.AdditionalDocumentsUrl
             };
 
             await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, vm);
@@ -116,11 +116,11 @@ namespace DevHub.Controllers.Recruiter
             model.FullName = dbUser.Recruiter.FullName;
             model.Position = dbUser.Recruiter.Position;
             model.Phone = dbUser.Recruiter.Phone;
-            model.BusinessLicenseUrl = dbUser.Recruiter.BusinessLicenseUrl;
-            model.AdditionalDocumentsUrl = dbUser.Recruiter.AdditionalDocumentsUrl;
+            model.BusinessLicenseUrl = dbUser.Recruiter.Company.BusinessLicenseUrl;
+            model.AdditionalDocumentsUrl = dbUser.Recruiter.Company.AdditionalDocumentsUrl;
 
             // Preserve current logo; remember the old one so it can be deleted if replaced.
-            var oldLogoUrl = dbUser.Recruiter.CompanyLogoUrl;
+            var oldLogoUrl = dbUser.Recruiter.Company.CompanyLogoUrl;
             model.CompanyLogoUrl = oldLogoUrl;
 
             // handle logo upload — override logo if upload new
@@ -253,7 +253,7 @@ namespace DevHub.Controllers.Recruiter
             //get path to save license files
             var uploads = Path.Combine(_env.WebRootPath, "uploads", "license");
             // Remember the current license file then delete it after the new one is saved.
-            var oldLicenseUrl = dbUser.Recruiter.BusinessLicenseUrl;
+            var oldLicenseUrl = dbUser.Recruiter.Company.BusinessLicenseUrl;
             try
             {
                 Directory.CreateDirectory(uploads);
@@ -269,15 +269,15 @@ namespace DevHub.Controllers.Recruiter
                     FullName = dbUser.Recruiter.FullName,
                     Position = dbUser.Recruiter.Position,
                     Phone = dbUser.Recruiter.Phone,
-                    CompanyName = dbUser.Recruiter.CompanyName,
-                    CompanyAddress = dbUser.Recruiter.CompanyAddress,
-                    CompanyLogoUrl = dbUser.Recruiter.CompanyLogoUrl,
-                    CompanyDescription = dbUser.Recruiter.CompanyDescription,
-                    Website = dbUser.Recruiter.Website,
-                    Industry = dbUser.Recruiter.Industry,
-                    TaxCode = dbUser.Recruiter.TaxCode,
+                    CompanyName = dbUser.Recruiter.Company.CompanyName,
+                    CompanyAddress = dbUser.Recruiter.Company.CompanyAddress,
+                    CompanyLogoUrl = dbUser.Recruiter.Company.CompanyLogoUrl,
+                    CompanyDescription = dbUser.Recruiter.Company.CompanyDescription,
+                    Website = dbUser.Recruiter.Company.Website,
+                    Industry = dbUser.Recruiter.Company.Industry,
+                    TaxCode = dbUser.Recruiter.Company.TaxCode,
                     BusinessLicenseUrl = $"/uploads/license/{fileName}",
-                    AdditionalDocumentsUrl = dbUser.Recruiter.AdditionalDocumentsUrl
+                    AdditionalDocumentsUrl = dbUser.Recruiter.Company.AdditionalDocumentsUrl
                 };
 
                 await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, vm);
@@ -338,7 +338,7 @@ namespace DevHub.Controllers.Recruiter
 
             var uploads = Path.Combine(_env.WebRootPath, "uploads", "additional");
             // Remember the current additional doc so it can be deleted after the new one is saved.
-            var oldDocUrl = dbUser.Recruiter.AdditionalDocumentsUrl;
+            var oldDocUrl = dbUser.Recruiter.Company.AdditionalDocumentsUrl;
             try
             {
                 Directory.CreateDirectory(uploads);
@@ -354,14 +354,14 @@ namespace DevHub.Controllers.Recruiter
                     FullName = dbUser.Recruiter.FullName,
                     Position = dbUser.Recruiter.Position,
                     Phone = dbUser.Recruiter.Phone,
-                    CompanyName = dbUser.Recruiter.CompanyName,
-                    CompanyAddress = dbUser.Recruiter.CompanyAddress,
-                    CompanyLogoUrl = dbUser.Recruiter.CompanyLogoUrl,
-                    CompanyDescription = dbUser.Recruiter.CompanyDescription,
-                    Website = dbUser.Recruiter.Website,
-                    Industry = dbUser.Recruiter.Industry,
-                    TaxCode = dbUser.Recruiter.TaxCode,
-                    BusinessLicenseUrl = dbUser.Recruiter.BusinessLicenseUrl,   
+                    CompanyName = dbUser.Recruiter.Company.CompanyName,
+                    CompanyAddress = dbUser.Recruiter.Company.CompanyAddress,
+                    CompanyLogoUrl = dbUser.Recruiter.Company.CompanyLogoUrl,
+                    CompanyDescription = dbUser.Recruiter.Company.CompanyDescription,
+                    Website = dbUser.Recruiter.Company.Website,
+                    Industry = dbUser.Recruiter.Company.Industry,
+                    TaxCode = dbUser.Recruiter.Company.TaxCode,
+                    BusinessLicenseUrl = dbUser.Recruiter.Company.BusinessLicenseUrl,   
                     AdditionalDocumentsUrl = $"/uploads/additional/{fileName}"     
                 };
 
@@ -428,3 +428,4 @@ namespace DevHub.Controllers.Recruiter
         }
     }
 }
+

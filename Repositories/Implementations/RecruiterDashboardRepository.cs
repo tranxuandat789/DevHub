@@ -19,7 +19,7 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
     public async Task<List<JobPost>> GetJobPostsAsync(int recruiterId)
         => await _context.JobPosts
             .AsNoTracking()
-            .Where(j => j.RecruiterId == recruiterId)
+            .Where(j => j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
             .OrderByDescending(j => j.CreatedAt)
             .ToListAsync();
 
@@ -39,7 +39,7 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
 
         var rows = await _context.JobPosts
             .AsNoTracking()
-            .Where(j => j.RecruiterId == recruiterId
+            .Where(j => j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
                      && j.Status != null && j.Status.ToUpper() == "APPROVED"
                      && j.Deadline != null
                      && j.Deadline >= today
@@ -62,7 +62,7 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
     public async Task<List<RecentApplicationItem>> GetRecentApplicationsAsync(int recruiterId, int take = 6)
         => await _context.Applications
             .AsNoTracking()
-            .Where(a => a.Job.RecruiterId == recruiterId)
+            .Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
             .OrderByDescending(a => a.AppliedAt)
             .Take(take)
             .Select(a => new RecentApplicationItem
@@ -104,7 +104,7 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
     public async Task<List<DateTime>> GetApplicationDatesAsync(int recruiterId, DateTime fromDate)
         => await _context.Applications
             .AsNoTracking()
-            .Where(a => a.Job.RecruiterId == recruiterId
+            .Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
                      && a.AppliedAt != null
                      && a.AppliedAt >= fromDate)
             .Select(a => a.AppliedAt!.Value)
@@ -114,5 +114,5 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
     public async Task<int> CountApplicationsAsync(int recruiterId)
         => await _context.Applications
             .AsNoTracking()
-            .CountAsync(a => a.Job.RecruiterId == recruiterId);
+            .CountAsync(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
 }

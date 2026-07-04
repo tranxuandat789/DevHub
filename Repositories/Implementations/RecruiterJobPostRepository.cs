@@ -19,7 +19,7 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var package = await _context.RecruiterPackageHistories.FindAsync(packageHistoryId)
+            var package = await _context.CompanyPackageHistories.FindAsync(packageHistoryId)
                 ?? throw new InvalidOperationException("Tài khoản đã hết lượt đăng bài hoặc gói dịch vụ hết hạn.");
 
             if (package.PostsRemaining <= 0)
@@ -46,7 +46,7 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         return await _context.JobPosts
             .AsNoTracking()
             .Include(j => j.Position)
-            .Where(j => j.RecruiterId == recruiterId)
+            .Where(j => j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
             .OrderByDescending(j => j.CreatedAt)
             .ToListAsync();
     }
@@ -58,7 +58,7 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
             .Include(j => j.Position)
             .Include(j => j.Teches)
             .Include(j => j.Provinces)
-            .FirstOrDefaultAsync(j => j.JobId == jobId && j.RecruiterId == recruiterId);
+            .FirstOrDefaultAsync(j => j.JobId == jobId && j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
     }
 
     // Edit job post fields: sync tech stacks, provinces, other fields.
@@ -67,7 +67,7 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         var job = await _context.JobPosts
             .Include(j => j.Teches)
             .Include(j => j.Provinces)
-            .FirstOrDefaultAsync(j => j.JobId == source.JobId && j.RecruiterId == source.RecruiterId)
+            .FirstOrDefaultAsync(j => j.JobId == source.JobId && j.CompanyId == source.CompanyId)
             ?? throw new KeyNotFoundException("Không tìm thấy tin tuyển dụng.");
 
         job.Title = source.Title;
@@ -106,7 +106,7 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
     // Close an active post: set status to CLOSED (owned by the recruiter).
     public Task CloseJobPostAsync(int jobId, int recruiterId)
         => _context.JobPosts
-            .Where(j => j.JobId == jobId && j.RecruiterId == recruiterId)
+            .Where(j => j.JobId == jobId && j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
             .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, "CLOSED"));
 
     //Delete job post: cascade delete related applications, interviews, bookmarks, job_tech_stack.
@@ -124,7 +124,7 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
             await _context.Database.ExecuteSqlInterpolatedAsync(
                 $"DELETE FROM job_tech_stack WHERE job_id = {jobId}");
             await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"DELETE FROM job_post WHERE job_id = {jobId} AND recruiter_id = {recruiterId}");
+                $"DELETE FROM job_post WHERE job_id = {jobId} AND company_id = {recruiterId}");
 
             await transaction.CommitAsync();
         }

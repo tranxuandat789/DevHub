@@ -39,12 +39,12 @@ namespace DevHub.Controllers.Admin
             viewModel.ActiveJobPosts = await _context.JobPosts.CountAsync(j => j.Status == "Active");
             viewModel.TotalAppliedCVs = await _context.Applications.CountAsync();
 
-            viewModel.TopRecruiters = await _context.Recruiters
+            viewModel.TopRecruiters = await _context.Companies
                 .OrderByDescending(r => r.TotalSpent)
                 .Take(5)
                 .Select(r => new TopRecruiterDto
                 {
-                    RecruiterId = r.RecruiterId,
+                    RecruiterId = r.CompanyId,
                     CompanyName = r.CompanyName,
                     TotalSpent = r.TotalSpent ?? 0
                 }).ToListAsync();
@@ -64,7 +64,7 @@ namespace DevHub.Controllers.Admin
         public async Task<IActionResult> ExportTransactionsCsv()
         {
             var transactions = await _context.PackageTransactions
-                .Include(t => t.Recruiter)
+                .Include(t => t.Company)
                 .Include(t => t.Service)
                 .Where(t => t.Status == "Completed" || t.Status == "Success")
                 .OrderByDescending(t => t.TransactionDate)
@@ -75,7 +75,7 @@ namespace DevHub.Controllers.Admin
 
             foreach (var txn in transactions)
             {
-                var companyName = txn.Recruiter?.CompanyName?.Replace(",", " ") ?? "Unknown";
+                var companyName = txn.Company?.CompanyName?.Replace(",", " ") ?? "Unknown";
                 var packageName = txn.Service?.PackageName?.Replace(",", " ") ?? "Unknown";
                 builder.AppendLine($"{txn.TransactionId},{companyName},{packageName},{txn.FinalAmount},{txn.TransactionDate:yyyy-MM-dd HH:mm},{txn.PaymentMethod},{txn.Status}");
             }
@@ -84,3 +84,5 @@ namespace DevHub.Controllers.Admin
         }
     }
 }
+
+

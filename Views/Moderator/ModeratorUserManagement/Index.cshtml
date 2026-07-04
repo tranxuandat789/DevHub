@@ -79,9 +79,9 @@
                     }
                     else if (userType == "recruiter" && user.Recruiter != null)
                     {
-                        name = user.Recruiter.CompanyName ?? user.Recruiter.FullName ?? user.Email;
-                        if (!string.IsNullOrEmpty(user.Recruiter.CompanyLogoUrl)) imageUrl = user.Recruiter.CompanyLogoUrl;
-                        spent = user.Recruiter.TotalSpent ?? 0;
+                        name = user.Recruiter.Company?.CompanyName ?? user.Recruiter.FullName ?? user.Email;
+                        if (!string.IsNullOrEmpty(user.Recruiter.Company?.CompanyLogoUrl)) imageUrl = user.Recruiter.Company?.CompanyLogoUrl;
+                        spent = user.Recruiter.Company?.TotalSpent ?? 0;
                     }
 
                     var isActive = user.IsActive ?? true;

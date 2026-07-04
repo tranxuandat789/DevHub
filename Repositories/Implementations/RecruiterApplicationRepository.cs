@@ -20,7 +20,7 @@ namespace DevHub.Repositories.Implementations
             => await _context.JobPosts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(j => j.JobId == jobId
-                                       && j.RecruiterId == recruiterId
+                                       && j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
                                        // The recruiter may VIEW the applicant list for any non-rejected job, including a
                                        // job that just went back to PENDING (re-review). The list is read-only while
                                        // PENDING — approve/reject is gated separately. Only REJECTED jobs are blocked.
@@ -34,7 +34,7 @@ namespace DevHub.Repositories.Implementations
         {
             var q = _context.Applications
                 .AsNoTracking()
-                .Where(a => a.Job.RecruiterId == recruiterId);
+                .Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
 
             if (jobId.HasValue)
                 q = q.Where(a => a.JobId == jobId.Value);
@@ -149,14 +149,14 @@ namespace DevHub.Repositories.Implementations
                 .Include(a => a.Candidate).ThenInclude(c => c.CandidateSkills).ThenInclude(s => s.Tech)
                 .Include(a => a.Cv)
                 .Include(a => a.Job)
-                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.RecruiterId == recruiterId);
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
 
         public async Task<(Application? App, string? JobStatus)> GetApplicationWithJobStatusAsync(int applicationId, int recruiterId)
         {
             var app = await _context.Applications
                 .AsNoTracking()
                 .Include(a => a.Job)
-                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.RecruiterId == recruiterId);
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
 
             return (app, app?.Job?.Status);
         }
@@ -170,7 +170,7 @@ namespace DevHub.Repositories.Implementations
             // can never change if the job was sent back to re-review between the gate check and now.
             var rows = await _context.Applications
                 .Where(a => a.ApplicationId == applicationId
-                         && a.Job.RecruiterId == recruiterId
+                         && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
                          && (a.Status == null || a.Status.ToUpper() == "PENDING")
                          && (a.Job.Status == null || a.Job.Status.ToUpper() != "PENDING"))
                 .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, status));
@@ -224,7 +224,7 @@ namespace DevHub.Repositories.Implementations
         // extra dependent query per filter change.
         public async Task<List<string>> GetCandidateLocationOptionsAsync(int recruiterId, int? jobId)
         {
-            var q = _context.Applications.AsNoTracking().Where(a => a.Job.RecruiterId == recruiterId);
+            var q = _context.Applications.AsNoTracking().Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
             if (jobId.HasValue)
                 q = q.Where(a => a.JobId == jobId.Value);
 
@@ -249,14 +249,14 @@ namespace DevHub.Repositories.Implementations
         public async Task<int> CountApplicationsAtCompanyAsync(int candidateId, int recruiterId)
             => await _context.Applications
                 .AsNoTracking()
-                .CountAsync(a => a.CandidateId == candidateId && a.Job.RecruiterId == recruiterId);
+                .CountAsync(a => a.CandidateId == candidateId && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
 
         public async Task<CandidateProfileHistoryViewModel?> GetCandidateProfileHistoryAsync(int recruiterId, int candidateId)
         {
             // Access gate: the recruiter must have at least one application link with this candidate.
             var hasAccess = await _context.Applications
                 .AsNoTracking()
-                .AnyAsync(a => a.CandidateId == candidateId && a.Job.RecruiterId == recruiterId);
+                .AnyAsync(a => a.CandidateId == candidateId && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
             if (!hasAccess) return null;
 
             var candidate = await _context.Candidates
@@ -268,7 +268,7 @@ namespace DevHub.Repositories.Implementations
 
             var applications = await _context.Applications
                 .AsNoTracking()
-                .Where(a => a.CandidateId == candidateId && a.Job.RecruiterId == recruiterId)
+                .Where(a => a.CandidateId == candidateId && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
                 .Include(a => a.Job)
                 .Include(a => a.Cv)
                 .OrderByDescending(a => a.AppliedAt)

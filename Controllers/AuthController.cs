@@ -378,10 +378,10 @@ public class AuthController : Controller
             }
 
             if (!string.IsNullOrEmpty(avatar) && user.UserType?.Trim().ToUpper() == "RECRUITER"
-                && user.Recruiter?.CompanyLogoUrl != avatar)
+                && user.Recruiter?.Company?.CompanyLogoUrl != avatar)
             {
                 await _auth.SyncRecruiterAvatarAsync(user.UserId, avatar);
-                if (user.Recruiter != null) user.Recruiter.CompanyLogoUrl = avatar;
+                if (user.Recruiter?.Company != null) user.Recruiter.Company.CompanyLogoUrl = avatar;
             }
 
             if (user.IsActive != true)
@@ -517,7 +517,7 @@ public class AuthController : Controller
         }
         else if (user.UserType?.Trim().ToUpper() == "RECRUITER")
         {
-            avatarUrl = !string.IsNullOrEmpty(user.Recruiter?.CompanyLogoUrl) ? user.Recruiter.CompanyLogoUrl : googleAvatar;
+            avatarUrl = !string.IsNullOrEmpty(user.Recruiter?.Company?.CompanyLogoUrl) ? user.Recruiter.Company.CompanyLogoUrl : googleAvatar;
         }
         avatarUrl ??= "";
 
@@ -922,17 +922,13 @@ public class AuthController : Controller
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRecruiter.Password),
                     UserType = "RECRUITER",
                     IsActive = true,
-                    CreatedAt = DateTime.Now,
                     LastUpdated = DateTime.Now
                 };
                 _context.UserAccounts.Add(user);
                 await _context.SaveChangesAsync(); // SaveChanges lần 1 để lấy UserId
 
-                var recruiter = new DevHub.Models.Recruiter
+                var company = new DevHub.Models.Company
                 {
-                    RecruiterId = user.UserId,
-                    FullName = registerRecruiter.FullName,
-                    Phone = registerRecruiter.Phone,
                     CompanyName = registerRecruiter.CompanyName,
                     CompanyAddress = registerRecruiter.CompanyAddress,
                     Website = registerRecruiter.CompanyWebsite,
@@ -940,7 +936,19 @@ public class AuthController : Controller
                     ProfileCompletion = 0,
                     TotalSpent = 0,
                     AverageRating = 0,
-                    TotalReviews = 0
+                    TotalReviews = 0,
+                    
+                };
+                _context.Companies.Add(company);
+                await _context.SaveChangesAsync();
+
+                var recruiter = new DevHub.Models.Recruiter
+                {
+                    RecruiterId = user.UserId,
+                    FullName = registerRecruiter.FullName,
+                    Phone = registerRecruiter.Phone,
+                    CompanyId = company.CompanyId,
+                    IsCompanyAdmin = true
                 };
                 _context.Recruiters.Add(recruiter);
                 await _context.SaveChangesAsync(); // SaveChanges lần 2 để lưu Recruiter
@@ -1135,7 +1143,6 @@ public class AuthController : Controller
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(vm.Password),
                 UserType = "CANDIDATE",
                 IsActive = true,
-                CreatedAt = DateTime.Now,
                 LastUpdated = DateTime.Now
             };
             _context.UserAccounts.Add(user);
@@ -1222,3 +1229,7 @@ public class AuthController : Controller
         }
     }
 }
+
+
+
+

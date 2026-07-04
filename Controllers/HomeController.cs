@@ -34,7 +34,7 @@ namespace DevHub.Controllers
             // Lấy danh sách 6 việc làm đã được duyệt (Approved)
             // Sắp xếp ưu tiên theo điểm số (PriorityScore) giảm dần, sau đó theo ngày tạo mới nhất
             var featuredJobs = await _context.JobPosts
-                .Include(j => j.Recruiter)
+                .Include(j => j.Company)
                 .Include(j => j.Position)
                 .Include(j => j.Teches)
                 .Include(j => j.Provinces)
@@ -47,14 +47,14 @@ namespace DevHub.Controllers
             // Lấy danh sách 8 công ty (nhà tuyển dụng) nổi bật đã được xác thực (IsVerified)
             // Dữ liệu bao gồm thông tin cơ bản và tổng số lượng việc làm đã được duyệt của từng công ty
             // Sắp xếp giảm dần theo số lượng việc làm
-            var featuredCompanies = await _context.Recruiters
-                .Where(r => r.IsVerified == true)
-                .Select(r => new FeaturedCompanyViewModel
+            var featuredCompanies = await _context.Companies
+                .Where(c => c.IsVerified == true)
+                .Select(c => new FeaturedCompanyViewModel
                 {
-                    RecruiterId = r.RecruiterId,
-                    CompanyName = r.CompanyName,
-                    CompanyLogoUrl = r.CompanyLogoUrl,
-                    JobCount = _context.JobPosts.Count(j => j.RecruiterId == r.RecruiterId && j.Status != null && j.Status.ToLower() == "approved")
+                    RecruiterId = c.CompanyId,
+                    CompanyName = c.CompanyName,
+                    CompanyLogoUrl = c.CompanyLogoUrl,
+                    JobCount = _context.JobPosts.Count(j => j.CompanyId == c.CompanyId && j.Status != null && j.Status.ToLower() == "approved")
                 })
                 .OrderByDescending(c => c.JobCount)
                 .Take(8)
@@ -63,7 +63,7 @@ namespace DevHub.Controllers
             // Lấy danh sách 5 bài viết cẩm nang/blog đã được xuất bản (IsPublished)
             // Sắp xếp giảm dần theo ngày xuất bản mới nhất
             var featuredBlogs = await _context.BlogPosts
-                .Where(b => b.Status == 1 && b.IsDeleted != true)
+                .Where(b => b.Status == 1)
                 .OrderByDescending(b => b.PublishedAt)
                 .Take(5)
                 .ToListAsync();

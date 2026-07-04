@@ -20,7 +20,7 @@ public class JobSearchRepository : IJobSearchRepository
     {
         var query = _context.JobPosts
             .AsNoTracking()
-            .Include(j => j.Recruiter)
+            .Include(j => j.Company)
             .Include(j => j.Position)
             .Include(j => j.Teches)
             .Include(j => j.Provinces)
@@ -64,7 +64,7 @@ public class JobSearchRepository : IJobSearchRepository
 
         // Quick-filter: công ty
         if (filter.RecruiterId.HasValue)
-            query = query.Where(j => j.RecruiterId == filter.RecruiterId.Value);
+            query = query.Where(j => j.CompanyId == filter.RecruiterId.Value);
 
         // Count total before pagination
         var totalCount = await query.CountAsync();
@@ -85,7 +85,7 @@ public class JobSearchRepository : IJobSearchRepository
     {
         return await _context.JobPosts
             .AsNoTracking()
-            .Include(j => j.Recruiter)
+            .Include(j => j.Company)
             .Include(j => j.Position)
             .Include(j => j.Teches)
             .Include(j => j.Provinces)
@@ -152,22 +152,23 @@ public class JobSearchRepository : IJobSearchRepository
     }
 
     /// Top N companies có nhiều APPROVED job nhất.
-    public async Task<List<(int RecruiterId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top)
+    public async Task<List<(int CompanyId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top)
     {
         return await _context.JobPosts
             .AsNoTracking()
             .Where(j => j.Status == "APPROVED")
-            .GroupBy(j => new { j.RecruiterId, j.Recruiter.CompanyName, j.Recruiter.CompanyLogoUrl })
+            .GroupBy(j => new { j.CompanyId, j.Company.CompanyName, j.Company.CompanyLogoUrl })
             .Select(g => new
             {
-                g.Key.RecruiterId,
+                g.Key.CompanyId,
                 g.Key.CompanyName,
                 g.Key.CompanyLogoUrl,
                 JobCount = g.Count()
             })
             .OrderByDescending(x => x.JobCount)
             .Take(top)
-            .Select(x => ValueTuple.Create(x.RecruiterId, x.CompanyName, x.CompanyLogoUrl, x.JobCount))
+            .Select(x => ValueTuple.Create(x.CompanyId, x.CompanyName, x.CompanyLogoUrl, x.JobCount))
             .ToListAsync();
     }
 }
+

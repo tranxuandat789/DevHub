@@ -4,8 +4,8 @@
 @{
     var displayName = Model.FullName;
     //get logo company, if null generate default logo by user name
-    var displayAvatar = !string.IsNullOrEmpty(Model.CompanyLogoUrl)
-        ? Model.CompanyLogoUrl
+    var displayAvatar = !string.IsNullOrEmpty(Model.Company?.CompanyLogoUrl)
+        ? Model.Company?.CompanyLogoUrl
         : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(displayName)}&background=4640DE&color=fff&size=128";
     var email = Model.RecruiterNavigation?.Email ?? User.FindFirstValue(ClaimTypes.Email) ?? "";
 
@@ -18,7 +18,7 @@
 <div>
     <div class="flex items-center gap-2 mb-6">
         <h2 class="text-lg font-medium text-gray-900">Thông tin cá nhân</h2>
-        @if (Model.IsVerified == true)
+        @if (Model.Company?.IsVerified == true)
         {
             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700" title="Tài khoản đã được xác thực">
                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>

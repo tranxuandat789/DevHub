@@ -6,7 +6,7 @@ namespace DevHub.Repositories.Interfaces
 {
     public interface ICompanyRepository
     {
-        Task<(List<Recruiter> Items, int TotalCount)> GetVisibleCompaniesAsync(
+        Task<(List<Company> Items, int TotalCount)> GetVisibleCompaniesAsync(
             string? searchTerm, 
             List<int>? selectedTechs, 
             List<int>? selectedPositions, 
@@ -14,8 +14,9 @@ namespace DevHub.Repositories.Interfaces
             int page, 
             int pageSize);
             
-        Task<Recruiter?> GetCompanyDetailsAsync(int recruiterId);
-        Task<List<JobPost>> GetCompanyJobsAsync(int recruiterId);
+        Task<Company> AddCompanyAsync(Company company);
+        Task<Company?> GetCompanyDetailsAsync(int companyId);
+        Task<List<JobPost>> GetCompanyJobsAsync(int companyId);
         
         Task<List<CommonTechnology>> GetActiveTechnologiesAsync();
         Task<List<CommonJobPosition>> GetActiveJobPositionsAsync();

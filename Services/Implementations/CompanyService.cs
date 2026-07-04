@@ -28,10 +28,10 @@ namespace DevHub.Services.Implementations
             
             var rankedList = allRecruiters
                 .Select(r => new {
-                    RecruiterId = r.RecruiterId,
+                    CompanyId = r.CompanyId,
                     Rating = r.AverageRating ?? 0m,
-                    LatestReviewDate = r.ReviewRecruiters.Any() 
-                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
+                    LatestReviewDate = r.ReviewCompanies.Any() 
+                        ? r.ReviewCompanies.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
                         : DateTime.MinValue,
                     CompanyName = r.CompanyName
                 })
@@ -41,8 +41,8 @@ namespace DevHub.Services.Implementations
                 .ToList();
 
             var ranksDict = rankedList
-                .Select((x, idx) => new { x.RecruiterId, Rank = idx + 1 })
-                .ToDictionary(x => x.RecruiterId, x => x.Rank);
+                .Select((x, idx) => new { x.CompanyId, Rank = idx + 1 })
+                .ToDictionary(x => x.CompanyId, x => x.Rank);
 
             // Step 2: Fetch filtered & sorted recruiters for the current search/filter criteria
             var (items, totalCount) = await _companyRepo.GetVisibleCompaniesAsync(
@@ -56,18 +56,18 @@ namespace DevHub.Services.Implementations
             var list = items.Select(r =>
             {
                 double? avgRating = null;
-                int totalReviews = r.ReviewRecruiters.Count;
+                int totalReviews = r.ReviewCompanies.Count;
                 if (totalReviews > 0)
                 {
-                    avgRating = (double)r.ReviewRecruiters.Sum(rev => rev.Rating) / totalReviews;
+                    avgRating = (double)r.ReviewCompanies.Sum(rev => rev.Rating) / totalReviews;
                 }
 
                 // Resolve system rank from the pre-computed global rankings dictionary
-                int systemRank = ranksDict.TryGetValue(r.RecruiterId, out int rk) ? rk : 9999;
+                int systemRank = ranksDict.TryGetValue(r.CompanyId, out int rk) ? rk : 9999;
 
                 return new CompanySearchItemViewModel
                 {
-                    RecruiterId = r.RecruiterId,
+                    CompanyId = r.CompanyId,
                     CompanyName = r.CompanyName,
                     CompanyLogoUrl = r.CompanyLogoUrl,
                     CompanyAddress = r.CompanyAddress,
@@ -81,7 +81,7 @@ namespace DevHub.Services.Implementations
             // Populate JobCount and TechStacks badges for each company
             foreach (var company in list)
             {
-                var jobs = await _companyRepo.GetCompanyJobsAsync(company.RecruiterId);
+                var jobs = await _companyRepo.GetCompanyJobsAsync(company.CompanyId);
                 company.JobCount = jobs.Count;
                 company.TechStacks = jobs.SelectMany(j => j.Teches.Select(t => t.TechName)).Distinct().ToList();
             }
@@ -111,22 +111,22 @@ namespace DevHub.Services.Implementations
 
         public async Task<CompanyDetailsViewModel?> GetCompanyDetailsAsync(int id)
         {
-            var recruiter = await _companyRepo.GetCompanyDetailsAsync(id);
-            if (recruiter == null || (recruiter.ProfileCompletion ?? 0) < 70)
+            var company = await _companyRepo.GetCompanyDetailsAsync(id);
+            if (company == null || (company.ProfileCompletion ?? 0) < 70)
                 return null;
 
             var jobs = await _companyRepo.GetCompanyJobsAsync(id);
 
             double? avgRating = null;
-            int totalReviews = recruiter.ReviewRecruiters.Count;
+            int totalReviews = company.ReviewCompanies.Count;
             if (totalReviews > 0)
             {
-                avgRating = (double)recruiter.ReviewRecruiters.Sum(rev => rev.Rating) / totalReviews;
+                avgRating = (double)company.ReviewCompanies.Sum(rev => rev.Rating) / totalReviews;
             }
 
             return new CompanyDetailsViewModel
             {
-                Recruiter = recruiter,
+                Company = company,
                 ActiveJobs = jobs,
                 AverageRating = avgRating,
                 TotalReviews = totalReviews

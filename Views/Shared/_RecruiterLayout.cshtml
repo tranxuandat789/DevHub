@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -159,8 +159,8 @@
             var dbUser = await AuthService.FindUserByEmailAsync(email);
             if (dbUser != null)
             {
-                displayName = dbUser.Recruiter?.CompanyName ?? dbUser.Recruiter?.FullName ?? dbUser.Email;
-                avatarUrl = dbUser.Recruiter?.CompanyLogoUrl ?? "";
+                displayName = dbUser.Recruiter?.Company?.CompanyName ?? dbUser.Recruiter?.FullName ?? dbUser.Email;
+                avatarUrl = dbUser.Recruiter?.Company?.CompanyLogoUrl ?? "";
             }
         }
     }
@@ -513,3 +513,5 @@
 
 </body>
 </html>
+
+

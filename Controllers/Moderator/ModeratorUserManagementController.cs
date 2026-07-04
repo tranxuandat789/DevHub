@@ -50,7 +50,7 @@ namespace DevHub.Controllers.Moderator
                 search = search.ToLower();
                 query = query.Where(u => u.Email.ToLower().Contains(search) 
                     || (u.Candidate != null && u.Candidate.FullName.ToLower().Contains(search))
-                    || (u.Recruiter != null && u.Recruiter.CompanyName.ToLower().Contains(search))
+                    || (u.Recruiter != null && u.Recruiter.Company.CompanyName.ToLower().Contains(search))
                     || (u.Recruiter != null && u.Recruiter.FullName.ToLower().Contains(search)));
             }
 
@@ -68,10 +68,10 @@ namespace DevHub.Controllers.Moderator
                     query = query.OrderByDescending(u => u.Candidate != null ? u.Candidate.FullName : (u.Recruiter != null ? u.Recruiter.FullName : u.Email));
                     break;
                 case "spending_desc":
-                    query = query.OrderByDescending(u => u.Recruiter != null ? u.Recruiter.TotalSpent : 0);
+                    query = query.OrderByDescending(u => u.Recruiter != null ? u.Recruiter.Company.TotalSpent : 0);
                     break;
                 case "spending_asc":
-                    query = query.OrderBy(u => u.Recruiter != null ? u.Recruiter.TotalSpent : 0);
+                    query = query.OrderBy(u => u.Recruiter != null ? u.Recruiter.Company.TotalSpent : 0);
                     break;
                 default:
                     query = query.OrderByDescending(u => u.CreatedAt);

@@ -17,7 +17,7 @@ public class PackageTransactionService : IPackageTransactionService
     public async Task<AdminDashboardViewModel> GetAdminDashboardDataAsync(int month, int year)
     {
         var query = _repository.GetAll()
-            .Include(x => x.Recruiter)
+            .Include(x => x.Company)
             .Include(x => x.Service)
             .Where(x => x.Status == "Success" || x.Status == "Completed"); // Assuming successful statuses
 
@@ -43,7 +43,7 @@ public class PackageTransactionService : IPackageTransactionService
                 .Take(5)
                 .Select(x => new RecentTransactionDto
                 {
-                    CompanyName = x.Recruiter?.CompanyName ?? "Unknown",
+                    CompanyName = x.Company?.CompanyName ?? "Unknown",
                     PackageName = x.Service?.PackageName ?? "Unknown Package",
                     Amount = x.FinalAmount,
                     TransactionDate = x.TransactionDate ?? DateTime.MinValue
@@ -62,3 +62,4 @@ public class PackageTransactionService : IPackageTransactionService
         return viewModel;
     }
 }
+

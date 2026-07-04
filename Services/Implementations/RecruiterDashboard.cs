@@ -10,12 +10,12 @@ namespace DevHub.Services.Implementations
     public class RecruiterDashboardService : IRecruiterDashboardService
     {
         private readonly IRecruiterDashboardRepository _dashboardRepo;
-        private readonly IRecruiterPackageHistoryRepository _packageRepo;
+        private readonly ICompanyPackageHistoryRepository _packageRepo;
         private readonly IRecruiterRepository _recruiterRepo;
 
         public RecruiterDashboardService(
             IRecruiterDashboardRepository dashboardRepo,
-            IRecruiterPackageHistoryRepository packageRepo,
+            ICompanyPackageHistoryRepository packageRepo,
             IRecruiterRepository recruiterRepo)
         {
             _dashboardRepo = dashboardRepo;
@@ -60,12 +60,12 @@ namespace DevHub.Services.Implementations
 
             // Missing profile fields.
             var missingFields = new List<string>();
-            if (string.IsNullOrEmpty(recruiter.CompanyLogoUrl)) missingFields.Add("Logo công ty");
-            if (string.IsNullOrEmpty(recruiter.CompanyDescription)) missingFields.Add("Giới thiệu công ty");
-            if (string.IsNullOrEmpty(recruiter.Website)) missingFields.Add("Website");
-            if (string.IsNullOrEmpty(recruiter.Industry)) missingFields.Add("Ngành nghề");
-            if (string.IsNullOrEmpty(recruiter.TaxCode)) missingFields.Add("Mã số thuế");
-            if (string.IsNullOrEmpty(recruiter.BusinessLicenseUrl)) missingFields.Add("Giấy phép kinh doanh");
+            if (string.IsNullOrEmpty(recruiter.Company?.CompanyLogoUrl)) missingFields.Add("Logo công ty");
+            if (string.IsNullOrEmpty(recruiter.Company?.CompanyDescription)) missingFields.Add("Giới thiệu công ty");
+            if (string.IsNullOrEmpty(recruiter.Company?.Website)) missingFields.Add("Website");
+            if (string.IsNullOrEmpty(recruiter.Company?.Industry)) missingFields.Add("Ngành nghề");
+            if (string.IsNullOrEmpty(recruiter.Company?.TaxCode)) missingFields.Add("Mã số thuế");
+            if (string.IsNullOrEmpty(recruiter.Company?.BusinessLicenseUrl)) missingFields.Add("Giấy phép kinh doanh");
 
             // Activity chart series (depends on range).
             var stats = await BuildStatsSeriesAsync(recruiterId, range, interviews);
@@ -81,7 +81,7 @@ namespace DevHub.Services.Implementations
                 ScheduledInterviews = scheduled,
                 CompletedInterviews = completed,
 
-                IsVerified             = recruiter.IsVerified ?? false,
+                IsVerified             = recruiter.Company?.IsVerified ?? false,
                 HasPendingVerification = hasPending,
 
                 HasActivePackage  = package != null,
@@ -90,7 +90,7 @@ namespace DevHub.Services.Implementations
                 PostsGranted      = package?.PostsGranted ?? 0,
                 PackageExpiry     = package?.EndDate,
 
-                ProfileCompletion    = recruiter.ProfileCompletion ?? 0,
+                ProfileCompletion    = recruiter.Company?.ProfileCompletion ?? 0,
                 MissingProfileFields = missingFields,
 
                 ExpiringJobs       = expiringJobs,

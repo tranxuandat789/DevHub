@@ -19,16 +19,14 @@ namespace DevHub.Repositories.Implementations
         public IQueryable<BlogPost> GetAllActive()
         {
             return _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .Where(b => b.IsDeleted != true)
+                .Include(b => b.Publisher)
                 .AsQueryable();
         }
 
         public async Task<BlogPost?> GetByIdAsync(int id)
         {
             return await _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .ThenInclude(r => r.RecruiterNavigation) // Just in case Email is on User
+                .Include(b => b.Publisher)
                 .FirstOrDefaultAsync(b => b.BlogId == id);
         }
 
@@ -41,6 +39,12 @@ namespace DevHub.Repositories.Implementations
         public async Task UpdateAsync(BlogPost blogPost)
         {
             _context.BlogPosts.Update(blogPost);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(BlogPost blogPost)
+        {
+            _context.BlogPosts.Remove(blogPost);
             await _context.SaveChangesAsync();
         }
     }

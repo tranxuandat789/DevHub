@@ -29,10 +29,10 @@
             <div class="flex items-center justify-between border-y border-bordercolor py-6">
                 <div class="flex items-center gap-4">
                     <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl">
-                        @(Model.AuthorRecruiter?.FullName?.Substring(0, 1) ?? "A")
+                        @(Model.Publisher?.FullName?.Substring(0, 1) ?? "A")
                     </div>
                     <div>
-                        <p class="font-bold text-dark text-lg">@(Model.AuthorRecruiter?.FullName ?? Model.Author ?? "Admin Vũ")</p>
+                        <p class="font-bold text-dark text-lg">@(Model.Publisher?.FullName ?? "Admin Vũ")</p>
                         <p class="text-sm text-muted">Tác giả</p>
                     </div>
                 </div>
@@ -68,12 +68,12 @@
         <!-- Tags -->
         <div class="flex flex-wrap gap-2 mb-16 pb-8 border-b border-bordercolor">
             <span class="text-sm font-medium text-dark mr-2 py-1">Tags:</span>
-            @if (!string.IsNullOrEmpty(Model.Tags))
+            @if (!string.IsNullOrEmpty(Model.Tag))
             {
-                var tags = Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                foreach (var tag in tags)
+                var tags = Model.Tag.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var t in tags)
                 {
-                    <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">@tag.Trim()</a>
+                    <a href="#" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition">@t.Trim()</a>
                 }
             }
 
@@ -88,7 +88,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @foreach (var related in relatedBlogs)
                     {
-                        var firstTag = !string.IsNullOrEmpty(related.Tags) ? related.Tags.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)[0].Trim() : "Bài viết";
+                        var firstTag = !string.IsNullOrEmpty(related.Tag) ? related.Tag.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)[0].Trim() : "Bài viết";
                         <a href="/CareerHandbook/@related.Slug" class="group flex gap-4 bg-white rounded-xl hover:bg-gray-50 transition p-2 -ml-2">
                             <img src="@(string.IsNullOrEmpty(related.ThumbnailUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" : related.ThumbnailUrl)" alt="@related.Title" class="w-24 h-24 rounded-lg object-cover" />
                             <div>

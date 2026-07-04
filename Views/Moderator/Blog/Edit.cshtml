@@ -117,7 +117,7 @@
                 <input type="text" id="customTagInput" placeholder="Nhập thẻ và nhấn Enter..."
                     class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2 focus:outline-none focus:border-primary text-dark text-sm bg-gray-50">
             </div>
-            <input type="hidden" id="Tags" name="Tags" value="@Model.Tags">
+            <input type="hidden" id="Tags" name="Tags" value="@Model.Tag">
         </div>
 
         <!-- Thông tin bài viết -->
@@ -138,15 +138,7 @@
                     </span>
                     <strong>@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</strong>
                 </li>
-                <li class="flex flex-col gap-2 mt-2">
-                    <label class="flex items-center gap-2 text-muted font-medium">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        Tác giả
-                    </label>
-                    <input type="text" id="Author" name="Author"
-                        class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-dark font-medium"
-                        value="@(string.IsNullOrEmpty(Model.Author) ? "Admin Vũ" : Model.Author)">
-                </li>
+
             </ul>
         </div>
     </div>

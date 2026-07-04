@@ -14,8 +14,8 @@
     }
     else if (userType == "recruiter" && Model.Recruiter != null)
     {
-        name = Model.Recruiter.CompanyName ?? Model.Recruiter.FullName ?? Model.Email;
-        if (!string.IsNullOrEmpty(Model.Recruiter.CompanyLogoUrl)) imageUrl = Model.Recruiter.CompanyLogoUrl;
+        name = Model.Recruiter.Company?.CompanyName ?? Model.Recruiter.FullName ?? Model.Email;
+        if (!string.IsNullOrEmpty(Model.Recruiter.Company?.CompanyLogoUrl)) imageUrl = Model.Recruiter.Company?.CompanyLogoUrl;
     }
 }
 
@@ -112,7 +112,7 @@
                     </div>
                     <div>
                         <label class="block text-sm text-muted mb-1">Tên Công Ty</label>
-                        <div class="font-medium text-dark">@(Model.Recruiter.CompanyName ?? "-")</div>
+                        <div class="font-medium text-dark">@(Model.Recruiter.Company?.CompanyName ?? "-")</div>
                     </div>
                     <div>
                         <label class="block text-sm text-muted mb-1">Vị trí công tác</label>
@@ -121,9 +121,9 @@
                     <div>
                         <label class="block text-sm text-muted mb-1">Website</label>
                         <div class="font-medium text-dark">
-                            @if(!string.IsNullOrEmpty(Model.Recruiter.Website))
+                            @if(!string.IsNullOrEmpty(Model.Recruiter.Company?.Website))
                             {
-                                <a href="@Model.Recruiter.Website" target="_blank" class="text-blue-600 hover:underline">@Model.Recruiter.Website</a>
+                                <a href="@Model.Recruiter.Company?.Website" target="_blank" class="text-blue-600 hover:underline">@Model.Recruiter.Company?.Website</a>
                             }
                             else
                             {
@@ -133,11 +133,11 @@
                     </div>
                     <div>
                         <label class="block text-sm text-muted mb-1">Tổng chi tiêu</label>
-                        <div class="font-bold text-primary">@(Model.Recruiter.TotalSpent?.ToString("N0") ?? "0") VNĐ</div>
+                        <div class="font-bold text-primary">@(Model.Recruiter.Company?.TotalSpent?.ToString("N0") ?? "0") VNĐ</div>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm text-muted mb-1">Mô tả công ty</label>
-                        <div class="font-medium text-dark">@(Model.Recruiter.CompanyDescription ?? "-")</div>
+                        <div class="font-medium text-dark">@(Model.Recruiter.Company?.CompanyDescription ?? "-")</div>
                     </div>
                 }
             </div>

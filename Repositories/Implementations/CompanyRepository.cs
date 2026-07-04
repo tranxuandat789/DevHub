@@ -18,7 +18,7 @@ namespace DevHub.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<(List<Recruiter> Items, int TotalCount)> GetVisibleCompaniesAsync(
+        public async Task<(List<Company> Items, int TotalCount)> GetVisibleCompaniesAsync(
             string? searchTerm, 
             List<int>? selectedTechs, 
             List<int>? selectedPositions, 
@@ -26,8 +26,8 @@ namespace DevHub.Repositories.Implementations
             int page, 
             int pageSize)
         {
-            var query = _context.Recruiters
-                .Include(r => r.ReviewRecruiters)
+            var query = _context.Companies
+                .Include(r => r.ReviewCompanies)
                 .Where(r => r.ProfileCompletion >= 70);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -39,7 +39,7 @@ namespace DevHub.Repositories.Implementations
             if (selectedTechs != null && selectedTechs.Any())
             {
                 query = query.Where(r => _context.JobPosts.Any(j => 
-                    j.RecruiterId == r.RecruiterId && 
+                    j.CompanyId == r.CompanyId && 
                     j.Status == "APPROVED" && 
                     j.Teches.Any(t => selectedTechs.Contains(t.TechId))));
             }
@@ -47,7 +47,7 @@ namespace DevHub.Repositories.Implementations
             if (selectedPositions != null && selectedPositions.Any())
             {
                 query = query.Where(r => _context.JobPosts.Any(j => 
-                    j.RecruiterId == r.RecruiterId && 
+                    j.CompanyId == r.CompanyId && 
                     j.Status == "APPROVED" && 
                     selectedPositions.Contains(j.PositionId)));
             }
@@ -64,8 +64,8 @@ namespace DevHub.Repositories.Implementations
                 items = items
                     .OrderBy(r => r.TotalReviews > 0 ? 1 : 0)          // 0-review lên đầu
                     .ThenBy(r => r.AverageRating ?? 0m)
-                    .ThenBy(r => r.ReviewRecruiters.Any()
-                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue)
+                    .ThenBy(r => r.ReviewCompanies.Any()
+                        ? r.ReviewCompanies.Max(rev => rev.CreatedAt ?? DateTime.MinValue)
                         : DateTime.MinValue)
                     .ThenBy(r => r.CompanyName)
                     .ToList();
@@ -76,8 +76,8 @@ namespace DevHub.Repositories.Implementations
                 items = items
                     .OrderBy(r => r.TotalReviews > 0 ? 0 : 1)          // 0-review xuống cuối
                     .ThenByDescending(r => r.AverageRating ?? 0m)
-                    .ThenByDescending(r => r.ReviewRecruiters.Any()
-                        ? r.ReviewRecruiters.Max(rev => rev.CreatedAt ?? DateTime.MinValue)
+                    .ThenByDescending(r => r.ReviewCompanies.Any()
+                        ? r.ReviewCompanies.Max(rev => rev.CreatedAt ?? DateTime.MinValue)
                         : DateTime.MinValue)
                     .ThenBy(r => r.CompanyName)
                     .ToList();
@@ -87,21 +87,21 @@ namespace DevHub.Repositories.Implementations
             return (items, totalCount);
         }
 
-        public async Task<Recruiter?> GetCompanyDetailsAsync(int recruiterId)
+        public async Task<Company?> GetCompanyDetailsAsync(int companyId)
         {
-            return await _context.Recruiters
-                .Include(r => r.RecruiterNavigation) // Includes UserAccount for email contact
-                .Include(r => r.ReviewRecruiters)
+            return await _context.Companies
+                .Include(r => r.Recruiters) // Includes UserAccount for email contact
+                .Include(r => r.ReviewCompanies)
                     .ThenInclude(rev => rev.Candidate)
-                .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId);
+                .FirstOrDefaultAsync(r => r.CompanyId == companyId);
         }
 
-        public async Task<List<JobPost>> GetCompanyJobsAsync(int recruiterId)
+        public async Task<List<JobPost>> GetCompanyJobsAsync(int companyId)
         {
             return await _context.JobPosts
                 .Include(j => j.Teches) // Includes Tech stack badges for Job cards
                 .Include(j => j.Provinces)
-                .Where(j => j.RecruiterId == recruiterId && j.Status == "APPROVED")
+                .Where(j => j.CompanyId == companyId && j.Status == "APPROVED")
                 .ToListAsync();
         }
 
@@ -119,6 +119,13 @@ namespace DevHub.Repositories.Implementations
                 .Where(p => p.IsActive == true)
                 .OrderBy(p => p.PositionName)
                 .ToListAsync();
+        }
+
+        public async Task<Company> AddCompanyAsync(Company company)
+        {
+            _context.Companies.Add(company);
+            await _context.SaveChangesAsync();
+            return company;
         }
     }
 }

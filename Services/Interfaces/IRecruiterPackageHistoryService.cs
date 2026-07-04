@@ -1,5 +1,5 @@
-﻿namespace DevHub.Services.Interfaces;
+namespace DevHub.Services.Interfaces;
 
-public interface IRecruiterPackageHistoryService
+public interface ICompanyPackageHistoryService
 {
 }

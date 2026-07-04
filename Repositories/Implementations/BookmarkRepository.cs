@@ -19,7 +19,7 @@ public class BookmarkRepository : IBookmarkRepository
         return await _db.Bookmarks
             .Where(b => b.CandidateId == candidateId)
             .Include(b => b.Job)
-                .ThenInclude(j => j.Recruiter)
+                .ThenInclude(j => j.Company)
             .Include(b => b.Job)
                 .ThenInclude(j => j.Provinces)
             .OrderByDescending(b => b.CreatedAt)
@@ -71,7 +71,7 @@ public class BookmarkRepository : IBookmarkRepository
         var query = _db.Bookmarks
             .Where(b => b.CandidateId == candidateId)
             .Include(b => b.Job)
-                .ThenInclude(j => j.Recruiter)
+                .ThenInclude(j => j.Company)
             .Include(b => b.Job)
                 .ThenInclude(j => j.Provinces)
             .AsQueryable();

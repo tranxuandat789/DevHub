@@ -1,8 +1,8 @@
 <!--AnhPT-03/06/2026-->
 @model DevHub.Models.Recruiter
 @{
-    bool hasLicense = !string.IsNullOrEmpty(Model.BusinessLicenseUrl);
-    bool hasAdditional = !string.IsNullOrEmpty(Model.AdditionalDocumentsUrl);
+    bool hasLicense = !string.IsNullOrEmpty(Model.Company?.BusinessLicenseUrl);
+    bool hasAdditional = !string.IsNullOrEmpty(Model.Company?.AdditionalDocumentsUrl);
 
     string LicenseFileName(string? url) =>
         string.IsNullOrEmpty(url) ? "" : System.IO.Path.GetFileName(url);
@@ -30,8 +30,8 @@
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-800 truncate">@LicenseFileName(Model.BusinessLicenseUrl)</p>
-                    <p class="text-xs text-green-600">Đã tải lên — <a href="@Model.BusinessLicenseUrl" target="_blank" class="underline hover:text-green-800">Xem file</a></p>
+                    <p class="text-sm font-medium text-gray-800 truncate">@LicenseFileName(Model.Company?.BusinessLicenseUrl)</p>
+                    <p class="text-xs text-green-600">Đã tải lên — <a href="@Model.Company?.BusinessLicenseUrl" target="_blank" class="underline hover:text-green-800">Xem file</a></p>
                 </div>
                 <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Hiện tại</span>
             </div>
@@ -134,8 +134,8 @@
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-800 truncate">@LicenseFileName(Model.AdditionalDocumentsUrl)</p>
-                    <p class="text-xs text-green-600">Đã tải lên — <a href="@Model.AdditionalDocumentsUrl" target="_blank" class="underline hover:text-green-800">Xem file</a></p>
+                    <p class="text-sm font-medium text-gray-800 truncate">@LicenseFileName(Model.Company?.AdditionalDocumentsUrl)</p>
+                    <p class="text-xs text-green-600">Đã tải lên — <a href="@Model.Company?.AdditionalDocumentsUrl" target="_blank" class="underline hover:text-green-800">Xem file</a></p>
                 </div>
                 <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Hiện tại</span>
             </div>
@@ -203,8 +203,8 @@
         </form>
     </div>
     @{
-        int completeness = Model.ProfileCompletion ?? 0;
-        bool isVerified = Model.IsVerified == true;
+        int completeness = Model.Company?.ProfileCompletion ?? 0;
+        bool isVerified = Model.Company?.IsVerified == true;
         bool hasPendingRequest = ViewBag.HasPendingRequest == true;
         bool canRequestVerify = completeness > 95 && hasLicense && !isVerified && !hasPendingRequest;
     }

@@ -20,15 +20,22 @@ public class RecruiterRepository : IRecruiterRepository
         return recruiter;
     }
 
-    public Task UpdateCompanyLogoAsync(int recruiterId, string logoUrl)
-        => _db.Recruiters
-              .Where(r => r.RecruiterId == recruiterId)
-              .ExecuteUpdateAsync(s => s.SetProperty(r => r.CompanyLogoUrl, logoUrl));
+    public async Task UpdateCompanyLogoAsync(int recruiterId, string logoUrl)
+    {
+        var recruiter = await _db.Recruiters.FirstOrDefaultAsync(r => r.RecruiterId == recruiterId);
+        if (recruiter != null && recruiter.CompanyId.HasValue)
+        {
+            await _db.Companies
+                  .Where(c => c.CompanyId == recruiter.CompanyId.Value)
+                  .ExecuteUpdateAsync(s => s.SetProperty(c => c.CompanyLogoUrl, logoUrl));
+        }
+    }
 
     public async Task<Recruiter> GetProfileAsync(int recruiterId)
         {
             return (await _db.Recruiters
                 .Include(r => r.RecruiterNavigation) //retirve email from user_account
+                .Include(r => r.Company)
                 .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId))!;
         }
 
@@ -40,22 +47,31 @@ public class RecruiterRepository : IRecruiterRepository
                 .SetProperty(r => r.FullName, recruiter.FullName)
                 .SetProperty(r => r.Position, recruiter.Position)
                 .SetProperty(r => r.Phone, recruiter.Phone)
-                .SetProperty(r => r.CompanyName, recruiter.CompanyName)
-                .SetProperty(r => r.CompanyAddress, recruiter.CompanyAddress)
-                .SetProperty(r => r.CompanyLogoUrl, recruiter.CompanyLogoUrl)
-                .SetProperty(r => r.CompanyDescription, recruiter.CompanyDescription)
-                .SetProperty(r => r.Website, recruiter.Website)
-                .SetProperty(r => r.Industry, recruiter.Industry)
-                .SetProperty(r => r.TaxCode, recruiter.TaxCode)
-                .SetProperty(r => r.BusinessLicenseUrl, recruiter.BusinessLicenseUrl)
-                .SetProperty(r => r.AdditionalDocumentsUrl, recruiter.AdditionalDocumentsUrl)
-                .SetProperty(r => r.ProfileCompletion, recruiter.ProfileCompletion)
             );
+
+        if (recruiter.CompanyId.HasValue && recruiter.Company != null)
+        {
+            await _db.Companies
+                .Where(c => c.CompanyId == recruiter.CompanyId.Value)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(c => c.CompanyName, recruiter.Company.CompanyName)
+                    .SetProperty(c => c.CompanyAddress, recruiter.Company.CompanyAddress)
+                    .SetProperty(c => c.CompanyLogoUrl, recruiter.Company.CompanyLogoUrl)
+                    .SetProperty(c => c.CompanyDescription, recruiter.Company.CompanyDescription)
+                    .SetProperty(c => c.Website, recruiter.Company.Website)
+                    .SetProperty(c => c.Industry, recruiter.Company.Industry)
+                    .SetProperty(c => c.TaxCode, recruiter.Company.TaxCode)
+                    .SetProperty(c => c.BusinessLicenseUrl, recruiter.Company.BusinessLicenseUrl)
+                    .SetProperty(c => c.AdditionalDocumentsUrl, recruiter.Company.AdditionalDocumentsUrl)
+                    .SetProperty(c => c.ProfileCompletion, recruiter.Company.ProfileCompletion)
+                );
+        }
     }
 
     public async Task<Recruiter> GetProfileForUpdateAsync(int recruiterId)
     {
         return (await _db.Recruiters
+            .Include(r => r.Company)
             .FirstOrDefaultAsync(r => r.RecruiterId == recruiterId))!;
     }
 
@@ -64,8 +80,8 @@ public class RecruiterRepository : IRecruiterRepository
         if (string.IsNullOrWhiteSpace(taxCode))
             return false;
 
-        return await _db.Recruiters
-            .AnyAsync(r => r.TaxCode == taxCode && r.RecruiterId != excludeRecruiterId);
+        return await _db.Companies
+            .AnyAsync(c => c.TaxCode == taxCode && c.CompanyId != excludeRecruiterId);
     }
 
     public async Task CreateVerificationRequestAsync(int recruiterId, string details)

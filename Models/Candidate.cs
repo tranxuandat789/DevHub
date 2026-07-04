@@ -47,5 +47,5 @@ public partial class Candidate
 
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
-    public virtual ICollection<ReviewRecruiter> ReviewRecruiters { get; set; } = new List<ReviewRecruiter>();
+    public virtual ICollection<ReviewCompany> ReviewCompanies { get; set; } = new List<ReviewCompany>();
 }

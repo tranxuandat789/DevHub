@@ -21,19 +21,19 @@ namespace DevHub.Controllers
         {
             int pageSize = 9; // 9 items per page (3x3 grid)
             var query = _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .Where(b => b.IsDeleted != true && b.Status == 1);
+                .Include(b => b.Publisher)
+                .Where(b => b.Status == 1);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(b => b.Title.Contains(search));
+                query = query.Where(b => b.Title != null && b.Title.Contains(search));
             }
 
             if (!string.IsNullOrWhiteSpace(tag))
             {
                 tag = tag.Trim();
-                query = query.Where(b => b.Tags.Contains(tag));
+                query = query.Where(b => b.Tag.Contains(tag));
             }
 
             query = query.OrderByDescending(b => b.PublishedAt ?? b.CreatedAt);
@@ -46,10 +46,9 @@ namespace DevHub.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Lấy danh sách tags thực tế
             var allTags = await _context.BlogPosts
-                .Where(b => b.IsDeleted != true && b.Status == 1 && !string.IsNullOrEmpty(b.Tags))
-                .Select(b => b.Tags)
+                .Where(b => b.Status == 1 && !string.IsNullOrEmpty(b.Tag))
+                .Select(b => b.Tag)
                 .ToListAsync();
 
             var uniqueTags = allTags
@@ -74,8 +73,8 @@ namespace DevHub.Controllers
         public async Task<IActionResult> Details(string slug)
         {
             var blog = await _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .FirstOrDefaultAsync(b => b.Slug == slug && b.IsDeleted != true && b.Status == 1);
+                .Include(b => b.Publisher)
+                .FirstOrDefaultAsync(b => b.Slug == slug && b.Status == 1);
 
             if (blog == null)
             {
@@ -83,8 +82,8 @@ namespace DevHub.Controllers
             }
 
             var relatedBlogs = await _context.BlogPosts
-                .Include(b => b.AuthorRecruiter)
-                .Where(b => b.BlogId != blog.BlogId && b.IsDeleted != true && b.Status == 1)
+                .Include(b => b.Publisher)
+                .Where(b => b.BlogId != blog.BlogId && b.Status == 1)
                 .OrderByDescending(b => b.PublishedAt ?? b.CreatedAt)
                 .Take(2)
                 .ToListAsync();

@@ -30,14 +30,14 @@ public class JobPostRepository : IJobPostRepository
 
     // Lấy danh sách bài đăng "pending" (chờ duyệt) kèm bộ lọc/sắp xếp + phân trang ngay ở SQL (Skip/Take).
     // Trả về (danh sách trang hiện tại, tổng số bài khớp bộ lọc).
-    public async Task<(List<JobPost> Items, int TotalCount)> GetPendingJobPostsAsync(DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
+    public async Task<(List<JobPost> Items, int TotalCount)> GetPendingJobPostsAsync(int moderatorId, DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
     {
-        // 1. Truy vấn cơ bản: lọc các bài đăng có trạng thái "pending".
+        // 1. Truy vấn cơ bản: lọc các bài đăng có trạng thái "pending" và được assign cho moderator này.
         var query = _context.JobPosts
-            .Include(j => j.Recruiter)
+            .Include(j => j.Company)
             .Include(j => j.Position)
             .Include(j => j.Provinces)
-            .Where(j => j.Status != null && j.Status.ToUpper() == "PENDING");
+            .Where(j => j.Status != null && j.Status.ToUpper() == "PENDING" && (j.ModeratorId == moderatorId || j.ModeratorId == null));
 
         // 2. Bộ lọc theo ngày bắt đầu.
         if (fromDate.HasValue)

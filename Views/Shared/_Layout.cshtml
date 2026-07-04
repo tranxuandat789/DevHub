@@ -74,7 +74,7 @@
             var dbUser = await AuthService.FindUserByEmailAsync(email);
             if (dbUser != null)
             {
-                var dbAvatar = dbUser.Candidate?.ImageUrl ?? dbUser.Recruiter?.CompanyLogoUrl ?? "";
+                var dbAvatar = dbUser.Candidate?.ImageUrl ?? dbUser.Recruiter?.Company?.CompanyLogoUrl ?? "";
                 if (!string.IsNullOrEmpty(dbAvatar))
                     avatarUrl = dbAvatar;
             }
@@ -577,6 +577,8 @@
 
 </body>
 </html>
+
+
 
 
 

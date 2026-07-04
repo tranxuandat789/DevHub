@@ -30,8 +30,8 @@ public class JobSearchService : IJobSearchService
         {
             JobId           = j.JobId,
             Title           = j.Title,
-            CompanyName     = j.Recruiter.CompanyName,
-            CompanyLogoUrl  = j.Recruiter.CompanyLogoUrl,
+            CompanyName     = j.Company.CompanyName,
+            CompanyLogoUrl  = j.Company.CompanyLogoUrl,
             Location        = j.Location,
             WorkingModel    = j.WorkingModel,
             ExperienceLevel = j.ExperienceLevel,
@@ -80,11 +80,11 @@ public class JobSearchService : IJobSearchService
             Requirement    = job.Requirement,
             Benefit        = job.Benefit,
             TechNames      = job.Teches.Select(t => t.TechName).ToList(),
-            CompanyName    = job.Recruiter.CompanyName,
-            CompanyLogoUrl = job.Recruiter.CompanyLogoUrl,
-            CompanyAddress = job.Recruiter.CompanyAddress,
-            AverageRating  = job.Recruiter.AverageRating,
-            IsVerified     = job.Recruiter.IsVerified ?? false,
+            CompanyName    = job.Company.CompanyName,
+            CompanyLogoUrl = job.Company.CompanyLogoUrl,
+            CompanyAddress = job.Company.CompanyAddress,
+            AverageRating  = job.Company.AverageRating,
+            IsVerified     = job.Company.IsVerified ?? false,
         };
     }
 
@@ -99,7 +99,7 @@ public class JobSearchService : IJobSearchService
         {
             techs     = techs.Select(t => new { t.TechId, t.TechName, t.JobCount }),
             locations = locations.Select(l => new { l.Location, l.JobCount }),
-            companies = companies.Select(c => new { c.RecruiterId, c.CompanyName, c.LogoUrl, c.JobCount }),
+            companies = companies.Select(c => new { c.CompanyId, c.CompanyName, c.LogoUrl, c.JobCount }),
         };
     }
 }

@@ -46,19 +46,21 @@ public class RecruiterJobPostService : IRecruiterJobPostService
     //Repository Instance
     private readonly ICommonTechnologyRepository _techRepo;
     private readonly ICommonJobPositionRepository _positionRepo;
-    private readonly IRecruiterPackageHistoryRepository _packageRepo;
+    private readonly ICompanyPackageHistoryRepository _packageRepo;
     private readonly IRecruiterRepository _profileRepo;
     private readonly IRecruiterJobPostRepository _jobPostRepo;
     private readonly IProvinceRepository _provinceRepo;
+    private readonly IModAssignmentService _modAssignmentService;
 
     //Constructor Injection
     public RecruiterJobPostService(
         ICommonTechnologyRepository techRepo,
         ICommonJobPositionRepository positionRepo,
-        IRecruiterPackageHistoryRepository packageRepo,
+        ICompanyPackageHistoryRepository packageRepo,
         IRecruiterRepository profileRepo,
         IRecruiterJobPostRepository jobPostRepo,
-        IProvinceRepository provinceRepo)
+        IProvinceRepository provinceRepo,
+        IModAssignmentService modAssignmentService)
     {
         _techRepo = techRepo;
         _positionRepo = positionRepo;
@@ -66,13 +68,14 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         _profileRepo = profileRepo;
         _jobPostRepo = jobPostRepo;
         _provinceRepo = provinceRepo;
+        _modAssignmentService = modAssignmentService;
     }
 
     // Compute posting eligibility: profile completeness + active package with remaining quota.
     public async Task<(bool CanPost, bool HasActivePackage, int PostsRemaining, int ProfileCompletion)> GetActivePackageInfoAsync(int recruiterId)
     {
         var recruiter = await _profileRepo.GetProfileAsync(recruiterId);
-        int completion = recruiter?.ProfileCompletion ?? 0;
+        int completion = recruiter?.Company?.ProfileCompletion ?? 0;
 
         var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
         if (package == null)
@@ -95,7 +98,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             throw new KeyNotFoundException("Không tìm thấy thông tin nhà tuyển dụng.");
 
         //Unsatisfied profile completeness.
-        if ((recruiter.ProfileCompletion ?? 0) < MinProfileCompletion)
+        if ((recruiter.Company.ProfileCompletion ?? 0) < MinProfileCompletion)
             throw new InvalidOperationException("Bạn cần hoàn thành đủ mục thông tin công ty");
 
         //Track if the package is valid and has remaining posts.
@@ -133,9 +136,9 @@ public class RecruiterJobPostService : IRecruiterJobPostService
 
         var job = new JobPost
         {
-            RecruiterId = recruiterId,
+            CompanyId = recruiter.CompanyId ?? 0,
             PositionId = vm.PositionId,
-            RecruiterPackageHistoryId = package.Id,
+            CompanyPackageHistoryId = package.Id,
             Title = NormalizeSpaces(vm.Title),
             Description = NormalizeSpaces(vm.Description),
             Requirement = NormalizeSpaces(vm.Requirement),
@@ -150,6 +153,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             Deadline = vm.Deadline,
             Status = "PENDING",
             PriorityScore = package.Service?.PriorityPush ?? 0,
+            ModeratorId = await _modAssignmentService.GetAssignedModeratorAsync(package.ServiceId)
         };
 
         //Add list of tech stack to the job post
@@ -167,7 +171,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         {
             await _jobPostRepo.NotifyModeratorsAsync(
                 "Bài đăng tuyển dụng mới chờ duyệt",
-                $"Nhà tuyển dụng {recruiter.CompanyName} đã đăng bài '{job.Title}' và đang chờ kiểm duyệt.",
+                $"Nhà tuyển dụng {recruiter.Company.CompanyName} đã đăng bài '{job.Title}' và đang chờ kiểm duyệt.",
                 "JobPost",
                 createdJob.JobId);
         }
@@ -277,7 +281,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         var updatedJP = new JobPost
         {
             JobId = jobId,
-            RecruiterId = recruiterId,
+            CompanyId = existing.CompanyId,
             Title = NormalizeSpaces(vm.Title),
             PositionId = vm.PositionId,
             Skill = NormalizeSpaces(vm.Skill),

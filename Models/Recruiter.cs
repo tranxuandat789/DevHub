@@ -13,43 +13,13 @@ public partial class Recruiter
 
     public string? Phone { get; set; }
 
-    public string CompanyName { get; set; } = null!;
+    public int? CompanyId { get; set; }
 
-    public string? CompanyAddress { get; set; }
-
-    public string? CompanyLogoUrl { get; set; }
-
-    public string? CompanyDescription { get; set; }
-
-    public string? Website { get; set; }
-
-    public string? Industry { get; set; }
-
-    public string? TaxCode { get; set; }
-
-    public string? BusinessLicenseUrl { get; set; }
-
-    public string? AdditionalDocumentsUrl { get; set; }
-
-    public decimal? TotalSpent { get; set; }
-
-    public decimal? AverageRating { get; set; }
-
-    public int? TotalReviews { get; set; }
-
-    public bool? IsVerified { get; set; }
-
-    public int? ProfileCompletion { get; set; }
+    public bool? IsCompanyAdmin { get; set; }
 
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
-    public virtual ICollection<PackageTransaction> PackageTransactions { get; set; } = new List<PackageTransaction>();
-
     public virtual UserAccount RecruiterNavigation { get; set; } = null!;
 
-    public virtual ICollection<RecruiterPackageHistory> RecruiterPackageHistories { get; set; } = new List<RecruiterPackageHistory>();
-
-    public virtual ICollection<ReviewRecruiter> ReviewRecruiters { get; set; } = new List<ReviewRecruiter>();
-
-    public virtual ICollection<BlogPost> BlogPosts { get; set; } = new List<BlogPost>();
+    public virtual Company? Company { get; set; }
 }

@@ -81,7 +81,7 @@ namespace DevHub.Services.Implementations
                 CompanyId = companyId,
                 Email = email.ToLower().Trim(),
                 Token = token,
-                ExpiresAt = DateTime.UtcNow.AddDays(1), // 1 day expiration
+                ExpiresAt = DateTime.UtcNow.AddDays(7), // 7 days expiration
                 Status = "PENDING",
                 CreatedAt = DateTime.UtcNow
             };
@@ -89,7 +89,7 @@ namespace DevHub.Services.Implementations
             await _invitationRepo.AddAsync(invitation);
 
             // Send Email
-            var acceptLink = $"https://localhost:7111/Auth/AcceptInvite?token={token}"; // Hardcoded port for local, you can change to dynamic if needed
+            var acceptLink = $"http://localhost:5111/Auth/AcceptInvite?token={token}"; // Hardcoded port for local, you can change to dynamic if needed
             var subject = $"Lời mời tham gia công ty {company.CompanyName} trên DevHub";
             var content = $@"
                 <div style='text-align: center; margin-bottom: 30px;'>

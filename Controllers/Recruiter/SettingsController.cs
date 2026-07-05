@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Recruiter;
+using DevHub.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace DevHub.Controllers.Recruiter
 {
@@ -17,14 +20,24 @@ namespace DevHub.Controllers.Recruiter
         private readonly IRecruiterService _recruiterService;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<SettingsController> _logger;
+        private readonly ICompanyInvitationService _invitationService;
+        private readonly ItrecruitmentDbContext _context;
 
         //Constructor Injection
-        public SettingsController(IAuthService authService, IRecruiterService recruiterService, IWebHostEnvironment env, ILogger<SettingsController> logger)
+        public SettingsController(
+            IAuthService authService, 
+            IRecruiterService recruiterService, 
+            IWebHostEnvironment env, 
+            ILogger<SettingsController> logger,
+            ICompanyInvitationService invitationService,
+            ItrecruitmentDbContext context)
         {
             _authService = authService;
             _recruiterService = recruiterService;
             _env = env;
             _logger = logger;
+            _invitationService = invitationService;
+            _context = context;
         }
 
         //Default tab in Settings is "account".
@@ -44,6 +57,16 @@ namespace DevHub.Controllers.Recruiter
             // Google-login accounts (no local password) -> hide the "current password" box.
             ViewBag.IsGoogleAccount = string.IsNullOrEmpty(dbUser.PasswordHash) || dbUser.PasswordHash == "GOOGLE_OAUTH";
             ViewBag.HasPendingRequest = await _recruiterService.HasPendingVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
+
+            if (tab.ToLower() == "members" && dbUser.Recruiter.CompanyId.HasValue)
+            {
+                ViewBag.Members = await _context.Recruiters
+                    .Where(r => r.CompanyId == dbUser.Recruiter.CompanyId)
+                    .Select(r => new { r.RecruiterId, r.FullName, r.Position, r.IsCompanyAdmin })
+                    .ToListAsync();
+
+                ViewBag.Invitations = await _invitationService.GetPendingInvitationsAsync(dbUser.Recruiter.CompanyId.Value);
+            }
 
             return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
         }
@@ -425,6 +448,71 @@ namespace DevHub.Controllers.Recruiter
             }
 
             return RedirectToAction("Index", new { tab = "license" });
+        }
+
+        [HttpPost("invite-member")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> InviteMember(string email)
+        {
+            try
+            {
+                var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? "";
+                var dbUser = await _authService.FindUserByEmailAsync(userEmail);
+
+                if (dbUser?.Recruiter == null || dbUser.Recruiter.CompanyId == null || dbUser.Recruiter.IsCompanyAdmin != true)
+                {
+                    TempData["Error"] = "Bạn không có quyền thực hiện thao tác này.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    TempData["Error"] = "Vui lòng nhập Email.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                await _invitationService.InviteMemberAsync(dbUser.Recruiter.CompanyId.Value, email, dbUser.Recruiter.RecruiterId);
+                TempData["SuccessMessage"] = $"Đã gửi lời mời tham gia thành công tới {email}!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Index", new { tab = "members" });
+        }
+
+        [HttpPost("cancel-invite")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelInvite(int invitationId)
+        {
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+                var dbUser = await _authService.FindUserByEmailAsync(email);
+
+                if (dbUser?.Recruiter == null || dbUser.Recruiter.CompanyId == null || dbUser.Recruiter.IsCompanyAdmin != true)
+                {
+                    TempData["Error"] = "Bạn không có quyền thực hiện thao tác này.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                var success = await _invitationService.CancelInvitationAsync(invitationId, dbUser.Recruiter.CompanyId.Value);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Đã hủy lời mời thành công!";
+                }
+                else
+                {
+                    TempData["Error"] = "Không thể hủy lời mời này.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Index", new { tab = "members" });
         }
     }
 }

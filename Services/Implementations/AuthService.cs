@@ -74,7 +74,7 @@ public class AuthService : IAuthService
     }
 
     public async Task<UserAccount> CreateRecruiterGoogleAccountAsync(
-        string email, string googleId, string? fullName, string? avatarUrl, string? phone)
+        string email, string googleId, string? fullName, string? avatarUrl, string? phone, string? position)
     {
         var user = await _userRepo.AddAsync(new UserAccount
         {
@@ -87,22 +87,14 @@ public class AuthService : IAuthService
             LastUpdated  = DateTime.UtcNow
         });
 
-        var company = await _companyRepo.AddCompanyAsync(new Company
-        {
-            CompanyName = fullName ?? email,
-            CompanyLogoUrl = avatarUrl,
-            IsVerified = false,
-            ProfileCompletion = 0,
-            
-        });
-
         var recruiter = await _recruiterRepo.AddAsync(new Recruiter
         {
             RecruiterId    = user.UserId,
             FullName       = fullName ?? email,
-            CompanyId      = company.CompanyId,
+            Position       = position,
+            CompanyId      = null,
             Phone          = phone,
-            IsCompanyAdmin = true
+            IsCompanyAdmin = false
         });
 
         user.Recruiter = recruiter;

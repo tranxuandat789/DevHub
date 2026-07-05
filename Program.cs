@@ -200,6 +200,7 @@ builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostReposito
 builder.Services.AddScoped<IJobSearchRepository, JobSearchRepository>();
 builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
 builder.Services.AddScoped<IRecruiterApplicationRepository, RecruiterApplicationRepository>();
+builder.Services.AddScoped<ICompanyInvitationRepository, CompanyInvitationRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 
@@ -231,6 +232,7 @@ builder.Services.AddScoped<IJobSearchService, JobSearchService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IRecruiterApplicationService, RecruiterApplicationService>();
 builder.Services.AddScoped<IRecruiterDashboardService, RecruiterDashboardService>();
+builder.Services.AddScoped<ICompanyInvitationService, CompanyInvitationService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();

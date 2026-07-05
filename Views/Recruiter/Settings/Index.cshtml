@@ -43,6 +43,12 @@
                 <a href="/Recruiter/Settings?tab=license" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "license" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
                     Giấy phép kinh doanh
                 </a>
+                @if (Model.IsCompanyAdmin == true)
+                {
+                    <a href="/Recruiter/Settings?tab=members" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "members" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                        Quản lý thành viên
+                    </a>
+                }
             </nav>
         </div>
 
@@ -64,6 +70,23 @@
             {
                 @await Html.PartialAsync("_LicenseTab")
             }
+            else if (activeTab == "members" && Model.IsCompanyAdmin == true)
+            {
+                @await Html.PartialAsync("_MembersTab")
+            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        setTimeout(() => {
+            const alert = document.getElementById('settingsAlert');
+            if(alert) {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            }
+        }, 5000);
+    </script>
+}

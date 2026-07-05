@@ -1231,7 +1231,7 @@ VALUES (1, 1),
     -- job 8: Selenium
     (8, 5),
     -- job 8: Python
-    (9, 30),
+    (9, 30), 
     -- job 9: SQL
     (10, 5),
     -- job 10: Python

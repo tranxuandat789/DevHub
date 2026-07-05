@@ -113,9 +113,19 @@
                 <div class="flex flex-col sm:flex-row gap-4">
                     @{
                         bool isExpired = Model.Deadline.HasValue && Model.Deadline.Value < DateOnly.FromDateTime(DateTime.Now);
+                        bool isApplied = ViewBag.AppStatus != null;
                     }
 
-                    @if (isExpired)
+                    @if (isApplied)
+                    {
+                        <button type="button" disabled class="flex-1 bg-gray-100 text-gray-600 border border-gray-200 font-semibold py-3 px-6 rounded-lg cursor-not-allowed text-[15px] flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Đã ứng tuyển
+                        </button>
+                    }
+                    else if (isExpired)
                     {
                         <button type="button" disabled class="flex-1 bg-gray-300 text-white font-semibold py-3 px-6 rounded-lg cursor-not-allowed text-[15px]">
                             Đã hết hạn ứng tuyển
@@ -232,6 +242,107 @@
                 </div>
             </div>
 
+            @if (ViewBag.AppStatus != null)
+            {
+                <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6">
+                    <h3 class="font-bold text-[16px] text-[#25324B] mb-4">Trạng thái ứng tuyển</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[14px] text-gray-600">Ngày nộp:</span>
+                            <span class="text-[14px] font-medium text-dark">
+                                @(ViewBag.AppliedAt != null ? ((DateTime)ViewBag.AppliedAt).ToString("dd/MM/yyyy") : "N/A")
+                            </span>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <span class="text-[14px] text-gray-600">Trạng thái hiện tại:</span>
+                            
+                            @{
+                                string status = ViewBag.AppStatus.ToString();
+                                string badgeClass = status switch
+                                {
+                                    "PENDING" => "bg-yellow-50 text-yellow-600 border-yellow-100",
+                                    "APPROVED" => "bg-green-50 text-green-600 border-green-100",
+                                    "REJECTED" => "bg-red-50 text-red-600 border-red-100",
+                                    "HIRED" => "bg-indigo-50 text-[#4640DE] border-indigo-100",
+                                    "FINISHED" => "bg-blue-50 text-blue-600 border-blue-100",
+                                    "CANCELLED" => "bg-gray-50 text-gray-500 border-gray-200",
+                                    "FAILED" => "bg-orange-50 text-orange-600 border-orange-100",
+                                    _ => "bg-gray-50 text-gray-500 border-gray-200"
+                                };
+                                string statusText = status switch
+                                {
+                                    "PENDING" => "Đang chờ xử lý",
+                                    "APPROVED" => "Đã duyệt",
+                                    "REJECTED" => "Bị từ chối",
+                                    "HIRED" => "Đã tuyển dụng",
+                                    "FINISHED" => "Đã hoàn thành",
+                                    "CANCELLED" => "Đã hủy",
+                                    "FAILED" => "Không đạt",
+                                    _ => "Không xác định"
+                                };
+                            }
+                            
+                            <span class="inline-flex w-fit px-3 py-1.5 rounded-lg text-sm font-medium border @badgeClass">
+                                @statusText
+                            </span>
+                        </div>
+                        
+                        @if (ViewBag.Interviews != null && ((List<DevHub.Services.Interfaces.InterviewInfo>)ViewBag.Interviews).Count > 0)
+                        {
+                            <div class="pt-4 border-t border-[#D6DDEB]">
+                                <h4 class="font-bold text-[14px] text-[#25324B] mb-3">Lịch phỏng vấn</h4>
+                                <div class="space-y-3">
+                                    @foreach (var interview in (List<DevHub.Services.Interfaces.InterviewInfo>)ViewBag.Interviews)
+                                    {
+                                        <div class="bg-[#F7F5FC] rounded-xl p-3 border border-indigo-50 text-sm">
+                                            <div class="flex items-start gap-2 mb-2">
+                                                <svg class="w-4 h-4 text-[#4640DE] mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <span class="font-medium text-[#25324B]">@interview.ScheduledTime.ToString("HH:mm - dd/MM/yyyy")</span>
+                                            </div>
+                                            
+                                            @{
+                                                string interviewType = string.IsNullOrEmpty(interview.InterviewType) ? "Chưa xác định" : interview.InterviewType;
+                                            }
+
+                                            <div class="flex items-start gap-2 text-[#515B6F] mb-1">
+                                                <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span>Hình thức: <span class="font-medium text-[#1E293B]">@interviewType</span></span>
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(interview.Location))
+                                            {
+                                                <div class="flex items-start gap-2 text-[#515B6F] mb-1">
+                                                    <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    <span>@interview.Location</span>
+                                                </div>
+                                            }
+                                            
+                                            @if (!string.IsNullOrEmpty(interview.MeetingLink))
+                                            {
+                                                <div class="flex items-start gap-2">
+                                                    <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-[#4640DE]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                    </svg>
+                                                    <a href="@interview.MeetingLink" target="_blank" class="text-[#4640DE] hover:underline break-all">Link meeting</a>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
 
         </div>
 

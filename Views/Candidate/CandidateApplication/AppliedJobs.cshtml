@@ -1,4 +1,4 @@
-<meta charset="utf-8" />
+@model DevHub.ViewModels.Candidate.AppliedJobPageViewModel
 @{
     ViewData["Title"] = "Việc làm đã ứng tuyển";
     ViewData["IsCandidate"] = "true";
@@ -16,145 +16,253 @@
 
             <!-- Main Content -->
             <div class="flex-1">
-                <div class="bg-white rounded-[10px] p-6 shadow-sm border border-[#D6DDEB]">
+                <div class="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB]">
                     <div class="flex justify-between items-center mb-6 border-b border-[#D6DDEB] pb-4">
-                        <h2 class="text-[20px] font-bold text-dark">Việc làm đã ứng tuyển</h2>
+                        <h2 class="text-[20px] font-bold text-[#25324B]">Việc làm đã ứng tuyển</h2>
                         <div class="flex gap-2">
-                            <span class="bg-primary/10 text-primary text-sm font-semibold px-3 py-1 rounded-full">3 Công việc</span>
+                            <span class="bg-[#4640DE]/10 text-[#4640DE] text-sm font-semibold px-3 py-1 rounded-full">@Model.TotalCount Công việc</span>
                         </div>
                     </div>
 
                     <!-- Search and Filters -->
-                    <div class="flex flex-col md:flex-row gap-4 mb-6">
+                    <form method="get" action="/candidate/applications" class="flex flex-col md:flex-row gap-4 mb-6">
                         <div class="flex-1 relative">
-                            <input type="text" placeholder="Tìm kiếm theo tiêu đề công việc, công ty..." class="w-full pl-10 pr-4 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-primary text-sm transition-colors">
+                            <input type="text" name="keyword" value="@Model.SearchKeyword" placeholder="Tìm kiếm theo tiêu đề công việc, công ty..." class="w-full pl-10 pr-4 py-2 border border-[#D6DDEB] rounded-full focus:outline-none focus:border-[#4640DE] text-sm text-[#25324B] placeholder-gray-400 transition-colors shadow-sm">
                             <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         <div class="flex gap-3">
                             <div class="relative">
-                                <select class="pl-3 pr-8 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-primary text-sm appearance-none bg-white cursor-pointer transition-colors">
-                                    <option value="">Tất cả thời gian</option>
-                                    <option value="1">Tháng 1</option>
-                                    <option value="2">Tháng 2</option>
-                                    <option value="3">Tháng 3</option>
-                                    <option value="4">Tháng 4</option>
-                                    <option value="5">Tháng 5</option>
-                                    <option value="6">Tháng 6</option>
-                                    <option value="7">Tháng 7</option>
-                                    <option value="8">Tháng 8</option>
-                                    <option value="9">Tháng 9</option>
-                                    <option value="10">Tháng 10</option>
-                                    <option value="11">Tháng 11</option>
-                                    <option value="12">Tháng 12</option>
+                                <select name="timeRange" onchange="this.form.submit()" class="pl-4 pr-8 py-2 border border-[#D6DDEB] rounded-full focus:outline-none focus:border-[#4640DE] text-sm text-[#515B6F] appearance-none bg-white cursor-pointer transition-colors shadow-sm">
+                                    <option value="" selected="@(string.IsNullOrEmpty(Model.FilterTimeRange))">Tất cả thời gian</option>
+                                    <option value="7" selected="@(Model.FilterTimeRange == "7")">7 ngày qua</option>
+                                    <option value="30" selected="@(Model.FilterTimeRange == "30")">30 ngày qua</option>
+                                    <option value="90" selected="@(Model.FilterTimeRange == "90")">3 tháng qua</option>
+                                    <option value="180" selected="@(Model.FilterTimeRange == "180")">6 tháng qua</option>
                                 </select>
                                 <svg class="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                             <div class="relative">
-                                <select class="pl-3 pr-8 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-primary text-sm appearance-none bg-white cursor-pointer transition-colors">
-                                    <option value="">Tất cả trạng thái</option>
-                                    <option value="pending">Đang chờ xử lý</option>
-                                    <option value="approved">Đã duyệt</option>
-                                    <option value="rejected">Đã từ chối</option>
+                                <select name="status" onchange="this.form.submit()" class="pl-4 pr-8 py-2 border border-[#D6DDEB] rounded-full focus:outline-none focus:border-[#4640DE] text-sm text-[#515B6F] appearance-none bg-white cursor-pointer transition-colors shadow-sm">
+                                    <option value="" selected="@(string.IsNullOrEmpty(Model.FilterStatus))">Tất cả trạng thái</option>
+                                    <option value="PENDING" selected="@(Model.FilterStatus == "PENDING")">Đang chờ xử lý</option>
+                                    <option value="APPROVED" selected="@(Model.FilterStatus == "APPROVED")">Đã duyệt</option>
+                                    <option value="REJECTED" selected="@(Model.FilterStatus == "REJECTED")">Bị từ chối</option>
+                                    <option value="HIRED" selected="@(Model.FilterStatus == "HIRED")">Đã tuyển dụng</option>
+                                    <option value="FINISHED" selected="@(Model.FilterStatus == "FINISHED")">Đã hoàn thành</option>
+                                    <option value="CANCELLED" selected="@(Model.FilterStatus == "CANCELLED")">Đã hủy</option>
+                                    <option value="FAILED" selected="@(Model.FilterStatus == "FAILED")">Không đạt</option>
                                 </select>
                                 <svg class="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
-                    </div>
+                    </form>
 
                     <!-- Applied Jobs List -->
                     <div class="space-y-4">
-                        @for (int i = 0; i < 3; i++)
+                        @if (Model.Items.Count == 0)
                         {
-                            <div class="block border border-[#D6DDEB] hover:border-primary/50 hover:shadow-sm transition-all rounded-xl p-5 group bg-white">
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div class="flex items-start gap-4 flex-1">
-                                        <!-- Company Logo -->
-                                        <div class="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden border border-[#D6DDEB] bg-white shadow-sm flex-shrink-0">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg" alt="Company" class="w-10 h-10 object-contain">
-                                        </div>
-                                        
-                                        <!-- Job Details -->
-                                        <div class="flex-1">
-                                            <a href="/Jobs/Details/1" class="text-[17px] font-bold text-dark group-hover:text-primary transition-colors">UI/UX Designer</a>
-                                            <div class="flex items-center flex-wrap gap-2 mt-1 text-sm text-gray-500">
-                                                <span class="font-medium text-dark">BMW</span>
-                                                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                                                <span class="flex items-center">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
-                                                    Hà Nội
-                                                </span>
-                                                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                                                <span class="flex items-center text-orange-500 font-medium">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    Còn 15 ngày
-                                                </span>
+                            <div class="text-center py-10">
+                                <p class="text-[#515B6F]">Không tìm thấy công việc nào phù hợp.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.Items)
+                            {
+                                <div class="block border border-[#D6DDEB] hover:border-[#4640DE]/50 hover:-translate-y-1 hover:shadow-md transition-all rounded-[20px] p-5 group bg-white">
+                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                        <div class="flex items-start gap-4 flex-1">
+                                            <!-- Company Logo -->
+                                            <div class="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden border border-[#D6DDEB] bg-white shadow-sm flex-shrink-0">
+                                                @if (!string.IsNullOrEmpty(item.CompanyLogoUrl))
+                                                {
+                                                    <img src="@item.CompanyLogoUrl" alt="@item.CompanyName" class="w-10 h-10 object-contain">
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-[#f97316] font-bold text-[20px]">@(item.CompanyName.Length > 0 ? item.CompanyName[0].ToString().ToUpper() : "?")</span>
+                                                }
                                             </div>
                                             
-                                            <!-- Tags -->
-                                            <div class="flex flex-wrap gap-2 mt-3">
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-green-50 text-green-600 border border-green-100">Full-Time</span>
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-blue-50 text-blue-600 border border-blue-100">Senior</span>
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-purple-50 text-purple-600 border border-purple-100">3-5 năm</span>
-                                                <span class="px-2.5 py-1 rounded-md text-[12px] font-medium text-gray-600 flex items-center bg-gray-50 border border-gray-200">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    15-20 triệu
+                                            <!-- Job Details -->
+                                            <div class="flex-1">
+                                                <a href="/Jobs/Details/@item.JobId?fromApplied=true" class="text-[17px] font-bold text-[#25324B] group-hover:text-[#4640DE] transition-colors">@item.JobTitle</a>
+                                                <div class="flex items-center flex-wrap gap-2 mt-1 text-sm text-[#515B6F]">
+                                                    <span class="font-medium text-[#25324B]">@item.CompanyName</span>
+                                                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                                    <span class="flex items-center">
+                                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                        @(string.IsNullOrEmpty(item.Location) ? "Toàn quốc" : item.Location)
+                                                    </span>
+                                                    
+                                                    @if (item.Deadline.HasValue)
+                                                    {
+                                                        var daysLeft = (item.Deadline.Value.ToDateTime(TimeOnly.MinValue) - DateTime.Now).Days;
+                                                        if (daysLeft >= 0)
+                                                        {
+                                                            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                                            <span class="flex items-center text-orange-500 font-medium">
+                                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                Còn @daysLeft ngày
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                                            <span class="flex items-center text-red-500 font-medium">
+                                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                Đã hết hạn
+                                                            </span>
+                                                        }
+                                                    }
+                                                </div>
+                                                
+                                                <!-- Tags -->
+                                                <div class="flex flex-wrap gap-2 mt-3">
+                                                    @if (!string.IsNullOrEmpty(item.WorkingModel))
+                                                    {
+                                                        <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-green-50 text-green-600 border border-green-100">@item.WorkingModel</span>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.ExperienceLevel))
+                                                    {
+                                                        <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-blue-50 text-blue-600 border border-blue-100">@item.ExperienceLevel</span>
+                                                    }
+                                                    <span class="px-2.5 py-1 rounded-md text-[12px] font-medium text-gray-600 flex items-center bg-gray-50 border border-gray-200">
+                                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        @if (item.SalaryMin.HasValue && item.SalaryMax.HasValue)
+                                                        {
+                                                            <span>@item.SalaryMin.Value.ToString("N0") - @item.SalaryMax.Value.ToString("N0") triệu</span>
+                                                        }
+                                                        else if (item.SalaryMin.HasValue)
+                                                        {
+                                                            <span>Từ @item.SalaryMin.Value.ToString("N0") triệu</span>
+                                                        }
+                                                        else if (item.SalaryMax.HasValue)
+                                                        {
+                                                            <span>Đến @item.SalaryMax.Value.ToString("N0") triệu</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>Thỏa thuận</span>
+                                                        }
+                                                    </span>
+                                                </div>
+
+                                                <!-- Tech Stack -->
+                                                @if (item.TechNames != null && item.TechNames.Any())
+                                                {
+                                                    <div class="flex flex-wrap gap-2 mt-2">
+                                                        @foreach (var tech in item.TechNames.Take(3))
+                                                        {
+                                                            <span class="px-2 py-0.5 rounded text-[11px] font-medium border border-[#D6DDEB] text-[#515B6F] bg-white">@tech</span>
+                                                        }
+                                                        @if (item.TechNames.Count > 3)
+                                                        {
+                                                            <span class="px-2 py-0.5 rounded text-[11px] font-medium border border-[#D6DDEB] text-[#515B6F] bg-white">+@(item.TechNames.Count - 3)</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Actions & Status -->
+                                        <div class="flex flex-col items-end gap-3 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#D6DDEB]">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[13px] text-[#515B6F] whitespace-nowrap">
+                                                    Ứng tuyển @(item.AppliedAt.HasValue ? item.AppliedAt.Value.ToString("dd/MM/yyyy") : "N/A")
                                                 </span>
                                             </div>
-
-                                            <!-- Tech Stack -->
-                                            <div class="flex flex-wrap gap-2 mt-2">
-                                                <span class="px-2 py-0.5 rounded text-[11px] font-medium border border-[#D6DDEB] text-gray-500 bg-white">Figma</span>
-                                                <span class="px-2 py-0.5 rounded text-[11px] font-medium border border-[#D6DDEB] text-gray-500 bg-white">Sketch</span>
-                                                <span class="px-2 py-0.5 rounded text-[11px] font-medium border border-[#D6DDEB] text-gray-500 bg-white">Adobe XD</span>
+                                            <div class="flex items-center justify-between w-full md:w-auto gap-3">
+                                                @{
+                                                    string status = item.Status ?? "UNKNOWN";
+                                                    string badgeClass = status switch
+                                                    {
+                                                        "PENDING" => "bg-yellow-50 text-yellow-600 border-yellow-100",
+                                                        "APPROVED" => "bg-green-50 text-green-600 border-green-100",
+                                                        "REJECTED" => "bg-red-50 text-red-600 border-red-100",
+                                                        "HIRED" => "bg-indigo-50 text-[#4640DE] border-indigo-100",
+                                                        "FINISHED" => "bg-blue-50 text-blue-600 border-blue-100",
+                                                        "CANCELLED" => "bg-gray-50 text-gray-500 border-gray-200",
+                                                        "FAILED" => "bg-orange-50 text-orange-600 border-orange-100",
+                                                        _ => "bg-gray-50 text-gray-500 border-gray-200"
+                                                    };
+                                                    string statusText = status switch
+                                                    {
+                                                        "PENDING" => "Đang chờ xử lý",
+                                                        "APPROVED" => "Đã duyệt",
+                                                        "REJECTED" => "Bị từ chối",
+                                                        "HIRED" => "Đã tuyển dụng",
+                                                        "FINISHED" => "Đã hoàn thành",
+                                                        "CANCELLED" => "Đã hủy",
+                                                        "FAILED" => "Không đạt",
+                                                        _ => "Không xác định"
+                                                    };
+                                                }
+                                                <span class="px-4 py-1.5 rounded-lg text-sm font-medium border @badgeClass whitespace-nowrap">
+                                                    @statusText
+                                                </span>
+                                                <a href="/Jobs/Details/@item.JobId?fromApplied=true" class="p-2 text-[#4640DE] hover:bg-indigo-50 rounded-lg transition-colors bg-[#4640DE]/5 flex-shrink-0" title="Xem chi tiết">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                </a>
                                             </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Actions & Status -->
-                                    <div class="flex flex-col items-end gap-3 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#D6DDEB]">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[13px] text-gray-400 whitespace-nowrap">Ứng tuyển 5 ngày trước</span>
-                                        </div>
-                                        <div class="flex items-center justify-between w-full md:w-auto gap-3">
-                                            <span class="px-4 py-1.5 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-600 border border-yellow-100 whitespace-nowrap">Đang chờ xử lý</span>
-                                            <a href="/Jobs/Details/1" class="p-2 text-primary hover:text-[#4640DE] hover:bg-blue-50 rounded-lg transition-colors bg-primary/5 flex-shrink-0" title="Xem chi tiết">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </a>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            }
                         }
                     </div>
 
                     <!-- Pagination -->
-                    <div class="mt-8 flex justify-center">
-                        <nav class="flex items-center space-x-2">
-                            <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-400 hover:text-primary hover:bg-primary/5 transition-colors">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-primary bg-primary text-white text-sm font-medium shadow-sm">1</button>
-                            <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-600 hover:text-primary hover:bg-primary/5 transition-colors text-sm font-medium">2</button>
-                            <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-600 hover:text-primary hover:bg-primary/5 transition-colors text-sm font-medium">3</button>
-                            <span class="w-9 h-9 flex items-center justify-center text-gray-400">...</span>
-                            <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-600 hover:text-primary hover:bg-primary/5 transition-colors text-sm font-medium">12</button>
-                            <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-400 hover:text-primary hover:bg-primary/5 transition-colors">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </button>
-                        </nav>
-                    </div>
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="mt-8 flex justify-center">
+                            <nav class="flex items-center space-x-2">
+                                @if (Model.Page > 1)
+                                {
+                                    <a href="/candidate/applications?page=@(Model.Page - 1)&keyword=@Model.SearchKeyword&timeRange=@Model.FilterTimeRange&status=@Model.FilterStatus" class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-400 hover:text-[#4640DE] hover:bg-[#4640DE]/5 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                    </a>
+                                }
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    if (i == Model.Page)
+                                    {
+                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#4640DE] bg-[#4640DE] text-white text-sm font-medium shadow-sm">@i</span>
+                                    }
+                                    else if (i == 1 || i == Model.TotalPages || (i >= Model.Page - 1 && i <= Model.Page + 1))
+                                    {
+                                        <a href="/candidate/applications?page=@i&keyword=@Model.SearchKeyword&timeRange=@Model.FilterTimeRange&status=@Model.FilterStatus" class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-[#515B6F] hover:text-[#4640DE] hover:bg-[#4640DE]/5 transition-colors text-sm font-medium">@i</a>
+                                    }
+                                    else if (i == Model.Page - 2 || i == Model.Page + 2)
+                                    {
+                                        <span class="w-9 h-9 flex items-center justify-center text-gray-400">...</span>
+                                    }
+                                }
+
+                                @if (Model.Page < Model.TotalPages)
+                                {
+                                    <a href="/candidate/applications?page=@(Model.Page + 1)&keyword=@Model.SearchKeyword&timeRange=@Model.FilterTimeRange&status=@Model.FilterStatus" class="w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-gray-400 hover:text-[#4640DE] hover:bg-[#4640DE]/5 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                    </a>
+                                }
+                            </nav>
+                        </div>
+                    }
 
                 </div>
             </div>

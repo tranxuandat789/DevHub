@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DevHub.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPreferredWorkingModel : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,6 +64,33 @@ namespace DevHub.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "company",
+                columns: table => new
+                {
+                    company_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    company_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    company_address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    company_logo_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    company_description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    website = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    industry = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    tax_code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    business_license_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    additional_documents_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    total_spent = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
+                    average_rating = table.Column<decimal>(type: "decimal(3,2)", nullable: true, defaultValue: 0.00m),
+                    total_reviews = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    is_verified = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
+                    profile_completion = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "PENDING")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_company", x => x.company_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "notification",
                 columns: table => new
                 {
@@ -104,6 +131,19 @@ namespace DevHub.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__promotio__2CB9556B27C78245", x => x.promotion_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "province",
+                columns: table => new
+                {
+                    province_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    province_name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_province", x => x.province_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -152,6 +192,73 @@ namespace DevHub.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__user_acc__B9BE370FB27D0E4F", x => x.user_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "company_invitation",
+                columns: table => new
+                {
+                    invitation_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    company_id = table.Column<int>(type: "int", nullable: false),
+                    email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    token = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    expires_at = table.Column<DateTime>(type: "datetime", nullable: false),
+                    status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "PENDING"),
+                    created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_company_invitation", x => x.invitation_id);
+                    table.ForeignKey(
+                        name: "FK__company_invitation__company",
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "package_transaction",
+                columns: table => new
+                {
+                    transaction_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    company_id = table.Column<int>(type: "int", nullable: false),
+                    service_id = table.Column<int>(type: "int", nullable: true),
+                    amount_vnd = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    discount_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
+                    final_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    payment_method = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false, defaultValue: "vnpay"),
+                    vnpay_txn_ref = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    vnpay_transaction_no = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    vnpay_bank_code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "pending"),
+                    transaction_type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    promotion_id = table.Column<int>(type: "int", nullable: true),
+                    description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    transaction_date = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    completed_at = table.Column<DateTime>(type: "datetime", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__package___85C600AFBBD9338E", x => x.transaction_id);
+                    table.ForeignKey(
+                        name: "FK__package_transaction__company",
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK__package_transaction__promotion",
+                        column: x => x.promotion_id,
+                        principalTable: "promotion",
+                        principalColumn: "promotion_id");
+                    table.ForeignKey(
+                        name: "FK__package_transaction__service",
+                        column: x => x.service_id,
+                        principalTable: "service_package",
+                        principalColumn: "service_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -211,29 +318,162 @@ namespace DevHub.Migrations
                     full_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     position = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    company_name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    company_address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    company_logo_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    company_description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    website = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    industry = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    tax_code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    business_license_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    additional_documents_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    total_spent = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
-                    average_rating = table.Column<decimal>(type: "decimal(3,2)", nullable: true, defaultValue: 0.00m),
-                    total_reviews = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
-                    is_verified = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
-                    profile_completion = table.Column<int>(type: "int", nullable: true, defaultValue: 0)
+                    company_id = table.Column<int>(type: "int", nullable: true),
+                    is_company_admin = table.Column<bool>(type: "bit", nullable: true, defaultValue: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__recruite__42ABA2576945C9D7", x => x.recruiter_id);
                     table.ForeignKey(
+                        name: "FK__recruiter__company",
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id");
+                    table.ForeignKey(
                         name: "FK__recruiter__recru__534D60F1",
                         column: x => x.recruiter_id,
                         principalTable: "user_account",
                         principalColumn: "user_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "company_package_history",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    company_id = table.Column<int>(type: "int", nullable: false),
+                    service_id = table.Column<int>(type: "int", nullable: false),
+                    transaction_id = table.Column<int>(type: "int", nullable: false),
+                    posts_granted = table.Column<int>(type: "int", nullable: false),
+                    posts_remaining = table.Column<int>(type: "int", nullable: false),
+                    promotions_remaining = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    start_date = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    end_date = table.Column<DateTime>(type: "datetime", nullable: true),
+                    is_active = table.Column<bool>(type: "bit", nullable: true, defaultValue: true),
+                    price_at_purchase = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__recruite__3213E83FA34D72CF", x => x.id);
+                    table.ForeignKey(
+                        name: "FK__recruiter_history__recruiter",
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK__recruiter_history__service",
+                        column: x => x.service_id,
+                        principalTable: "service_package",
+                        principalColumn: "service_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK__recruiter_history__transaction",
+                        column: x => x.transaction_id,
+                        principalTable: "package_transaction",
+                        principalColumn: "transaction_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "article",
+                columns: table => new
+                {
+                    article_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    company_id = table.Column<int>(type: "int", nullable: false),
+                    title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    slug = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    content = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    thumbnail_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true, defaultValue: "PENDING"),
+                    created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    updated_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    approved_at = table.Column<DateTime>(type: "datetime", nullable: true),
+                    approver_id = table.Column<int>(type: "int", nullable: true),
+                    reject_reason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    AdminId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_article", x => x.article_id);
+                    table.ForeignKey(
+                        name: "FK__article__approver",
+                        column: x => x.approver_id,
+                        principalTable: "admin",
+                        principalColumn: "admin_id");
+                    table.ForeignKey(
+                        name: "FK__article__company",
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_article_admin_AdminId",
+                        column: x => x.AdminId,
+                        principalTable: "admin",
+                        principalColumn: "admin_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "blog_post",
+                columns: table => new
+                {
+                    blog_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    publisher_id = table.Column<int>(type: "int", nullable: true),
+                    title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    slug = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    tag = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    content = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    thumbnail_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    is_published = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
+                    created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    published_at = table.Column<DateTime>(type: "datetime", nullable: true),
+                    status = table.Column<int>(type: "int", nullable: true, defaultValue: 3)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__blog_pos__2975AA28BA813DA3", x => x.blog_id);
+                    table.ForeignKey(
+                        name: "FK__blog_post__publisher",
+                        column: x => x.publisher_id,
+                        principalTable: "admin",
+                        principalColumn: "admin_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "mod_tier_assignment",
+                columns: table => new
+                {
+                    assignment_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    moderator_id = table.Column<int>(type: "int", nullable: false),
+                    service_id = table.Column<int>(type: "int", nullable: false),
+                    created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
+                    AdminId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_mod_tier_assignment", x => x.assignment_id);
+                    table.ForeignKey(
+                        name: "FK__mod_tier__moderator",
+                        column: x => x.moderator_id,
+                        principalTable: "admin",
+                        principalColumn: "admin_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK__mod_tier__service",
+                        column: x => x.service_id,
+                        principalTable: "service_package",
+                        principalColumn: "service_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_mod_tier_assignment_admin_AdminId",
+                        column: x => x.AdminId,
+                        principalTable: "admin",
+                        principalColumn: "admin_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -287,89 +527,13 @@ namespace DevHub.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "blog_post",
-                columns: table => new
-                {
-                    blog_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    slug = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    content = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    thumbnail_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    author = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    author_id = table.Column<int>(type: "int", nullable: true),
-                    publisher_id = table.Column<int>(type: "int", nullable: false),
-                    is_published = table.Column<bool>(type: "bit", nullable: true, defaultValue: false),
-                    published_at = table.Column<DateTime>(type: "datetime", nullable: true),
-                    created_at = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__blog_pos__2975AA28BA813DA3", x => x.blog_id);
-                    table.ForeignKey(
-                        name: "FK__blog_post__publi__395884C4",
-                        column: x => x.publisher_id,
-                        principalTable: "admin",
-                        principalColumn: "admin_id");
-                    table.ForeignKey(
-                        name: "FK_blog_post_recruiter_author_id",
-                        column: x => x.author_id,
-                        principalTable: "recruiter",
-                        principalColumn: "recruiter_id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "package_transaction",
-                columns: table => new
-                {
-                    transaction_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    recruiter_id = table.Column<int>(type: "int", nullable: false),
-                    service_id = table.Column<int>(type: "int", nullable: true),
-                    amount_vnd = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    discount_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
-                    final_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    payment_method = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false, defaultValue: "vnpay"),
-                    vnpay_txn_ref = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    vnpay_transaction_no = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    vnpay_bank_code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false, defaultValue: "pending"),
-                    transaction_type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    promotion_id = table.Column<int>(type: "int", nullable: true),
-                    description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    transaction_date = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    completed_at = table.Column<DateTime>(type: "datetime", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__package___85C600AFBBD9338E", x => x.transaction_id);
-                    table.ForeignKey(
-                        name: "FK__package_transaction__promotion",
-                        column: x => x.promotion_id,
-                        principalTable: "promotion",
-                        principalColumn: "promotion_id");
-                    table.ForeignKey(
-                        name: "FK__package_transaction__recruiter",
-                        column: x => x.recruiter_id,
-                        principalTable: "recruiter",
-                        principalColumn: "recruiter_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK__package_transaction__service",
-                        column: x => x.service_id,
-                        principalTable: "service_package",
-                        principalColumn: "service_id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "review_recruiter",
+                name: "review_company",
                 columns: table => new
                 {
                     review_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     candidate_id = table.Column<int>(type: "int", nullable: false),
-                    recruiter_id = table.Column<int>(type: "int", nullable: false),
+                    company_id = table.Column<int>(type: "int", nullable: false),
                     rating = table.Column<int>(type: "int", nullable: false),
                     pros = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     cons = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -392,53 +556,14 @@ namespace DevHub.Migrations
                         principalColumn: "candidate_id");
                     table.ForeignKey(
                         name: "FK__review_re__recru__2EDAF651",
-                        column: x => x.recruiter_id,
-                        principalTable: "recruiter",
-                        principalColumn: "recruiter_id");
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id");
                     table.ForeignKey(
-                        name: "FK_review_recruiter_admin_moderator_id",
+                        name: "FK_review_company_admin_moderator_id",
                         column: x => x.moderator_id,
                         principalTable: "admin",
                         principalColumn: "admin_id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "recruiter_package_history",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    recruiter_id = table.Column<int>(type: "int", nullable: false),
-                    service_id = table.Column<int>(type: "int", nullable: false),
-                    transaction_id = table.Column<int>(type: "int", nullable: false),
-                    posts_granted = table.Column<int>(type: "int", nullable: false),
-                    posts_remaining = table.Column<int>(type: "int", nullable: false),
-                    promotions_remaining = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    start_date = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "(getdate())"),
-                    end_date = table.Column<DateTime>(type: "datetime", nullable: true),
-                    is_active = table.Column<bool>(type: "bit", nullable: true, defaultValue: true),
-                    price_at_purchase = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__recruite__3213E83FA34D72CF", x => x.id);
-                    table.ForeignKey(
-                        name: "FK__recruiter_history__recruiter",
-                        column: x => x.recruiter_id,
-                        principalTable: "recruiter",
-                        principalColumn: "recruiter_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK__recruiter_history__service",
-                        column: x => x.service_id,
-                        principalTable: "service_package",
-                        principalColumn: "service_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK__recruiter_history__transaction",
-                        column: x => x.transaction_id,
-                        principalTable: "package_transaction",
-                        principalColumn: "transaction_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -447,12 +572,12 @@ namespace DevHub.Migrations
                 {
                     job_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    recruiter_id = table.Column<int>(type: "int", nullable: false),
+                    company_id = table.Column<int>(type: "int", nullable: false),
                     title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     position_id = table.Column<int>(type: "int", nullable: false),
-                    location = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     skill = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     working_model = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    salary_type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "RANGE"),
                     salary_min = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     salary_max = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     experience_level = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
@@ -467,12 +592,17 @@ namespace DevHub.Migrations
                     application_count = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
                     approved_at = table.Column<DateTime>(type: "datetime", nullable: true),
                     moderator_id = table.Column<int>(type: "int", nullable: true),
-                    recruiter_package_history_id = table.Column<int>(type: "int", nullable: false),
+                    company_package_history_id = table.Column<int>(type: "int", nullable: true),
                     rejected_reason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__job_post__6E32B6A56D928E5F", x => x.job_id);
+                    table.ForeignKey(
+                        name: "FK__job_post__company",
+                        column: x => x.company_id,
+                        principalTable: "company",
+                        principalColumn: "company_id");
                     table.ForeignKey(
                         name: "FK__job_post__modera__619B8048",
                         column: x => x.moderator_id,
@@ -480,19 +610,14 @@ namespace DevHub.Migrations
                         principalColumn: "admin_id");
                     table.ForeignKey(
                         name: "FK__job_post__package_history",
-                        column: x => x.recruiter_package_history_id,
-                        principalTable: "recruiter_package_history",
+                        column: x => x.company_package_history_id,
+                        principalTable: "company_package_history",
                         principalColumn: "id");
                     table.ForeignKey(
                         name: "FK__job_post__positi__60A75C0F",
                         column: x => x.position_id,
                         principalTable: "common_job_position",
                         principalColumn: "position_id");
-                    table.ForeignKey(
-                        name: "FK__job_post__recruiter",
-                        column: x => x.recruiter_id,
-                        principalTable: "recruiter",
-                        principalColumn: "recruiter_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -552,6 +677,30 @@ namespace DevHub.Migrations
                         column: x => x.job_id,
                         principalTable: "job_post",
                         principalColumn: "job_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "job_post_province",
+                columns: table => new
+                {
+                    job_id = table.Column<int>(type: "int", nullable: false),
+                    province_id = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_job_post_province", x => new { x.job_id, x.province_id });
+                    table.ForeignKey(
+                        name: "FK_job_post_province_job",
+                        column: x => x.job_id,
+                        principalTable: "job_post",
+                        principalColumn: "job_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_job_post_province_province",
+                        column: x => x.province_id,
+                        principalTable: "province",
+                        principalColumn: "province_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -636,14 +785,36 @@ namespace DevHub.Migrations
                 column: "cv_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_blog_post_author_id",
-                table: "blog_post",
-                column: "author_id");
+                name: "IX_article_AdminId",
+                table: "article",
+                column: "AdminId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_article_approver_id",
+                table: "article",
+                column: "approver_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_article_company_id",
+                table: "article",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_article_slug",
+                table: "article",
+                column: "slug",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_blog_post_publisher_id",
                 table: "blog_post",
                 column: "publisher_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_blog_post_tag",
+                table: "blog_post",
+                column: "tag",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UQ__blog_pos__32DD1E4C47481A2E",
@@ -679,6 +850,26 @@ namespace DevHub.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_company_invitation_company_id",
+                table: "company_invitation",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_company_package_history_company_id",
+                table: "company_package_history",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_company_package_history_service_id",
+                table: "company_package_history",
+                column: "service_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_company_package_history_transaction_id",
+                table: "company_package_history",
+                column: "transaction_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_cv_candidate_id",
                 table: "cv",
                 column: "candidate_id");
@@ -699,14 +890,19 @@ namespace DevHub.Migrations
                 column: "recruiter_id");
 
             migrationBuilder.CreateIndex(
-                name: "idx_job_post_recruiter",
+                name: "idx_job_post_company",
                 table: "job_post",
-                column: "recruiter_id");
+                column: "company_id");
 
             migrationBuilder.CreateIndex(
                 name: "idx_job_post_status",
                 table: "job_post",
                 column: "status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_job_post_company_package_history_id",
+                table: "job_post",
+                column: "company_package_history_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_job_post_moderator_id",
@@ -719,9 +915,9 @@ namespace DevHub.Migrations
                 column: "position_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_job_post_recruiter_package_history_id",
-                table: "job_post",
-                column: "recruiter_package_history_id");
+                name: "idx_job_post_province_province",
+                table: "job_post_province",
+                column: "province_id");
 
             migrationBuilder.CreateIndex(
                 name: "idx_job_tech_stack_lookup",
@@ -729,19 +925,34 @@ namespace DevHub.Migrations
                 columns: new[] { "tech_id", "job_id" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_mod_tier_assignment_AdminId",
+                table: "mod_tier_assignment",
+                column: "AdminId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_mod_tier_assignment_moderator_id",
+                table: "mod_tier_assignment",
+                column: "moderator_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_mod_tier_assignment_service_id",
+                table: "mod_tier_assignment",
+                column: "service_id");
+
+            migrationBuilder.CreateIndex(
                 name: "idx_notification_user",
                 table: "notification",
                 columns: new[] { "user_id", "user_type" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_package_transaction_company_id",
+                table: "package_transaction",
+                column: "company_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_package_transaction_promotion_id",
                 table: "package_transaction",
                 column: "promotion_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_package_transaction_recruiter_id",
-                table: "package_transaction",
-                column: "recruiter_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_package_transaction_service_id",
@@ -755,34 +966,30 @@ namespace DevHub.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_recruiter_package_history_recruiter_id",
-                table: "recruiter_package_history",
-                column: "recruiter_id");
+                name: "UQ_province_name",
+                table: "province",
+                column: "province_name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_recruiter_package_history_service_id",
-                table: "recruiter_package_history",
-                column: "service_id");
+                name: "IX_recruiter_company_id",
+                table: "recruiter",
+                column: "company_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_recruiter_package_history_transaction_id",
-                table: "recruiter_package_history",
-                column: "transaction_id");
+                name: "IX_review_company_company_id",
+                table: "review_company",
+                column: "company_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_review_recruiter_moderator_id",
-                table: "review_recruiter",
+                name: "IX_review_company_moderator_id",
+                table: "review_company",
                 column: "moderator_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_review_recruiter_recruiter_id",
-                table: "review_recruiter",
-                column: "recruiter_id");
-
-            migrationBuilder.CreateIndex(
-                name: "UQ_candidate_recruiter_review",
-                table: "review_recruiter",
-                columns: new[] { "candidate_id", "recruiter_id" },
+                name: "UQ_candidate_company_review",
+                table: "review_company",
+                columns: new[] { "candidate_id", "company_id" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -803,6 +1010,9 @@ namespace DevHub.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "article");
+
+            migrationBuilder.DropTable(
                 name: "audit_log");
 
             migrationBuilder.DropTable(
@@ -815,19 +1025,34 @@ namespace DevHub.Migrations
                 name: "candidate_skill");
 
             migrationBuilder.DropTable(
+                name: "company_invitation");
+
+            migrationBuilder.DropTable(
                 name: "interview");
+
+            migrationBuilder.DropTable(
+                name: "job_post_province");
 
             migrationBuilder.DropTable(
                 name: "job_tech_stack");
 
             migrationBuilder.DropTable(
+                name: "mod_tier_assignment");
+
+            migrationBuilder.DropTable(
                 name: "notification");
 
             migrationBuilder.DropTable(
-                name: "review_recruiter");
+                name: "review_company");
 
             migrationBuilder.DropTable(
                 name: "application");
+
+            migrationBuilder.DropTable(
+                name: "recruiter");
+
+            migrationBuilder.DropTable(
+                name: "province");
 
             migrationBuilder.DropTable(
                 name: "common_technology");
@@ -845,25 +1070,25 @@ namespace DevHub.Migrations
                 name: "admin");
 
             migrationBuilder.DropTable(
-                name: "recruiter_package_history");
+                name: "company_package_history");
 
             migrationBuilder.DropTable(
                 name: "common_job_position");
 
             migrationBuilder.DropTable(
+                name: "user_account");
+
+            migrationBuilder.DropTable(
                 name: "package_transaction");
+
+            migrationBuilder.DropTable(
+                name: "company");
 
             migrationBuilder.DropTable(
                 name: "promotion");
 
             migrationBuilder.DropTable(
-                name: "recruiter");
-
-            migrationBuilder.DropTable(
                 name: "service_package");
-
-            migrationBuilder.DropTable(
-                name: "user_account");
         }
     }
 }

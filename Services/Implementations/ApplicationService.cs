@@ -102,4 +102,96 @@ public class ApplicationService : IApplicationService
 
         return (true, "Ứng tuyển thành công!");
     }
+
+    public async Task<DevHub.ViewModels.Candidate.AppliedJobPageViewModel> GetPagedAppliedAsync(
+        int candidateId, int page, int pageSize,
+        string? keyword, string? timeRange, string? status)
+    {
+        var query = _context.Applications
+            .Include(a => a.Job)
+                .ThenInclude(j => j.Company)
+            .Include(a => a.Job)
+                .ThenInclude(j => j.Teches)
+            .Where(a => a.CandidateId == candidateId)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var lowerKeyword = keyword.ToLower();
+            query = query.Where(a => 
+                (a.Job.Title != null && a.Job.Title.ToLower().Contains(lowerKeyword)) ||
+                (a.Job.Company.CompanyName != null && a.Job.Company.CompanyName.ToLower().Contains(lowerKeyword)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(timeRange) && int.TryParse(timeRange, out int days))
+        {
+            var cutoffDate = DateTime.Now.AddDays(-days);
+            query = query.Where(a => a.AppliedAt >= cutoffDate);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(a => a.Status == status);
+        }
+
+        int totalCount = await query.CountAsync();
+
+        var applications = await query
+            .OrderByDescending(a => a.AppliedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var items = applications.Select(a => new DevHub.ViewModels.Candidate.AppliedJobItemViewModel
+        {
+            ApplicationId = a.ApplicationId,
+            JobId = a.JobId,
+            JobTitle = a.Job.Title ?? "",
+            CompanyName = a.Job.Company.CompanyName ?? "",
+            CompanyLogoUrl = a.Job.Company.CompanyLogoUrl,
+            Location = a.Job.Location,
+            WorkingModel = a.Job.WorkingModel,
+            ExperienceLevel = a.Job.ExperienceLevel,
+            SalaryMin = a.Job.SalaryMin,
+            SalaryMax = a.Job.SalaryMax,
+            Deadline = a.Job.Deadline,
+            TechNames = a.Job.Teches.Select(t => t.TechName).ToList(),
+            Status = a.Status,
+            AppliedAt = a.AppliedAt
+        }).ToList();
+
+        return new DevHub.ViewModels.Candidate.AppliedJobPageViewModel
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            SearchKeyword = keyword,
+            FilterTimeRange = timeRange,
+            FilterStatus = status
+        };
+    }
+
+    public async Task<(string Status, DateTime? AppliedAt, List<InterviewInfo> Interviews)?> GetApplicationStatusAsync(
+        int candidateId, int jobId)
+    {
+        var application = await _context.Applications
+            .Include(a => a.Interviews)
+            .FirstOrDefaultAsync(a => a.CandidateId == candidateId && a.JobId == jobId);
+
+        if (application == null)
+            return null;
+
+        var interviews = application.Interviews
+            .Select(i => new InterviewInfo(
+                i.ScheduledTime,
+                i.MeetingLink,
+                i.Location,
+                i.Status,
+                i.InterviewType,
+                i.Notes))
+            .ToList();
+
+        return (application.Status ?? "PENDING", application.AppliedAt, interviews);
+    }
 }

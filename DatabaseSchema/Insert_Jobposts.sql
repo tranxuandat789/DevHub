@@ -1,4 +1,4 @@
-USE ITRecruitmentDB;
+﻿USE DevHub;
 GO
 SET NOCOUNT ON;
 -- Khai báo cấu trúc bảng tạm để lưu lại danh sách JobId tự động sinh ra
@@ -558,7 +558,7 @@ END
 SET @CurrentRow = @CurrentRow + 1;
 END;
 GO
-USE ITRecruitmentDB;
+USE DevHub;
 GO
 SET NOCOUNT ON;
 -- Khai báo cấu trúc bảng tạm để lưu lại danh sách JobId tự động sinh ra

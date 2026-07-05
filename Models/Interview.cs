@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -20,6 +20,8 @@ public partial class Interview
     public string? Location { get; set; }
 
     public string? Status { get; set; }
+
+    public string? InterviewType { get; set; }
 
     public string? Notes { get; set; }
 

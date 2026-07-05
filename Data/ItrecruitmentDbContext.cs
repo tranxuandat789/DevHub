@@ -414,6 +414,9 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.MeetingLink)
                 .HasMaxLength(500)
                 .HasColumnName("meeting_link");
+            entity.Property(e => e.InterviewType)
+                .HasMaxLength(50)
+                .HasColumnName("interview_type");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
             entity.Property(e => e.ScheduledTime)

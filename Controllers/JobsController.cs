@@ -55,6 +55,17 @@ public class JobsController : Controller
             {
                 var bookmarkedJobIds = await _bookmarkService.GetBookmarkedJobIdsAsync(candidateId);
                 model.IsBookmarked = bookmarkedJobIds.Contains(id);
+
+                if (Request.Query.ContainsKey("fromApplied"))
+                {
+                    var appStatus = await _applicationService.GetApplicationStatusAsync(candidateId, id);
+                    if (appStatus.HasValue)
+                    {
+                        ViewBag.AppStatus = appStatus.Value.Status;
+                        ViewBag.AppliedAt = appStatus.Value.AppliedAt;
+                        ViewBag.Interviews = appStatus.Value.Interviews;
+                    }
+                }
             }
         }
 

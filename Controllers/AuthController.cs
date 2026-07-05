@@ -24,6 +24,7 @@ public class AuthController : Controller
     private readonly IAuthService _auth;
     private readonly ItrecruitmentDbContext _context;
     private readonly DevHub.Helpers.EmailHelper _emailHelper;
+    private readonly ICompanyInvitationService _invitationService;
 
     private const string KeyGoogleEmail = "GoogleEmail";
     private const string KeyGoogleId = "GoogleId";
@@ -31,11 +32,12 @@ public class AuthController : Controller
     private const string KeyGoogleAvatar = "GoogleAvatar";
     private const string KeyGoogleFrom = "GoogleFrom";
 
-    public AuthController(IAuthService auth, DevHub.Helpers.EmailHelper emailHelper, ItrecruitmentDbContext context)
+    public AuthController(IAuthService auth, DevHub.Helpers.EmailHelper emailHelper, ItrecruitmentDbContext context, ICompanyInvitationService invitationService)
     {
         _context = context;
         _auth = auth;
         _emailHelper = emailHelper;
+        _invitationService = invitationService;
     }
 
 
@@ -48,8 +50,41 @@ public class AuthController : Controller
     public IActionResult Login()
     {
         if (User.Identity?.IsAuthenticated == true)
-            return RedirectToDashboard();
+        {
+            return RedirectToAction("Index", "CandidateDashboard", new { area = "" });
+        }
         return View("LoginCandidate", new LoginViewModel());
+    }
+
+    [HttpGet("Auth/AcceptInvite")]
+    public async Task<IActionResult> AcceptInvite(string token)
+    {
+        var invitation = await _invitationService.ValidateTokenAsync(token);
+        if (invitation == null)
+        {
+            TempData["ErrorMessage"] = "Đường dẫn lời mời không hợp lệ hoặc đã hết hạn!";
+            return RedirectToAction("EmployerLogin");
+        }
+
+        // Save token to session
+        HttpContext.Session.SetString("InviteToken", token);
+        HttpContext.Session.SetString("InviteEmail", invitation.Email);
+
+        // Check if user already exists
+        var existingUser = await _auth.FindUserByEmailAsync(invitation.Email);
+
+        if (existingUser != null)
+        {
+            // Direct to login
+            TempData["SuccessMessage"] = $"Bạn đã có tài khoản bằng Email {invitation.Email}. Vui lòng đăng nhập để tham gia {invitation.Company.CompanyName}.";
+            return RedirectToAction("EmployerLogin");
+        }
+        else
+        {
+            // Direct to register
+            TempData["SuccessMessage"] = $"Bạn được mời tham gia {invitation.Company.CompanyName}. Vui lòng tạo tài khoản để bắt đầu!";
+            return RedirectToAction("EmployerRegister");
+        }
     }
 
     [HttpGet]
@@ -477,7 +512,7 @@ public class AuthController : Controller
 
         if (!ModelState.IsValid) return View(vm);
 
-        var user = await _auth.CreateRecruiterGoogleAccountAsync(email, googleId, name, avatar, vm.Phone);
+        var user = await _auth.CreateRecruiterGoogleAccountAsync(email, googleId, name, avatar, vm.Phone, vm.Position);
 
         HttpContext.Session.Remove(KeyGoogleEmail);
         HttpContext.Session.Remove(KeyGoogleId);
@@ -556,6 +591,29 @@ public class AuthController : Controller
             IsPersistent = rememberMe,
             ExpiresUtc = DateTimeOffset.UtcNow.AddHours(rememberMe ? 720 : 12)
         };
+
+        // Bổ sung: Nếu là nhà tuyển dụng và có InviteToken thì cập nhật công ty
+        if (roleClaim == "RECRUITER")
+        {
+            var inviteToken = HttpContext.Session.GetString("InviteToken");
+            if (!string.IsNullOrEmpty(inviteToken))
+            {
+                var invitation = await _invitationService.ValidateTokenAsync(inviteToken);
+                if (invitation != null && user.Recruiter != null)
+                {
+                    // Cập nhật Recruiter
+                    user.Recruiter.CompanyId = invitation.CompanyId;
+                    user.Recruiter.IsCompanyAdmin = false;
+                    _context.Recruiters.Update(user.Recruiter);
+                    
+                    // Cập nhật Invitation
+                    invitation.Status = "ACCEPTED";
+                    await _context.SaveChangesAsync();
+                }
+                HttpContext.Session.Remove("InviteToken");
+                HttpContext.Session.Remove("InviteEmail");
+            }
+        }
 
         await HttpContext.SignInAsync(scheme, principal, props);
     }
@@ -927,28 +985,36 @@ public class AuthController : Controller
                 _context.UserAccounts.Add(user);
                 await _context.SaveChangesAsync(); // SaveChanges lần 1 để lấy UserId
 
-                var company = new DevHub.Models.Company
+                // Lấy InviteToken nếu có
+                var inviteToken = HttpContext.Session.GetString("InviteToken");
+                CompanyInvitation invitation = null;
+                if (!string.IsNullOrEmpty(inviteToken))
                 {
-                    CompanyName = registerRecruiter.CompanyName,
-                    CompanyAddress = registerRecruiter.CompanyAddress,
-                    Website = registerRecruiter.CompanyWebsite,
-                    IsVerified = false,
-                    ProfileCompletion = 0,
-                    TotalSpent = 0,
-                    AverageRating = 0,
-                    TotalReviews = 0,
-                    
-                };
-                _context.Companies.Add(company);
-                await _context.SaveChangesAsync();
+                    invitation = await _invitationService.ValidateTokenAsync(inviteToken);
+                }
+
+                int? assignedCompanyId = null;
+                bool isCompanyAdmin = false; // Default to false if not creating a company
+
+                if (invitation != null)
+                {
+                    // Người dùng được mời, dùng CompanyId của công ty đã mời
+                    assignedCompanyId = invitation.CompanyId;
+                    isCompanyAdmin = false;
+
+                    // Đổi trạng thái lời mời thành ACCEPTED
+                    invitation.Status = "ACCEPTED";
+                    await _context.SaveChangesAsync();
+                }
 
                 var recruiter = new DevHub.Models.Recruiter
                 {
                     RecruiterId = user.UserId,
                     FullName = registerRecruiter.FullName,
                     Phone = registerRecruiter.Phone,
-                    CompanyId = company.CompanyId,
-                    IsCompanyAdmin = true
+                    Position = registerRecruiter.Position,
+                    CompanyId = assignedCompanyId,
+                    IsCompanyAdmin = isCompanyAdmin
                 };
                 _context.Recruiters.Add(recruiter);
                 await _context.SaveChangesAsync(); // SaveChanges lần 2 để lưu Recruiter

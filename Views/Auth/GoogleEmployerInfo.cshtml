@@ -46,11 +46,18 @@
                 <input type="hidden" name="FullName" value="@Model.FullName" />
             </div>
 
-            <div class="mb-7">
+            <div class="mb-5">
                 <label class="block text-[13px] font-semibold text-dark mb-1.5">Số điện thoại <span class="text-red-500">*</span></label>
                 <input asp-for="Phone" type="tel" placeholder="0901234567"
                        class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" />
                 <span asp-validation-for="Phone" class="text-red-500 text-[13px] mt-1 block"></span>
+            </div>
+
+            <div class="mb-7">
+                <label class="block text-[13px] font-semibold text-dark mb-1.5">Chức vụ <span class="text-red-500">*</span></label>
+                <input asp-for="Position" type="text" placeholder="Ví dụ: HR Manager, Recruiter"
+                       class="w-full px-4 py-3.5 border border-bordercolor rounded-lg focus:outline-none focus:border-primary transition-colors text-[15px]" />
+                <span asp-validation-for="Position" class="text-red-500 text-[13px] mt-1 block"></span>
             </div>
 
             <button type="submit"

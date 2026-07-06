@@ -8,10 +8,12 @@ namespace DevHub.Controllers.Moderator
     public class JobPositionController : Controller
     {
         private readonly DevHub.Services.Interfaces.ICommonJobPositionService _positionService;
+        private readonly DevHub.Data.ItrecruitmentDbContext _db;
 
-        public JobPositionController(DevHub.Services.Interfaces.ICommonJobPositionService positionService)
+        public JobPositionController(DevHub.Services.Interfaces.ICommonJobPositionService positionService, DevHub.Data.ItrecruitmentDbContext db)
         {
             _positionService = positionService;
+            _db = db;
         }
 
         [HttpGet("")]
@@ -76,6 +78,14 @@ namespace DevHub.Controllers.Moderator
                 IsActive = isActive
             };
             await _positionService.AddPositionAsync(newPos);
+            
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                UserId = modId, UserType = "Moderator", Action = "Thêm vị trí công việc", EntityType = "CommonJobPosition", EntityId = newPos.PositionId, OldValue = "", NewValue = positionName.Trim(), CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
             TempData["SuccessMessage"] = $"Thêm thành công vị trí: {positionName}!";
             
             return RedirectToAction("Index");
@@ -112,6 +122,14 @@ namespace DevHub.Controllers.Moderator
             pos.PositionName = positionName.Trim();
             pos.IsActive = isActive;
             await _positionService.UpdatePositionAsync(pos);
+
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                UserId = modId, UserType = "Moderator", Action = "Sửa vị trí công việc", EntityType = "CommonJobPosition", EntityId = id, OldValue = "Tồn tại", NewValue = positionName.Trim(), CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
             TempData["SuccessMessage"] = $"Cập nhật thành công vị trí #{id}!";
             
             return RedirectToAction("Index");
@@ -122,6 +140,13 @@ namespace DevHub.Controllers.Moderator
         {
             var success = await _positionService.ToggleStatusAsync(id);
             if (!success) return NotFound();
+
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                UserId = modId, UserType = "Moderator", Action = "Đổi trạng thái vị trí", EntityType = "CommonJobPosition", EntityId = id, OldValue = "", NewValue = "Đã đổi", CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
 
             return Json(new { success = true });
         }

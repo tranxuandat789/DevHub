@@ -1,0 +1,162 @@
+@model IEnumerable<DevHub.Models.AuditLog>
+@{
+    ViewData["Title"] = "Track System Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">System Logs</h1>
+        <p class="text-muted">Track all changes in the system, particularly those made by moderators.</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form method="GET" action="/AdminSystemLog" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end" onsubmit="return validateDateFilter()">
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">User Type</label>
+            <select name="userType" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="">All Users</option>
+                <option value="Moderator" selected="@(ViewBag.SelectedUserType == "Moderator" ? "selected" : null)">Moderator</option>
+                <option value="Admin" selected="@(ViewBag.SelectedUserType == "Admin" ? "selected" : null)">Admin</option>
+            </select>
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Entity Type</label>
+            <select name="entityType" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="">All Entities</option>
+                @if (ViewBag.EntityTypes != null)
+                {
+                    foreach (string et in ViewBag.EntityTypes)
+                    {
+                        <option value="@et" selected="@(ViewBag.SelectedEntityType?.ToString() == et ? "selected" : null)">@et</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Start Date</label>
+            <input type="date" name="startDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" value="@ViewBag.SelectedStartDate" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted" />
+        </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">End Date</label>
+            <input type="date" name="endDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" value="@ViewBag.SelectedEndDate" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted" />
+        </div>
+        <div>
+            <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Filter</button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Date</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">User Type</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">User ID</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Action</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Entity Type</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Entity ID</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Old Value</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">New Value</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-muted">No system logs found.</td>
+                    </tr>
+                }
+                @foreach (var log in Model)
+                {
+                    <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-6 text-muted font-medium whitespace-nowrap">@(log.CreatedAt?.ToString("yyyy-MM-dd HH:mm"))</td>
+                        <td class="py-4 px-6">
+                            @if (log.UserType == "Moderator")
+                            {
+                                <span class="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-md text-xs font-semibold">Moderator</span>
+                            }
+                            else if (log.UserType == "Admin")
+                            {
+                                <span class="bg-red-50 text-red-700 px-2.5 py-1 rounded-md text-xs font-semibold">Admin</span>
+                            }
+                            else
+                            {
+                                <span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md text-xs font-semibold">@log.UserType</span>
+                            }
+                        </td>
+                        <td class="py-4 px-6 text-dark font-medium">@log.UserId</td>
+                        <td class="py-4 px-6 text-dark">@log.Action</td>
+                        <td class="py-4 px-6 text-muted">@log.EntityType</td>
+                        <td class="py-4 px-6 text-dark font-medium">@log.EntityId</td>
+                        <td class="py-4 px-6 text-muted max-w-[150px] truncate" title="@log.OldValue">@log.OldValue</td>
+                        <td class="py-4 px-6 text-muted max-w-[150px] truncate" title="@log.NewValue">@log.NewValue</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="px-6 py-4 border-t border-[#D6DDEB] flex flex-col md:flex-row items-center justify-between bg-gray-50 gap-4">
+            <span class="text-sm text-muted">
+                Hiển thị trang <span class="font-bold text-dark">@ViewBag.CurrentPage</span> / @ViewBag.TotalPages 
+                (Tổng số <span class="font-bold text-dark">@ViewBag.TotalItems</span> logs)
+            </span>
+            <div class="flex items-center gap-2">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <a href="?userType=@ViewBag.SelectedUserType&entityType=@ViewBag.SelectedEntityType&startDate=@ViewBag.SelectedStartDate&endDate=@ViewBag.SelectedEndDate&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
+                }
+                
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <a href="?userType=@ViewBag.SelectedUserType&entityType=@ViewBag.SelectedEntityType&startDate=@ViewBag.SelectedStartDate&endDate=@ViewBag.SelectedEndDate&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <a href="?userType=@ViewBag.SelectedUserType&entityType=@ViewBag.SelectedEntityType&startDate=@ViewBag.SelectedStartDate&endDate=@ViewBag.SelectedEndDate&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    function validateDateFilter() {
+        var startDate = document.querySelector('input[name="startDate"]').value;
+        var endDate = document.querySelector('input[name="endDate"]').value;
+        var now = new Date();
+        now.setHours(23, 59, 59, 999);
+        
+        if (startDate) {
+            if (new Date(startDate) > now) {
+                alert("Ngày bắt đầu không thể vượt quá ngày hiện tại.");
+                return false;
+            }
+        }
+        
+        if (endDate) {
+            if (new Date(endDate) > now) {
+                alert("Ngày kết thúc không thể vượt quá ngày hiện tại.");
+                return false;
+            }
+        }
+
+        if (startDate && endDate) {
+            if (new Date(startDate) > new Date(endDate)) {
+                alert("Ngày bắt đầu không thể lớn hơn ngày kết thúc.");
+                return false;
+            }
+        }
+        return true;
+    }
+</script>

@@ -9,10 +9,12 @@ namespace DevHub.Controllers.Moderator
     {
         // 1. Khai báo Service (Business Logic Layer)
         private readonly DevHub.Services.Interfaces.ICommonTechnologyService _techService;
+        private readonly DevHub.Data.ItrecruitmentDbContext _db;
 
-        public TechStackController(DevHub.Services.Interfaces.ICommonTechnologyService techService)
+        public TechStackController(DevHub.Services.Interfaces.ICommonTechnologyService techService, DevHub.Data.ItrecruitmentDbContext db)
         {
             _techService = techService;
+            _db = db;
         }
 
         // 2. Action Index hiển thị danh sách (có hỗ trợ tìm kiếm và lọc)
@@ -84,6 +86,14 @@ namespace DevHub.Controllers.Moderator
             };
             
             await _techService.AddTechAsync(newTech);
+
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                UserId = modId, UserType = "Moderator", Action = "Thêm công nghệ", EntityType = "CommonTechnology", EntityId = newTech.TechId, OldValue = "", NewValue = techName.Trim(), CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
             TempData["SuccessMessage"] = $"Thêm mới thành công công nghệ: {techName}!";
             
             return RedirectToAction("Index");
@@ -122,6 +132,14 @@ namespace DevHub.Controllers.Moderator
             tech.TechName = techName.Trim();
             tech.IsActive = isActive;
             await _techService.UpdateTechAsync(tech); // Gọi Service xử lý lưu vào DB thông qua Repository
+
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                UserId = modId, UserType = "Moderator", Action = "Sửa công nghệ", EntityType = "CommonTechnology", EntityId = id, OldValue = "Tồn tại", NewValue = techName.Trim(), CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
             TempData["SuccessMessage"] = $"Cập nhật thành công công nghệ #{id}!";
             
             return RedirectToAction("Index");
@@ -133,6 +151,13 @@ namespace DevHub.Controllers.Moderator
         {
             var success = await _techService.ToggleStatusAsync(id);
             if (!success) return NotFound();
+
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                UserId = modId, UserType = "Moderator", Action = "Đổi trạng thái công nghệ", EntityType = "CommonTechnology", EntityId = id, OldValue = "", NewValue = "Đã đổi", CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
 
             return Json(new { success = true, message = $"Cập nhật trạng thái thành công công nghệ #{id}!" });
         }

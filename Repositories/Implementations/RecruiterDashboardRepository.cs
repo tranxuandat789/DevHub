@@ -15,31 +15,31 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
         _context = context;
     }
 
-    // All posts of the recruiter (newest first). Used for both totals and the recent-posts list.
-    public async Task<List<JobPost>> GetJobPostsAsync(int recruiterId)
+    // All posts of the company (newest first). Used for both totals and the recent-posts list.
+    public async Task<List<JobPost>> GetJobPostsAsync(int companyId)
         => await _context.JobPosts
             .AsNoTracking()
-            .Where(j => j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
+            .Where(j => j.CompanyId == companyId)
             .OrderByDescending(j => j.CreatedAt)
             .ToListAsync();
 
-    public async Task<List<Interview>> GetInterviewsAsync(int recruiterId)
+    public async Task<List<Interview>> GetInterviewsAsync(int companyId)
         => await _context.Interviews
             .Include(i => i.Candidate)
             .Include(i => i.Application).ThenInclude(a => a.Job)
-            .Where(i => i.RecruiterId == recruiterId)
+            .Where(i => i.Application.Job.CompanyId == companyId)
             .OrderBy(i => i.ScheduledTime)
             .ToListAsync();
 
     // [#5] APPROVED posts whose deadline is within the next N days (not yet passed).
-    public async Task<List<ExpiringJobAlert>> GetExpiringJobsAsync(int recruiterId, int withinDays = 7)
+    public async Task<List<ExpiringJobAlert>> GetExpiringJobsAsync(int companyId, int withinDays = 7)
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
         var cutoff = today.AddDays(withinDays);
 
         var rows = await _context.JobPosts
             .AsNoTracking()
-            .Where(j => j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
+            .Where(j => j.CompanyId == companyId
                      && j.Status != null && j.Status.ToUpper() == "APPROVED"
                      && j.Deadline != null
                      && j.Deadline >= today
@@ -58,11 +58,11 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
         }).ToList();
     }
 
-    // [#6] Most recent applications to this recruiter's jobs.
-    public async Task<List<RecentApplicationItem>> GetRecentApplicationsAsync(int recruiterId, int take = 6)
+    // [#6] Most recent applications to this company's jobs.
+    public async Task<List<RecentApplicationItem>> GetRecentApplicationsAsync(int companyId, int take = 6)
         => await _context.Applications
             .AsNoTracking()
-            .Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId))
+            .Where(a => a.Job.CompanyId == companyId)
             .OrderByDescending(a => a.AppliedAt)
             .Take(take)
             .Select(a => new RecentApplicationItem
@@ -100,19 +100,19 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
                 ).ToList());
     }
 
-    // [#1] AppliedAt timestamps for the recruiter's jobs since fromDate (bucketed into the 30-day chart by the controller).
-    public async Task<List<DateTime>> GetApplicationDatesAsync(int recruiterId, DateTime fromDate)
+    // [#1] AppliedAt timestamps for the company's jobs since fromDate (bucketed into the 30-day chart by the controller).
+    public async Task<List<DateTime>> GetApplicationDatesAsync(int companyId, DateTime fromDate)
         => await _context.Applications
             .AsNoTracking()
-            .Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
+            .Where(a => a.Job.CompanyId == companyId
                      && a.AppliedAt != null
                      && a.AppliedAt >= fromDate)
             .Select(a => a.AppliedAt!.Value)
             .ToListAsync();
 
-    // Live count of all applications to the recruiter's jobs (matches the applicant-list total).
-    public async Task<int> CountApplicationsAsync(int recruiterId)
+    // Live count of all applications to the company's jobs (matches the applicant-list total).
+    public async Task<int> CountApplicationsAsync(int companyId)
         => await _context.Applications
             .AsNoTracking()
-            .CountAsync(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
+            .CountAsync(a => a.Job.CompanyId == companyId);
 }

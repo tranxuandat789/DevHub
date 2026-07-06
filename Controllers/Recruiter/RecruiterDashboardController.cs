@@ -35,10 +35,11 @@ namespace DevHub.Controllers.Recruiter
                 return NotFound();
 
             int recruiterId = dbUser.Recruiter.RecruiterId;
+            int companyId = dbUser.Recruiter.CompanyId ?? 0;
 
             try
             {
-                var viewModel = await _dashboardService.GetDashboardAsync(recruiterId, range);
+                var viewModel = await _dashboardService.GetDashboardAsync(companyId, recruiterId, range);
                 return View("~/Views/Recruiter/RecruiterDashboard/Index.cshtml", viewModel);
             }
             catch (Exception ex)

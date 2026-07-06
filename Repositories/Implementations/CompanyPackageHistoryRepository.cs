@@ -13,12 +13,12 @@ public class CompanyPackageHistoryRepository : ICompanyPackageHistoryRepository
     {
         _context = context;
     }
-    public async Task<CompanyPackageHistory?> GetActivePackageForRecruiterAsync(int recruiterId)
+    public async Task<CompanyPackageHistory?> GetActivePackageForCompanyAsync(int companyId)
     {
         var now = DateTime.UtcNow;
         return await _context.CompanyPackageHistories
             .Include(r => r.Service)
-            .Where(r => r.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId) && r.IsActive == true && r.PostsRemaining > 0 && (r.EndDate == null || r.EndDate >= now))
+            .Where(r => r.CompanyId == companyId && r.IsActive == true && r.PostsRemaining > 0 && (r.EndDate == null || r.EndDate >= now))
             .OrderByDescending(r => r.EndDate)
             .FirstOrDefaultAsync();
     }

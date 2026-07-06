@@ -38,7 +38,7 @@ namespace DevHub.Controllers.Recruiter
                 return NotFound();
 
             // Check: company profile must be >= 90% complete to access the management page.
-            if ((dbUser.Recruiter?.Company?.ProfileCompletion ?? 0) < 90)
+            if ((dbUser.Recruiter?.Company?.IsVerified == true) || (dbUser.Recruiter?.Company?.ProfileCompletion < 97))
             {
                 ViewBag.ProfileIncomplete = true;
                 return View(new JobPostManageViewModel());

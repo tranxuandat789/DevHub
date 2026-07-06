@@ -42,7 +42,7 @@ namespace DevHub.Controllers.Recruiter
 
         //Default tab in Settings is "account".
         [HttpGet("")]
-        public async Task<IActionResult> Index(string tab = "account")
+        public async Task<IActionResult> Index(string tab = "account", int page = 1)
         {
             ViewData["ActiveMenu"] = "Settings";
             ViewBag.ActiveTab = tab.ToLower();
@@ -60,10 +60,22 @@ namespace DevHub.Controllers.Recruiter
 
             if (tab.ToLower() == "members" && dbUser.Recruiter.CompanyId.HasValue)
             {
-                ViewBag.Members = await _context.Recruiters
-                    .Where(r => r.CompanyId == dbUser.Recruiter.CompanyId)
-                    .Select(r => new { r.RecruiterId, r.FullName, r.Position, r.IsCompanyAdmin })
+                var query = _context.Recruiters.Where(r => r.CompanyId == dbUser.Recruiter.CompanyId);
+                var totalMembers = await query.CountAsync();
+                int pageSize = 5;
+                int totalPages = (int)Math.Ceiling(totalMembers / (double)pageSize);
+
+                ViewBag.Members = await query
+                    .Include(r => r.RecruiterNavigation)
+                    .OrderByDescending(r => r.IsCompanyAdmin).ThenBy(r => r.RecruiterId)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(r => new { r.RecruiterId, r.FullName, Email = r.RecruiterNavigation.Email, r.Position, r.IsCompanyAdmin })
                     .ToListAsync();
+
+                ViewBag.MembersPage = page;
+                ViewBag.MembersTotalPages = totalPages;
+                ViewBag.MembersTotalCount = totalMembers;
 
                 ViewBag.Invitations = await _invitationService.GetPendingInvitationsAsync(dbUser.Recruiter.CompanyId.Value);
             }
@@ -125,6 +137,12 @@ namespace DevHub.Controllers.Recruiter
             var dbUser = await _authService.FindUserByEmailAsync(email);
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
+
+            if (dbUser.Recruiter.IsCompanyAdmin != true)
+            {
+                TempData["Error"] = "Chỉ Quản trị viên công ty mới có quyền sửa thông tin doanh nghiệp.";
+                return RedirectToAction("Index", new { tab = "company" });
+            }
 
             // FullName/Phone/Position are sent as hidden inputs only and overwritten from the DB.
             // Drop their validation to make sure do not block the save process of compoany information
@@ -257,6 +275,12 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
+            if (dbUser.Recruiter.IsCompanyAdmin != true)
+            {
+                TempData["Error"] = "Chỉ Quản trị viên công ty mới có quyền sửa đổi giấy phép kinh doanh.";
+                return RedirectToAction("Index", new { tab = "license" });
+            }
+
             if (file_upload == null || file_upload.Length == 0)
             {
                 TempData["Error"] = "Vui lòng cung cấp Giấy phép kinh doanh hợp lệ để thực hiện xác thực";
@@ -345,6 +369,12 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
+            if (dbUser.Recruiter.IsCompanyAdmin != true)
+            {
+                TempData["Error"] = "Chỉ Quản trị viên công ty mới có quyền tải lên tài liệu bổ sung.";
+                return RedirectToAction("Index", new { tab = "license" });
+            }
+
             if (additional_file == null || additional_file.Length == 0)
             {
                 TempData["Error"] = "Vui lòng chọn tài liệu bổ sung để tải lên.";
@@ -431,6 +461,12 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
+            if (dbUser.Recruiter.IsCompanyAdmin != true)
+            {
+                TempData["Error"] = "Chỉ Quản trị viên công ty mới có quyền yêu cầu xác minh doanh nghiệp.";
+                return RedirectToAction("Index", new { tab = "license" });
+            }
+
             try
             {
                 // Service applies the completeness (> 96%).
@@ -506,6 +542,46 @@ namespace DevHub.Controllers.Recruiter
                 {
                     TempData["Error"] = "Không thể hủy lời mời này.";
                 }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Index", new { tab = "members" });
+        }
+        [HttpPost("assign-admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignAdmin(int targetRecruiterId)
+        {
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+                var dbUser = await _authService.FindUserByEmailAsync(email);
+
+                if (dbUser?.Recruiter == null || dbUser.Recruiter.CompanyId == null || dbUser.Recruiter.IsCompanyAdmin != true)
+                {
+                    TempData["Error"] = "Bạn không có quyền thực hiện thao tác này.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                var targetRecruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.RecruiterId == targetRecruiterId && r.CompanyId == dbUser.Recruiter.CompanyId);
+                if (targetRecruiter == null)
+                {
+                    TempData["Error"] = "Không tìm thấy thành viên này trong công ty.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                if (targetRecruiter.IsCompanyAdmin == true)
+                {
+                    TempData["Error"] = "Người này đã là Quản trị viên.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                targetRecruiter.IsCompanyAdmin = true;
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Đã cấp quyền Quản trị viên thành công cho {targetRecruiter.FullName}.";
             }
             catch (Exception ex)
             {

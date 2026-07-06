@@ -77,7 +77,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         var recruiter = await _profileRepo.GetProfileAsync(recruiterId);
         int completion = recruiter?.Company?.ProfileCompletion ?? 0;
 
-        var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
+        var package = await _packageRepo.GetActivePackageForCompanyAsync(recruiter?.CompanyId ?? 0);
         if (package == null)
             return (completion >= MinProfileCompletion, false, 0, completion);
 
@@ -102,7 +102,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             throw new InvalidOperationException("Bạn cần hoàn thành đủ mục thông tin công ty");
 
         //Track if the package is valid and has remaining posts.
-        var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
+        var package = await _packageRepo.GetActivePackageForCompanyAsync(recruiter?.CompanyId ?? 0);
         if (package == null || package.PostsRemaining <= 0)
             throw new InvalidOperationException("Tài khoản đã hết lượt đăng bài hoặc gói dịch vụ hết hạn.");
 

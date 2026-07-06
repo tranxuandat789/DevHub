@@ -79,7 +79,7 @@
             <nav class="hidden md:flex space-x-8">
                 <a href="/Home/Employer" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Giới thiệu</a>
                 <a href="/recruiter/dashboard" class="text-primary font-bold hover:text-primary transition-colors text-[16px]">Dashboard</a>
-                <a href="/Recruiter/RecruiterService" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Bảng giá</a>
+                <a href="/Recruiter/Payment/Subscription" class="text-muted font-medium hover:text-primary transition-colors text-[16px]">Bảng giá</a>
             </nav>
         </div>
         
@@ -295,7 +295,7 @@
 
             <!-- Dịch vụ -->
             <div class="sidebar-item relative group w-full flex justify-center" data-menu="services">
-                <a href="/Recruiter/RecruiterService" class="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-xl hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors @(ViewData["ActiveMenu"] as string == "Services" ? "bg-blue-500 text-white hover:text-white hover:bg-blue-600" : "")">
+                <a href="/Recruiter/Payment/Subscription" class="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-xl hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors @(ViewData["ActiveMenu"] as string == "Services" ? "bg-blue-500 text-white hover:text-white hover:bg-blue-600" : "")">
                     <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     <span class="text-[11px] font-medium">Dịch vụ</span>
                 </a>
@@ -306,8 +306,8 @@
                         Dịch vụ
                     </div>
                     <ul class="flex flex-col gap-1">
-                        <li><a href="/Recruiter/RecruiterService" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Mua dịch vụ</a></li>
-                        <li><a href="/Recruiter/RecruiterService/History" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg> Lịch sử giao dịch</a></li>
+                        <li><a href="/Recruiter/Payment/Subscription" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Mua dịch vụ</a></li>
+                        <li><a href="/Recruiter/Payment/History" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg> Lịch sử giao dịch</a></li>
                     </ul>
                 </div>
             </div>

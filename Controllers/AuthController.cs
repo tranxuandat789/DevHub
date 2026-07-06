@@ -75,6 +75,12 @@ public class AuthController : Controller
 
         if (existingUser != null)
         {
+            if (existingUser.UserType?.ToUpper() != "RECRUITER")
+            {
+                TempData["ErrorMessage"] = $"Email {invitation.Email} đã được sử dụng cho một loại tài khoản khác. Vui lòng sử dụng tài khoản Nhà tuyển dụng.";
+                return RedirectToAction("EmployerLogin");
+            }
+
             // Direct to login
             TempData["SuccessMessage"] = $"Bạn đã có tài khoản bằng Email {invitation.Email}. Vui lòng đăng nhập để tham gia {invitation.Company.CompanyName}.";
             return RedirectToAction("EmployerLogin");
@@ -412,12 +418,6 @@ public class AuthController : Controller
                 if (user.Candidate != null) user.Candidate.ImageUrl = avatar;
             }
 
-            if (!string.IsNullOrEmpty(avatar) && user.UserType?.Trim().ToUpper() == "RECRUITER"
-                && user.Recruiter?.Company?.CompanyLogoUrl != avatar)
-            {
-                await _auth.SyncRecruiterAvatarAsync(user.UserId, avatar);
-                if (user.Recruiter?.Company != null) user.Recruiter.Company.CompanyLogoUrl = avatar;
-            }
 
             if (user.IsActive != true)
             {

@@ -82,6 +82,22 @@ namespace DevHub.Controllers.Moderator
                 await _context.SaveChangesAsync();
             }
 
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            var auditLog = new AuditLog
+            {
+                UserId = modId,
+                UserType = "Moderator",
+                Action = "Đổi trạng thái Blog",
+                EntityType = "BlogPost",
+                EntityId = id,
+                OldValue = blog.Status.ToString(),
+                NewValue = (blog.Status == 1 ? "5" : "1"),
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.AuditLogs.Add(auditLog);
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
@@ -94,6 +110,21 @@ namespace DevHub.Controllers.Moderator
             var success = await _blogPostService.DeletePostAsync(id);
             if (!success) return NotFound();
 
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+            var auditLog = new AuditLog
+            {
+                UserId = modId,
+                UserType = "Moderator",
+                Action = "Xóa Blog",
+                EntityType = "BlogPost",
+                EntityId = id,
+                OldValue = "Tồn tại",
+                NewValue = "Đã xóa (Lý do: " + reason + ")",
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.AuditLogs.Add(auditLog);
+            await _context.SaveChangesAsync();
 
             return Ok();
         }

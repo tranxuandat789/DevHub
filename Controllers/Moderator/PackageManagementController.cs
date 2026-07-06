@@ -11,10 +11,12 @@ namespace DevHub.Controllers.Moderator
     public class PackageManagementController : Controller
     {
         private readonly IServicePackageService _packageService;
+        private readonly DevHub.Data.ItrecruitmentDbContext _db;
 
-        public PackageManagementController(IServicePackageService packageService)
+        public PackageManagementController(IServicePackageService packageService, DevHub.Data.ItrecruitmentDbContext db)
         {
             _packageService = packageService;
+            _db = db;
         }
 
         [HttpGet("")]
@@ -49,6 +51,23 @@ namespace DevHub.Controllers.Moderator
             if (ModelState.IsValid)
             {
                 await _packageService.CreatePackageAsync(package);
+
+                var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(modIdClaim, out int modId);
+                var userType = User.IsInRole("Admin") ? "Admin" : "Moderator";
+                _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                    UserId = modId, 
+                    UserType = userType, 
+                    Action = "Thêm gói dịch vụ", 
+                    EntityType = "ServicePackage", 
+                    EntityId = package.ServiceId, 
+                    OldValue = "Không", 
+                    NewValue = package.PackageName, 
+                    CreatedAt = DateTime.UtcNow,
+                    IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                });
+                await _db.SaveChangesAsync();
+
                 TempData["SuccessMsg"] = "Đã tạo gói dịch vụ mới thành công!";
                 return RedirectToAction(nameof(Index));
             }
@@ -80,6 +99,23 @@ namespace DevHub.Controllers.Moderator
             if (ModelState.IsValid)
             {
                 await _packageService.UpdatePackageAsync(package);
+
+                var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(modIdClaim, out int modId);
+                var userType = User.IsInRole("Admin") ? "Admin" : "Moderator";
+                _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                    UserId = modId, 
+                    UserType = userType, 
+                    Action = "Sửa gói dịch vụ", 
+                    EntityType = "ServicePackage", 
+                    EntityId = id, 
+                    OldValue = "Tồn tại", 
+                    NewValue = package.PackageName, 
+                    CreatedAt = DateTime.UtcNow,
+                    IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                });
+                await _db.SaveChangesAsync();
+
                 TempData["SuccessMsg"] = "Đã cập nhật gói dịch vụ thành công!";
                 return RedirectToAction(nameof(Index));
             }
@@ -93,6 +129,22 @@ namespace DevHub.Controllers.Moderator
             var success = await _packageService.ToggleStatusAsync(id, activate);
             if (success)
             {
+                var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(modIdClaim, out int modId);
+                var userType = User.IsInRole("Admin") ? "Admin" : "Moderator";
+                _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                    UserId = modId, 
+                    UserType = userType, 
+                    Action = "Đổi trạng thái gói dịch vụ", 
+                    EntityType = "ServicePackage", 
+                    EntityId = id, 
+                    OldValue = !activate ? "Hoạt động" : "Khóa", 
+                    NewValue = activate ? "Hoạt động" : "Khóa", 
+                    CreatedAt = DateTime.UtcNow,
+                    IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                });
+                await _db.SaveChangesAsync();
+
                 TempData["SuccessMsg"] = $"Đã thay đổi trạng thái gói dịch vụ #{id} thành công!";
             }
             else

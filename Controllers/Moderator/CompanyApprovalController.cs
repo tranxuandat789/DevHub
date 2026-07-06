@@ -103,6 +103,22 @@ namespace DevHub.Controllers.Moderator
             };
             _db.Notifications.Add(notification);
 
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+
+            var auditLog = new AuditLog
+            {
+                UserId = modId,
+                UserType = "Moderator",
+                Action = "Duyệt công ty",
+                EntityType = "Company",
+                EntityId = log.EntityId,
+                OldValue = "Chờ duyệt",
+                NewValue = "Đã duyệt",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.AuditLogs.Add(auditLog);
+
             await _db.SaveChangesAsync();
             return Ok(new { success = true });
         }
@@ -127,6 +143,22 @@ namespace DevHub.Controllers.Moderator
                 CreatedAt = DateTime.UtcNow
             };
             _db.Notifications.Add(notification);
+
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+
+            var auditLog = new AuditLog
+            {
+                UserId = modId,
+                UserType = "Moderator",
+                Action = "Từ chối công ty",
+                EntityType = "Company",
+                EntityId = log.EntityId,
+                OldValue = "Chờ duyệt",
+                NewValue = "Từ chối (Lý do: " + reason + ")",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.AuditLogs.Add(auditLog);
 
             await _db.SaveChangesAsync();
             return Ok(new { success = true });

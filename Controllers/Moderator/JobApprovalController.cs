@@ -22,11 +22,13 @@ namespace DevHub.Controllers.Moderator
     {
         // Khai báo dịch vụ xử lý nghiệp vụ bài đăng tuyển dụng (Service) dưới dạng chỉ đọc
         private readonly IJobPostService _jobPostService;
+        private readonly DevHub.Data.ItrecruitmentDbContext _db;
 
         // Hàm khởi tạo (Constructor) để tiêm dependency (Dependency Injection) của Service vào Controller
-        public JobApprovalController(IJobPostService jobPostService)
+        public JobApprovalController(IJobPostService jobPostService, DevHub.Data.ItrecruitmentDbContext db)
         {
             _jobPostService = jobPostService;
+            _db = db;
         }
 
         // Action xử lý yêu cầu GET đến địa chỉ "moderator/job-approvals" để hiển thị danh sách bài đăng chờ duyệt
@@ -123,9 +125,21 @@ namespace DevHub.Controllers.Moderator
             // 2. Gọi Service thực hiện nghiệp vụ phê duyệt bài đăng
             var success = await _jobPostService.ApproveJobAsync(id, moderatorId);
 
-           
             if (!success) return BadRequest("Cannot approve this job.");
 
+            var auditLog = new DevHub.Models.AuditLog
+            {
+                UserId = moderatorId,
+                UserType = "Moderator",
+                Action = "Duyệt bài đăng",
+                EntityType = "JobPost",
+                EntityId = id,
+                OldValue = "Chờ duyệt",
+                NewValue = "Đã duyệt",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.AuditLogs.Add(auditLog);
+            await _db.SaveChangesAsync();
             
             return Ok(new { success = true });
         }
@@ -147,6 +161,21 @@ namespace DevHub.Controllers.Moderator
             // 2. Gọi Service thực hiện nghiệp vụ từ chối bài đăng kèm lý do cụ thể
             var success = await _jobPostService.RejectJobAsync(id, moderatorId, reason);
             if (!success) return BadRequest("Cannot reject this job.");
+
+            var auditLog = new DevHub.Models.AuditLog
+            {
+                UserId = moderatorId,
+                UserType = "Moderator",
+                Action = "Từ chối bài đăng",
+                EntityType = "JobPost",
+                EntityId = id,
+                OldValue = "Chờ duyệt",
+                NewValue = "Từ chối (Lý do: " + reason + ")",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.AuditLogs.Add(auditLog);
+            await _db.SaveChangesAsync();
+
             return Ok(new { success = true });
         }
 

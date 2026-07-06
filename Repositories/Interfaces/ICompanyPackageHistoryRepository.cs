@@ -1,9 +1,9 @@
-using DevHub.Models;
+﻿using DevHub.Models;
 
 namespace DevHub.Repositories.Interfaces;
 
 public interface ICompanyPackageHistoryRepository
 {
-    Task<CompanyPackageHistory?> GetActivePackageForRecruiterAsync(int recruiterId);
+    Task<CompanyPackageHistory?> GetActivePackageForCompanyAsync(int companyId);
     Task DecrementPostsRemainingAsync(int packageHistoryId);
 }

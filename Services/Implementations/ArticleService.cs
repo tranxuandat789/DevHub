@@ -59,7 +59,7 @@ public class ArticleService : IArticleService
         };
 
         // Assign moderator based on company package
-        var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
+        var package = await _packageRepo.GetActivePackageForCompanyAsync(recruiter.CompanyId.Value);
         if (package != null)
         {
             article.ApproverId = await _modAssignmentService.GetAssignedModeratorAsync(package.ServiceId);
@@ -109,7 +109,7 @@ public class ArticleService : IArticleService
         article.Status = "PENDING";
         
         // Re-assign moderator just in case
-        var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
+        var package = await _packageRepo.GetActivePackageForCompanyAsync(recruiter.CompanyId.Value);
         if (package != null)
         {
             article.ApproverId = await _modAssignmentService.GetAssignedModeratorAsync(package.ServiceId);

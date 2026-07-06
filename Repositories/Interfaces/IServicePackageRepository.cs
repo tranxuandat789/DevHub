@@ -12,4 +12,5 @@ public interface IServicePackageRepository
     Task<ServicePackage> CreatePackageAsync(ServicePackage package);
     Task<ServicePackage> UpdatePackageAsync(ServicePackage package);
     Task<bool> ToggleStatusAsync(int id, bool activate);
+    Task<List<ServicePackage>> GetActiveAsync();
 }

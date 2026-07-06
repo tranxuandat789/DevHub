@@ -107,4 +107,12 @@ public class ServicePackageRepository : IServicePackageRepository
         }
         return false;
     }
+
+    public async Task<List<ServicePackage>> GetActiveAsync()
+    {
+        return await _context.ServicePackages
+            .Where(s => s.IsActive == true)
+            .OrderBy(s => s.Price)
+            .ToListAsync();
+    }
 }

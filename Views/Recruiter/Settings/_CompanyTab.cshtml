@@ -11,6 +11,10 @@
         ViewData.ModelState.TryGetValue(key, out var entry) && entry.AttemptedValue != null
             ? entry.AttemptedValue
             : (fallback ?? "");
+
+    bool isAdmin = Model.IsCompanyAdmin == true;
+    string readonlyAttr = isAdmin ? "" : "readonly";
+    string disabledClass = isAdmin ? "" : "opacity-50 cursor-not-allowed bg-gray-100";
 }
 <div>
     <div class="flex items-center gap-2 mb-6">
@@ -45,71 +49,83 @@
                              : Model.Company?.CompanyLogoUrl)"
                          alt="Company Logo" class="w-full h-full object-contain" id="logoPreview">
                 </div>
-                <div>
-                    <label class="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-sm transition-colors cursor-pointer border border-blue-100">
-                        Tải logo lên
-                        <input type="file" name="logoFile" id="logoFile" class="hidden"
-                               accept="image/png,image/jpeg" onchange="handleLogoChange(this)">
-                    </label>
-                    <p class="text-xs text-gray-500 mt-2">Kích thước khuyến nghị: 400x400px. Tối đa 5MB. Định dạng JPG hoặc PNG.</p>
-                    <p id="logoError" class="text-xs text-red-500 mt-1 hidden"></p>
-                </div>
+                @if (isAdmin)
+                {
+                    <div>
+                        <label class="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-sm transition-colors cursor-pointer border border-blue-100">
+                            Tải logo lên
+                            <input type="file" name="logoFile" id="logoFile" class="hidden"
+                                   accept="image/png,image/jpeg" onchange="handleLogoChange(this)">
+                        </label>
+                        <p class="text-xs text-gray-500 mt-2">Kích thước khuyến nghị: 400x400px. Tối đa 5MB. Định dạng JPG hoặc PNG.</p>
+                        <p id="logoError" class="text-xs text-red-500 mt-1 hidden"></p>
+                    </div>
+                }
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tên công ty</label>
-                <input type="text" name="CompanyName"
-                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                <input type="text" name="CompanyName" @readonlyAttr
+                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors @disabledClass"
                        value="@FieldValue("CompanyName", Model.Company?.CompanyName)" placeholder="Ví dụ: Công ty Cổ phần VNG">
                 <span asp-validation-for="Company.CompanyName" class="text-xs text-red-500 mt-1 block"></span>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Mã số thuế</label>
-                <input type="text" name="TaxCode" maxlength="14"
-                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                <input type="text" name="TaxCode" maxlength="14" @readonlyAttr
+                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors @disabledClass"
                        value="@FieldValue("TaxCode", Model.Company?.TaxCode)" placeholder="10 chữ số, vd: 0123456789">
                 @Html.ValidationMessage("TaxCode", new { @class = "text-xs text-red-500 mt-1 block" })
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                <input type="url" name="Website"
-                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                <input type="url" name="Website" @readonlyAttr
+                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors @disabledClass"
                        value="@FieldValue("Website", Model.Company?.Website)" placeholder="https://">
                 @Html.ValidationMessage("Website", new { @class = "text-xs text-red-500 mt-1 block" })
             </div>
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Lĩnh vực - Ngành nghề</label>
-                <input type="text" name="Industry" class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg
-           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                <input type="text" name="Industry" @readonlyAttr class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors @disabledClass"
                        value="@FieldValue("Industry", Model.Company?.Industry)" placeholder="Ví dụ: Công nghệ thông tin">
             </div>
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ trụ sở</label>
-                <input type="text" name="CompanyAddress"
-                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                <input type="text" name="CompanyAddress" @readonlyAttr
+                       class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors @disabledClass"
                        value="@FieldValue("CompanyAddress", Model.Company?.CompanyAddress)" placeholder="Nhập địa chỉ chi tiết">
             </div>
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Giới thiệu ngắn</label>
-                <textarea rows="4" name="CompanyDescription"
-                          class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none"
+                <textarea rows="4" name="CompanyDescription" @readonlyAttr
+                          class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none @disabledClass"
                           placeholder="Viết một đoạn ngắn giới thiệu về công ty của bạn...">@FieldValue("CompanyDescription", Model.Company?.CompanyDescription)</textarea>
             </div>
         </div>
 
-        <div class="pt-4 flex justify-end border-t border-gray-100">
-            <button type="submit"
-                    class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm shadow-blue-500/20">
-                Lưu thông tin
-            </button>
-        </div>
+        @if (isAdmin)
+        {
+            <div class="pt-4 flex justify-end border-t border-gray-100">
+                <button type="submit"
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm shadow-blue-500/20">
+                    Lưu thông tin
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="pt-4 flex justify-end border-t border-gray-100">
+                <p class="text-sm text-gray-500 italic">Chỉ Quản trị viên công ty mới có thể cập nhật thông tin này.</p>
+            </div>
+        }
     </form>
 </div>
 

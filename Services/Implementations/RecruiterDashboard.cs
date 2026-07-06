@@ -1,4 +1,4 @@
-//AnhPT-03/06/2026
+﻿//AnhPT-03/06/2026
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
@@ -23,13 +23,13 @@ namespace DevHub.Services.Implementations
             _recruiterRepo = recruiterRepo;
         }
 
-        public async Task<RecruiterDashboard> GetDashboardAsync(int recruiterId, string? range)
+        public async Task<RecruiterDashboard> GetDashboardAsync(int companyId, int recruiterId, string? range)
         {
             var recruiter = await _recruiterRepo.GetProfileAsync(recruiterId);
 
             // Core data.
-            var posts = await _dashboardRepo.GetJobPostsAsync(recruiterId);        // all posts, newest first
-            var interviews = await _dashboardRepo.GetInterviewsAsync(recruiterId);
+            var posts = await _dashboardRepo.GetJobPostsAsync(companyId);        // all posts, newest first
+            var interviews = await _dashboardRepo.GetInterviewsAsync(companyId);
 
             var scheduled = interviews
                 .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED" || s == "PENDING"; })
@@ -53,9 +53,9 @@ namespace DevHub.Services.Implementations
                 ApplicantAvatars = avatarsByJob.TryGetValue(j.JobId, out var avts) ? avts : new List<string>()
             }).ToList();
 
-            var package = await _packageRepo.GetActivePackageForRecruiterAsync(recruiterId);
-            var expiringJobs = await _dashboardRepo.GetExpiringJobsAsync(recruiterId);
-            var recentApps = await _dashboardRepo.GetRecentApplicationsAsync(recruiterId);
+            var package = await _packageRepo.GetActivePackageForCompanyAsync(companyId);
+            var expiringJobs = await _dashboardRepo.GetExpiringJobsAsync(companyId);
+            var recentApps = await _dashboardRepo.GetRecentApplicationsAsync(companyId);
             bool hasPending = await _recruiterRepo.HasPendingVerificationRequestAsync(recruiterId);
 
             // Missing profile fields.
@@ -68,12 +68,12 @@ namespace DevHub.Services.Implementations
             if (string.IsNullOrEmpty(recruiter.Company?.BusinessLicenseUrl)) missingFields.Add("Giấy phép kinh doanh");
 
             // Activity chart series (depends on range).
-            var stats = await BuildStatsSeriesAsync(recruiterId, range, interviews);
+            var stats = await BuildStatsSeriesAsync(companyId, range, interviews);
 
             return new RecruiterDashboard
             {
                 TotalJobPosts            = posts.Count,
-                TotalApplications        = await _dashboardRepo.CountApplicationsAsync(recruiterId),
+                TotalApplications        = await _dashboardRepo.CountApplicationsAsync(companyId),
                 TotalScheduledInterviews = scheduled.Count,
                 TotalCompletedInterviews = completed.Count,
 
@@ -106,7 +106,7 @@ namespace DevHub.Services.Implementations
         // Builds the zero-filled activity series for the chart.
         // range: "7"/"30" => daily buckets; "year" => last 12 months by month.
         private async Task<(string Range, List<string> Labels, List<int> Applications, List<int> Interviews)>
-            BuildStatsSeriesAsync(int recruiterId, string? range, List<Interview> interviews)
+            BuildStatsSeriesAsync(int companyId, string? range, List<Interview> interviews)
         {
             string statsRange = (range ?? "30").ToLowerInvariant();
             var labels = new List<string>();
@@ -117,7 +117,7 @@ namespace DevHub.Services.Implementations
             {
                 // Last 12 months, bucketed by month.
                 var firstMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-11);
-                var appDates = await _dashboardRepo.GetApplicationDatesAsync(recruiterId, firstMonth);
+                var appDates = await _dashboardRepo.GetApplicationDatesAsync(companyId, firstMonth);
                 var appByMonth = appDates
                     .GroupBy(d => new DateTime(d.Year, d.Month, 1))
                     .ToDictionary(g => g.Key, g => g.Count());
@@ -141,7 +141,7 @@ namespace DevHub.Services.Implementations
                 int days = statsRange == "7" ? 7 : 30;
                 statsRange = days == 7 ? "7" : "30";
                 var from = DateTime.Today.AddDays(-(days - 1));
-                var appDates = await _dashboardRepo.GetApplicationDatesAsync(recruiterId, from);
+                var appDates = await _dashboardRepo.GetApplicationDatesAsync(companyId, from);
                 var appByDay = appDates.GroupBy(d => d.Date).ToDictionary(g => g.Key, g => g.Count());
                 var interviewByDay = interviews
                     .Select(i => (i.CreatedAt ?? i.ScheduledTime).Date)

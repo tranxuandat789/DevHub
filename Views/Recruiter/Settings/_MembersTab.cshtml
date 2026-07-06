@@ -15,28 +15,32 @@
     }
 
     <!-- Form Invite Member -->
-    <div class="mb-8 p-6 bg-gray-50 border border-gray-100 rounded-xl">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Mời đồng nghiệp</h3>
-        <form action="/Recruiter/Settings/invite-member" method="post" class="flex flex-col sm:flex-row gap-4">
-            @Html.AntiForgeryToken()
-            <div class="flex-grow">
-                <input type="email" name="email" required placeholder="Nhập địa chỉ email đồng nghiệp..." class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-            </div>
-            <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Gửi lời mời
-            </button>
-        </form>
-    </div>
+    @if (Model.IsCompanyAdmin == true)
+    {
+        <div class="mb-8 p-6 bg-gray-50 border border-gray-100 rounded-xl">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Mời đồng nghiệp</h3>
+            <form action="/Recruiter/Settings/invite-member" method="post" class="flex flex-col sm:flex-row gap-4">
+                @Html.AntiForgeryToken()
+                <div class="flex-grow">
+                    <input type="email" name="email" required placeholder="Nhập địa chỉ email đồng nghiệp..." class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                </div>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Gửi lời mời
+                </button>
+            </form>
+        </div>
+    }
 
     <!-- Active Members -->
     <div class="mb-8">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Thành viên hiện tại (@(members?.Count() ?? 0))</h3>
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Thành viên hiện tại (@(ViewBag.MembersTotalCount ?? 0))</h3>
         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Họ tên</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chức vụ</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
                     </tr>
@@ -55,17 +59,29 @@
                                     }
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @member.Email
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     @(member.Position ?? "Chưa cập nhật")
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    @if (member.IsCompanyAdmin == true)
-                                    {
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Member</span>
-                                    }
+                                    <div class="flex items-center gap-3">
+                                        @if (member.IsCompanyAdmin == true)
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Member</span>
+                                        }
+
+                                        @if (Model.IsCompanyAdmin == true && member.IsCompanyAdmin != true && member.RecruiterId != Model.RecruiterId)
+                                        {
+                                            <button type="button" onclick="openAssignAdminModal('@member.RecruiterId', '@member.FullName')" class="px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-md text-xs font-medium transition-colors border border-blue-200 hover:border-blue-600 shadow-sm">
+                                                Cấp quyền Admin
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -73,12 +89,64 @@
                     else
                     {
                         <tr>
-                            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Chưa có thành viên nào.</td>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Chưa có thành viên nào.</td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.MembersTotalPages != null && ViewBag.MembersTotalPages > 1)
+        {
+            var cur = (int)ViewBag.MembersPage;
+            var tp = (int)ViewBag.MembersTotalPages;
+            var start = cur - 1;
+            var end = cur + 1;
+            if (start < 1) { start = 1; end = Math.Min(tp, 3); }
+            if (end > tp) { end = tp; start = Math.Max(1, tp - 2); }
+
+            <div class="p-4 flex items-center justify-between border border-t-0 border-gray-200 bg-white rounded-b-xl -mt-1 relative z-0">
+                <p class="text-sm text-gray-500">Trang <span class="font-medium text-gray-900">@cur</span> / <span class="font-medium text-gray-900">@tp</span></p>
+                <div class="flex items-center gap-1">
+                    @if (cur > 1)
+                    {
+                        <a href="@Url.Action("Index", new { tab = "members", page = cur - 1 })" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-600 transition-colors" title="Trang trước">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </a>
+                    }
+                    
+                    @if (start > 1)
+                    {
+                        <span class="px-1 text-gray-400">...</span>
+                    }
+
+                    @for (int i = start; i <= end; i++)
+                    {
+                        if (i == cur)
+                        {
+                            <span class="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white font-medium border border-blue-600 shadow-sm">@i</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", new { tab = "members", page = i })" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-colors">@i</a>
+                        }
+                    }
+
+                    @if (end < tp)
+                    {
+                        <span class="px-1 text-gray-400">...</span>
+                    }
+
+                    @if (cur < tp)
+                    {
+                        <a href="@Url.Action("Index", new { tab = "members", page = cur + 1 })" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-600 transition-colors" title="Trang sau">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
     </div>
 
     <!-- Pending Invitations -->
@@ -112,11 +180,14 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <form action="/Recruiter/Settings/cancel-invite" method="post" class="inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="invitationId" value="@inv.InvitationId" />
-                                        <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Bạn có chắc chắn muốn hủy lời mời này không?');">Hủy</button>
-                                    </form>
+                                    @if (Model.IsCompanyAdmin == true)
+                                    {
+                                        <form action="/Recruiter/Settings/cancel-invite" method="post" class="inline" id="cancelForm_@inv.InvitationId">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="invitationId" value="@inv.InvitationId" />
+                                            <button type="button" class="text-red-600 hover:text-red-900" onclick="openCancelModal('@inv.InvitationId', '@inv.Email')">Hủy</button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -126,3 +197,101 @@
         </div>
     }
 </div>
+
+<!-- Modal Xác nhận Hủy -->
+<div id="cancelModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeCancelModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">Hủy lời mời</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">Bạn có chắc chắn muốn hủy lời mời được gửi đến email <span id="cancelEmailSpan" class="font-medium text-gray-900"></span> không? Hành động này không thể hoàn tác.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200">
+                <button type="button" id="confirmCancelBtn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Xác nhận hủy
+                </button>
+                <button type="button" onclick="closeCancelModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Quay lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cấp quyền Admin -->
+<div id="assignAdminModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAssignAdminModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        
+        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">Cấp quyền Quản trị viên</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">Bạn đang cấp quyền Quản trị viên cho <span id="assignAdminNameSpan" class="font-medium text-gray-900"></span>. Người này sẽ có toàn quyền chỉnh sửa thông tin doanh nghiệp và quản lý thành viên. <br><br><b>Lưu ý:</b> Quyền này không thể thu hồi. Bạn có chắc chắn không?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-200">
+                <form action="/Recruiter/Settings/assign-admin" method="post" id="assignAdminForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="targetRecruiterId" id="assignAdminRecruiterId" value="" />
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Xác nhận
+                    </button>
+                </form>
+                <button type="button" onclick="closeAssignAdminModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Hủy bỏ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentInvitationId = '';
+
+    function openCancelModal(invitationId, email) {
+        currentInvitationId = invitationId;
+        document.getElementById('cancelEmailSpan').innerText = email;
+        document.getElementById('cancelModal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+    }
+
+    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        if(currentInvitationId) {
+            document.getElementById('cancelForm_' + currentInvitationId).submit();
+        }
+    });
+
+    function openAssignAdminModal(recruiterId, name) {
+        document.getElementById('assignAdminRecruiterId').value = recruiterId;
+        document.getElementById('assignAdminNameSpan').innerText = name;
+        document.getElementById('assignAdminModal').classList.remove('hidden');
+    }
+
+    function closeAssignAdminModal() {
+        document.getElementById('assignAdminModal').classList.add('hidden');
+    }
+</script>

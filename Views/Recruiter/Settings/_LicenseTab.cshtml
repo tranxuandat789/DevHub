@@ -37,9 +37,11 @@
             </div>
         }
         <!--Uploading new file-->
-        <form asp-action="UploadLicense" asp-controller="Settings" method="post"
-              enctype="multipart/form-data" class="space-y-4">
-            @Html.AntiForgeryToken()
+        @if (Model.IsCompanyAdmin == true)
+        {
+            <form asp-action="UploadLicense" asp-controller="Settings" method="post"
+                  enctype="multipart/form-data" class="space-y-4">
+                @Html.AntiForgeryToken()
 
             <div class="w-full">
                 <label class="flex justify-center w-full h-44 px-4 transition bg-white border-2 border-gray-300
@@ -110,7 +112,14 @@
                     @(hasLicense ? "Cập nhật giấy phép" : "Tải lên")
                 </button>
             </div>
-        </form>
+            </form>
+        }
+        else
+        {
+            <div class="pt-4 flex justify-end">
+                <p class="text-sm text-gray-500 italic">Chỉ Quản trị viên công ty mới có thể tải lên Giấy phép kinh doanh.</p>
+            </div>
+        }
     </div>
 
     <!--Tab 2 — Additional document -->
@@ -141,9 +150,11 @@
             </div>
         }
         <!--Uploading new file-->
-        <form asp-action="UploadAdditionalDoc" asp-controller="Settings" method="post"
-              enctype="multipart/form-data" class="space-y-4">
-            @Html.AntiForgeryToken()
+        @if (Model.IsCompanyAdmin == true)
+        {
+            <form asp-action="UploadAdditionalDoc" asp-controller="Settings" method="post"
+                  enctype="multipart/form-data" class="space-y-4">
+                @Html.AntiForgeryToken()
 
             <div class="w-full">
                 <label class="flex justify-center w-full h-44 px-4 transition bg-white border-2 border-gray-300
@@ -200,7 +211,14 @@
                     @(hasAdditional ? "Cập nhật tài liệu" : "Tải lên")
                 </button>
             </div>
-        </form>
+            </form>
+        }
+        else
+        {
+            <div class="pt-4 flex justify-end">
+                <p class="text-sm text-gray-500 italic">Chỉ Quản trị viên công ty mới có thể tải lên tài liệu bổ sung.</p>
+            </div>
+        }
     </div>
     @{
         int completeness = Model.Company?.ProfileCompletion ?? 0;
@@ -268,20 +286,29 @@
                 <p class="text-sm text-blue-800">Hồ sơ đã đủ điều kiện xác minh. Nhấn nút bên dưới để gửi yêu cầu.</p>
             </div>
 
-            <form asp-action="RequestVerification" asp-controller="Settings" method="post" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
-                @Html.AntiForgeryToken()
+            @if (Model.IsCompanyAdmin == true)
+            {
+                <form asp-action="RequestVerification" asp-controller="Settings" method="post" onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+                    @Html.AntiForgeryToken()
+                    <div class="flex justify-end">
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg
+                                       transition-colors shadow-sm shadow-green-500/20 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Gửi yêu cầu xác minh
+                        </button>
+                    </div>
+                </form>
+            }
+            else
+            {
                 <div class="flex justify-end">
-                    <button type="submit"
-                            class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg
-                                   transition-colors shadow-sm shadow-green-500/20 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        Gửi yêu cầu xác minh
-                    </button>
+                    <p class="text-sm text-gray-500 italic">Chỉ Quản trị viên công ty mới có thể yêu cầu xác minh.</p>
                 </div>
-            </form>
+            }
         }
         else
         {

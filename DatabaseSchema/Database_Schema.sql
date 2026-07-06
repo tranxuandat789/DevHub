@@ -1,4 +1,4 @@
-﻿-- =====================================================
+-- =====================================================
 -- DevHub Database Schema  SQL Server 
 -- =====================================================
 -- CREATE DATABASE DevHub
@@ -354,6 +354,7 @@ CREATE TABLE [interview] (
     [recruiter_id] INT NOT NULL,
     [location] NVARCHAR(255) NULL,
     [meeting_link] NVARCHAR(500) NULL,
+    [interview_type] NVARCHAR(50) NULL,
     [scheduled_time] DATETIME NULL,
     [notes] NVARCHAR(MAX) NULL,
     [status] NVARCHAR(20) DEFAULT 'SCHEDULED' CHECK (

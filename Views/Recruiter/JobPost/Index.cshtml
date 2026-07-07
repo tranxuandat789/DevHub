@@ -158,6 +158,12 @@ else
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                 </a>
                                             }
+                                            @if ((j.Status ?? "").ToLower() == "closed")
+                                            {
+                                                <a href="@Url.Action("Repost", new { id = j.JobId, q = Model.Keyword, status = Model.Status, page = Model.Page })" class="p-1.5 text-gray-400 hover:text-green-500 transition-colors" title="Đăng lại (Trừ 1 lượt đăng)">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                </a>
+                                            }
                                             @if (CanDelete(j.Status))
                                             {
                                                 <button type="button" class="btn-delete p-1.5 text-gray-400 hover:text-red-500 transition-colors" title="Xóa" data-id="@j.JobId" data-title="@title">

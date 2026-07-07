@@ -217,6 +217,10 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Tải xuống CV (@cvExt.ToUpper())
                             </a>
+                            <button type="button" id="btnViewCvJson" data-id="@Model.ApplicationId" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                Xem CV dạng văn bản (AI)
+                            </button>
                         </div>
                     }
                 </div>
@@ -248,9 +252,32 @@
     </div>
 </div>
 
+<!-- Modal for viewing CV as JSON Text -->
+<div id="cvJsonModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-[20px] shadow-lg max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col" style="font-family:Inter,sans-serif">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-dark">Nội dung CV (Trích xuất bởi AI)</h3>
+            <button type="button" id="closeCvModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="cvJsonContent" class="p-6 overflow-y-auto flex-1">
+            <div id="cvLoading" class="text-center py-10">
+                <svg class="animate-spin h-8 w-8 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <p class="text-sm text-muted">AI đang đọc và phân tích CV. Vui lòng chờ vài giây...</p>
+            </div>
+            <div id="cvResult" class="hidden"></div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end">
+            <button type="button" id="closeCvModalBtn" class="px-6 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Logic for Decision Modal
             var modal = document.getElementById('decisionModal');
             var iconBox = document.getElementById('decisionIcon');
             var titleEl = document.getElementById('decisionTitle');
@@ -289,6 +316,60 @@
             confirmBtn.addEventListener('click', function () { if (targetForm) targetForm.submit(); });
             modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+            // Logic for CV JSON parsing modal
+            var btnViewCvJson = document.getElementById('btnViewCvJson');
+            var cvJsonModal = document.getElementById('cvJsonModal');
+            var closeCvModal = document.getElementById('closeCvModal');
+            var closeCvModalBtn = document.getElementById('closeCvModalBtn');
+            var cvLoading = document.getElementById('cvLoading');
+            var cvResult = document.getElementById('cvResult');
+
+            if (btnViewCvJson) {
+                btnViewCvJson.addEventListener('click', function () {
+                    cvJsonModal.classList.remove('hidden');
+                    cvLoading.classList.remove('hidden');
+                    cvResult.classList.add('hidden');
+                    cvResult.innerHTML = '';
+
+                    var appId = this.getAttribute('data-id');
+                    fetch('/Recruiter/RecruiterApplication/CvData/' + appId)
+                        .then(res => res.json())
+                        .then(data => {
+                            cvLoading.classList.add('hidden');
+                            cvResult.classList.remove('hidden');
+
+                            if (data.error) {
+                                cvResult.innerHTML = '<div class="p-4 bg-red-50 text-red-600 rounded-lg">' + data.error + '</div>';
+                                return;
+                            }
+
+                            var html = '<div class="space-y-6">';
+                            for (const [key, value] of Object.entries(data)) {
+                                if (value) {
+                                    html += '<div><h4 class="text-sm font-bold text-gray-900 uppercase mb-2 border-b pb-1">' + key + '</h4>';
+                                    if (typeof value === 'object') {
+                                        html += '<pre class="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 p-3 rounded">' + JSON.stringify(value, null, 2).replace(/"/g, '').replace(/\{|\}/g, '').trim() + '</pre>';
+                                    } else {
+                                        html += '<p class="text-sm text-gray-700 whitespace-pre-line">' + value + '</p>';
+                                    }
+                                    html += '</div>';
+                                }
+                            }
+                            html += '</div>';
+                            cvResult.innerHTML = html;
+                        })
+                        .catch(err => {
+                            cvLoading.classList.add('hidden');
+                            cvResult.classList.remove('hidden');
+                            cvResult.innerHTML = '<div class="p-4 bg-red-50 text-red-600 rounded-lg">Đã có lỗi xảy ra khi gọi API.</div>';
+                        });
+                });
+            }
+
+            function hideCvModal() { cvJsonModal.classList.add('hidden'); }
+            if (closeCvModal) closeCvModal.addEventListener('click', hideCvModal);
+            if (closeCvModalBtn) closeCvModalBtn.addEventListener('click', hideCvModal);
         });
     </script>
 }

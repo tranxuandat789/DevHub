@@ -22,6 +22,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddHttpClient<DevHub.Helpers.CvParserHelper>();
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -195,6 +197,7 @@ builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
 builder.Services.AddScoped<ICompanyPackageHistoryRepository, CompanyPackageHistoryRepository>();
 builder.Services.AddScoped<IRecruiterDashboardRepository, RecruiterDashboardRepository>();
 builder.Services.AddScoped<IReviewCompanyRepository, ReviewCompanyRepository>();
+builder.Services.AddScoped<IReviewCompanyService, ReviewCompanyService>();
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
@@ -240,6 +243,7 @@ builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
 builder.Services.AddScoped<IAssignModeratorService, AssignModeratorService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IProvinceService, ProvinceService>();
 
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.
@@ -278,5 +282,23 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DevHub.Data.ItrecruitmentDbContext>();
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw(@"
+            IF COL_LENGTH('province', 'is_active') IS NULL
+            BEGIN
+                ALTER TABLE province ADD is_active bit NOT NULL DEFAULT 1;
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Migration hotfix failed: {ex.Message}");
+    }
+}
 
 app.Run();

@@ -1,17 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace DevHub.ViewModels.Recruiter
 {
     public class RecruiterProfileViewModel
     {
-        // Free-text info fields: letters, digits, blanks and the punctuation , . - _ ( ) are allowed.
-        private const string TextPattern = @"^[\p{L}0-9\s,.\-_()]*$";
+        // Free-text info fields: allows letters, digits, blanks, and common punctuation (including & / ' " + : ; @ ! ? %)
+        private const string TextPattern = @"^[\p{L}0-9\s,.\-_()&/'"":;+@!%?#]*$";
 
         [Required(ErrorMessage = "Họ và tên không được để trống.")]
         [StringLength(100, ErrorMessage = "Họ và tên không được vượt quá 100 ký tự.")]
         public string FullName { get; set; } = null!;
 
-        [RegularExpression(TextPattern, ErrorMessage = "Chức vụ chỉ được chứa chữ, số và khoảng trắng.")]
+        [RegularExpression(TextPattern, ErrorMessage = "Chức vụ chứa ký tự không hợp lệ.")]
         public string? Position { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại không được để trống.")]
@@ -19,19 +19,19 @@ namespace DevHub.ViewModels.Recruiter
         public string? Phone { get; set; }
 
         [Required(ErrorMessage = "Tên công ty không được để trống.")]
-        [RegularExpression(TextPattern, ErrorMessage = "Tên công ty chỉ được chứa chữ, số và khoảng trắng.")]
+        [RegularExpression(TextPattern, ErrorMessage = "Tên công ty chứa ký tự không hợp lệ.")]
         public string CompanyName { get; set; } = null!;
 
-        [RegularExpression(TextPattern, ErrorMessage = "Địa chỉ chỉ được chứa chữ, số và khoảng trắng.")]
+        [RegularExpression(TextPattern, ErrorMessage = "Địa chỉ chứa ký tự không hợp lệ.")]
         public string? CompanyAddress { get; set; }
         public string? CompanyLogoUrl { get; set; }
-        [RegularExpression(TextPattern, ErrorMessage = "Giới thiệu chỉ được chứa chữ, số và khoảng trắng.")]
+        [RegularExpression(TextPattern, ErrorMessage = "Phần giới thiệu chứa ký tự không hợp lệ.")]
         public string? CompanyDescription { get; set; }
 
         [Url(ErrorMessage = "Đường dẫn Website không hợp lệ (Ví dụ hợp lệ: https://company.com).")]
         public string? Website { get; set; }
 
-        [RegularExpression(TextPattern, ErrorMessage = "Lĩnh vực/Ngành nghề chỉ được chứa chữ, số và khoảng trắng.")]
+        [RegularExpression(TextPattern, ErrorMessage = "Lĩnh vực/Ngành nghề chứa ký tự không hợp lệ.")]
         public string? Industry { get; set; }
 
         [Required(ErrorMessage = "Mã số thuế không được để trống.")]

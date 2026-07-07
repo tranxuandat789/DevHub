@@ -1,189 +1,130 @@
+@model DevHub.ViewModels.Moderator.ReviewModerationViewModel
 @{
-    Layout = "_ModeratorLayout";
-    ViewData["Title"] = "Duyệt Đánh giá";
+    ViewData["Title"] = "Kiểm duyệt đánh giá công ty";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
 }
 
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-    <div>
-        <h1 class="text-[32px] font-bold text-dark mb-2">Duyệt Đánh giá Công ty</h1>
-        <p class="text-muted">Kiểm duyệt các bình luận, đánh giá của ứng viên về nhà tuyển dụng trước khi hiển thị công khai.</p>
-    </div>
-</div>
-
-<!-- Filters & Sort -->
-<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
-    <form class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onsubmit="event.preventDefault();">
-        <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Trạng thái duyệt</label>
-            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="pending">Chờ duyệt (Pending)</option>
-                <option value="approved">Đã duyệt (Approved)</option>
-                <option value="rejected">Đã từ chối (Rejected)</option>
-                <option value="">Tất cả</option>
-            </select>
-        </div>
-        <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Đánh giá (Sao)</label>
-            <select class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="">Tất cả số sao</option>
-                <option value="5">5 Sao (Rất tốt)</option>
-                <option value="1">1-2 Sao (Cần chú ý)</option>
-            </select>
-        </div>
-        <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Từ ngày</label>
-            <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-        </div>
+<div class="p-6 space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <button type="button" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
-        </div>
-    </form>
-</div>
-
-<!-- Data Table -->
-<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[1000px]">
-            <thead>
-                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
-                    <th class="py-4 px-6 text-dark font-bold text-sm w-48">Ứng viên đánh giá</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm w-48">Công ty nhận</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">Nội dung đánh giá</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm w-32">Trạng thái</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm">
-                <!-- Review 1: Pending -->
-                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6">
-                        <div class="font-bold text-dark text-base">Trần Văn Nam</div>
-                        <div class="text-xs text-muted mt-1">24/05/2026 14:30</div>
-                    </td>
-                    <td class="py-4 px-6 font-bold text-primary">
-                        FPT Software
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center text-yellow-400 mb-1">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                        </div>
-                        <p class="text-sm text-dark font-medium italic">"Môi trường tốt nhưng quy trình phỏng vấn hơi dài, mất đến 3 vòng..."</p>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Chờ duyệt
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-center space-x-1">
-                        <button onclick="approveReview(101)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Duyệt">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </button>
-                        <button onclick="openRejectModal(101)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Từ chối">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </td>
-                </tr>
-
-                <!-- Review 2: Toxic content -->
-                <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6">
-                        <div class="font-bold text-dark text-base">Người dùng ẩn danh</div>
-                        <div class="text-xs text-muted mt-1">23/05/2026 09:12</div>
-                    </td>
-                    <td class="py-4 px-6 font-bold text-primary">
-                        Tiki Corp
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center text-yellow-400 mb-1">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                        </div>
-                        <p class="text-sm text-dark font-medium italic text-red-500 line-through">"Công ty tệ hại, HR lừa đảo ứng viên, làm việc bóc lột sức lao động..."</p>
-                        <p class="text-[10px] text-red-500 mt-1">*Có chứa từ ngữ nhạy cảm/tiêu cực</p>
-                    </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Chờ duyệt
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-center space-x-1">
-                        <button onclick="approveReview(102)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Duyệt">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </button>
-                        <button onclick="openRejectModal(102)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Từ chối">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
-        <div class="text-sm text-muted">
-            Hiển thị 1 đến 2 của 24 đánh giá chờ duyệt
-        </div>
-        <div class="flex space-x-1">
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 disabled:opacity-50" disabled>Trang trước</button>
-            <button class="px-3 py-1 bg-primary text-white rounded">1</button>
-            <button class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</button>
+            <h1 class="text-2xl font-bold text-gray-800">Quản lý đánh giá công ty</h1>
+            <p class="text-sm text-gray-500 mt-1">Xem xét và duyệt các đánh giá từ ứng viên.</p>
         </div>
     </div>
-</div>
 
-<!-- Modal Từ Chối -->
-<div id="rejectModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
-    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-md p-6 relative">
-        <h3 class="text-2xl font-bold text-dark mb-2">Từ chối Đánh giá</h3>
-        <p class="text-muted text-sm mb-6">Vui lòng cung cấp lý do từ chối đánh giá này. Thông báo sẽ được lưu log.</p>
-        
-        <form onsubmit="event.preventDefault(); submitReject();">
-            <input type="hidden" id="rejectReviewId" value="" />
-            <div class="mb-6">
-                <label class="block text-dark font-medium mb-2 text-sm">Lý do từ chối <span class="text-red-500">*</span></label>
-                <textarea rows="4" id="rejectReason" placeholder="Ví dụ: Chứa ngôn từ thô tục, xúc phạm..." class="w-full border border-[#D6DDEB] rounded-lg p-3 focus:outline-none focus:border-red-500 text-dark" required></textarea>
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <form method="get" class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="w-full sm:w-64">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Trạng thái</label>
+                <select name="statusFilter" class="w-full text-sm border-gray-200 rounded-lg focus:ring-primary focus:border-primary">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.StatusFilter))">Tất cả</option>
+                    <option value="PENDING" selected="@(Model.StatusFilter == "PENDING")">Chờ duyệt</option>
+                    <option value="APPROVED" selected="@(Model.StatusFilter == "APPROVED")">Đã duyệt</option>
+                    <option value="REJECTED" selected="@(Model.StatusFilter == "REJECTED")">Đã từ chối</option>
+                </select>
             </div>
             
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeRejectModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
-                <button type="submit" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">Xác nhận Từ chối</button>
+            <div class="flex items-center gap-3">
+                <button type="submit" class="bg-primary text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-colors shadow-sm">
+                    Lọc kết quả
+                </button>
+                @if (!string.IsNullOrEmpty(Model.StatusFilter))
+                {
+                    <a href="/moderator/reviews" class="text-gray-500 hover:text-gray-700 text-sm font-medium underline">
+                        Xóa lọc
+                    </a>
+                }
             </div>
         </form>
     </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ứng viên / Công ty</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đánh giá</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày gửi</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @if (Model.Reviews != null && Model.Reviews.Any())
+                    {
+                        @foreach (var review in Model.Reviews)
+                        {
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">@review.Candidate?.FullName</div>
+                                    <div class="text-sm text-gray-500">→ @review.Company?.CompanyName</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-1 mb-1 text-sm">
+                                        <span class="font-bold text-gray-700">@review.Rating</span>
+                                        <span class="text-yellow-400">★</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 line-clamp-2 max-w-xs" title="@review.Pros">
+                                        <span class="font-medium">Ưu:</span> @review.Pros
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @(review.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @switch (review.Status)
+                                    {
+                                        case "PENDING":
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Chờ duyệt
+                                            </span>
+                                            break;
+                                        case "APPROVED":
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Đã duyệt
+                                            </span>
+                                            break;
+                                        case "REJECTED":
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Từ chối
+                                            </span>
+                                            break;
+                                        default:
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                @review.Status
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="/moderator/reviews/@review.ReviewId" class="text-primary hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors">
+                                        Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                Không tìm thấy đánh giá nào phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Footer -->
+        @if (Model.TotalCount > 0)
+        {
+            <div class="bg-white px-6 py-4 rounded-b-xl border-t border-gray-200">
+                @await Html.PartialAsync("_PaginationUI", new { Page = Model.Page, TotalPages = Model.TotalPages, TotalCount = Model.TotalCount, ItemName = "đánh giá" })
+            </div>
+        }
+    </div>
 </div>
-
-@section Scripts {
-    <script>
-        function approveReview(id) {
-            if (confirm(`Bạn có chắc chắn muốn cho phép hiển thị công khai Đánh giá #${id}?`)) {
-                alert(`Đã duyệt Đánh giá #${id} thành công! Hệ thống đã ghi log.`);
-            }
-        }
-
-        function openRejectModal(id) {
-            document.getElementById('rejectReviewId').value = id;
-            document.getElementById('rejectReason').value = '';
-            document.getElementById('rejectModal').classList.remove('hidden');
-        }
-
-        function closeRejectModal() {
-            document.getElementById('rejectModal').classList.add('hidden');
-        }
-
-        function submitReject() {
-            const id = document.getElementById('rejectReviewId').value;
-            const reason = document.getElementById('rejectReason').value;
-            
-            alert(`Đã từ chối Đánh giá #${id}.\nLý do: ${reason}\nHệ thống đã ghi log!`);
-            closeRejectModal();
-        }
-    </script>
-}

@@ -4,15 +4,7 @@
     ViewData["IsCandidate"] = "true";
     ViewData["ActiveMenu"] = "SavedJobs";
 
-    // Helper: build url giữ nguyên filter khi đổi trang
-    string PageUrl(int p)
-    {
-        var qs = new System.Text.StringBuilder("/candidate/bookmarks?page=" + p);
-        if (!string.IsNullOrEmpty(Model.FilterWorkingModel)) qs.Append("&workingModel=" + Uri.EscapeDataString(Model.FilterWorkingModel));
-        if (!string.IsNullOrEmpty(Model.FilterLevel)) qs.Append("&level=" + Uri.EscapeDataString(Model.FilterLevel));
-        if (!string.IsNullOrEmpty(Model.FilterLocation)) qs.Append("&location=" + Uri.EscapeDataString(Model.FilterLocation));
-        return qs.ToString();
-    }
+
 
     bool hasFilter = !string.IsNullOrEmpty(Model.FilterWorkingModel)
                   || !string.IsNullOrEmpty(Model.FilterLevel)
@@ -284,86 +276,7 @@
                         </div>
 
                         <!-- Pagination -->
-                        @if (Model.TotalPages > 1)
-                        {
-                            <div class="flex items-center justify-between mt-8 pt-5 border-t border-[#D6DDEB]">
-                                <!-- Info -->
-                                <p class="text-[13px] text-muted hidden sm:block">
-                                    Trang @Model.Page / @Model.TotalPages
-                                    <span class="text-gray-300 mx-1">•</span>
-                                    @Model.TotalCount việc làm
-                                </p>
-
-                                <!-- Page buttons -->
-                                <div class="flex items-center gap-1.5 mx-auto sm:mx-0">
-                                    <!-- Prev -->
-                                    @if (Model.Page > 1)
-                                    {
-                                        <a href="@PageUrl(Model.Page - 1)"
-                                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-500 hover:border-primary hover:text-primary transition-colors">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-300 cursor-not-allowed">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                        </span>
-                                    }
-
-                                    <!-- Page numbers -->
-                                    @for (int i = 1; i <= Model.TotalPages; i++)
-                                    {
-                                        // Hiện trang hiện tại, 2 trang liền kề, trang đầu và cuối
-                                        bool show = (i == 1 || i == Model.TotalPages || Math.Abs(i - Model.Page) <= 1);
-                                        bool isEllipsisBefore = (i == 2 && Model.Page > 4);
-                                        bool isEllipsisAfter = (i == Model.TotalPages - 1 && Model.Page < Model.TotalPages - 3);
-
-                                        if (!show)
-                                        {
-                                            if (isEllipsisBefore || isEllipsisAfter)
-                                            {
-                                                <span class="w-9 h-9 flex items-center justify-center text-gray-400 text-[13px]">…</span>
-                                            }
-                                            continue;
-                                        }
-
-                                        if (i == Model.Page)
-                                        {
-                                            <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white text-[14px] font-semibold shadow-sm">@i</span>
-                                        }
-                                        else
-                                        {
-                                            <a href="@PageUrl(i)"
-                                               class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-600 hover:border-primary hover:text-primary transition-colors text-[14px]">@i</a>
-                                        }
-                                    }
-
-                                    <!-- Next -->
-                                    @if (Model.Page < Model.TotalPages)
-                                    {
-                                        <a href="@PageUrl(Model.Page + 1)"
-                                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-500 hover:border-primary hover:text-primary transition-colors">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] text-gray-300 cursor-not-allowed">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </span>
-                                    }
-                                </div>
-                            </div>
-                        }
+                        @await Html.PartialAsync("_PaginationUI", new { Page = Model.Page, TotalPages = Model.TotalPages, TotalCount = Model.TotalCount, ItemName = "việc làm" })
                     }
 
                 </div>

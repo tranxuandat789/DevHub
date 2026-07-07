@@ -244,6 +244,31 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         return EditableStatuses.Contains(Canon(job.Status)) ? job : null;
     }
 
+    public async Task<JobPostCreateViewModel?> GetJobPostForRepostAsync(int recruiterId, int jobId)
+    {
+        var job = await _jobPostRepo.GetJobPostForEditAsync(jobId, recruiterId);
+        if (job == null || Canon(job.Status) != "closed") return null;
+
+        var vm = new JobPostCreateViewModel
+        {
+            Title = job.Title,
+            PositionId = job.PositionId,
+            WorkingModel = job.WorkingModel,
+            ExperienceLevel = job.ExperienceLevel,
+            SalaryType = job.SalaryType,
+            SalaryMin = job.SalaryMin,
+            SalaryMax = job.SalaryMax,
+            HiringQuota = job.HiringQuota ?? 1,
+            Description = job.Description ?? "",
+            Requirement = job.Requirement ?? "",
+            Benefit = job.Benefit ?? "",
+            Skill = job.Skill,
+            TechnologyIds = job.Teches.Select(t => t.TechId).ToList(),
+            ProvinceIds = job.Provinces.Select(p => p.ProvinceId).ToList()
+        };
+        return vm;
+    }
+
     // Validate ownership/editable status + input, persist changes, then resubmit the post
     // as PENDING for moderator re-review 
     public async Task UpdateJobPostAsync(int recruiterId, int jobId, JobPostCreateViewModel vm)

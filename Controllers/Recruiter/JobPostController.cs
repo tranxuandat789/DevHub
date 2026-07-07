@@ -37,8 +37,8 @@ namespace DevHub.Controllers.Recruiter
             if (dbUser == null || dbUser.Recruiter == null)
                 return NotFound();
 
-            // Check: company profile must be >= 90% complete to access the management page.
-            if ((dbUser.Recruiter?.Company?.IsVerified == true) || (dbUser.Recruiter?.Company?.ProfileCompletion < 97))
+            // Check: company profile must be > 96% complete and get verified to access the management page.
+            if (dbUser.Recruiter?.Company?.IsVerified != true || dbUser.Recruiter?.Company?.ProfileCompletion < 97)
             {
                 ViewBag.ProfileIncomplete = true;
                 return View(new JobPostManageViewModel());
@@ -146,7 +146,45 @@ namespace DevHub.Controllers.Recruiter
             }
         }
 
-        // Render the edit form, only APPROVED/REJECTED posts are editable.
+        // Repost a closed job post
+        [HttpGet("Repost/{id:int}")]
+        public async Task<IActionResult> Repost(int id, string? q, string? status, int page = 1)
+        {
+            var email = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser == null || dbUser.Recruiter == null)
+                return NotFound();
+
+            var info = await _jobPostService.GetActivePackageInfoAsync(dbUser.Recruiter.RecruiterId);
+            if (info.ProfileCompletion < 90)
+            {
+                TempData["Error"] = "Bạn cần hoàn thành đủ mục thông tin công ty";
+                return RedirectToAction("Index", "Settings");
+            }
+
+            if (!info.HasActivePackage || info.PostsRemaining <= 0)
+            {
+                TempData["Error"] = "Tài khoản không đủ lượt đăng. Vui lòng mua gói dịch vụ.";
+                return Redirect("/Recruiter/JobPost");
+            }
+
+            var vm = await _jobPostService.GetJobPostForRepostAsync(dbUser.Recruiter.RecruiterId, id);
+            if (vm == null)
+            {
+                TempData["Error"] = "Không thể đăng lại bài viết này.";
+                return RedirectToAction("Index", new { q, status, page });
+            }
+
+            ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
+            ViewBag.Techs = await _techRepo.GetAllActiveAsync();
+            ViewBag.Provinces = await _provinceRepo.GetAllAsync();
+            ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
+            ViewBag.PostsRemaining = info.PostsRemaining;
+
+            return View("~/Views/Recruiter/JobPost/Create.cshtml", vm);
+        }
+
+        // Render the edit form. Allowed only if status is approved/rejected.
         [HttpGet("Edit/{id:int}")]
         public async Task<IActionResult> Edit(int id, string? q, string? status, int page = 1)
         {

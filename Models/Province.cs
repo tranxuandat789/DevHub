@@ -11,5 +11,7 @@ public partial class Province
 
     public string ProvinceName { get; set; } = null!;
 
+    public bool IsActive { get; set; } = true;
+
     public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();
 }

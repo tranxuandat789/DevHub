@@ -76,6 +76,17 @@ namespace DevHub.Controllers.Recruiter
             return View("~/Views/Recruiter/RecruiterApplication/Details.cshtml", vm);
         }
 
+        // Get CV JSON data via AI
+        [HttpGet("CvData/{applicationId:int}")]
+        public async Task<IActionResult> GetCvData(int applicationId)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return Unauthorized();
+
+            var jsonResult = await _appService.GetCvJsonDataAsync(recruiterId.Value, applicationId);
+            return Content(jsonResult, "application/json");
+        }
+
         // Candidate Profile: full application history of one candidate across all the recruiter's jobs.
         [HttpGet("Candidate/{candidateId:int}")]
         public async Task<IActionResult> CandidateProfile(int candidateId)

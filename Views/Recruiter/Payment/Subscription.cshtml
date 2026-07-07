@@ -198,7 +198,7 @@
                             onclick="@(isDowngrade ? "" : $"openPaymentModal({pkg.ServiceId}, '{pkg.PackageName}', {pkg.Price})")"
                             class="w-full py-2.5 px-4 rounded-lg font-bold transition-colors mt-auto @btnClass"
                             @(isDowngrade ? "disabled" : "")>
-                        @(isDowngrade ? "Không thể hạ cấp" : (isSamePackage ? "Gia hạn / Mua thêm" : "Chọn mua"))
+                        @(isDowngrade ? "Không thể hạ gói địch vụ" : (isSamePackage ? "Gia hạn / Mua thêm" : "Chọn mua"))
                     </button>
                 </div>
             }

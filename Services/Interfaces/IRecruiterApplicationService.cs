@@ -21,5 +21,7 @@ namespace DevHub.Services.Interfaces
 
         Task<(bool Success, string Message)> ApproveAsync(int recruiterId, int applicationId);
         Task<(bool Success, string Message)> RejectAsync(int recruiterId, int applicationId);
+
+        Task<string> GetCvJsonDataAsync(int recruiterId, int applicationId);
     }
 }

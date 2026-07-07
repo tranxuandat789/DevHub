@@ -21,6 +21,20 @@ public partial class ReviewCompany
 
     public bool? IsAnonymous { get; set; }
 
+    public int? SalaryRating { get; set; }
+
+    public int? TrainingRating { get; set; }
+
+    public int? CareRating { get; set; }
+
+    public int? CultureRating { get; set; }
+
+    public int? WorkspaceRating { get; set; }
+
+    public string? OtPolicy { get; set; }
+
+    public bool? Recommend { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }

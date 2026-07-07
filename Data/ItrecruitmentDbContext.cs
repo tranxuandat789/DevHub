@@ -928,6 +928,15 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasColumnName("is_anonymous");
             entity.Property(e => e.Pros).HasColumnName("pros");
             entity.Property(e => e.Rating).HasColumnName("rating");
+            entity.Property(e => e.SalaryRating).HasColumnName("salary_rating");
+            entity.Property(e => e.TrainingRating).HasColumnName("training_rating");
+            entity.Property(e => e.CareRating).HasColumnName("care_rating");
+            entity.Property(e => e.CultureRating).HasColumnName("culture_rating");
+            entity.Property(e => e.WorkspaceRating).HasColumnName("workspace_rating");
+            entity.Property(e => e.OtPolicy)
+                .HasColumnName("ot_policy")
+                .HasMaxLength(20);
+            entity.Property(e => e.Recommend).HasColumnName("recommend");
             entity.Property(e => e.CompanyId).HasColumnName("company_id");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("(getdate())")

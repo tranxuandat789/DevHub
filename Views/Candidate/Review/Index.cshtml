@@ -1,6 +1,134 @@
+@model DevHub.ViewModels.Candidate.MyReviewsViewModel
 @{
-    ViewData["Title"] = "Danh Gia Cong Ty";
-    Layout = "~/Views/Shared/_CandidateLayout.cshtml";
+    ViewData["Title"] = "Đánh giá công ty";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["IsCandidate"] = "true";
+    ViewData["ActiveMenu"] = "Reviews";
 }
 
-<h1>Danh Gia Cong Ty</h1>
+<div class="bg-[#F8F9FA] min-h-screen py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Sidebar -->
+            <div class="lg:w-[280px] flex-shrink-0">
+                @await Html.PartialAsync("~/Views/Candidate/_Sidebar.cshtml")
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <div class="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB]">
+                    
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-[#D6DDEB]">
+                        <div>
+                            <h2 class="text-[20px] font-bold text-[#25324B]">Đánh giá của tôi</h2>
+                            <p class="text-muted text-sm mt-1">Quản lý các đánh giá công ty mà bạn đã gửi.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        @if (Model.Reviews != null && Model.Reviews.Any())
+                        {
+                            @foreach (var review in Model.Reviews)
+                            {
+                                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+                                    <div class="flex flex-col md:flex-row justify-between md:items-start gap-4">
+                                        
+                                        <!-- Left: Company Info & Content -->
+                                        <div class="flex items-start gap-4 flex-grow">
+                                            <!-- Logo -->
+                                            <div class="w-16 h-16 rounded-xl border border-gray-100 flex items-center justify-center bg-white flex-shrink-0 p-1">
+                                                @if (!string.IsNullOrEmpty(review.Company?.CompanyLogoUrl))
+                                                {
+                                                    <img src="@review.Company.CompanyLogoUrl" alt="@review.Company.CompanyName" class="max-w-full max-h-full object-contain rounded-lg" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-sm font-bold">
+                                                        @(review.Company?.CompanyName?.Substring(0, 1).ToUpper() ?? "C")
+                                                    </div>
+                                                }
+                                            </div>
+                                            
+                                            <!-- Details -->
+                                            <div class="flex-grow min-w-0">
+                                                <h3 class="font-bold text-lg text-dark mb-1 truncate">
+                                                    <a href="/Company/Detail/@review.CompanyId" class="hover:text-primary transition-colors">@review.Company?.CompanyName</a>
+                                                </h3>
+                                                
+                                                <div class="flex items-center gap-3 text-sm mb-3">
+                                                    <div class="flex items-center gap-0.5">
+                                                        @for(int i=1; i<=5; i++) {
+                                                            <span class="@(i <= review.Rating ? "text-yellow-400" : "text-gray-300")">★</span>
+                                                        }
+                                                    </div>
+                                                    <span class="text-gray-400 text-xs flex items-center gap-1">
+                                                        <span>📅</span> @(review.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="text-sm text-[#475569] space-y-1.5 line-clamp-2">
+                                                    <p><span class="font-semibold text-dark">Ưu điểm:</span> @review.Pros</p>
+                                                    <p><span class="font-semibold text-dark">Nhược điểm:</span> @review.Cons</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Right: Status & Action -->
+                                        <div class="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100 flex-shrink-0">
+                                            @switch (review.Status)
+                                            {
+                                                case "PENDING":
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600 border border-yellow-200">
+                                                        Chờ duyệt
+                                                    </span>
+                                                    break;
+                                                case "APPROVED":
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 border border-green-200">
+                                                        Đã duyệt
+                                                    </span>
+                                                    break;
+                                                case "REJECTED":
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
+                                                        Từ chối
+                                                    </span>
+                                                    break;
+                                                default:
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-50 text-gray-600 border border-gray-200">
+                                                        @review.Status
+                                                    </span>
+                                                    break;
+                                            }
+
+                                            <a href="/candidate/reviews/@review.ReviewId" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-lg text-sm font-bold transition-colors">
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Pagination -->
+                            @await Html.PartialAsync("_PaginationUI", new { Page = Model.Page, TotalPages = Model.TotalPages, TotalCount = Model.TotalCount, ItemName = "đánh giá" })
+                        }
+                        else
+                        {
+                            <div class="bg-white border border-dashed border-[#E2E8F0] rounded-2xl p-12 text-center">
+                                <div class="w-16 h-16 bg-[#F7F5FF] rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span class="text-3xl">⭐</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-dark mb-2">Chưa có đánh giá nào</h3>
+                                <p class="text-muted mb-6">Bạn chưa viết đánh giá nào cho các công ty trên hệ thống.</p>
+                                <a href="/Company/Search" class="inline-flex items-center gap-2 bg-[#4640DE] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-opacity-90 transition-all shadow-sm">
+                                    Tìm công ty để đánh giá
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -194,6 +194,7 @@ builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
 builder.Services.AddScoped<ICompanyPackageHistoryRepository, CompanyPackageHistoryRepository>();
 builder.Services.AddScoped<IRecruiterDashboardRepository, RecruiterDashboardRepository>();
 builder.Services.AddScoped<IReviewCompanyRepository, ReviewCompanyRepository>();
+builder.Services.AddScoped<IReviewCompanyService, ReviewCompanyService>();
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();

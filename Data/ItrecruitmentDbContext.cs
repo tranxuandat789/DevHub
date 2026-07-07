@@ -582,6 +582,9 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.ProvinceName)
                 .HasMaxLength(100)
                 .HasColumnName("province_name");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
         });
 
         modelBuilder.Entity<Notification>(entity =>

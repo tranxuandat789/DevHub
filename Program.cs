@@ -239,6 +239,7 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IProvinceService, ProvinceService>();
 
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.
@@ -277,5 +278,23 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DevHub.Data.ItrecruitmentDbContext>();
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw(@"
+            IF COL_LENGTH('province', 'is_active') IS NULL
+            BEGIN
+                ALTER TABLE province ADD is_active bit NOT NULL DEFAULT 1;
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Migration hotfix failed: {ex.Message}");
+    }
+}
 
 app.Run();

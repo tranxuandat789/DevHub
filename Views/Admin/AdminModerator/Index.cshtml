@@ -68,6 +68,7 @@
                 <tr class="bg-gray-50 border-b border-[#D6DDEB]">
                     <th class="py-4 px-6 text-dark font-bold text-sm w-16">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Thông tin Moderator</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Loại công việc</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center">Trạng thái</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Ngày tham gia</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
@@ -90,6 +91,24 @@
                                     <div class="font-bold @(mod.IsActive ? "text-dark hover:text-primary cursor-pointer" : "text-gray-500 line-through decoration-1") line-clamp-1">@mod.FullName</div>
                                     <div class="text-xs text-muted mt-0.5">@mod.Email</div>
                                 </div>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                @if (mod.TaskType == "COMPANY_APPROVAL")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Duyệt Công Ty</span>
+                                }
+                                else if (mod.TaskType == "JOB_POST")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700">Duyệt Bài Đăng</span>
+                                }
+                                else if (mod.TaskType == "REVIEW")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Duyệt Đánh Giá</span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">—</span>
+                                }
                             </td>
                             <td class="py-4 px-6 text-center">
                                 @if (mod.IsActive)
@@ -139,7 +158,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" class="py-8 text-center text-muted">Không tìm thấy Moderator nào.</td>
+                        <td colspan="6" class="py-8 text-center text-muted">Không tìm thấy Moderator nào.</td>
                     </tr>
                 }
             </tbody>

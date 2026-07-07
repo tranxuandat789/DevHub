@@ -15,11 +15,16 @@ namespace DevHub.Controllers.Admin
     {
         private readonly IAdminService _adminService;
         private readonly IModAssignmentService _modAssignmentService;
+        private readonly IAssignModeratorService _assignModeratorService;
 
-        public AdminModeratorController(IAdminService adminService, IModAssignmentService modAssignmentService)
+        public AdminModeratorController(
+            IAdminService adminService,
+            IModAssignmentService modAssignmentService,
+            IAssignModeratorService assignModeratorService)
         {
-            _adminService = adminService;
-            _modAssignmentService = modAssignmentService;
+            _adminService            = adminService;
+            _modAssignmentService    = modAssignmentService;
+            _assignModeratorService  = assignModeratorService;
         }
 
         // GET: /AdminModerator
@@ -41,16 +46,26 @@ namespace DevHub.Controllers.Admin
                 moderators = moderators.OrderByDescending(m => m.AdminNavigation.CreatedAt).ToList();
             }
 
+            var moderatorTaskTypes = await _assignModeratorService.GetWorkloadByTaskTypeAsync("COMPANY_APPROVAL");
+            var jobTaskTypes       = await _assignModeratorService.GetWorkloadByTaskTypeAsync("JOB_POST");
+            var reviewTaskTypes    = await _assignModeratorService.GetWorkloadByTaskTypeAsync("REVIEW");
+
+            var taskTypeMap = moderatorTaskTypes
+                .Concat(jobTaskTypes)
+                .Concat(reviewTaskTypes)
+                .ToDictionary(m => m.ModeratorId, m => m.TaskType);
+
             var viewModel = new ModeratorListViewModel
             {
                 Items = moderators.Select(m => new ModeratorListItemDto
                 {
-                    AdminId = m.AdminId,
+                    AdminId  = m.AdminId,
                     Username = m.Username,
-                    Email = m.AdminNavigation?.Email ?? "",
+                    Email    = m.AdminNavigation?.Email ?? "",
                     FullName = m.FullName ?? "",
                     IsActive = m.AdminNavigation?.IsActive ?? false,
-                    CreatedAt = m.AdminNavigation?.CreatedAt
+                    CreatedAt= m.AdminNavigation?.CreatedAt,
+                    TaskType = taskTypeMap.ContainsKey(m.AdminId) ? taskTypeMap[m.AdminId] : null
                 }).ToList(),
                 Search = searchTerm,
                 Page = page,
@@ -86,6 +101,18 @@ namespace DevHub.Controllers.Admin
             
             if (result.Success)
             {
+                // Lấy moderator vừa tạo để gán task type
+                var newMod = await _adminService.GetModeratorByIdAsync(
+                    (await _adminService.GetModeratorListAsync("", "active", 1, 1)).Items
+                    .FirstOrDefault(m => m.Username == model.Username)?.AdminId ?? 0);
+
+                if (newMod != null && !string.IsNullOrEmpty(model.TaskType))
+                {
+                    var currentAdminIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(currentAdminIdStr, out int currentAdminId))
+                        await _assignModeratorService.SetTaskTypeAsync(newMod.AdminId, model.TaskType, currentAdminId);
+                }
+
                 TempData["SuccessMsg"] = "Lưu Moderator thành công! Hệ thống đã ghi nhận.";
                 return RedirectToAction("Index");
             }
@@ -106,12 +133,15 @@ namespace DevHub.Controllers.Admin
                 return NotFound();
             }
 
+            var currentTaskType = await _assignModeratorService.GetTaskTypeAsync(id);
+
             var model = new EditModeratorViewModel
             {
-                AdminId = admin.AdminId,
-                Username = admin.Username,
-                Email = admin.AdminNavigation?.Email ?? "",
-                FullName = admin.FullName ?? ""
+                AdminId         = admin.AdminId,
+                Username        = admin.Username,
+                Email           = admin.AdminNavigation?.Email ?? "",
+                FullName        = admin.FullName ?? "",
+                CurrentTaskType = currentTaskType
             };
 
             return View("~/Views/Admin/AdminModerator/Edit.cshtml", model);
@@ -136,6 +166,14 @@ namespace DevHub.Controllers.Admin
             
             if (result.Success)
             {
+                // Cập nhật task type nếu admin đã chọn
+                if (!string.IsNullOrEmpty(model.TaskType))
+                {
+                    var currentAdminIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(currentAdminIdStr, out int currentAdminId))
+                        await _assignModeratorService.SetTaskTypeAsync(model.AdminId, model.TaskType, currentAdminId);
+                }
+
                 TempData["SuccessMsg"] = $"Đã cập nhật thông tin Moderator #{model.AdminId} thành công!";
                 return RedirectToAction("Index");
             }

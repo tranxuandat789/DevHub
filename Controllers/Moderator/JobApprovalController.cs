@@ -18,6 +18,7 @@ namespace DevHub.Controllers.Moderator
     [Route("moderator/job-approvals")]
     // Giới hạn quyền truy cập: Chỉ những người dùng có Role là "Moderator" (Kiểm duyệt viên) mới được phép vào
     [Authorize(Roles = "Moderator")]
+    [TypeFilter(typeof(DevHub.Filters.ModeratorTaskTypeAttribute), Arguments = new object[] { "JOB_POST" })]
     public class JobApprovalController : Controller
     {
         // Khai báo dịch vụ xử lý nghiệp vụ bài đăng tuyển dụng (Service) dưới dạng chỉ đọc

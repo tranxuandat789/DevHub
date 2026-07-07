@@ -1,0 +1,171 @@
+@* Views/Admin/AssignModerator/History.cshtml *@
+@model DevHub.ViewModels.Admin.AssignHistoryViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Lịch Sử Phân Công Moderator";
+
+    string TaskLabel(string? t) => t switch {
+        "COMPANY_APPROVAL" => "Duyệt Công Ty",
+        "JOB_POST"         => "Duyệt Bài Đăng",
+        "REVIEW"           => "Duyệt Đánh Giá",
+        _ => t ?? "—"
+    };
+    string TaskBadge(string? t) => t switch {
+        "COMPANY_APPROVAL" => "bg-blue-100 text-blue-700",
+        "JOB_POST"         => "bg-violet-100 text-violet-700",
+        "REVIEW"           => "bg-amber-100 text-amber-700",
+        _ => "bg-gray-100 text-gray-700"
+    };
+}
+
+<!-- Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Lịch Sử Phân Công</h1>
+        <p class="text-muted">Xem lại toàn bộ lịch sử phân công công việc cho Moderator.</p>
+    </div>
+    <a href="/AssignModerator"
+       class="inline-flex items-center gap-2 bg-primary text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-sm text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Quay lại Phân Công
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#D6DDEB] p-6 mb-8">
+    <form method="get" action="/AssignModerator/History" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div>
+            <label class="block text-dark font-medium mb-2 text-sm">Loại công việc</label>
+            <select name="filterTaskType" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-sm">
+                <option value="">Tất cả</option>
+                <option value="COMPANY_APPROVAL" selected="@(Model.FilterTaskType == "COMPANY_APPROVAL" ? "selected" : null)">Duyệt Công Ty</option>
+                <option value="JOB_POST"         selected="@(Model.FilterTaskType == "JOB_POST" ? "selected" : null)">Duyệt Bài Đăng</option>
+                <option value="REVIEW"           selected="@(Model.FilterTaskType == "REVIEW" ? "selected" : null)">Duyệt Đánh Giá</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-dark font-medium mb-2 text-sm">Từ ngày</label>
+            <input type="date" name="filterDateFrom" value="@Model.FilterDateFrom"
+                   class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-sm"/>
+        </div>
+        <div>
+            <label class="block text-dark font-medium mb-2 text-sm">Đến ngày</label>
+            <input type="date" name="filterDateTo" value="@Model.FilterDateTo"
+                   class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-sm"/>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 bg-primary text-white font-bold px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-all text-sm shadow-sm">
+                Lọc
+            </button>
+            <a href="/AssignModerator/History" class="px-4 py-2.5 border border-[#D6DDEB] text-muted rounded-lg hover:bg-gray-50 text-sm font-medium">
+                Xóa
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#D6DDEB] overflow-hidden">
+    @if (Model.TotalCount > 0)
+    {
+        <div class="px-6 py-3 border-b border-[#D6DDEB] bg-gray-50">
+            <span class="text-sm text-muted">Hiển thị @((Model.Page - 1) * Model.PageSize + 1)–@(Math.Min(Model.Page * Model.PageSize, Model.TotalCount)) của @Model.TotalCount bản ghi</span>
+        </div>
+    }
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[800px]">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Thời gian</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Admin thực hiện</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Loại công việc</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Moderator nhận</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Số lượng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Filter đã dùng</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if (Model.Items.Any())
+                {
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-muted font-medium">
+                                @item.AssignedAt?.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="font-semibold text-dark">@item.AdminName</span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold @TaskBadge(item.TaskType)">
+                                    @TaskLabel(item.TaskType)
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 font-medium text-dark">@item.ModeratorName</td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary bg-opacity-10 text-primary font-bold text-sm">
+                                    @item.RecordCount
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-muted text-xs">
+                                @if (!string.IsNullOrEmpty(item.FilterUsed) && item.FilterUsed != "{\"industry\":null,\"serviceId\":null}")
+                                {
+                                    <code class="bg-gray-100 px-2 py-1 rounded text-xs">@item.FilterUsed</code>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">Không filter</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="py-16 text-center text-muted">
+                            <svg class="w-14 h-14 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            <p class="font-medium">Chưa có lịch sử phân công nào.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+            <div class="text-sm text-muted">Trang @Model.Page / @Model.TotalPages</div>
+            <div class="flex space-x-1">
+                @if (Model.Page > 1)
+                {
+                    <a href="/AssignModerator/History?page=@(Model.Page - 1)&filterTaskType=@Model.FilterTaskType&filterDateFrom=@Model.FilterDateFrom&filterDateTo=@Model.FilterDateTo"
+                       class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 text-sm">Trước</a>
+                }
+                @for (int i = Math.Max(1, Model.Page - 2); i <= Math.Min(Model.TotalPages, Model.Page + 2); i++)
+                {
+                    if (i == Model.Page)
+                    {
+                        <span class="px-3 py-1 bg-primary text-white rounded text-sm">@i</span>
+                    }
+                    else
+                    {
+                        <a href="/AssignModerator/History?page=@i&filterTaskType=@Model.FilterTaskType&filterDateFrom=@Model.FilterDateFrom&filterDateTo=@Model.FilterDateTo"
+                           class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 text-sm">@i</a>
+                    }
+                }
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a href="/AssignModerator/History?page=@(Model.Page + 1)&filterTaskType=@Model.FilterTaskType&filterDateFrom=@Model.FilterDateFrom&filterDateTo=@Model.FilterDateTo"
+                       class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 text-sm">Sau</a>
+                }
+            </div>
+        </div>
+    }
+</div>

@@ -12,6 +12,7 @@ namespace DevHub.Controllers.Moderator
 {
     [Route("moderator/company-approvals")]
     [Authorize(Roles = "Moderator")]
+    [TypeFilter(typeof(DevHub.Filters.ModeratorTaskTypeAttribute), Arguments = new object[] { "COMPANY_APPROVAL" })]
     public class CompanyApprovalController : Controller
     {
         private readonly ItrecruitmentDbContext _db;
@@ -24,21 +25,21 @@ namespace DevHub.Controllers.Moderator
         [HttpGet("")]
         public async Task<IActionResult> Index(string companyName, DateTime? dateFrom, DateTime? dateTo, string sortOrder = "desc")
         {
-            var query = _db.AuditLogs
-                .Where(a => a.Action == "VerificationRequest" && a.EntityType == "recruiter_profile" && a.OldValue == null)
-                .Join(_db.Recruiters, 
-                    a => a.EntityId, 
-                    r => r.RecruiterId, 
-                    (a, r) => new CompanyVerificationRequestViewModel
-                    {
-                        LogId = a.LogId,
-                        RecruiterId = r.RecruiterId,
-                        CompanyName = r.Company.CompanyName,
-                        TaxCode = r.Company.TaxCode ?? string.Empty,
-                        BusinessLicenseUrl = r.Company.BusinessLicenseUrl ?? string.Empty,
-                        AdditionalDocumentsUrl = r.Company.AdditionalDocumentsUrl ?? string.Empty,
-                        RequestedAt = a.CreatedAt
-                    });
+            var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(modIdClaim, out int modId);
+
+            var query = _db.Companies
+                .Where(c => c.Status == "PENDING" && c.ModeratorId == modId)
+                .Select(c => new CompanyVerificationRequestViewModel
+                {
+                    LogId = c.CompanyId, // Dùng LogId lưu tạm CompanyId để View không đổi
+                    RecruiterId = c.Recruiters.FirstOrDefault() != null ? c.Recruiters.FirstOrDefault().RecruiterId : 0,
+                    CompanyName = c.CompanyName,
+                    TaxCode = c.TaxCode ?? string.Empty,
+                    BusinessLicenseUrl = c.BusinessLicenseUrl ?? string.Empty,
+                    AdditionalDocumentsUrl = c.AdditionalDocumentsUrl ?? string.Empty,
+                    RequestedAt = _db.AuditLogs.Where(a => a.Action == "VerificationRequest" && a.EntityId == (c.Recruiters.FirstOrDefault() != null ? c.Recruiters.FirstOrDefault().RecruiterId : 0)).Select(a => (DateTime?)a.CreatedAt).FirstOrDefault() ?? DateTime.UtcNow
+                });
 
             if (!string.IsNullOrEmpty(companyName))
             {
@@ -79,20 +80,15 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("approve/{id}")]
         public async Task<IActionResult> Approve(int id)
         {
-            var log = await _db.AuditLogs.FindAsync(id);
-            if (log == null || log.OldValue != null) return BadRequest("Invalid request.");
+            var company = await _db.Companies.Include(c => c.Recruiters).FirstOrDefaultAsync(c => c.CompanyId == id);
+            if (company == null || company.Status != "PENDING") return BadRequest("Invalid request.");
 
-            var company = await _db.Companies.FindAsync(log.EntityId);
-            if (company != null)
-            {
-                company.IsVerified = true;
-            }
-
-            log.OldValue = "Approved";
+            company.IsVerified = true;
+            company.Status = "APPROVED";
 
             var notification = new Notification
             {
-                UserId = log.EntityId ?? 0,
+                UserId = company.Recruiters.FirstOrDefault()?.RecruiterId ?? 0,
                 UserType = "RECRUITER",
                 Title = "Yêu cầu xác minh công ty đã được phê duyệt",
                 Message = "Chúc mừng! Công ty của bạn đã được xác minh.",
@@ -112,7 +108,7 @@ namespace DevHub.Controllers.Moderator
                 UserType = "Moderator",
                 Action = "Duyệt công ty",
                 EntityType = "Company",
-                EntityId = log.EntityId,
+                EntityId = company.CompanyId,
                 OldValue = "Chờ duyệt",
                 NewValue = "Đã duyệt",
                 CreatedAt = DateTime.UtcNow
@@ -126,14 +122,16 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("reject/{id}")]
         public async Task<IActionResult> Reject(int id, [FromForm] string reason)
         {
-            var log = await _db.AuditLogs.FindAsync(id);
-            if (log == null || log.OldValue != null) return BadRequest("Invalid request.");
+            var company = await _db.Companies.Include(c => c.Recruiters).FirstOrDefaultAsync(c => c.CompanyId == id);
+            if (company == null || company.Status != "PENDING") return BadRequest("Invalid request.");
 
-            log.OldValue = "Rejected";
+            company.Status = "REJECTED";
+            // Lẽ ra cần có trường lưu lý do từ chối (như RejectedReason) trong Company, nếu chưa có tạm thời bỏ qua
+            // company.RejectedReason = reason;
 
             var notification = new Notification
             {
-                UserId = log.EntityId ?? 0,
+                UserId = company.Recruiters.FirstOrDefault()?.RecruiterId ?? 0,
                 UserType = "RECRUITER",
                 Title = "Yêu cầu xác minh công ty bị từ chối",
                 Message = $"Yêu cầu xác minh của bạn đã bị từ chối. Lý do: {reason}",
@@ -153,7 +151,7 @@ namespace DevHub.Controllers.Moderator
                 UserType = "Moderator",
                 Action = "Từ chối công ty",
                 EntityType = "Company",
-                EntityId = log.EntityId,
+                EntityId = company.CompanyId,
                 OldValue = "Chờ duyệt",
                 NewValue = "Từ chối (Lý do: " + reason + ")",
                 CreatedAt = DateTime.UtcNow

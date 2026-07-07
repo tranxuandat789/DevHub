@@ -22,4 +22,10 @@ public class EditModeratorViewModel
     [MaxLength(255)]
     [RegularExpression(@"^\s*[\p{L}\p{M}]+(?: [\p{L}\p{M}]+)*\s*$", ErrorMessage = "Họ và tên chỉ được chứa chữ cái và 1 dấu cách giữa các từ.")]
     public string FullName { get; set; } = "";
+
+    /// <summary>Loại công việc hiện tại của moderator (nếu có)</summary>
+    public string? CurrentTaskType { get; set; }
+
+    /// <summary>Task type mới admin muốn gán (optional khi edit)</summary>
+    public string? TaskType { get; set; }
 }

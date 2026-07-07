@@ -5,6 +5,7 @@ namespace DevHub.Controllers.Moderator
 {
     [Route("moderator/reviews")]
     [Authorize(Roles = "Moderator")]
+    [TypeFilter(typeof(DevHub.Filters.ModeratorTaskTypeAttribute), Arguments = new object[] { "REVIEW" })]
     public class ReviewModerationController : Controller
     {
         [HttpGet("")]

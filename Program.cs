@@ -62,10 +62,11 @@ builder.Services.AddAuthentication(options =>
             
         // Luồng 2: Nếu URL thuộc khu vực Quản trị (bắt đầu bằng /Admin, /Moderator...)
         // => Trỏ về "AdminCookies".
-        if (path.StartsWith("/Admin",     StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith("/Moderator", StringComparison.OrdinalIgnoreCase) ||
-            path.Contains("moderator", StringComparison.OrdinalIgnoreCase) ||
-            path.Equals("/Auth/AdminLogout", StringComparison.OrdinalIgnoreCase))
+        if (path.StartsWith("/Admin",          StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/Moderator",       StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/AssignModerator", StringComparison.OrdinalIgnoreCase) ||
+            path.Contains("moderator",          StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/Auth/AdminLogout",    StringComparison.OrdinalIgnoreCase))
             return "AdminCookies";
             
         // Luồng 3: Nếu không phải các trường hợp đặc biệt trên (trang chủ, trang tìm việc...)
@@ -236,6 +237,7 @@ builder.Services.AddScoped<IRecruiterDashboardService, RecruiterDashboardService
 builder.Services.AddScoped<ICompanyInvitationService, CompanyInvitationService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
+builder.Services.AddScoped<IAssignModeratorService, AssignModeratorService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 

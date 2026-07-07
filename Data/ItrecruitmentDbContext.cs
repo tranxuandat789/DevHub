@@ -855,7 +855,7 @@ public partial class ItrecruitmentDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__article__company");
 
-            entity.HasOne(d => d.Approver).WithMany()
+            entity.HasOne(d => d.Approver).WithMany(p => p.Articles)
                 .HasForeignKey(d => d.ApproverId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK__article__approver");

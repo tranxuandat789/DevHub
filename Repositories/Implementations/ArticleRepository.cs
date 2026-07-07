@@ -53,4 +53,38 @@ public class ArticleRepository : IArticleRepository
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<(List<Article> Articles, int TotalCount)> GetArticlesForModerationAsync(int? companyId, string keyword, int page, int pageSize)
+    {
+        var query = _context.Articles.Include(a => a.Company).AsQueryable();
+
+        if (companyId.HasValue)
+        {
+            query = query.Where(a => a.CompanyId == companyId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            query = query.Where(a => a.Title.Contains(keyword) || a.Company.CompanyName.Contains(keyword));
+        }
+
+        int totalCount = await query.CountAsync();
+        var articles = await query
+            .OrderByDescending(a => a.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (articles, totalCount);
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var article = await _context.Articles.FindAsync(id);
+        if (article == null) return false;
+
+        _context.Articles.Remove(article);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

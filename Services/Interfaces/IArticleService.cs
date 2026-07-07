@@ -11,4 +11,6 @@ public interface IArticleService
     Task UpdateArticleAsync(int recruiterId, int articleId, string title, string content, string thumbnailUrl);
     Task<List<Article>> GetArticlesForRecruiterAsync(int recruiterId);
     Task SubmitArticleForReviewAsync(int recruiterId, int articleId);
+    Task<(List<Article> Articles, int TotalPages, int TotalItems)> GetArticlesForModeratorAsync(int? companyId, string keyword, int page, int pageSize);
+    Task<bool> DeleteArticleByModeratorAsync(int articleId, int moderatorId, string reason);
 }

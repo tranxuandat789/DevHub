@@ -117,4 +117,17 @@ public class ArticleService : IArticleService
 
         await _articleRepo.UpdateAsync(article);
     }
+    public async Task<(List<Article> Articles, int TotalPages, int TotalItems)> GetArticlesForModeratorAsync(int? companyId, string keyword, int page, int pageSize)
+    {
+        var (articles, totalCount) = await _articleRepo.GetArticlesForModerationAsync(companyId, keyword, page, pageSize);
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        return (articles, totalPages, totalCount);
+    }
+
+    public async Task<bool> DeleteArticleByModeratorAsync(int articleId, int moderatorId, string reason)
+    {
+        // Deletion logic, audit log can be handled here or in controller.
+        // We will just delete it here. The Controller will add AuditLog.
+        return await _articleRepo.DeleteAsync(articleId);
+    }
 }

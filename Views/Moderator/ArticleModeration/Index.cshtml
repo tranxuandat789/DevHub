@@ -1,0 +1,310 @@
+@model List<DevHub.Models.Article>
+@{
+    ViewData["Title"] = "Quản lý Bài viết NTD";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+    var keyword = ViewData["Keyword"] as string ?? "";
+    int? currentCompanyId = ViewData["CompanyId"] as int?;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
+}
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Quản lý Bài viết NTD</h1>
+        <p class="text-muted mt-1">Xem và quản lý các bài viết của các nhà tuyển dụng</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row gap-4 items-end">
+    <form method="get" action="/ModeratorArticle" class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Tìm kiếm</label>
+            <input type="text" name="keyword" value="@keyword" placeholder="Nhập tiêu đề bài viết..." class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" />
+        </div>
+        
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Lọc theo Công ty</label>
+            <select name="companyId" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm appearance-none">
+                <option value="">Tất cả công ty</option>
+                @if (ViewBag.Companies != null)
+                {
+                    foreach (var c in ViewBag.Companies as SelectList)
+                    {
+                        if (c.Value == currentCompanyId?.ToString())
+                        {
+                            <option value="@c.Value" selected>@c.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@c.Value">@c.Text</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="flex items-end gap-2">
+            <button type="submit" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium text-sm w-full md:w-auto shadow-sm">
+                Áp dụng
+            </button>
+            <a href="/ModeratorArticle" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm w-full md:w-auto text-center">
+                Xóa lọc
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Main Table -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">ID</th>
+                    <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu đề bài viết</th>
+                    <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhà tuyển dụng</th>
+                    <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ngày đăng</th>
+                    <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Trạng thái</th>
+                    <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var article in Model)
+                    {
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="py-4 px-6 text-sm text-gray-500">#@article.ArticleId</td>
+                            <td class="py-4 px-6">
+                                <div class="flex items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(article.ThumbnailUrl))
+                                    {
+                                        <img src="@article.ThumbnailUrl" alt="Thumbnail" class="w-10 h-10 rounded-md object-cover border border-gray-100" />
+                                    }
+                                    <span class="text-sm font-medium text-gray-900 line-clamp-2">@article.Title</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6 text-sm text-gray-600">
+                                @(article.Company?.CompanyName ?? "N/A")
+                            </td>
+                            <td class="py-4 px-6 text-sm text-gray-500">
+                                @(article.CreatedAt?.ToString("dd/MM/yyyy HH:mm"))
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                @if (article.Status == "APPROVED")
+                                {
+                                    <span class="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Đã duyệt</span>
+                                }
+                                else if (article.Status == "PENDING")
+                                {
+                                    <span class="px-2.5 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Chờ duyệt</span>
+                                }
+                                else
+                                {
+                                    <span class="px-2.5 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">Đã từ chối</span>
+                                }
+                            </td>
+                            <td class="py-4 px-6 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="/ModeratorArticle/Details/@article.ArticleId" class="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors" title="Xem chi tiết">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </a>
+                                    <button type="button" onclick="openDeleteModal(@article.ArticleId, '@article.Title.Replace("'", "\\'")')" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="py-12 px-6 text-center text-gray-500">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 4v5h5M9 14h6"></path></svg>
+                                <p class="text-base font-medium text-gray-900">Không tìm thấy bài viết nào.</p>
+                                <p class="text-sm text-gray-500 mt-1">Hãy thử điều chỉnh lại bộ lọc tìm kiếm.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <span class="text-sm text-gray-500">
+                Hiển thị từ <span class="font-medium text-gray-900">@((currentPage - 1) * 10 + 1)</span> đến <span class="font-medium text-gray-900">@(Math.Min(currentPage * 10, totalItems))</span> trong <span class="font-medium text-gray-900">@totalItems</span> kết quả
+            </span>
+            
+            <div class="flex gap-1">
+                @if (currentPage > 1)
+                {
+                    <a href="/ModeratorArticle?page=@(currentPage - 1)&keyword=@keyword&companyId=@currentCompanyId" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                        Trước
+                    </a>
+                }
+                
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <a href="/ModeratorArticle?page=@i&keyword=@keyword&companyId=@currentCompanyId" class="px-3 py-1.5 border @(i == currentPage ? "border-primary bg-primary text-white" : "border-gray-200 text-gray-600 hover:bg-gray-50") rounded-lg text-sm font-medium transition-colors">
+                        @i
+                    </a>
+                }
+                
+                @if (currentPage < totalPages)
+                {
+                    <a href="/ModeratorArticle?page=@(currentPage + 1)&keyword=@keyword&companyId=@currentCompanyId" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                        Sau
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Toast Notification -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-0">
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity opacity-0" id="deleteBackdrop"></div>
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md relative z-10 transform scale-95 opacity-0 transition-all duration-300" id="deleteModalContent">
+        <div class="p-6">
+            <div class="flex items-center gap-4 mb-4 text-red-600">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">Xác nhận xóa bài viết</h3>
+                    <p class="text-sm text-gray-500 mt-1">Hành động này không thể hoàn tác.</p>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-2">Bạn có chắc chắn muốn xóa bài viết <span id="deleteTitle" class="font-bold text-gray-900"></span>?</p>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lý do xóa <span class="text-red-500">*</span></label>
+                <textarea id="deleteReason" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-sm" placeholder="Nhập lý do xóa (Bắt buộc)..."></textarea>
+                <p id="deleteError" class="text-xs text-red-500 mt-1 hidden">Vui lòng nhập lý do xóa.</p>
+            </div>
+            
+            <div class="flex gap-3 justify-end mt-6">
+                <button type="button" onclick="closeDeleteModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                    Hủy bỏ
+                </button>
+                <button type="button" onclick="executeDelete()" id="btnConfirmDelete" class="px-5 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
+                    Xác nhận xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentDeleteId = null;
+
+        function showToast(message, isSuccess = true) {
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transform transition-all duration-300 translate-y-4 opacity-0 ${isSuccess ? 'bg-gray-900' : 'bg-red-600'}`;
+            
+            const icon = isSuccess 
+                ? '<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            document.getElementById('toast-container').appendChild(toast);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openDeleteModal(id, title) {
+            currentDeleteId = id;
+            document.getElementById('deleteTitle').textContent = `"${title}"`;
+            document.getElementById('deleteReason').value = '';
+            document.getElementById('deleteError').classList.add('hidden');
+            
+            const modal = document.getElementById('deleteModal');
+            const backdrop = document.getElementById('deleteBackdrop');
+            const content = document.getElementById('deleteModalContent');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+            });
+        }
+
+        function closeDeleteModal() {
+            currentDeleteId = null;
+            const modal = document.getElementById('deleteModal');
+            const backdrop = document.getElementById('deleteBackdrop');
+            const content = document.getElementById('deleteModalContent');
+            
+            backdrop.classList.add('opacity-0');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        async function executeDelete() {
+            const reason = document.getElementById('deleteReason').value.trim();
+            if (!reason) {
+                document.getElementById('deleteError').classList.remove('hidden');
+                document.getElementById('deleteReason').focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnConfirmDelete');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xóa...`;
+
+            try {
+                const formData = new FormData();
+                formData.append('reason', reason);
+
+                const response = await fetch(`/ModeratorArticle/Delete/${currentDeleteId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    closeDeleteModal();
+                    showToast('Đã xóa bài viết thành công!', true);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const error = await response.json();
+                    showToast(error.message || 'Có lỗi xảy ra khi xóa bài viết.', false);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Lỗi kết nối đến máy chủ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+    </script>
+}

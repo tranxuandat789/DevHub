@@ -452,54 +452,7 @@
             </div>
 
             <!-- Pagination -->
-            @if (Model.TotalPages > 1)
-            {
-                // Route values dùng lại cho tất cả pagination links
-                var baseRoute = new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId };
-                <div class="mt-8 flex justify-center">
-                    <nav class="flex items-center space-x-1" aria-label="Phân trang">
-                        <!-- Prev -->
-                        @if (Model.Filter.Page > 1)
-                        {
-                            <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId, page = Model.Filter.Page - 1 })"
-                               class="w-10 h-10 flex items-center justify-center rounded border border-bordercolor text-muted hover:bg-gray-100 transition-colors">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </a>
-                        }
-
-                        <!-- Page numbers -->
-                        @for (int p = 1; p <= Model.TotalPages; p++)
-                        {
-                            if (p == Model.Filter.Page)
-                            {
-                                <span class="w-10 h-10 flex items-center justify-center rounded border border-primary bg-primary text-white font-medium">@p</span>
-                            }
-                            else if (p == 1 || p == Model.TotalPages || (p >= Model.Filter.Page - 1 && p <= Model.Filter.Page + 1))
-                            {
-                                <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId, page = p })"
-                                   class="w-10 h-10 flex items-center justify-center rounded border border-transparent text-dark hover:bg-gray-100 font-medium transition-colors">@p</a>
-                            }
-                            else if (p == Model.Filter.Page - 2 || p == Model.Filter.Page + 2)
-                            {
-                                <span class="text-muted px-1">...</span>
-                            }
-                        }
-
-                        <!-- Next -->
-                        @if (Model.Filter.Page < Model.TotalPages)
-                        {
-                            <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation, recruiterId = Model.Filter.RecruiterId, page = Model.Filter.Page + 1 })"
-                               class="w-10 h-10 flex items-center justify-center rounded border border-bordercolor text-muted hover:bg-gray-100 transition-colors">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                </svg>
-                            </a>
-                        }
-                    </nav>
-                </div>
-            }
+            @await Html.PartialAsync("_PaginationUI", new { Page = Model.Filter.Page, TotalPages = Model.TotalPages, TotalCount = Model.TotalCount, ItemName = "việc làm" })
         }
     </div>
 </section>

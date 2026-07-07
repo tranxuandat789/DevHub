@@ -9,5 +9,8 @@ namespace DevHub.ViewModels.Company
         public List<JobPost> ActiveJobs { get; set; } = new();
         public double? AverageRating { get; set; }
         public int TotalReviews { get; set; }
+        
+        public bool HasUserReviewed { get; set; }
+        public int? UserReviewId { get; set; }
     }
 }

@@ -26,7 +26,17 @@ namespace DevHub.Controllers
         [HttpGet("Companies/Details/{id}")] // Keep legacy route mapping
         public async Task<IActionResult> Details(int id)
         {
-            var model = await _companyService.GetCompanyDetailsAsync(id);
+            int? candidateId = null;
+            if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Candidate") || User.IsInRole("CANDIDATE")))
+            {
+                var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (idClaim != null && int.TryParse(idClaim.Value, out int cid))
+                {
+                    candidateId = cid;
+                }
+            }
+
+            var model = await _companyService.GetCompanyDetailsAsync(id, candidateId);
             if (model == null)
             {
                 return NotFound();

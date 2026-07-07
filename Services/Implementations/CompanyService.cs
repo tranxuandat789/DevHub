@@ -109,7 +109,7 @@ namespace DevHub.Services.Implementations
             };
         }
 
-        public async Task<CompanyDetailsViewModel?> GetCompanyDetailsAsync(int id)
+        public async Task<CompanyDetailsViewModel?> GetCompanyDetailsAsync(int id, int? currentCandidateId = null)
         {
             var company = await _companyRepo.GetCompanyDetailsAsync(id);
             if (company == null || (company.ProfileCompletion ?? 0) < 70)
@@ -124,13 +124,25 @@ namespace DevHub.Services.Implementations
                 avgRating = (double)company.ReviewCompanies.Sum(rev => rev.Rating) / totalReviews;
             }
 
-            return new CompanyDetailsViewModel
+            var vm = new CompanyDetailsViewModel
             {
                 Company = company,
                 ActiveJobs = jobs,
                 AverageRating = avgRating,
                 TotalReviews = totalReviews
             };
+            
+            if (currentCandidateId.HasValue)
+            {
+                var userReview = company.ReviewCompanies.FirstOrDefault(r => r.CandidateId == currentCandidateId.Value);
+                if (userReview != null)
+                {
+                    vm.HasUserReviewed = true;
+                    vm.UserReviewId = userReview.ReviewId;
+                }
+            }
+
+            return vm;
         }
     }
 }

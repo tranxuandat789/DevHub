@@ -208,6 +208,7 @@ builder.Services.AddScoped<ICompanyInvitationRepository, CompanyInvitationReposi
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IAdminPaymentRepository, AdminPaymentRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -243,7 +244,7 @@ builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
 builder.Services.AddScoped<IAssignModeratorService, AssignModeratorService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<IProvinceService, ProvinceService>();
+builder.Services.AddScoped<IAdminPaymentService, AdminPaymentService>();
 
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.

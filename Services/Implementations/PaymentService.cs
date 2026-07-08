@@ -287,7 +287,7 @@ public class PaymentService : IPaymentService
 
     public async Task<PaymentHistoryListVm> GetHistoryAsync(int companyId, DateTime? from, DateTime? to, int? serviceId, int page)
     {
-        int pageSize = 10;
+        int pageSize = 5;
         var (items, total) = await _paymentRepo.GetHistoryAsync(companyId, from, to, serviceId, page, pageSize);
 
         var list = items.Select(t => new PaymentHistoryItemVm

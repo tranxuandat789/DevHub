@@ -182,11 +182,7 @@ namespace DevHub.Controllers
             return View("~/Views/Admin/AdminDashboard/Index.cshtml");
         }
 
-        [Route("AdminTransaction")]
-        public IActionResult AdminTransactionPreview()
-        {
-            return View("~/Views/Admin/AdminTransaction/Index.cshtml");
-        }
+
 
         [Route("AdminSubscription")]
         public IActionResult AdminSubscriptionPreview()

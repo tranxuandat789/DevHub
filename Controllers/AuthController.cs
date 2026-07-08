@@ -172,7 +172,7 @@ public class AuthController : Controller
         TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
 
         if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
-        return RedirectToDashboard(user.UserType);
+        return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class AuthController : Controller
         TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
 
         if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
-        return RedirectToDashboard(user.UserType);
+        return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public class AuthController : Controller
             }
             await SignInAsync(user, false, fakeAvatar);
             await _auth.UpdateLastLoginAsync(user.UserId);
-            return RedirectToDashboard(user.UserType);
+            return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
         }
 
         // Tạo tài khoản mới
@@ -432,7 +432,7 @@ public class AuthController : Controller
             {
                 await SignInAsync(user, false, avatar);
                 await _auth.UpdateLastLoginAsync(user.UserId);
-                return RedirectToDashboard(user.UserType);
+                return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
             }
 
             // Đến từ form đăng nhập → kiểm tra đúng loại tài khoản
@@ -451,7 +451,7 @@ public class AuthController : Controller
             await SignInAsync(user, false, avatar);
             await _auth.UpdateLastLoginAsync(user.UserId);
             TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
-            return RedirectToDashboard(user.UserType);
+            return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
         }
 
         // Tài khoản chưa tồn tại → tạo mới
@@ -581,6 +581,10 @@ public class AuthController : Controller
         else if (roleClaim == "MODERATOR")
         {
             claims.Add(new Claim(ClaimTypes.Role, "Moderator"));
+            if (user.Admin?.ModeratorTaskType != null)
+            {
+                claims.Add(new Claim("TaskType", user.Admin.ModeratorTaskType.TaskType));
+            }
         }
 
         var identity = new ClaimsIdentity(claims, scheme);
@@ -837,16 +841,23 @@ public class AuthController : Controller
         }
     }
 
-    private IActionResult RedirectToDashboard(string? userType = null)
+    private IActionResult RedirectToDashboard(string? userType = null, string? taskType = null)
     {
         userType ??= User.FindFirstValue(ClaimTypes.Role);
+        var tType = taskType ?? User.FindFirstValue("TaskType");
+
+        if (userType?.Trim().ToUpper() == "MODERATOR")
+        {
+            if (tType == "COMPANY_APPROVAL") return Redirect("/moderator/company-approvals");
+            if (tType == "REVIEW") return Redirect("/moderator/review-approvals");
+            return Redirect("/moderator/job-approvals");
+        }
 
         return (userType?.Trim().ToUpper()) switch
         {
-            "Admin" or "ADMIN" => Redirect("/AdminDashboard"),
-            "Moderator" or "MODERATOR" => Redirect("/moderator/job-approvals"),
-            "Recruiter" or "RECRUITER" => Redirect("/Recruiter/Dashboard"),
-            "CANDIDATE" or "Candidate" => Redirect("/Candidate/Dashboard"),
+            "ADMIN" => Redirect("/AdminDashboard"),
+            "RECRUITER" => Redirect("/Recruiter/Dashboard"),
+            "CANDIDATE" => Redirect("/Candidate/Dashboard"),
             _ => RedirectToAction("Index", "Home")
         };
     }

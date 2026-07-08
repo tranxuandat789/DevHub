@@ -51,6 +51,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
     private readonly IRecruiterJobPostRepository _jobPostRepo;
     private readonly IProvinceRepository _provinceRepo;
     private readonly IModAssignmentService _modAssignmentService;
+    private readonly IAssignModeratorService _assignModeratorService;
 
     //Constructor Injection
     public RecruiterJobPostService(
@@ -60,7 +61,8 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         IRecruiterRepository profileRepo,
         IRecruiterJobPostRepository jobPostRepo,
         IProvinceRepository provinceRepo,
-        IModAssignmentService modAssignmentService)
+        IModAssignmentService modAssignmentService,
+        IAssignModeratorService assignModeratorService)
     {
         _techRepo = techRepo;
         _positionRepo = positionRepo;
@@ -69,6 +71,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         _jobPostRepo = jobPostRepo;
         _provinceRepo = provinceRepo;
         _modAssignmentService = modAssignmentService;
+        _assignModeratorService = assignModeratorService;
     }
 
     // Compute posting eligibility: profile completeness + active package with remaining quota.
@@ -153,7 +156,7 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             Deadline = vm.Deadline,
             Status = "PENDING",
             PriorityScore = package.Service?.PriorityPush ?? 0,
-            ModeratorId = await _modAssignmentService.GetAssignedModeratorAsync(package.ServiceId)
+            ModeratorId = null
         };
 
         //Add list of tech stack to the job post
@@ -165,6 +168,9 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             job.Provinces.Add(province);
 
         var createdJob = await _jobPostRepo.CreateJobPostAndDecrementQuotaAsync(job, package.Id);
+
+        // Auto assign to moderator
+        await _assignModeratorService.AutoAssignNewRecordAsync("JOB_POST", createdJob.JobId);
 
         //send notification to moderators about new pending job post.
         try

@@ -28,4 +28,7 @@ public class CreateModeratorViewModel
     // Full name: letters (including Vietnamese), spaces allowed but max 1 consecutive space, no special chars
     [RegularExpression(@"^\s*[\p{L}\p{M}]+(?: [\p{L}\p{M}]+)*\s*$", ErrorMessage = "Họ và tên chỉ được chứa chữ cái và 1 dấu cách giữa các từ.")]
     public string FullName { get; set; } = "";
+
+    [Required(ErrorMessage = "Loại công việc là bắt buộc.")]
+    public string TaskType { get; set; } = "";
 }

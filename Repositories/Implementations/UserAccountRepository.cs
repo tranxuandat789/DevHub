@@ -17,7 +17,7 @@ public class UserAccountRepository : IUserAccountRepository
               .AsNoTracking()
               .Include(u => u.Candidate)
               .Include(u => u.Recruiter).ThenInclude(r => r.Company)
-              .Include(u => u.Admin)
+              .Include(u => u.Admin).ThenInclude(a => a.ModeratorTaskType)
               .FirstOrDefaultAsync(u => u.Email == email);
 
     public Task<UserAccount?> GetByGoogleIdAsync(string googleId)
@@ -25,7 +25,7 @@ public class UserAccountRepository : IUserAccountRepository
               .AsNoTracking()
               .Include(u => u.Candidate)
               .Include(u => u.Recruiter).ThenInclude(r => r.Company)
-              .Include(u => u.Admin)
+              .Include(u => u.Admin).ThenInclude(a => a.ModeratorTaskType)
               .FirstOrDefaultAsync(u => u.GoogleId == googleId);
 
     public async Task<UserAccount> AddAsync(UserAccount user)

@@ -66,6 +66,8 @@ public partial class ItrecruitmentDbContext : DbContext
 
     public virtual DbSet<CompanyInvitation> CompanyInvitations { get; set; }
 
+    public virtual DbSet<ModeratorTaskType> ModeratorTaskTypes { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
 
@@ -811,6 +813,14 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValue("PENDING")
                 .HasColumnName("status");
+
+            entity.Property(e => e.ModeratorId)
+                .HasColumnName("moderator_id");
+
+            entity.HasOne(d => d.Moderator).WithMany()
+                .HasForeignKey(d => d.ModeratorId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK__company__moderator_id");
         });
 
         modelBuilder.Entity<Article>(entity =>
@@ -1117,6 +1127,42 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasForeignKey(d => d.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__company_invitation__company");
+        });
+
+        modelBuilder.Entity<ModeratorTaskType>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("moderator_task_type");
+
+            entity.HasIndex(e => e.ModeratorId).IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ModeratorId).HasColumnName("moderator_id");
+            entity.Property(e => e.TaskType)
+                .HasMaxLength(30)
+                .HasColumnName("task_type");
+            entity.Property(e => e.AssignedBy).HasColumnName("assigned_by");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Moderator)
+                .WithOne(p => p.ModeratorTaskType)
+                .HasForeignKey<ModeratorTaskType>(d => d.ModeratorId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK__mod_task_type__moderator");
+
+            entity.HasOne(d => d.AssignedByAdmin)
+                .WithMany()
+                .HasForeignKey(d => d.AssignedBy)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK__mod_task_type__assigned_by");
         });
 
         OnModelCreatingPartial(modelBuilder);

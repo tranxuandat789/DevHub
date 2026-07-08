@@ -52,6 +52,40 @@
             </div>
         </div>
 
+        <!-- Task Type Section -->
+        <div class="mb-6 border-t border-gray-100 pt-6">
+            <h4 class="font-bold text-dark mb-1 text-sm uppercase tracking-wide text-gray-500">Phân Loại Công Việc</h4>
+            @if (!string.IsNullOrEmpty(Model.CurrentTaskType))
+            {
+                <p class="text-xs text-muted mb-3">
+                    Hiện tại: <span class="font-semibold text-dark">
+                        @(Model.CurrentTaskType == "COMPANY_APPROVAL" ? "Duyệt Công Ty" :
+                          Model.CurrentTaskType == "JOB_POST" ? "Duyệt Bài Đăng" : "Duyệt Đánh Giá")
+                    </span> — Chọn loại khác để thay đổi (hoặc để trống để giữ nguyên).
+                </p>
+            }
+            else
+            {
+                <p class="text-xs text-amber-600 mb-3 font-medium">⚠ Moderator này chưa được gán loại công việc. Vui lòng chọn để kích hoạt strict mode.</p>
+            }
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                @foreach (var (val, label, color) in new[] {
+                    ("COMPANY_APPROVAL", "Duyệt Công Ty",  "blue"),
+                    ("JOB_POST",         "Duyệt Bài Đăng", "violet"),
+                    ("REVIEW",           "Duyệt Đánh Giá", "amber")
+                })
+                {
+                    <label class="cursor-pointer">
+                        <input type="radio" name="TaskType" value="@val" class="peer sr-only"
+                               @(Model.CurrentTaskType == val || Model.TaskType == val ? "checked" : "")>
+                        <div class="border-2 border-[#D6DDEB] peer-checked:border-@(color)-500 peer-checked:bg-@(color)-50 rounded-xl p-4 hover:border-@(color)-300 transition-all text-sm font-semibold text-dark text-center">
+                            @label
+                        </div>
+                    </label>
+                }
+            </div>
+        </div>
+
         <div class="flex gap-4 pt-6 border-t border-[#D6DDEB]">
             <button type="submit" class="bg-primary text-white font-bold px-8 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
                 Lưu Thay đổi

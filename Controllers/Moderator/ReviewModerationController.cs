@@ -10,6 +10,7 @@ namespace DevHub.Controllers.Moderator
 {
     [Route("moderator/reviews")]
     [Authorize(Roles = "Moderator,MODERATOR")]
+    [TypeFilter(typeof(DevHub.Filters.ModeratorTaskTypeAttribute), Arguments = new object[] { "REVIEW" })]
     public class ReviewModerationController : Controller
     {
         private readonly IReviewCompanyService _reviewService;

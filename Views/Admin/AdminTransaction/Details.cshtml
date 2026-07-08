@@ -1,0 +1,129 @@
+@using DevHub.ViewModels.Admin
+@model AdminTransactionDetailVm
+
+@{
+    ViewData["Title"] = "Chi tiết giao dịch";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="p-4 md:p-8">
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold text-[#25324B]">Chi tiết giao dịch</h2>
+        <a href="/AdminTransaction" class="inline-flex items-center gap-2 border border-[#D6DDEB] text-[#515B6F] px-6 py-2 rounded-full font-medium hover:bg-gray-50 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Quay lại
+        </a>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Thông tin thanh toán -->
+        <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] mb-8 border border-[#D6DDEB]">
+            <h3 class="text-2xl font-bold text-[#25324B] mb-6 flex items-center gap-2">
+                <svg class="w-6 h-6 text-[#4640DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Thông tin thanh toán
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                    <span class="text-sm font-medium text-[#515B6F] mb-1">Mã giao dịch nội bộ</span>
+                    <span class="font-bold text-[#25324B]">#@Model.TransactionId</span>
+                </div>
+                
+                <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                    <span class="text-sm font-medium text-[#515B6F] mb-1">Thời gian thanh toán</span>
+                    <span class="font-bold text-[#25324B]">@Model.TransactionDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                </div>
+
+                <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                    <span class="text-sm font-medium text-[#515B6F] mb-1">Tên Công Ty</span>
+                    <span class="font-bold text-[#4640DE] text-lg">@Model.CompanyName</span>
+                </div>
+
+                <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                    <span class="text-sm font-medium text-[#515B6F] mb-1">Gói dịch vụ đăng ký</span>
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-gray-100 text-[#515B6F] rounded-full text-sm font-medium">@Model.PackageName</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                    <span class="text-sm font-medium text-[#515B6F] mb-1">Trạng thái</span>
+                    <div>
+                        @if (Model.Status == "COMPLETED" || Model.Status == "SUCCESS")
+                        {
+                            <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium flex-inline items-center gap-1">
+                                Thành công
+                            </span>
+                        }
+                        else if (Model.Status == "FAILED")
+                        {
+                            <span class="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium flex-inline items-center gap-1">
+                                Thất bại
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium flex-inline items-center gap-1">
+                                Đang chờ xử lý
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                    <span class="text-sm font-medium text-[#515B6F] mb-1">Giá trị nguyên bản</span>
+                    <span class="font-bold text-[#25324B]">@Model.AmountVnd.ToString("N0") VNĐ</span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.PromoCode))
+                {
+                    <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                        <span class="text-sm font-medium text-[#515B6F] mb-1">Mã giảm giá đã dùng</span>
+                        <div><span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">@Model.PromoCode</span></div>
+                    </div>
+                    <div class="flex flex-col border-b border-[#D6DDEB] pb-4">
+                        <span class="text-sm font-medium text-[#515B6F] mb-1">Số tiền được giảm</span>
+                        <span class="font-bold text-red-500">- @Model.DiscountAmount.ToString("N0") VNĐ</span>
+                    </div>
+                }
+                @if (Model.FinalAmount < Model.AmountVnd && string.IsNullOrEmpty(Model.PromoCode))
+                {
+                    <div class="flex flex-col border-b border-[#D6DDEB] pb-4 md:col-span-2">
+                        <span class="text-sm font-medium text-[#515B6F] mb-1">Số tiền được chiết khấu (Upgrade)</span>
+                        <span class="font-bold text-red-500">- @Model.DiscountAmount.ToString("N0") VNĐ</span>
+                    </div>
+                }
+
+                <div class="flex flex-col md:col-span-2 mt-4 pt-4 border-t-2 border-gray-100 items-end">
+                    <span class="text-sm font-bold text-[#515B6F] uppercase tracking-wider mb-2">Tổng thanh toán</span>
+                    <span class="text-3xl font-bold text-green-600">@Model.FinalAmount.ToString("N0") VNĐ</span>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.VnpayTxnRef) || !string.IsNullOrEmpty(Model.VnpayTransactionNo))
+        {
+            <div class="bg-[#F7F5FC] rounded-[20px] p-6 border border-[#D6DDEB]">
+                <h4 class="text-lg font-bold text-[#25324B] mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#4640DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    Chi tiết cổng thanh toán VNPay
+                </h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-sm font-medium text-[#515B6F] mb-1">Mã tham chiếu (TxnRef)</p>
+                        <p class="font-semibold text-[#25324B]">@Model.VnpayTxnRef</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-[#515B6F] mb-1">Mã GD VNPay (TransactionNo)</p>
+                        <p class="font-semibold text-[#25324B]">@Model.VnpayTransactionNo</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-[#515B6F] mb-1">Ngân hàng thanh toán</p>
+                        <p class="font-semibold text-[#4640DE]">@Model.VnpayBankCode</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

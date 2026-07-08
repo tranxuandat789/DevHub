@@ -103,6 +103,12 @@ namespace DevHub.Controllers
             return View();
         }
 
+        [Route("Home/Error403")]
+        public IActionResult Error403()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

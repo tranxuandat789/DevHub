@@ -37,6 +37,10 @@ public partial class Company
 
     public string Status { get; set; } = "PENDING";
 
+    public int? ModeratorId { get; set; }
+
+    public virtual Admin? Moderator { get; set; }
+
     public virtual ICollection<Recruiter> Recruiters { get; set; } = new List<Recruiter>();
 
     public virtual ICollection<JobPost> JobPosts { get; set; } = new List<JobPost>();

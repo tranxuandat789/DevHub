@@ -9,4 +9,8 @@ public interface IProvinceRepository
 
     /// Load the province entities for the given ids (for assigning to a job post).
     Task<List<Province>> GetByIdsAsync(IEnumerable<int> ids);
+
+    Task<Province?> GetByIdAsync(int id);
+    Task AddAsync(Province province);
+    Task UpdateAsync(Province province);
 }

@@ -10,6 +10,8 @@ public class ModeratorListItemDto
     public string  Email     { get; set; } = "";
     public bool    IsActive  { get; set; }
     public DateTime? CreatedAt { get; set; }
+    /// <summary>Loại task được assign: COMPANY_APPROVAL | JOB_POST | REVIEW | null nếu chưa set</summary>
+    public string? TaskType  { get; set; }
 }
 
 // ViewModel for the Index page (list + pagination + search state)

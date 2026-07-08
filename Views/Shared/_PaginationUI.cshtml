@@ -1,0 +1,91 @@
+@model dynamic
+@{
+    int currentPage = Model.Page;
+    int totalPages = Model.TotalPages;
+    int totalCount = Model.TotalCount;
+    string itemName = Model.ItemName ?? "mục";
+    
+    // Function to generate URL for a specific page
+    string GetUrlForPage(int pageNumber)
+    {
+        var query = ViewContext.HttpContext.Request.Query;
+        var qb = new Microsoft.AspNetCore.Http.Extensions.QueryBuilder();
+        foreach (var item in query)
+        {
+            if (item.Key.ToLower() != "page")
+            {
+                string val = item.Value.ToString();
+                qb.Add(item.Key, val);
+            }
+        }
+        qb.Add("page", pageNumber.ToString());
+        return ViewContext.HttpContext.Request.Path + qb.ToQueryString().Value;
+    }
+}
+<div class="mt-8 pt-6 border-t border-[#D6DDEB] flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div class="text-[14px] text-gray-500 font-medium text-center sm:text-left">
+            Trang @currentPage / @totalPages <span class="mx-2 hidden sm:inline">•</span><br class="sm:hidden" /> @totalCount @itemName
+        </div>
+        <div class="flex items-center gap-2">
+            @if (currentPage > 1)
+            {
+                <a href="@GetUrlForPage(currentPage - 1)" class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </a>
+            }
+            else
+            {
+                <button disabled class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+            }
+
+            @{
+                int startPage = Math.Max(1, currentPage - 2);
+                int endPage = Math.Min(totalPages, currentPage + 2);
+                
+                if (startPage > 1)
+                {
+                    <a href="@GetUrlForPage(1)" class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors">1</a>
+                    if (startPage > 2)
+                    {
+                        <span class="w-9 h-9 flex items-center justify-center text-gray-500">...</span>
+                    }
+                }
+
+                for (int i = startPage; i <= endPage; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <span class="w-9 h-9 flex items-center justify-center rounded-[8px] bg-[#4640DE] text-white font-medium text-sm">@i</span>
+                    }
+                    else
+                    {
+                        <a href="@GetUrlForPage(i)" class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors">@i</a>
+                    }
+                }
+
+                if (endPage < totalPages)
+                {
+                    if (endPage < totalPages - 1)
+                    {
+                        <span class="w-9 h-9 flex items-center justify-center text-gray-500">...</span>
+                    }
+                    <a href="@GetUrlForPage(totalPages)" class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors">@totalPages</a>
+                }
+            }
+
+            @if (currentPage < totalPages)
+            {
+                <a href="@GetUrlForPage(currentPage + 1)" class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </a>
+            }
+            else
+            {
+                <button disabled class="w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            }
+        </div>
+    </div>

@@ -29,4 +29,21 @@ public class ProvinceRepository : IProvinceRepository
             .Where(p => idList.Contains(p.ProvinceId))
             .ToListAsync();
     }
+
+    public async Task<Province?> GetByIdAsync(int id)
+    {
+        return await _context.Provinces.FirstOrDefaultAsync(p => p.ProvinceId == id);
+    }
+
+    public async Task AddAsync(Province province)
+    {
+        _context.Provinces.Add(province);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Province province)
+    {
+        _context.Provinces.Update(province);
+        await _context.SaveChangesAsync();
+    }
 }

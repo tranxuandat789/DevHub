@@ -55,25 +55,25 @@ namespace DevHub.Migrations
                 nullable: true);
             */
 
-            migrationBuilder.AddColumn<string>(
-                name: "interview_type",
-                table: "interview",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: true);
+            // migrationBuilder.AddColumn<string>(
+            //     name: "interview_type",
+            //     table: "interview",
+            //     type: "nvarchar(50)",
+            //     maxLength: 50,
+            //     nullable: true);
 
-            migrationBuilder.AddColumn<int>(
-                name: "company_id",
-                table: "job_post",
-                type: "int",
-                nullable: false,
-                defaultValue: 1);
+            // migrationBuilder.AddColumn<int>(
+            //     name: "company_id",
+            //     table: "job_post",
+            //     type: "int",
+            //     nullable: false,
+            //     defaultValue: 1);
 
-            migrationBuilder.AddColumn<int>(
-                name: "company_package_history_id",
-                table: "job_post",
-                type: "int",
-                nullable: true);
+            // migrationBuilder.AddColumn<int>(
+            //     name: "company_package_history_id",
+            //     table: "job_post",
+            //     type: "int",
+            //     nullable: true);
         }
 
         /// <inheritdoc />

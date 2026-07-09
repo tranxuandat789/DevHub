@@ -647,6 +647,21 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.FinalAmount)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("final_amount");
+            entity.Property(e => e.VatRate)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("vat_rate")
+                .HasDefaultValue(8m);
+            entity.Property(e => e.VatAmount)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("vat_amount")
+                .HasDefaultValue(0m);
+            entity.Property(e => e.TotalAmount)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("total_amount")
+                .HasDefaultValue(0m);
+            entity.Property(e => e.BuyerTaxCode)
+                .HasMaxLength(50)
+                .HasColumnName("buyer_tax_code");
             entity.Property(e => e.PaymentMethod)
                 .HasMaxLength(50)
                 .HasColumnName("payment_method")

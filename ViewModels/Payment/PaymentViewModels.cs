@@ -54,6 +54,9 @@ public class VoucherCheckResultVm
     public decimal DiscountAmount { get; set; }
     public decimal DeductionAmount { get; set; }
     public decimal FinalAmount { get; set; }
+    public decimal VatRate { get; set; }
+    public decimal VatAmount { get; set; }
+    public decimal TotalAmount { get; set; }
 }
 
 public class CreatePaymentRequestVm
@@ -69,6 +72,7 @@ public class PaymentHistoryItemVm
     public string PackageName { get; set; } = null!;
     public string Status { get; set; } = null!;
     public decimal FinalAmount { get; set; }
+    public decimal TotalAmount { get; set; }
     public string TransactionType { get; set; } = null!;
 }
 
@@ -93,4 +97,8 @@ public class PaymentHistoryDetailVm
     public string? VnpayTransactionNo { get; set; }
     public string? VnpayBankCode { get; set; }
     public string? PromoCode { get; set; }
+    public decimal VatRate { get; set; }
+    public decimal VatAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string? BuyerTaxCode { get; set; }
 }

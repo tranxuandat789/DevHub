@@ -14,7 +14,7 @@
         </button>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none">
+    <div class="print-area bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none">
         <!-- Header -->
         <div class="bg-gray-50 p-6 border-b border-gray-200">
             <div class="flex justify-between items-start">
@@ -23,7 +23,7 @@
                     <p class="text-gray-500 mt-1">Mã tham chiếu: @Model.VnpayTxnRef</p>
                 </div>
                 <div class="text-right">
-                    @if (Model.Status == "SUCCESSFUL")
+                    @if (Model.Status == "SUCCESS")
                     {
                         <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">Thành công</span>
                     }
@@ -60,6 +60,13 @@
                     <span class="block text-sm text-gray-500">Mã ngân hàng</span>
                     <span class="block font-medium text-gray-900">@(Model.VnpayBankCode ?? "N/A")</span>
                 </div>
+                @if (!string.IsNullOrEmpty(Model.BuyerTaxCode))
+                {
+                    <div>
+                        <span class="block text-sm text-gray-500">Mã số thuế (Người mua)</span>
+                        <span class="block font-medium text-gray-900">@Model.BuyerTaxCode</span>
+                    </div>
+                }
             </div>
 
             <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Chi tiết số tiền</h3>
@@ -88,9 +95,22 @@
                     }
                 }
 
-                <div class="flex justify-between font-bold text-xl text-gray-900 border-t pt-3 mt-3">
+                <div class="flex justify-between font-medium text-gray-900 border-t pt-3 mt-3">
+                    <span>Thành tiền (Trước thuế)</span>
+                    <span>@Model.FinalAmount.ToString("N0") VND</span>
+                </div>
+                
+                @if (Model.VatAmount > 0)
+                {
+                    <div class="flex justify-between text-gray-700">
+                        <span>Thuế GTGT (@Model.VatRate.ToString("0.##")%)</span>
+                        <span>@Model.VatAmount.ToString("N0") VND</span>
+                    </div>
+                }
+
+                <div class="flex justify-between font-bold text-xl text-gray-900 border-t border-gray-200 pt-3 mt-3">
                     <span>Tổng thanh toán</span>
-                    <span class="text-primary">@Model.FinalAmount.ToString("N0") VND</span>
+                    <span class="text-primary">@(Model.TotalAmount > 0 ? Model.TotalAmount.ToString("N0") : Model.FinalAmount.ToString("N0")) VND</span>
                 </div>
             </div>
         </div>
@@ -99,12 +119,24 @@
 
 <style>
     @@media print {
-        header, nav, footer, .sidebar {
-            display: none !important;
+        body {
+            visibility: hidden;
+            background-color: white !important;
         }
-        main {
-            padding: 0 !important;
+        .print-area, .print-area * {
+            visibility: visible;
+        }
+        .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
             margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+        button, a, i {
+            display: none !important;
         }
     }
 </style>

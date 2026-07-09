@@ -1374,6 +1374,9 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("candidate_id");
 
+                    b.Property<int?>("CareRating")
+                        .HasColumnType("int");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("company_id");
@@ -1388,6 +1391,9 @@ namespace DevHub.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("CultureRating")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)")
@@ -1407,6 +1413,9 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("moderator_id");
 
+                    b.Property<string>("OtPolicy")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Pros")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -1416,10 +1425,16 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("rating");
 
+                    b.Property<bool?>("Recommend")
+                        .HasColumnType("bit");
+
                     b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("rejection_reason");
+
+                    b.Property<int?>("SalaryRating")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1429,11 +1444,17 @@ namespace DevHub.Migrations
                         .HasDefaultValue("pending")
                         .HasColumnName("status");
 
+                    b.Property<int?>("TrainingRating")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("WorkspaceRating")
+                        .HasColumnType("int");
 
                     b.HasKey("ReviewId")
                         .HasName("PK__review_r__60883D90CFCBFACD");

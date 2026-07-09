@@ -6,6 +6,6 @@ namespace DevHub.Services.Interfaces
     public interface ICompanyService
     {
         Task<CompanySearchPageViewModel> SearchCompaniesAsync(CompanySearchInputViewModel input);
-        Task<CompanyDetailsViewModel?> GetCompanyDetailsAsync(int id);
+        Task<CompanyDetailsViewModel?> GetCompanyDetailsAsync(int id, int? currentCandidateId = null);
     }
 }

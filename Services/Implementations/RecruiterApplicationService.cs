@@ -14,12 +14,27 @@ namespace DevHub.Services.Implementations
         private readonly IRecruiterApplicationRepository _repo;
         private readonly ILogger<RecruiterApplicationService> _logger;
         private readonly EmailHelper _emailHelper;
+        private readonly CvParserHelper _cvParserHelper;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
-        public RecruiterApplicationService(IRecruiterApplicationRepository repo, ILogger<RecruiterApplicationService> logger, EmailHelper emailHelper)
+        public RecruiterApplicationService(IRecruiterApplicationRepository repo, ILogger<RecruiterApplicationService> logger, EmailHelper emailHelper, CvParserHelper cvParserHelper, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _repo = repo;
             _logger = logger;
             _emailHelper = emailHelper;
+            _cvParserHelper = cvParserHelper;
+            _env = env;
+        }
+
+        public async Task<string> GetCvJsonDataAsync(int recruiterId, int applicationId)
+        {
+            var a = await _repo.GetApplicationDetailAsync(applicationId, recruiterId);
+            if (a == null || string.IsNullOrEmpty(a.Cv?.CvUrl)) return "{\"error\": \"Không tìm thấy CV\"}";
+            
+            var relativePath = a.Cv.CvUrl.TrimStart('/');
+            var physicalPath = System.IO.Path.Combine(_env.WebRootPath, relativePath.Replace("/", "\\"));
+            
+            return await _cvParserHelper.ParseCvToJsonAsync(physicalPath);
         }
 
         public async Task<ApplicantListViewModel?> GetJobApplicantsAsync(int recruiterId, int jobId, ApplicantFilter filter)

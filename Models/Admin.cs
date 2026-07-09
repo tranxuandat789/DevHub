@@ -22,4 +22,6 @@ public partial class Admin
     public virtual ICollection<Article> Articles { get; set; } = new List<Article>();
 
     public virtual ICollection<ModTierAssignment> ModTierAssignments { get; set; } = new List<ModTierAssignment>();
+
+    public virtual ModeratorTaskType? ModeratorTaskType { get; set; }
 }

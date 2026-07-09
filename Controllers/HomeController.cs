@@ -103,6 +103,12 @@ namespace DevHub.Controllers
             return View();
         }
 
+        [Route("Home/Error403")]
+        public IActionResult Error403()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -176,11 +182,7 @@ namespace DevHub.Controllers
             return View("~/Views/Admin/AdminDashboard/Index.cshtml");
         }
 
-        [Route("AdminTransaction")]
-        public IActionResult AdminTransactionPreview()
-        {
-            return View("~/Views/Admin/AdminTransaction/Index.cshtml");
-        }
+
 
         [Route("AdminSubscription")]
         public IActionResult AdminSubscriptionPreview()

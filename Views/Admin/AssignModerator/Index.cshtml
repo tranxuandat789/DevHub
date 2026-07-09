@@ -1,0 +1,363 @@
+@* Views/Admin/AssignModerator/Index.cshtml *@
+@model DevHub.ViewModels.Admin.AssignModeratorViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Phân Công Công Việc Moderator";
+
+    string TaskLabel(string t) => t switch {
+        "COMPANY_APPROVAL" => "Duyệt Chứng Nhận Công Ty",
+        "JOB_POST"         => "Duyệt Bài Đăng Tuyển Dụng",
+        "REVIEW"           => "Duyệt Đánh Giá Công Ty",
+        _ => t
+    };
+    string TaskColor(string t) => t switch {
+        "COMPANY_APPROVAL" => "blue",
+        "JOB_POST"         => "violet",
+        "REVIEW"           => "amber",
+        _ => "gray"
+    };
+}
+
+@if (TempData["SuccessMsg"] != null)
+{
+    <div class="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm font-medium">
+        @TempData["SuccessMsg"]
+    </div>
+}
+@if (TempData["ErrorMsg"] != null)
+{
+    <div class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-medium">
+        @TempData["ErrorMsg"]
+    </div>
+}
+
+<!-- Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Phân Công Công Việc Moderator</h1>
+        <p class="text-muted">Phân chia khối lượng công việc cho từng Moderator một cách hợp lý và tự động.</p>
+    </div>
+    <a href="/AssignModerator/History"
+       class="inline-flex items-center gap-2 bg-white border border-[#D6DDEB] text-dark font-semibold px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-all shadow-sm text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Lịch Sử Phân Công
+    </a>
+</div>
+
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    @foreach (var (label, count, color, icon) in new[] {
+        ("Công ty chờ duyệt", Model.PendingCompanies, "blue",
+         "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"),
+        ("Bài đăng chờ duyệt", Model.PendingJobPosts, "violet",
+         "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"),
+        ("Đánh giá chờ duyệt", Model.PendingReviews, "amber",
+         "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z")
+    })
+    {
+        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#D6DDEB] p-6 flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl bg-@(color)-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-7 h-7 text-@(color)-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="@icon"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-muted text-sm font-medium mb-1">@label</p>
+                <p class="text-3xl font-bold text-dark">@count</p>
+                @if (count == 0)
+                {
+                    <p class="text-xs text-green-600 font-medium mt-1">✓ Không có việc tồn đọng</p>
+                }
+                else
+                {
+                    <p class="text-xs text-amber-600 font-medium mt-1">⚠ Cần phân công</p>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 3 Sections -->
+@{ 
+    var sections = new[]
+    {
+        new { 
+            TaskType = "COMPANY_APPROVAL", 
+            Pending  = Model.PendingCompanies,
+            Mods     = Model.CompanyModerators,
+            ShowServiceFilter = true,
+            FilterIndustry  = Model.FilterIndustryCompany,
+            FilterServiceId = Model.FilterServiceIdCompany
+        },
+        new { 
+            TaskType = "JOB_POST", 
+            Pending  = Model.PendingJobPosts,
+            Mods     = Model.JobPostModerators,
+            ShowServiceFilter = true,
+            FilterIndustry  = Model.FilterIndustryJob,
+            FilterServiceId = Model.FilterServiceIdJob
+        },
+        new { 
+            TaskType = "REVIEW", 
+            Pending  = Model.PendingReviews,
+            Mods     = Model.ReviewModerators,
+            ShowServiceFilter = false,
+            FilterIndustry  = Model.FilterIndustryReview,
+            FilterServiceId = (int?)null
+        }
+    };
+}
+
+@foreach (var sec in sections)
+{
+    var tc = TaskColor(sec.TaskType);
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#D6DDEB] p-7 mb-8">
+        <!-- Section Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+            <div class="flex items-center gap-3">
+                <span class="w-3 h-3 rounded-full bg-@(tc)-500 flex-shrink-0"></span>
+                <h2 class="text-xl font-bold text-dark">@TaskLabel(sec.TaskType)</h2>
+                <span id="count-badge-@sec.TaskType"
+                      class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-bold @(sec.Pending > 0 ? $"bg-{tc}-100 text-{tc}-700" : "bg-green-100 text-green-700")">
+                    @sec.Pending chờ duyệt
+                </span>
+            </div>
+            @if (sec.Mods.Count > 1 && sec.Pending > 0)
+            {
+                <!-- Auto-Assign All Button -->
+                <form method="post" action="/AssignModerator/AutoAssign"
+                      onsubmit="event.preventDefault(); confirmAutoAssign(this, @sec.Pending, @sec.Mods.Count)">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="taskType" value="@sec.TaskType"/>
+                    <input type="hidden" name="filterIndustry" value="@sec.FilterIndustry"/>
+                    @if (sec.FilterServiceId.HasValue)
+                    {
+                        <input type="hidden" name="filterServiceId" value="@sec.FilterServiceId"/>
+                    }
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 bg-@(tc)-600 hover:bg-@(tc)-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-all text-sm shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Auto-chia đều cho @sec.Mods.Count Moderator
+                    </button>
+                </form>
+            }
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="get" action="/AssignModerator" class="bg-gray-50 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
+            <!-- Preserve other section filters -->
+            @foreach (var sec2 in sections)
+            {
+                if (sec2.TaskType != sec.TaskType)
+                {
+                    if (!string.IsNullOrEmpty(sec2.FilterIndustry))
+                    {
+                        <input type="hidden" name="filterIndustry@(sec2.TaskType == "COMPANY_APPROVAL" ? "Company" : sec2.TaskType == "JOB_POST" ? "Job" : "Review")" value="@sec2.FilterIndustry"/>
+                    }
+                    if (sec2.FilterServiceId.HasValue)
+                    {
+                        var fName = sec2.TaskType == "COMPANY_APPROVAL" ? "filterServiceIdCompany" : "filterServiceIdJob";
+                        <input type="hidden" name="@fName" value="@sec2.FilterServiceId"/>
+                    }
+                }
+            }
+
+            @{ var indName = sec.TaskType == "COMPANY_APPROVAL" ? "filterIndustryCompany"
+                           : sec.TaskType == "JOB_POST" ? "filterIndustryJob" : "filterIndustryReview"; }
+            <div class="flex-1 min-w-[180px]">
+                <label class="block text-xs font-medium text-muted mb-1">Lọc theo Ngành</label>
+                <select name="@indName"
+                        class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-@(tc)-500"
+                        onchange="updatePreviewCount('@sec.TaskType', this)">
+                    <option value="">-- Tất cả ngành --</option>
+                    @foreach (var ind in Model.Industries)
+                    {
+                        <option value="@ind" selected="@(sec.FilterIndustry == ind ? "selected" : null)">@ind</option>
+                    }
+                </select>
+            </div>
+
+            @if (sec.ShowServiceFilter)
+            {
+                var svcName = sec.TaskType == "COMPANY_APPROVAL" ? "filterServiceIdCompany" : "filterServiceIdJob";
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-xs font-medium text-muted mb-1">Lọc theo Gói</label>
+                    <select name="@svcName"
+                            class="w-full border border-[#D6DDEB] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-@(tc)-500">
+                        <option value="">-- Tất cả gói --</option>
+                        @foreach (var pkg in Model.ServicePackages)
+                        {
+                            <option value="@pkg.ServiceId" selected="@(sec.FilterServiceId == pkg.ServiceId ? "selected" : null)">
+                                @pkg.Title (@pkg.PackageName)
+                            </option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <button type="submit" class="bg-@(tc)-600 hover:bg-@(tc)-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all">
+                Lọc
+            </button>
+            <a href="/AssignModerator" class="text-sm text-muted hover:text-dark font-medium px-3 py-2">
+                Xóa filter
+            </a>
+        </form>
+
+        <!-- Moderator Table -->
+        @if (sec.Mods.Count == 0)
+        {
+            <div class="text-center py-12 bg-gray-50 rounded-xl">
+                <svg class="w-14 h-14 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <p class="text-muted font-medium">Chưa có Moderator nào được gán loại task này.</p>
+                <p class="text-sm text-muted mt-1">Vào <a href="/AdminModerator" class="text-blue-600 underline">Quản lý Moderator</a> để gán loại công việc.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-left min-w-[700px]">
+                    <thead>
+                        <tr class="bg-gray-50 rounded-xl">
+                            <th class="py-3 px-4 text-xs font-bold text-muted uppercase tracking-wider rounded-l-xl">Moderator</th>
+                            <th class="py-3 px-4 text-xs font-bold text-muted uppercase tracking-wider text-center">Đang chờ</th>
+                            <th class="py-3 px-4 text-xs font-bold text-muted uppercase tracking-wider text-center">Hôm nay</th>
+                            <th class="py-3 px-4 text-xs font-bold text-muted uppercase tracking-wider text-center">Tuần này</th>
+                            <th class="py-3 px-4 text-xs font-bold text-muted uppercase tracking-wider text-center">Tỉ lệ xử lý</th>
+                            <th class="py-3 px-4 text-xs font-bold text-muted uppercase tracking-wider text-center rounded-r-xl">Phân công thủ công</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mod in sec.Mods)
+                        {
+                            var letter = !string.IsNullOrEmpty(mod.FullName) ? mod.FullName[0].ToString().ToUpper() : "M";
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-@(tc)-100 text-@(tc)-700 flex items-center justify-center font-bold text-sm border border-@(tc)-200">
+                                            @letter
+                                        </div>
+                                        <div>
+                                            <div class="font-semibold text-dark text-sm">@mod.FullName</div>
+                                            <div class="text-xs text-muted">@mod.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full @(mod.AssignedPending > 0 ? $"bg-{tc}-100 text-{tc}-700 font-bold" : "bg-gray-100 text-gray-500") text-sm">
+                                        @mod.AssignedPending
+                                    </span>
+                                </td>
+                                <td class="py-4 px-4 text-center font-semibold text-dark text-sm">@mod.ProcessedToday</td>
+                                <td class="py-4 px-4 text-center font-semibold text-dark text-sm">@mod.ProcessedThisWeek</td>
+                                <td class="py-4 px-4 text-center">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="text-sm font-bold @(mod.CompletionRate >= 80 ? "text-green-600" : mod.CompletionRate >= 50 ? "text-amber-600" : "text-red-500")">
+                                            @mod.CompletionRate%
+                                        </span>
+                                        <div class="w-20 h-1.5 bg-gray-200 rounded-full">
+                                            <div class="h-full rounded-full @(mod.CompletionRate >= 80 ? "bg-green-500" : mod.CompletionRate >= 50 ? "bg-amber-500" : "bg-red-400")"
+                                                 style="width: @(Math.Min(mod.CompletionRate, 100))%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 text-center">
+                                    @if (sec.Pending > 0)
+                                    {
+                                        <form method="post" action="/AssignModerator/Assign" class="inline-flex items-center gap-2"
+                                              onsubmit="event.preventDefault(); confirmAssign(this, '@mod.FullName', '@sec.TaskType')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="TaskType"     value="@sec.TaskType"/>
+                                            <input type="hidden" name="ModeratorId"  value="@mod.ModeratorId"/>
+                                            <input type="hidden" name="FilterIndustry"  value="@sec.FilterIndustry"/>
+                                            @if (sec.FilterServiceId.HasValue)
+                                            {
+                                                <input type="hidden" name="FilterServiceId" value="@sec.FilterServiceId"/>
+                                            }
+                                            <input type="number" name="Count"
+                                                   min="1" max="@sec.Pending" value="@Math.Max(1, sec.Pending / Math.Max(sec.Mods.Count, 1))"
+                                                   class="w-20 border border-[#D6DDEB] rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-@(tc)-500"
+                                                   required/>
+                                            <button type="submit"
+                                                    class="bg-@(tc)-50 hover:bg-@(tc)-100 text-@(tc)-700 border border-@(tc)-200 font-semibold px-3 py-1.5 rounded-lg text-sm transition-all">
+                                                Giao
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-xs text-green-600 font-medium">✓ Hết việc tồn đọng</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmAutoAssign(form, pending, modCount) {
+    const each = modCount > 0 ? Math.floor(pending / modCount) : 0;
+    Swal.fire({
+        title: 'Xác nhận phân công',
+        text: `Tự động chia đều ${pending} công việc cho ${modCount} Moderator? Mỗi người nhận khoảng ${each} việc.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4640DE',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Huỷ'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+
+function confirmAssign(form, modName, taskType) {
+    const count = form.querySelector('input[name="Count"]').value;
+    const taskLabels = {
+        'COMPANY_APPROVAL': 'Duyệt Công Ty',
+        'JOB_POST': 'Duyệt Bài Đăng',
+        'REVIEW': 'Duyệt Đánh Giá'
+    };
+    Swal.fire({
+        title: 'Xác nhận phân công',
+        text: `Bạn sắp giao ${count} công việc [${taskLabels[taskType] || taskType}] cho Moderator "${modName}".`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4640DE',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Huỷ'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}
+
+// AJAX update pending count khi filter
+async function updatePreviewCount(taskType, selectEl) {
+    const industry = selectEl.value;
+    const badge    = document.getElementById('count-badge-' + taskType);
+    if (!badge) return;
+
+    try {
+        const res  = await fetch(`/AssignModerator/GetStats?taskType=${taskType}&filterIndustry=${encodeURIComponent(industry)}`);
+        const data = await res.json();
+        badge.textContent = data.count + ' chờ duyệt';
+    } catch(e) { /* silent */ }
+}
+</script>
+}

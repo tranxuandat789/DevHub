@@ -1,0 +1,198 @@
+@model DevHub.Models.ReviewCompany
+@{
+    ViewData["Title"] = "Chi tiết đánh giá";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["IsCandidate"] = "true";
+    ViewData["ActiveMenu"] = "Reviews";
+}
+
+<div class="bg-[#F8F9FA] min-h-screen py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Sidebar -->
+            <div class="lg:w-[280px] flex-shrink-0">
+                @await Html.PartialAsync("~/Views/Candidate/_Sidebar.cshtml")
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <div class="bg-white rounded-[20px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB]">
+
+                    <div class="mb-6">
+                        <a href="/candidate/reviews" class="inline-flex items-center text-[#515B6F] hover:text-[#4640DE] transition-colors text-sm font-medium mb-4">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            Quay lại danh sách
+                        </a>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <h1 class="text-2xl font-bold text-[#25324B]">Chi tiết đánh giá</h1>
+                            @if (Model.Status == "PENDING" || Model.Status == "REJECTED")
+                            {
+                                <a href="/candidate/reviews/@Model.ReviewId/edit" class="inline-flex items-center justify-center gap-2 bg-[#4640DE] text-white hover:bg-opacity-90 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm">
+                                    <span>✏️ Chỉnh sửa đánh giá</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.Status == "REJECTED" && !string.IsNullOrEmpty(Model.RejectionReason))
+                    {
+                        <div class="bg-red-50 border border-red-200 p-6 rounded-2xl mb-6">
+                            <div class="flex items-start gap-3">
+                                <span class="text-red-500 text-xl mt-0.5">⚠️</span>
+                                <div>
+                                    <h3 class="text-red-800 font-bold text-lg mb-1">Đánh giá bị từ chối</h3>
+                                    <p class="text-red-700"><strong>Lý do từ chối:</strong> @Model.RejectionReason</p>
+                                    <p class="text-red-600 text-sm mt-2">Vui lòng chỉnh sửa lại đánh giá của bạn cho phù hợp với quy định và gửi lại.</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
+                        <!-- Header -->
+                        <div class="p-6 border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 rounded-xl border border-gray-100 flex items-center justify-center bg-white flex-shrink-0 p-1">
+                                    @if (!string.IsNullOrEmpty(Model.Company?.CompanyLogoUrl))
+                                    {
+                                        <img src="@Model.Company.CompanyLogoUrl" alt="@Model.Company.CompanyName" class="max-w-full max-h-full object-contain rounded-lg" />
+                                    }
+                                </div>
+                                <div>
+                                    <h2 class="font-bold text-xl text-dark">
+                                        <a href="/Company/Detail/@Model.CompanyId" class="hover:text-primary transition-colors">@Model.Company?.CompanyName</a>
+                                    </h2>
+                                    <div class="flex items-center gap-3 mt-1 text-sm">
+                                        <span class="text-gray-500">Ngày gửi: @(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-shrink-0">
+                                @switch (Model.Status)
+                                {
+                                    case "PENDING":
+                                        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold bg-yellow-50 text-yellow-600 border border-yellow-200">
+                                            Chờ duyệt
+                                        </span>
+                                        break;
+                                    case "APPROVED":
+                                        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold bg-green-50 text-green-600 border border-green-200">
+                                            Đã duyệt
+                                        </span>
+                                        break;
+                                    case "REJECTED":
+                                        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold bg-red-50 text-red-600 border border-red-200">
+                                            Từ chối
+                                        </span>
+                                        break;
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-6 md:p-8 space-y-8">
+                            <!-- Rating Overview -->
+                            <div class="flex flex-col md:flex-row gap-8 items-center md:items-start bg-[#F7F5FF] p-6 rounded-2xl border border-purple-50">
+                                <!-- Overall -->
+                                <div class="flex flex-col items-center justify-center min-w-[150px] border-b md:border-b-0 md:border-r border-purple-200 pb-4 md:pb-0 md:pr-8">
+                                    <span class="text-gray-500 font-medium mb-1">Tổng quan</span>
+                                    <span class="text-4xl font-extrabold text-[#4640DE] mb-2">@Model.Rating.ToString("F1")</span>
+                                    <div class="flex gap-0.5">
+                                        @for (int s = 1; s <= 5; s++) {
+                                            <span class="text-xl @(s <= Model.Rating ? "text-yellow-400" : "text-gray-300")">★</span>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <!-- Details -->
+                                <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 w-full">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Lương & Thưởng</span>
+                                        <div class="flex gap-0.5">
+                                            @for(int i=1; i<=5; i++) {
+                                                <span class="text-sm @(i <= (Model.SalaryRating ?? 0) ? "text-yellow-400" : "text-gray-300")">★</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Đào tạo & Học hỏi</span>
+                                        <div class="flex gap-0.5">
+                                            @for(int i=1; i<=5; i++) {
+                                                <span class="text-sm @(i <= (Model.TrainingRating ?? 0) ? "text-yellow-400" : "text-gray-300")">★</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Quan tâm nhân viên</span>
+                                        <div class="flex gap-0.5">
+                                            @for(int i=1; i<=5; i++) {
+                                                <span class="text-sm @(i <= (Model.CareRating ?? 0) ? "text-yellow-400" : "text-gray-300")">★</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Văn hóa công ty</span>
+                                        <div class="flex gap-0.5">
+                                            @for(int i=1; i<=5; i++) {
+                                                <span class="text-sm @(i <= (Model.CultureRating ?? 0) ? "text-yellow-400" : "text-gray-300")">★</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Không gian làm việc</span>
+                                        <div class="flex gap-0.5">
+                                            @for(int i=1; i<=5; i++) {
+                                                <span class="text-sm @(i <= (Model.WorkspaceRating ?? 0) ? "text-yellow-400" : "text-gray-300")">★</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Text Reviews -->
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-sm font-bold text-dark mb-2 uppercase tracking-wider">Ưu điểm</h3>
+                                    <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl text-[#475569] whitespace-pre-line">@Model.Pros</div>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-dark mb-2 uppercase tracking-wider">Nhược điểm</h3>
+                                    <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl text-[#475569] whitespace-pre-line">@Model.Cons</div>
+                                </div>
+                            </div>
+
+                            <!-- Extra details -->
+                            <div class="border-t border-gray-100 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 text-lg">
+                                        🕒
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 font-medium">Chế độ OT</p>
+                                        <p class="font-bold text-dark">
+                                            @(Model.OtPolicy == "SATISFIED" ? "Hài lòng" : Model.OtPolicy == "UNSATISFIED" ? "Không hài lòng" : "Chưa đánh giá")
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
+                                    <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-lg">
+                                        🤝
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 font-medium">Khuyến nghị</p>
+                                        <p class="font-bold text-dark">
+                                            @(Model.Recommend.HasValue ? (Model.Recommend.Value ? "Có giới thiệu" : "Không giới thiệu") : "Chưa đánh giá")
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

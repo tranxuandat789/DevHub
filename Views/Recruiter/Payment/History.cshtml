@@ -74,14 +74,14 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.TransactionDate.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">@item.PackageName</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    @if (item.TransactionType == "PURCHASE") { <span class="text-blue-600">Mua mới</span> }
-                                    else if (item.TransactionType == "RENEW") { <span class="text-purple-600">Gia hạn</span> }
-                                    else if (item.TransactionType == "UPGRADE") { <span class="text-orange-600">Nâng cấp</span> }
+                                    @if (item.TransactionType?.ToUpper() == "BUY_PACKAGE") { <span class="text-blue-600">Mua mới</span> }
+                                    else if (item.TransactionType?.ToUpper() == "RENEW") { <span class="text-purple-600">Gia hạn</span> }
+                                    else if (item.TransactionType?.ToUpper() == "UPGRADE") { <span class="text-orange-600">Nâng cấp gói</span> }
                                     else { @item.TransactionType }
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">@item.FinalAmount.ToString("N0") đ</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if (item.Status == "SUCCESSFUL")
+                                    @if (item.Status == "SUCCESS" || item.Status == "COMPLETED")
                                     {
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Thành công</span>
                                     }
@@ -106,26 +106,57 @@
             <!-- Pagination -->
             @if (Model.TotalPages > 1)
             {
-                <div class="bg-white px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
-                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p class="text-sm text-gray-700">
-                                Hiển thị trang <span class="font-medium">@Model.CurrentPage</span> / <span class="font-medium">@Model.TotalPages</span>
-                            </p>
+                <div class="mt-8 flex justify-center pb-6">
+                    @{
+                        var cur = Model.CurrentPage;
+                        var tp = Model.TotalPages;
+                        var start = cur - 1;
+                        var end = cur + 1;
+                        if (start < 1) { start = 1; end = Math.Min(tp, 3); }
+                        if (end > tp) { end = tp; start = Math.Max(1, tp - 2); }
+
+                        <div class="flex items-center gap-1">
+                            @if (cur > 1)
+                            {
+                                <a href="?page=@(cur - 1)&from=@ViewBag.From&to=@ViewBag.To&serviceId=@ViewBag.ServiceId" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-700 hover:text-[#4640DE] hover:border-[#4640DE] transition-colors" title="Trang trước">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-300 cursor-not-allowed"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></span>
+                            }
+
+                            @if (start > 1)
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center text-gray-500">…</span>
+                            }
+
+                            @for (int i = start; i <= end; i++)
+                            {
+                                var cls = i == cur
+                                    ? "w-8 h-8 flex items-center justify-center rounded bg-[#4640DE] text-white font-medium text-sm"
+                                    : "w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-700 hover:text-[#4640DE] hover:border-[#4640DE] transition-colors text-sm font-medium";
+                                <a href="?page=@i&from=@ViewBag.From&to=@ViewBag.To&serviceId=@ViewBag.ServiceId" class="@cls">@i</a>
+                            }
+
+                            @if (end < tp)
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center text-gray-500">…</span>
+                            }
+
+                            @if (cur < tp)
+                            {
+                                <a href="?page=@(cur + 1)&from=@ViewBag.From&to=@ViewBag.To&serviceId=@ViewBag.ServiceId" class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-700 hover:text-[#4640DE] hover:border-[#4640DE] transition-colors" title="Trang sau">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-300 cursor-not-allowed"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
+                            }
                         </div>
-                        <div>
-                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                @for (int i = 1; i <= Model.TotalPages; i++)
-                                {
-                                    <a href="/Recruiter/Payment/History?page=@i&from=@ViewBag.From&to=@ViewBag.To&serviceId=@ViewBag.ServiceId" 
-                                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50
-                                       @(i == Model.CurrentPage ? "z-10 bg-indigo-50 border-primary text-primary" : "")">
-                                        @i
-                                    </a>
-                                }
-                            </nav>
-                        </div>
-                    </div>
+                    }
                 </div>
             }
         }

@@ -18,12 +18,14 @@ namespace DevHub.Services.Implementations
         //Repository interface instance
         private readonly IRecruiterRepository _recruiterProfileRepository;
         private readonly IUserAccountRepository _userRepository;
+        private readonly IAssignModeratorService _assignModeratorService;
 
         //Constructor Injection
-        public RecruiterService(IRecruiterRepository recruiterProfileRepository, IUserAccountRepository userRepository)
+        public RecruiterService(IRecruiterRepository recruiterProfileRepository, IUserAccountRepository userRepository, IAssignModeratorService assignModeratorService)
         {
             _recruiterProfileRepository = recruiterProfileRepository;
             _userRepository = userRepository;
+            _assignModeratorService = assignModeratorService;
         }
 
         public async Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId)
@@ -159,6 +161,11 @@ namespace DevHub.Services.Implementations
             {
                 string details = $"Recruiter {recruiter.RecruiterId} requests verification. Company: {recruiter.Company.CompanyName}, TaxCode: {recruiter.Company.TaxCode}";
                 await _recruiterProfileRepository.CreateVerificationRequestAsync(recruiter.RecruiterId, details);
+
+                if (recruiter.CompanyId.HasValue)
+                {
+                    await _assignModeratorService.AutoAssignNewRecordAsync("COMPANY_APPROVAL", recruiter.CompanyId.Value);
+                }
             }
             catch
             {

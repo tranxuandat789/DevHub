@@ -678,50 +678,96 @@
                 if (!container) return;
                 container.innerHTML = '';
 
-                if (totalPages <= 1) return;
+                if (cards.length === 0) return;
 
-                const nav = document.createElement('nav');
-                nav.className = 'flex items-center space-x-2';
+                if (totalPages < 1) totalPages = 1;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'w-full mt-8 pt-6 border-t border-[#D6DDEB] flex flex-col sm:flex-row gap-4 items-center justify-between';
+
+                const totalCount = document.querySelectorAll('.company-card').length;
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'text-[14px] text-gray-500 font-medium text-center sm:text-left';
+                infoDiv.innerHTML = `Trang ${currentPage} / ${totalPages} <span class="mx-2 hidden sm:inline">•</span><br class="sm:hidden" /> ${totalCount} công ty`;
+                wrapper.appendChild(infoDiv);
+
+                const nav = document.createElement('div');
+                nav.className = 'flex items-center gap-2';
 
                 // Prev Page Button
                 const prevBtn = document.createElement('button');
                 prevBtn.type = 'button';
-                prevBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors';
+                prevBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors';
                 if (currentPage === 1) {
                     prevBtn.disabled = true;
-                    prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    prevBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed';
                 }
-                prevBtn.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>`;
-                prevBtn.addEventListener('click', () => showPage(currentPage - 1));
+                prevBtn.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>`;
+                if (currentPage > 1) prevBtn.addEventListener('click', () => showPage(currentPage - 1));
                 nav.appendChild(prevBtn);
 
                 // Number Pages Buttons
-                for (let i = 1; i <= totalPages; i++) {
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+
+                if (startPage > 1) {
+                    const firstBtn = document.createElement('button');
+                    firstBtn.type = 'button';
+                    firstBtn.textContent = '1';
+                    firstBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors';
+                    firstBtn.addEventListener('click', () => showPage(1));
+                    nav.appendChild(firstBtn);
+
+                    if (startPage > 2) {
+                        const dots = document.createElement('span');
+                        dots.className = 'w-9 h-9 flex items-center justify-center text-gray-500';
+                        dots.textContent = '...';
+                        nav.appendChild(dots);
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
                     const pageBtn = document.createElement('button');
                     pageBtn.type = 'button';
                     pageBtn.textContent = i;
                     if (i === currentPage) {
-                        pageBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white font-bold shadow-sm';
+                        pageBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] bg-[#4640DE] text-white font-medium text-sm';
                     } else {
-                        pageBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl border border-transparent text-slate-700 hover:bg-slate-100 font-bold transition-colors';
+                        pageBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors';
+                        pageBtn.addEventListener('click', () => showPage(i));
                     }
-                    pageBtn.addEventListener('click', () => showPage(i));
                     nav.appendChild(pageBtn);
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        const dots = document.createElement('span');
+                        dots.className = 'w-9 h-9 flex items-center justify-center text-gray-500';
+                        dots.textContent = '...';
+                        nav.appendChild(dots);
+                    }
+                    const lastBtn = document.createElement('button');
+                    lastBtn.type = 'button';
+                    lastBtn.textContent = totalPages;
+                    lastBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors';
+                    lastBtn.addEventListener('click', () => showPage(totalPages));
+                    nav.appendChild(lastBtn);
                 }
 
                 // Next Page Button
                 const nextBtn = document.createElement('button');
                 nextBtn.type = 'button';
-                nextBtn.className = 'w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors';
+                nextBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors';
                 if (currentPage === totalPages) {
                     nextBtn.disabled = true;
-                    nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    nextBtn.className = 'w-9 h-9 flex items-center justify-center rounded-[8px] border border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed';
                 }
-                nextBtn.innerHTML = `<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>`;
-                nextBtn.addEventListener('click', () => showPage(currentPage + 1));
+                nextBtn.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>`;
+                if (currentPage < totalPages) nextBtn.addEventListener('click', () => showPage(currentPage + 1));
                 nav.appendChild(nextBtn);
 
-                container.appendChild(nav);
+                wrapper.appendChild(nav);
+                container.appendChild(wrapper);
             }
 
             // Initialize visual page display

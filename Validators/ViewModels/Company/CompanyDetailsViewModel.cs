@@ -10,5 +10,8 @@ namespace DevHub.ViewModels.Company
         public List<DevHub.Models.Article> Articles { get; set; } = new();
         public double? AverageRating { get; set; }
         public int TotalReviews { get; set; }
+        
+        public bool HasUserReviewed { get; set; }
+        public int? UserReviewId { get; set; }
     }
 }

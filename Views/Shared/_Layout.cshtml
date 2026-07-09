@@ -86,6 +86,59 @@
     bool isEmployerHome = path == "/home/employer";
 }
 <body class="bg-white text-muted m-0 p-0">
+    <!-- Global Toast Notifications -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="global-toast-success" class="fixed top-24 right-4 z-[9999] bg-white border border-green-200 border-l-4 border-l-green-500 shadow-lg px-6 py-4 rounded-xl flex items-center gap-3 transform transition-all duration-300 translate-x-0 opacity-100">
+            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div>
+                <p class="font-bold text-dark text-sm">Thành công!</p>
+                <p class="text-muted text-sm mt-0.5">@TempData["SuccessMessage"]</p>
+            </div>
+            <button onclick="document.getElementById('global-toast-success').style.display='none'" class="ml-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <script>
+            setTimeout(() => {
+                const toast = document.getElementById('global-toast-success');
+                if(toast) {
+                    toast.classList.remove('translate-x-0', 'opacity-100');
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        </script>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div id="global-toast-error" class="fixed top-24 right-4 z-[9999] bg-white border border-red-200 border-l-4 border-l-red-500 shadow-lg px-6 py-4 rounded-xl flex items-center gap-3 transform transition-all duration-300 translate-x-0 opacity-100">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </div>
+            <div>
+                <p class="font-bold text-dark text-sm">Thất bại!</p>
+                <p class="text-muted text-sm mt-0.5">@TempData["ErrorMessage"]</p>
+            </div>
+            <button onclick="document.getElementById('global-toast-error').style.display='none'" class="ml-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <script>
+            setTimeout(() => {
+                const toast = document.getElementById('global-toast-error');
+                if(toast) {
+                    toast.classList.remove('translate-x-0', 'opacity-100');
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        </script>
+    }
+
     <!-- Global Spotlight Effect -->
     
     <!-- Header -->

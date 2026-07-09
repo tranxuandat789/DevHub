@@ -23,6 +23,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR(); // Add SignalR
 
+builder.Services.AddHttpClient<DevHub.Helpers.CvParserHelper>();
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -63,10 +65,11 @@ builder.Services.AddAuthentication(options =>
             
         // Luồng 2: Nếu URL thuộc khu vực Quản trị (bắt đầu bằng /Admin, /Moderator...)
         // => Trỏ về "AdminCookies".
-        if (path.StartsWith("/Admin",     StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith("/Moderator", StringComparison.OrdinalIgnoreCase) ||
-            path.Contains("moderator", StringComparison.OrdinalIgnoreCase) ||
-            path.Equals("/Auth/AdminLogout", StringComparison.OrdinalIgnoreCase))
+        if (path.StartsWith("/Admin",          StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/Moderator",       StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/AssignModerator", StringComparison.OrdinalIgnoreCase) ||
+            path.Contains("moderator",          StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/Auth/AdminLogout",    StringComparison.OrdinalIgnoreCase))
             return "AdminCookies";
             
         // Luồng 3: Nếu không phải các trường hợp đặc biệt trên (trang chủ, trang tìm việc...)
@@ -195,6 +198,7 @@ builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
 builder.Services.AddScoped<ICompanyPackageHistoryRepository, CompanyPackageHistoryRepository>();
 builder.Services.AddScoped<IRecruiterDashboardRepository, RecruiterDashboardRepository>();
 builder.Services.AddScoped<IReviewCompanyRepository, ReviewCompanyRepository>();
+builder.Services.AddScoped<IReviewCompanyService, ReviewCompanyService>();
 builder.Services.AddScoped<IServicePackageRepository, ServicePackageRepository>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<IRecruiterJobPostRepository, RecruiterJobPostRepository>();
@@ -205,6 +209,7 @@ builder.Services.AddScoped<ICompanyInvitationRepository, CompanyInvitationReposi
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IAdminPaymentRepository, AdminPaymentRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -237,8 +242,10 @@ builder.Services.AddScoped<IRecruiterDashboardService, RecruiterDashboardService
 builder.Services.AddScoped<ICompanyInvitationService, CompanyInvitationService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IModAssignmentService, ModAssignmentService>();
+builder.Services.AddScoped<IAssignModeratorService, AssignModeratorService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IAdminPaymentService, AdminPaymentService>();
 
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.
@@ -280,5 +287,23 @@ app.MapHub<DevHub.Hubs.NotificationHub>("/notificationHub");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DevHub.Data.ItrecruitmentDbContext>();
+    try
+    {
+        dbContext.Database.ExecuteSqlRaw(@"
+            IF COL_LENGTH('province', 'is_active') IS NULL
+            BEGIN
+                ALTER TABLE province ADD is_active bit NOT NULL DEFAULT 1;
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Migration hotfix failed: {ex.Message}");
+    }
+}
 
 app.Run();

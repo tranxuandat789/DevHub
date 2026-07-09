@@ -12,6 +12,7 @@ public interface IPaymentRepository
     Task<int> CreateTransactionAsync(PackageTransaction tx);
     Task<PackageTransaction?> GetByTxnRefAsync(string vnpTxnRef);
     Task<PackageTransaction?> GetByIdForCompanyAsync(int txId, int companyId);
+    Task<string?> GetBuyerTaxCodeAsync(int companyId);
     
     Task<(List<PackageTransaction> Items, int Total)> GetHistoryAsync(
         int companyId, DateTime? from, DateTime? to, int? serviceId, int page, int pageSize);

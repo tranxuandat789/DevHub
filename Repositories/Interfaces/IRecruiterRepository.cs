@@ -13,4 +13,5 @@ public interface IRecruiterRepository
     Task CreateVerificationRequestAsync(int recruiterId, string details);
     Task<bool> HasPendingVerificationRequestAsync(int recruiterId);
     Task<bool> CheckTaxCodeExistAsync(string taxCode, int excludeRecruiterId);
+    Task<List<Recruiter>> GetRecruitersByCompanyIdAsync(int companyId);
 }

@@ -2,7 +2,7 @@
 -- DevHub Database Schema  SQL Server 
 -- =====================================================
 -- CREATE DATABASE DevHub
-USE DevHub;
+USE ITRecruitmentDB;
 -- =====================================================
 -- Create User Account Table (Base Table)
 -- =====================================================
@@ -513,3 +513,4 @@ CREATE TABLE [audit_log] (
     [ip_address] NVARCHAR(50) NULL,
     [created_at] DATETIME DEFAULT GETDATE()
 );
+

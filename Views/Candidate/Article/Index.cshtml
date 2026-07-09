@@ -1,0 +1,274 @@
+@model DevHub.ViewModels.Articles.ArticleListViewModel
+@using System.Web
+@{
+    ViewData["Title"] = "Tất cả bài viết công ty IT";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string BuildUrl(int? cid = null, string? q = null, string? s = null, int pg = 1) {
+        var p = new System.Collections.Specialized.NameValueCollection();
+        var eff_q   = q   ?? Model.Search;
+        var eff_cid = cid ?? Model.CompanyId;
+        var eff_s   = s   ?? Model.Sort;
+        if (!string.IsNullOrEmpty(eff_q))   p["search"]    = eff_q;
+        if (eff_cid.HasValue)               p["companyId"] = eff_cid.Value.ToString();
+        if (eff_s != "newest")              p["sort"]      = eff_s;
+        if (pg > 1)                         p["page"]      = pg.ToString();
+        var qs = string.Join("&", p.AllKeys.Select(k => $"{k}={HttpUtility.UrlEncode(p[k])}"));
+        return "/articles" + (qs.Length > 0 ? "?" + qs : "");
+    }
+
+    string TimeAgo(DateTime? dt) {
+        if (!dt.HasValue) return "";
+        var diff = (int)(DateTime.UtcNow - dt.Value.ToUniversalTime()).TotalMinutes;
+        if (diff < 60)   return diff + " phút trước";
+        if (diff < 1440) return (diff / 60) + " giờ trước";
+        return (diff / 1440) + " ngày trước";
+    }
+
+    string Excerpt(string? html, int max = 120) {
+        if (string.IsNullOrEmpty(html)) return "";
+        // Strip HTML tags simply
+        var txt = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", "");
+        return txt.Length <= max ? txt : txt[..max] + "...";
+    }
+}
+
+<!-- Hero banner -->
+<div class="bg-gradient-to-r from-[#F0F4FF] to-[#E8EDFF] border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 flex items-center justify-between">
+        <div>
+            <nav class="text-sm text-muted mb-3 flex items-center gap-1.5">
+                <a href="/" class="hover:text-primary">Trang chủ</a>
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <span>Bài viết</span>
+            </nav>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-dark">
+                Tất cả <span class="text-primary">bài viết</span>
+            </h1>
+            <p class="text-muted mt-2 max-w-md text-[15px]">
+                Cập nhật những tin tức tuyển dụng, sự kiện và thông tin mới nhất
+                từ các công ty hàng đầu trong ngành công nghệ.
+            </p>
+        </div>
+        <!-- Illustration -->
+        <div class="hidden md:block opacity-80">
+            <svg width="180" height="130" viewBox="0 0 180 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="20" y="20" width="140" height="95" rx="10" fill="#DBEAFE" stroke="#93C5FD" stroke-width="1.5"/>
+                <rect x="32" y="35" width="60" height="48" rx="4" fill="#BFDBFE"/>
+                <rect x="100" y="35" width="48" height="8" rx="4" fill="#93C5FD"/>
+                <rect x="100" y="50" width="36" height="6" rx="3" fill="#BFDBFE"/>
+                <rect x="100" y="63" width="40" height="6" rx="3" fill="#BFDBFE"/>
+                <rect x="32" y="92" width="116" height="5" rx="2.5" fill="#BFDBFE"/>
+                <!-- Pencil -->
+                <rect x="135" y="72" width="28" height="8" rx="3" fill="#6366F1" transform="rotate(-30 135 72)"/>
+                <polygon points="140,92 148,86 146,96" fill="#FCD34D"/>
+                <!-- Plant -->
+                <rect x="148" y="100" width="4" height="16" rx="2" fill="#6EE7B7"/>
+                <ellipse cx="150" cy="98" rx="8" ry="10" fill="#34D399"/>
+                <ellipse cx="143" cy="103" rx="6" ry="7" fill="#6EE7B7"/>
+                <ellipse cx="157" cy="103" rx="6" ry="7" fill="#6EE7B7"/>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- Search + Filter bar -->
+<div class="bg-white border-b border-gray-200 sticky top-[64px] z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-3">
+        <form method="get" action="/articles" class="flex flex-wrap gap-3 items-center">
+            @if (Model.CompanyId.HasValue)
+            {
+                <input type="hidden" name="companyId" value="@Model.CompanyId" />
+            }
+            <!-- Search -->
+            <div class="relative flex-1 min-w-[240px]">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                </svg>
+                <input type="text" name="search" value="@Model.Search" placeholder="Tìm kiếm bài viết, công ty..."
+                       class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30" />
+            </div>
+            <!-- Sort -->
+            <select name="sort" onchange="this.form.submit()"
+                    class="border border-gray-200 rounded-lg px-3 py-2 text-[14px] text-dark focus:outline-none focus:border-primary cursor-pointer bg-white">
+                <option value="newest" selected="@(Model.Sort == "newest" ? "selected" : null)">Mới nhất</option>
+                <option value="oldest" selected="@(Model.Sort == "oldest" ? "selected" : null)">Cũ nhất</option>
+            </select>
+            <button type="submit" class="bg-primary text-white px-5 py-2 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-colors">
+                Tìm kiếm
+            </button>
+            @if (!string.IsNullOrEmpty(Model.Search) || Model.CompanyId.HasValue)
+            {
+                <a href="/articles" class="text-[13px] text-muted hover:text-dark">Xóa bộ lọc</a>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Main layout: sidebar + list -->
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+    <div class="flex gap-8 items-start">
+
+        <!-- Sidebar -->
+        <aside class="w-56 flex-shrink-0 hidden lg:block">
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-100">
+                    <p class="text-[12px] font-bold text-muted uppercase tracking-wider">Công ty nổi bật</p>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    @foreach (var c in Model.CompanyFilters)
+                    {
+                        bool active = Model.CompanyId == c.CompanyId;
+                        <a href="@BuildUrl(cid: active ? (int?)null : c.CompanyId, pg: 1)"
+                           class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-primary/5 transition-colors @(active ? "bg-primary/10" : "")">
+                            @if (!string.IsNullOrEmpty(c.LogoUrl))
+                            {
+                                <img src="@c.LogoUrl" class="w-7 h-7 rounded object-contain border border-gray-100 flex-shrink-0" />
+                            }
+                            else
+                            {
+                                <span class="w-7 h-7 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px] flex-shrink-0">
+                                    @(c.CompanyName?.FirstOrDefault())
+                                </span>
+                            }
+                            <span class="flex-1 min-w-0 text-[13px] @(active ? "font-semibold text-primary" : "text-dark") truncate">@c.CompanyName</span>
+                            <span class="text-[11px] text-muted flex-shrink-0">@c.Count</span>
+                        </a>
+                    }
+                </div>
+                <div class="px-4 py-3 border-t border-gray-100">
+                    <a href="/Company/Search" class="text-[12px] text-primary font-semibold hover:underline">
+                        Xem tất cả công ty →
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Article list -->
+        <div class="flex-1 min-w-0">
+            <!-- Count -->
+            <p class="text-[13px] text-muted mb-4">
+                Hiển thị <strong class="text-dark">@(((Model.Page - 1) * Model.PageSize) + 1) - @Math.Min(Model.Page * Model.PageSize, Model.TotalCount)</strong>
+                trong số <strong class="text-dark">@Model.TotalCount</strong> bài viết
+                @if (Model.CompanyId.HasValue)
+                {
+                    var co = Model.CompanyFilters.FirstOrDefault(x => x.CompanyId == Model.CompanyId);
+                    if (co != default) { <text> của <strong class="text-dark">@co.CompanyName</strong></text> }
+                }
+            </p>
+
+            @if (!Model.Articles.Any())
+            {
+                <div class="text-center py-20">
+                    <svg class="w-16 h-16 mx-auto text-gray-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-muted">Chưa có bài viết nào.</p>
+                </div>
+            }
+            else
+            {
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+                    @foreach (var a in Model.Articles)
+                    {
+                        <a href="/articles/@a.ArticleId"
+                           class="flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors group">
+                            <!-- Thumbnail -->
+                            <div class="w-32 h-[84px] flex-shrink-0 rounded-lg overflow-hidden bg-[#EEF2FF]">
+                                @if (!string.IsNullOrEmpty(a.ThumbnailUrl))
+                                {
+                                    <img src="@a.ThumbnailUrl" alt="@a.Title"
+                                         class="w-full h-full object-cover" />
+                                }
+                                else
+                                {
+                                    <div class="w-full h-full bg-gradient-to-br from-[#EEF2FF] to-[#C7D2FE] flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-primary/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0">
+                                <!-- Company + time -->
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <span class="text-[13px] font-semibold text-dark">@a.Company?.CompanyName</span>
+                                    <span class="text-gray-300">•</span>
+                                    <span class="text-[12px] text-muted">@TimeAgo(a.ApprovedAt)</span>
+                                </div>
+                                <!-- Title -->
+                                <h2 class="text-[15px] font-bold text-dark group-hover:text-primary line-clamp-2 leading-snug mb-1.5">
+                                    @a.Title
+                                </h2>
+                                <!-- Excerpt -->
+                                <p class="text-[13px] text-[#444] line-clamp-2">
+                                    @Excerpt(a.Content)
+                                </p>
+                                <!-- Date -->
+                                <p class="text-[11px] text-muted mt-1.5 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    @(a.ApprovedAt?.ToString("dd/MM/yyyy") ?? a.CreatedAt?.ToString("dd/MM/yyyy"))
+                                </p>
+                            </div>
+
+                            <!-- Arrow -->
+                            <div class="flex-shrink-0 self-center">
+                                <svg class="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="flex justify-center items-center gap-1.5 mt-8">
+                    @if (Model.Page > 1)
+                    {
+                        <a href="@BuildUrl(pg: Model.Page - 1)"
+                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-muted hover:border-primary hover:text-primary transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                    }
+                    @{
+                        var startPage = Math.Max(1, Model.Page - 2);
+                        var endPage   = Math.Min(Model.TotalPages, Model.Page + 2);
+                    }
+                    @if (startPage > 1)
+                    {
+                        <a href="@BuildUrl(pg: 1)" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-[14px] hover:border-primary hover:text-primary transition-colors">1</a>
+                        if (startPage > 2) { <span class="text-muted">...</span> }
+                    }
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        bool current = i == Model.Page;
+                        <a href="@BuildUrl(pg: i)"
+                           class="w-9 h-9 flex items-center justify-center rounded-lg border text-[14px] transition-colors
+                                  @(current ? "bg-primary text-white border-primary font-semibold" : "border-gray-200 text-dark hover:border-primary hover:text-primary")">
+                            @i
+                        </a>
+                    }
+                    @if (endPage < Model.TotalPages)
+                    {
+                        if (endPage < Model.TotalPages - 1) { <span class="text-muted">...</span> }
+                        <a href="@BuildUrl(pg: Model.TotalPages)" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-[14px] hover:border-primary hover:text-primary transition-colors">@Model.TotalPages</a>
+                    }
+                    @if (Model.Page < Model.TotalPages)
+                    {
+                        <a href="@BuildUrl(pg: Model.Page + 1)"
+                           class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-muted hover:border-primary hover:text-primary transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

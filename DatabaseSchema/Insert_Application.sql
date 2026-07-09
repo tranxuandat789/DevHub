@@ -1,23 +1,23 @@
-﻿USE DevHub;
+USE ITRecruitmentDB;
 GO
 SET NOCOUNT ON;
 /* ============================================================
  INSERT APPLICATIONS + CV (for testing)
- - Chỉ cho job_post status IN ('APPROVED','CLOSED') của recruiter 4 & 5.
- - Mỗi job gán 3 ứng viên (xoay vòng), mỗi application có 1 CV riêng
- (đúng candidate) trỏ tới 1 trong 5 file thật trong wwwroot/uploads/cvs.
- - 5 CV được CHIA ĐỀU round-robin theo từng application (arn % 5).
- - Idempotent: reset dữ liệu test cũ trước khi chèn lại.
+ - Ch? cho job_post status IN ('APPROVED','CLOSED') c?a recruiter 4 & 5.
+ - M?i job gan 3 ?ng vien (xoay vong), m?i application co 1 CV rieng
+ (?ung candidate) tr? t?i 1 trong 5 file th?t trong wwwroot/uploads/cvs.
+ - 5 CV ???c CHIA ??U round-robin theo t?ng application (arn % 5).
+ - Idempotent: reset d? li?u test c? tr??c khi chen l?i.
  ============================================================ */
 -- ============================================================
--- 0. RESET dữ liệu test cũ (để chạy lại sạch, không trùng)
+-- 0. RESET d? li?u test c? (?? ch?y l?i s?ch, khong trung)
 -- ============================================================
 DELETE a
 FROM dbo.application a
   JOIN dbo.job_post j ON j.job_id = a.job_id
 WHERE j.company_id IN (4, 5)
   AND j.status IN ('APPROVED', 'CLOSED');
--- Xóa các CV test không còn application nào tham chiếu
+-- Xoa cac CV test khong con application nao tham chi?u
 DELETE FROM dbo.cv
 WHERE title LIKE N'[TEST]%'
   AND cv_id NOT IN (
@@ -25,8 +25,8 @@ WHERE title LIKE N'[TEST]%'
     FROM dbo.application
   );
 -- ============================================================
--- 1. Dựng bảng map: 1 dòng cho mỗi application (job × candidate)
---    kèm arn (số thứ tự toàn cục) để chia đều 5 file CV.
+-- 1. D?ng b?ng map: 1 dong cho m?i application (job �~ candidate)
+--    kem arn (s? th? t? toan c?c) ?? chia ??u 5 file CV.
 -- ============================================================
 IF OBJECT_ID('tempdb..#Map') IS NOT NULL DROP TABLE #Map;
 ;
@@ -56,7 +56,7 @@ Slots AS (
   SELECT 1
   UNION ALL
   SELECT 2
-) -- 3 ứng viên / job
+) -- 3 ?ng vien / job
 SELECT j.job_id,
   c.candidate_id,
   j.approved_at,
@@ -80,13 +80,13 @@ SELECT j.job_id,
     ORDER BY j.job_id,
       s.slot
   ) - 1 AS arn,
-  -- để chia đều CV
+  -- ?? chia ??u CV
   CAST(NULL AS NVARCHAR(255)) AS cv_title,
   CAST(NULL AS NVARCHAR(500)) AS cv_url INTO #Map
 FROM Jobs j
   CROSS JOIN Slots s
   JOIN Cands c ON c.crn = (j.jrn + s.slot) % c.cnt;
--- Gán 5 file CV thật (chia đều theo arn % 5) + title duy nhất theo (job, candidate)
+-- Gan 5 file CV th?t (chia ??u theo arn % 5) + title duy nh?t theo (job, candidate)
 UPDATE m
 SET cv_title = N'[TEST] CV J' + CAST(m.job_id AS NVARCHAR(10)) + N'-C' + CAST(m.candidate_id AS NVARCHAR(10)),
   cv_url = f.url
@@ -114,18 +114,18 @@ FROM #Map m
       )
   ) AS f(idx, url) ON f.idx = m.arn % 5;
 -- ============================================================
--- 2. Insert CV cho từng application (gắn đúng candidate)
+-- 2. Insert CV cho t?ng application (g?n ?ung candidate)
 -- ============================================================
 INSERT INTO dbo.cv (candidate_id, title, cv_url, skills, is_default)
 SELECT m.candidate_id,
   m.cv_title,
   m.cv_url,
-  N'Kỹ năng theo hồ sơ ứng viên',
+  N'K? n?ng theo h? s? ?ng vien',
   0
 FROM #Map m;
-  PRINT N'Đã chèn CV test (5 file chia đều).';
+  PRINT N'?a chen CV test (5 file chia ??u).';
 -- ============================================================
--- 3. Insert application, tham chiếu đúng CV vừa tạo
+-- 3. Insert application, tham chi?u ?ung CV v?a t?o
 -- ============================================================
 INSERT INTO dbo.application (
     job_id,
@@ -138,7 +138,7 @@ INSERT INTO dbo.application (
 SELECT m.job_id,
   m.candidate_id,
   cv.cv_id,
-  N'Tôi rất quan tâm tới vị trí này và mong muốn được đóng góp cho công ty.',
+  N'Toi r?t quan tam t?i v? tri nay va mong mu?n ???c ?ong gop cho cong ty.',
   m.app_status,
   DATEADD(
     DAY,
@@ -148,9 +148,9 @@ SELECT m.job_id,
 FROM #Map m
   JOIN dbo.cv cv ON cv.candidate_id = m.candidate_id
   AND cv.title = m.cv_title;
-PRINT N'Đã chèn application cho job APPROVED/CLOSED của recruiter 4 & 5.';
+PRINT N'?a chen application cho job APPROVED/CLOSED c?a recruiter 4 & 5.';
 -- ============================================================
--- 4. Đồng bộ application_count
+-- 4. ??ng b? application_count
 -- ============================================================
 UPDATE jp
 SET jp.application_count = x.cnt
@@ -164,9 +164,9 @@ FROM dbo.job_post jp
 WHERE jp.company_id IN (4, 5)
   AND jp.status IN ('APPROVED', 'CLOSED');
 DROP TABLE #Map;
-PRINT N'Hoàn tất.';
+PRINT N'Hoan t?t.';
 GO -- ============================================================
-  -- 5. Kiểm tra: phân bố 5 file CV trên các application
+  -- 5. Ki?m tra: phan b? 5 file CV tren cac application
   -- ============================================================
 SELECT cv.cv_url,
   COUNT(*) AS total_applications
@@ -178,3 +178,4 @@ WHERE j.company_id IN (4, 5)
 GROUP BY cv.cv_url
 ORDER BY cv.cv_url;
 GO
+

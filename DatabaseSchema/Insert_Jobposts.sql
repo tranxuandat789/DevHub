@@ -1,14 +1,14 @@
-﻿USE DevHub;
+USE ITRecruitmentDB;
 GO
 SET NOCOUNT ON;
--- Khai báo cấu trúc bảng tạm để lưu lại danh sách JobId tự động sinh ra
+-- Khai bao c?u truc b?ng t?m ?? l?u l?i danh sach JobId t? ??ng sinh ra
 DECLARE @InsertedJobs TABLE (
         RowNumber INT IDENTITY(1, 1),
         JobId INT,
         Status NVARCHAR(50)
     );
 -- =============================================
--- 1. INSERT 20 RECORDS CHO BẢNG job_post
+-- 1. INSERT 20 RECORDS CHO B?NG job_post
 -- =============================================
 INSERT INTO dbo.job_post (
         company_id,
@@ -34,15 +34,15 @@ INSERT INTO dbo.job_post (
         moderator_id
     ) OUTPUT inserted.job_id,
     inserted.status INTO @InsertedJobs(JobId, Status)
-VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected_reason)
+VALUES -- 1. PENDING (Ch? duy?t: Khong co approved_at, khong co rejected_reason)
     (
         4,
         1,
         2,
         N'Senior .NET Core Developer',
-        N'Phát triển hệ thống microservices lõi và tối ưu truy vấn dữ liệu lớn.',
-        N'Tối thiểu 4 năm kinh nghiệm với C# .NET Core, SQL Server.',
-        N'Lương tháng 13, bảo hiểm sức khỏe cao cấp độc quyền.',
+        N'Phat tri?n h? th?ng microservices loi va t?i ?u truy v?n d? li?u l?n.',
+        N'T?i thi?u 4 n?m kinh nghi?m v?i C# .NET Core, SQL Server.',
+        N'L??ng thang 13, b?o hi?m s?c kh?e cao c?p ??c quy?n.',
         N'C#, .NET Core, SQL',
         N'Senior',
         N'Full-time',
@@ -58,15 +58,15 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         '2026-06-03 09:00:00',
         NULL
     ),
-    -- 2. APPROVED (Đang hoạt động: Đã duyệt sau khi tạo 4 tiếng)
+    -- 2. APPROVED (?ang ho?t ??ng: ?a duy?t sau khi t?o 4 ti?ng)
     (
         4,
         3,
         2,
         N'Frontend Angular Developer',
-        N'Xây dựng giao diện Dashboard quản trị hệ thống phân tích dữ liệu.',
-        N'Kinh nghiệm thực chiến Angular 14+, TypeScript, RxJS.',
-        N'Thưởng dự án, cấp Macbook Pro, phụ cấp ăn trưa.',
+        N'Xay d?ng giao di?n Dashboard qu?n tr? h? th?ng phan tich d? li?u.',
+        N'Kinh nghi?m th?c chi?n Angular 14+, TypeScript, RxJS.',
+        N'Th??ng d? an, c?p Macbook Pro, ph? c?p ?n tr?a.',
         N'Angular, TypeScript, CSS',
         N'Mid-Level',
         N'Hybrid',
@@ -82,15 +82,15 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         '2026-06-01 10:30:00',
         8
     ),
-    -- 3. REJECTED (Bị từ chối: Có lý do từ chối, không có approved_at)
+    -- 3. REJECTED (B? t? ch?i: Co ly do t? ch?i, khong co approved_at)
     (
         4,
         4,
         2,
         N'Fullstack Web NodeJS/React',
-        N'Tham gia xây dựng sản phẩm E-Commerce từ giai đoạn khởi tạo.',
-        N'Thành thạo ReactJS và các framework NodeJS (Express, NestJS).',
-        N'Review lương 2 lần/năm, lộ trình thăng tiến rõ ràng.',
+        N'Tham gia xay d?ng s?n ph?m E-Commerce t? giai ?o?n kh?i t?o.',
+        N'Thanh th?o ReactJS va cac framework NodeJS (Express, NestJS).',
+        N'Review l??ng 2 l?n/n?m, l? trinh th?ng ti?n ro rang.',
         N'ReactJS, NodeJS, MongoDB',
         N'Junior/Mid',
         N'Full-time',
@@ -102,19 +102,19 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         30,
         0,
         NULL,
-        N'Nội dung tin chứa liên kết ngoài hệ thống và thông tin cá nhân sai quy định.',
+        N'N?i dung tin ch?a lien k?t ngoai h? th?ng va thong tin ca nhan sai quy ??nh.',
         '2026-06-02 08:00:00',
         8
     ),
-    -- 4. CLOSED (Đã đóng thủ công/hết hạn sớm: Có approved_at)
+    -- 4. CLOSED (?a ?ong th? cong/h?t h?n s?m: Co approved_at)
     (
         4,
         8,
         2,
         N'DevOps AWS Engineer',
-        N'Thiết lập, tối ưu và vận hành hệ thống CI/CD trên nền tảng AWS Cloud.',
-        N'Có chứng chỉ AWS, kinh nghiệm sâu với Docker, Kubernetes, Terraform.',
-        N'Làm việc 5 ngày/tuần, gói phúc lợi teambuilding hàng quý.',
+        N'Thi?t l?p, t?i ?u va v?n hanh h? th?ng CI/CD tren n?n t?ng AWS Cloud.',
+        N'Co ch?ng ch? AWS, kinh nghi?m sau v?i Docker, Kubernetes, Terraform.',
+        N'Lam vi?c 5 ngay/tu?n, goi phuc l?i teambuilding hang quy.',
         N'AWS, Docker, CI/CD',
         N'Senior',
         N'Remote',
@@ -130,15 +130,15 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         '2026-05-15 15:00:00',
         8
     ),
-    -- 5. CLOSED (Hết hạn: Deadline TRƯỚC 04/06/2026, có approved_at)
+    -- 5. CLOSED (H?t h?n: Deadline TR??C 04/06/2026, co approved_at)
     (
         4,
         11,
         2,
         N'Automation Tester Specialist',
-        N'Viết test script tự động hóa kiểm thử cho các sản phẩm Web & Mobile.',
-        N'Kinh nghiệm vững vàng với Selenium WebDriver, Java hoặc Python.',
-        N'Lương tháng 14, hỗ trợ chi phí thi các chứng chỉ quốc tế.',
+        N'Vi?t test script t? ??ng hoa ki?m th? cho cac s?n ph?m Web & Mobile.',
+        N'Kinh nghi?m v?ng vang v?i Selenium WebDriver, Java ho?c Python.',
+        N'L??ng thang 14, h? tr? chi phi thi cac ch?ng ch? qu?c t?.',
         N'Selenium, Java, Automation',
         N'Mid-Level',
         N'Full-time',
@@ -160,9 +160,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         5,
         2,
         N'iOS Swift Engineer',
-        N'Phát triển ứng dụng di động Native đáp ứng hàng triệu người dùng.',
-        N'Hơn 2 năm làm việc chuyên sâu với Swift, UIKit và SwiftUI.',
-        N'Phụ cấp gửi xe, trang thiết bị hiện đại, môi trường trẻ trung.',
+        N'Phat tri?n ?ng d?ng di ??ng Native ?ap ?ng hang tri?u ng??i dung.',
+        N'H?n 2 n?m lam vi?c chuyen sau v?i Swift, UIKit va SwiftUI.',
+        N'Ph? c?p g?i xe, trang thi?t b? hi?n ??i, moi tr??ng tr? trung.',
         N'iOS, Swift, Xcode',
         N'Mid-Level',
         N'Full-time',
@@ -184,9 +184,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         14,
         2,
         N'IT Business Analyst (BA)',
-        N'Khảo sát yêu cầu từ khách hàng doanh nghiệp, viết tài liệu SRS, User Story.',
-        N'Kinh nghiệm BA trên 2 năm trong lĩnh vực Fintech hoặc ERP.',
-        N'Cơ hội Onsite ngắn hạn, bảo hiểm sức khỏe toàn diện.',
+        N'Kh?o sat yeu c?u t? khach hang doanh nghi?p, vi?t tai li?u SRS, User Story.',
+        N'Kinh nghi?m BA tren 2 n?m trong l?nh v?c Fintech ho?c ERP.',
+        N'C? h?i Onsite ng?n h?n, b?o hi?m s?c kh?e toan di?n.',
         N'BA, SQL, UML, Jira',
         N'Mid-Level',
         N'Full-time',
@@ -208,9 +208,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         2,
         2,
         N'Junior Python Developer',
-        N'Phát triển, bảo trì hệ thống cào dữ liệu lớn và các công cụ Automation.',
-        N'Nắm chắc Python cơ bản, OOP, cấu trúc dữ liệu, thư viện BS4/Scrapy.',
-        N'Được đào tạo bài bản bởi Mentor Senior giàu kinh nghiệm.',
+        N'Phat tri?n, b?o tri h? th?ng cao d? li?u l?n va cac cong c? Automation.',
+        N'N?m ch?c Python c? b?n, OOP, c?u truc d? li?u, th? vi?n BS4/Scrapy.',
+        N'???c ?ao t?o bai b?n b?i Mentor Senior giau kinh nghi?m.',
         N'Python, BeautifulSoup, SQL',
         N'Junior',
         N'Full-time',
@@ -232,9 +232,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         18,
         2,
         N'Data Engineer (Data Pipeline)',
-        N'Xây dựng luồng xử lý và làm sạch dữ liệu lớn phục vụ hệ thống BI.',
-        N'Kinh nghiệm xây dựng kiến trúc dữ liệu vững với Spark, Hadoop, SQL.',
-        N'Môi trường năng động, review hiệu suất công việc rõ ràng.',
+        N'Xay d?ng lu?ng x? ly va lam s?ch d? li?u l?n ph?c v? h? th?ng BI.',
+        N'Kinh nghi?m xay d?ng ki?n truc d? li?u v?ng v?i Spark, Hadoop, SQL.',
+        N'Moi tr??ng n?ng ??ng, review hi?u su?t cong vi?c ro rang.',
         N'Spark, Python, BigData',
         N'Senior',
         N'Hybrid',
@@ -246,7 +246,7 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         85,
         0,
         NULL,
-        N'Thông tin mức lương không rõ ràng, yêu cầu kỹ năng quá chung chung.',
+        N'Thong tin m?c l??ng khong ro rang, yeu c?u k? n?ng qua chung chung.',
         '2026-05-20 10:00:00',
         8
     ),
@@ -256,9 +256,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         12,
         2,
         N'Manual QC Tester',
-        N'Lập kế hoạch test case, thực hiện test thủ công, quản lý theo dõi bug.',
-        N'Hiểu quy trình phát hành phần mềm, cẩn thận, chịu áp lực tốt.',
-        N'Thưởng các ngày lễ tết, cấp máy tính làm việc tại văn phòng.',
+        N'L?p k? ho?ch test case, th?c hi?n test th? cong, qu?n ly theo doi bug.',
+        N'Hi?u quy trinh phat hanh ph?n m?m, c?n th?n, ch?u ap l?c t?t.',
+        N'Th??ng cac ngay l? t?t, c?p may tinh lam vi?c t?i v?n phong.',
         N'Manual Test, Testcase, Jira',
         N'Junior/Mid',
         N'Full-time',
@@ -280,9 +280,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         1,
         2,
         N'Golang Backend Engineer',
-        N'Xây dựng hệ thống Core thanh toán thời gian thực chịu tải cực lớn.',
-        N'Kinh nghiệm lập trình Golang tốt hoặc vững ngôn ngữ hướng đối tượng.',
-        N'Môi trường đa quốc gia, làm việc hoàn toàn bằng tiếng Anh.',
+        N'Xay d?ng h? th?ng Core thanh toan th?i gian th?c ch?u t?i c?c l?n.',
+        N'Kinh nghi?m l?p trinh Golang t?t ho?c v?ng ngon ng? h??ng ??i t??ng.',
+        N'Moi tr??ng ?a qu?c gia, lam vi?c hoan toan b?ng ti?ng Anh.',
         N'Golang, Redis, Kafka',
         N'Mid-Level',
         N'Full-time',
@@ -304,9 +304,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         7,
         2,
         N'Flutter Mobile Developer',
-        N'Phát triển ứng dụng mạng xã hội chạy mượt mà đa nền tảng.',
-        N'Hơn 1.5 năm kinh nghiệm làm sản phẩm thực tế với Flutter & Dart.',
-        N'Hỗ trợ cơm trưa, miễn phí đồ ăn nhẹ tại pantry công ty.',
+        N'Phat tri?n ?ng d?ng m?ng xa h?i ch?y m??t ma ?a n?n t?ng.',
+        N'H?n 1.5 n?m kinh nghi?m lam s?n ph?m th?c t? v?i Flutter & Dart.',
+        N'H? tr? c?m tr?a, mi?n phi ?? ?n nh? t?i pantry cong ty.',
         N'Flutter, Dart, Bloc',
         N'Mid-Level',
         N'Hybrid',
@@ -328,9 +328,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         3,
         2,
         N'Senior ReactJS Developer',
-        N'Làm chủ kiến trúc giao diện các module lõi trực thuộc hệ sinh thái.',
-        N'Tối thiểu 4 năm kinh nghiệm Frontend, sâu sắc về NextJS, Redux Toolkit.',
-        N'Mức lương đột phá, tháng lương thứ 14 ổn định hằng năm.',
+        N'Lam ch? ki?n truc giao di?n cac module loi tr?c thu?c h? sinh thai.',
+        N'T?i thi?u 4 n?m kinh nghi?m Frontend, sau s?c v? NextJS, Redux Toolkit.',
+        N'M?c l??ng ??t pha, thang l??ng th? 14 ?n ??nh h?ng n?m.',
         N'ReactJS, NextJS, Redux',
         N'Senior',
         N'Full-time',
@@ -352,9 +352,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         19,
         2,
         N'AI / Machine Learning Engineer',
-        N'Nghiên cứu và tích hợp các mô hình Generative AI tối ưu hóa sản phẩm.',
-        N'Nền tảng toán tối ưu vững, kinh nghiệm sâu với PyTorch, TensorFlow.',
-        N'Làm việc cùng chuyên gia đầu ngành, lộ trình R&D rõ ràng.',
+        N'Nghien c?u va tich h?p cac mo hinh Generative AI t?i ?u hoa s?n ph?m.',
+        N'N?n t?ng toan t?i ?u v?ng, kinh nghi?m sau v?i PyTorch, TensorFlow.',
+        N'Lam vi?c cung chuyen gia ??u nganh, l? trinh R&D ro rang.',
         N'AI, Python, PyTorch',
         N'Mid/Senior',
         N'Full-time',
@@ -366,7 +366,7 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         95,
         0,
         NULL,
-        N'Tên vị trí và mô tả công việc bằng ngôn từ không chuẩn mực lịch sự.',
+        N'Ten v? tri va mo t? cong vi?c b?ng ngon t? khong chu?n m?c l?ch s?.',
         '2026-05-25 14:00:00',
         8
     ),
@@ -376,9 +376,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         13,
         2,
         N'Embedded Systems Engineer',
-        N'Lập trình firmware nhúng, điều khiển vi xử lý cho thiết bị IoT.',
-        N'Thành thạo C/C++, hiểu biết sâu sắc về kiến trúc phần cứng ARM.',
-        N'Trợ cấp độc hại phòng lab, du lịch nghỉ dưỡng cao cấp.',
+        N'L?p trinh firmware nhung, ?i?u khi?n vi x? ly cho thi?t b? IoT.',
+        N'Thanh th?o C/C++, hi?u bi?t sau s?c v? ki?n truc ph?n c?ng ARM.',
+        N'Tr? c?p ??c h?i phong lab, du l?ch ngh? d??ng cao c?p.',
         N'Embedded C, C++, IoT, ARM',
         N'Mid-Level',
         N'Full-time',
@@ -400,9 +400,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         16,
         2,
         N'Technical Project Manager (IT PM)',
-        N'Quản lý tiến độ dự án, điều phối nhân sự, làm việc chặt chẽ với khách hàng.',
-        N'Ít nhất 2 năm làm PM, giao tiếp tiếng Anh trôi chảy bắt buộc.',
-        N'Thưởng quản lý, cổ phần thưởng hấp dẫn tùy hiệu suất.',
+        N'Qu?n ly ti?n ?? d? an, ?i?u ph?i nhan s?, lam vi?c ch?t ch? v?i khach hang.',
+        N'It nh?t 2 n?m lam PM, giao ti?p ti?ng Anh troi ch?y b?t bu?c.',
+        N'Th??ng qu?n ly, c? ph?n th??ng h?p d?n tuy hi?u su?t.',
         N'PM, Agile, Scrum',
         N'Manager',
         N'Full-time',
@@ -424,9 +424,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         3,
         2,
         N'VueJS Frontend Developer',
-        N'Nâng cấp hệ thống Web App SaaS sang kiến trúc Single Page.',
-        N'Thành thạo VueJS v3 (Composition API), Pinia, Tailwind CSS.',
-        N'Môi trường ít OT, cân bằng tốt giữa công việc và đời sống.',
+        N'Nang c?p h? th?ng Web App SaaS sang ki?n truc Single Page.',
+        N'Thanh th?o VueJS v3 (Composition API), Pinia, Tailwind CSS.',
+        N'Moi tr??ng it OT, can b?ng t?t gi?a cong vi?c va ??i s?ng.',
         N'VueJS, Pinia, CSS',
         N'Junior/Mid',
         N'Full-time',
@@ -448,9 +448,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         1,
         2,
         N'Java Spring Boot Backend Engineer',
-        N'Tái cấu trúc hệ thống Monolith cũ sang mô hình kiến trúc Microservices.',
-        N'Tối thiểu 3 năm kinh nghiệm với Java Core, Spring Boot, Hibernate.',
-        N'Phụ cấp gym/yoga, trà cà phê miễn phí không giới hạn.',
+        N'Tai c?u truc h? th?ng Monolith c? sang mo hinh ki?n truc Microservices.',
+        N'T?i thi?u 3 n?m kinh nghi?m v?i Java Core, Spring Boot, Hibernate.',
+        N'Ph? c?p gym/yoga, tra ca phe mi?n phi khong gi?i h?n.',
         N'Java, Spring Boot, MySQL',
         N'Mid-Level',
         N'Full-time',
@@ -472,9 +472,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         9,
         2,
         N'System Linux Administrator',
-        N'Giám sát hoạt động, bảo mật và sao lưu dữ liệu cụm máy chủ Linux.',
-        N'Kinh nghiệm quản trị Ubuntu/CentOS, am hiểu Bash Script và Network.',
-        N'Tham gia trực trực ca nhận phụ cấp hấp dẫn, quà tặng sinh nhật.',
+        N'Giam sat ho?t ??ng, b?o m?t va sao l?u d? li?u c?m may ch? Linux.',
+        N'Kinh nghi?m qu?n tr? Ubuntu/CentOS, am hi?u Bash Script va Network.',
+        N'Tham gia tr?c tr?c ca nh?n ph? c?p h?p d?n, qua t?ng sinh nh?t.',
         N'Linux, Bash Script, Network',
         N'Mid-Level',
         N'Full-time',
@@ -496,9 +496,9 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         4,
         2,
         N'PHP Laravel Web Developer',
-        N'Bảo trì, phát triển mở rộng các tính năng mới cho cổng thông tin.',
-        N'Có kinh nghiệm lập trình PHP tốt và tối thiểu 1 năm làm với Laravel.',
-        N'Đồng nghiệp thân thiện, sếp tâm lý, nhiều hoạt động nội bộ.',
+        N'B?o tri, phat tri?n m? r?ng cac tinh n?ng m?i cho c?ng thong tin.',
+        N'Co kinh nghi?m l?p trinh PHP t?t va t?i thi?u 1 n?m lam v?i Laravel.',
+        N'??ng nghi?p than thi?n, s?p tam ly, nhi?u ho?t ??ng n?i b?.',
         N'PHP, Laravel, MySQL',
         N'Junior',
         N'Full-time',
@@ -515,8 +515,8 @@ VALUES -- 1. PENDING (Chờ duyệt: Không có approved_at, không có rejected
         8
     );
 -- =============================================
--- 2. INSERT MAPPING SANG BẢNG job_technology
--- (Mỗi Job có ngẫu nhiên 2 đến 3 Tech stacks duy nhất)
+-- 2. INSERT MAPPING SANG B?NG job_technology
+-- (M?i Job co ng?u nhien 2 ??n 3 Tech stacks duy nh?t)
 -- =============================================
 DECLARE @CurrentRow INT = 1;
 DECLARE @TotalInserted INT = (
@@ -528,7 +528,7 @@ WHILE @CurrentRow <= @TotalInserted BEGIN
 SELECT @TargetJobId = JobId
 FROM @InsertedJobs
 WHERE RowNumber = @CurrentRow;
--- Lựa chọn kịch bản chèn Tech ngẫu nhiên xen kẽ để tránh trùng lặp cặp Khóa chính (job_id, tech_id)
+-- L?a ch?n k?ch b?n chen Tech ng?u nhien xen k? ?? tranh trung l?p c?p Khoa chinh (job_id, tech_id)
 IF @CurrentRow % 4 = 0 BEGIN
 INSERT INTO dbo.job_tech_stack(job_id, tech_id)
 VALUES (@TargetJobId, 1),
@@ -558,16 +558,16 @@ END
 SET @CurrentRow = @CurrentRow + 1;
 END;
 GO
-USE DevHub;
+USE ITRecruitmentDB;
 GO
 SET NOCOUNT ON;
--- Khai báo cấu trúc bảng tạm để lưu lại danh sách JobId tự động sinh ra
+-- Khai bao c?u truc b?ng t?m ?? l?u l?i danh sach JobId t? ??ng sinh ra
 DECLARE @NewInsertedJobs TABLE (
         RowNumber INT IDENTITY(1, 1),
         JobId INT
     );
 -- =============================================
--- 1. INSERT 10 JOBPOSTS TRẠNG THÁI APPROVED
+-- 1. INSERT 10 JOBPOSTS TR?NG THAI APPROVED
 -- =============================================
 INSERT INTO dbo.job_post (
         company_id,
@@ -597,10 +597,10 @@ VALUES -- 1: Intern + Fulltime Onsite
         5,
         2,
         2,
-        N'Thực tập sinh Lập trình Python (Intern)',
-        N'Tham gia hỗ trợ đội ngũ phát triển xây dựng các công cụ thu thập và xử lý số liệu.',
-        N'Sinh viên năm 3-4 chuyên ngành CNTT, nắm chắc kiến thức OOP căn bản.',
-        N'Hỗ trợ phụ cấp thực tập, có cơ hội lên chính thức sau 3 tháng.',
+        N'Th?c t?p sinh L?p trinh Python (Intern)',
+        N'Tham gia h? tr? ??i ng? phat tri?n xay d?ng cac cong c? thu th?p va x? ly s? li?u.',
+        N'Sinh vien n?m 3-4 chuyen nganh CNTT, n?m ch?c ki?n th?c OOP c?n b?n.',
+        N'H? tr? ph? c?p th?c t?p, co c? h?i len chinh th?c sau 3 thang.',
         N'Python, OOP',
         N'Intern',
         N'Fulltime Onsite',
@@ -622,9 +622,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         3,
         2,
         N'Fresher ReactJS Developer',
-        N'Được đào tạo và tham gia trực tiếp vào dự án Web App của đối tác Singapore.',
-        N'Đã có đồ án nền tảng HTML/CSS/JS tốt, biết cơ bản về React hooks.',
-        N'Review lương sau thời gian thử việc, hỗ trợ thiết bị làm việc.',
+        N'???c ?ao t?o va tham gia tr?c ti?p vao d? an Web App c?a ??i tac Singapore.',
+        N'?a co ?? an n?n t?ng HTML/CSS/JS t?t, bi?t c? b?n v? React hooks.',
+        N'Review l??ng sau th?i gian th? vi?c, h? tr? thi?t b? lam vi?c.',
         N'ReactJS, JavaScript',
         N'Fresher',
         N'Hybrid',
@@ -646,9 +646,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         11,
         2,
         N'Junior QA Manual Tester',
-        N'Thực hiện viết testcase và thực thi kiểm thử các chức năng hệ thống thương mại điện tử.',
-        N'Có từ 1 năm kinh nghiệm test web/app, hiểu biết về quy trình Agile/Scrum.',
-        N'Làm việc Remote tự do, cung cấp tài khoản học tập Udemy Business.',
+        N'Th?c hi?n vi?t testcase va th?c thi ki?m th? cac ch?c n?ng h? th?ng th??ng m?i ?i?n t?.',
+        N'Co t? 1 n?m kinh nghi?m test web/app, hi?u bi?t v? quy trinh Agile/Scrum.',
+        N'Lam vi?c Remote t? do, cung c?p tai kho?n h?c t?p Udemy Business.',
         N'Manual Test, Testcase',
         N'Junior',
         N'Fulltime Remote',
@@ -670,9 +670,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         1,
         2,
         N'C# .NET Core Developer (Part-time)',
-        N'Hỗ trợ bảo trì, nâng cấp một số module cũ thuộc hệ thống quản trị nội bộ.',
-        N'Tối thiểu 2 năm kinh nghiệm làm việc với .NET MVC / .NET Core, SQL Server.',
-        N'Thời gian làm việc linh hoạt, trả lương theo giờ hoặc theo gói task hoàn thành.',
+        N'H? tr? b?o tri, nang c?p m?t s? module c? thu?c h? th?ng qu?n tr? n?i b?.',
+        N'T?i thi?u 2 n?m kinh nghi?m lam vi?c v?i .NET MVC / .NET Core, SQL Server.',
+        N'Th?i gian lam vi?c linh ho?t, tr? l??ng theo gi? ho?c theo goi task hoan thanh.',
         N'C#, .NET Core',
         N'Middle',
         N'Parttime',
@@ -694,9 +694,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         4,
         2,
         N'Fullstack Node/Vue Expert (Freelance)',
-        N'Chịu trách nhiệm kiến trúc lại phần API Gateway và tối ưu hóa UI/UX ứng dụng.',
-        N'Trực chiến trên 4 năm Fullstack, có sản phẩm thực tế chứng minh năng lực.',
-        N'Thù lao dự án cực kỳ hấp dẫn, làm việc độc lập không gò bó.',
+        N'Ch?u trach nhi?m ki?n truc l?i ph?n API Gateway va t?i ?u hoa UI/UX ?ng d?ng.',
+        N'Tr?c chi?n tren 4 n?m Fullstack, co s?n ph?m th?c t? ch?ng minh n?ng l?c.',
+        N'Thu lao d? an c?c k? h?p d?n, lam vi?c ??c l?p khong go bo.',
         N'NodeJS, VueJS',
         N'Senior',
         N'Freelance',
@@ -718,9 +718,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         16,
         2,
         N'Project Manager (IT PM)',
-        N'Quản lý vòng đời dự án, làm việc trực tiếp với khách hàng Nhật Bản để chốt spec.',
-        N'Tối thiểu 5 năm kinh nghiệm phần mềm, giao tiếp tiếng Nhật từ N2 trở lên.',
-        N'Thưởng quản lý, gói chăm sóc sức khỏe VIP cho cả gia đình.',
+        N'Qu?n ly vong ??i d? an, lam vi?c tr?c ti?p v?i khach hang Nh?t B?n ?? ch?t spec.',
+        N'T?i thi?u 5 n?m kinh nghi?m ph?n m?m, giao ti?p ti?ng Nh?t t? N2 tr? len.',
+        N'Th??ng qu?n ly, goi ch?m soc s?c kh?e VIP cho c? gia ?inh.',
         N'Project Management, Agile',
         N'Lead',
         N'Fulltime Onsite',
@@ -742,9 +742,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         8,
         2,
         N'DevOps Cloud Engineer',
-        N'Triển khai hạ tầng hạ tầng viễn thông sử dụng Docker, K8s trên nền tảng GCP.',
-        N'Có kinh nghiệm build CI/CD pipelines, am hiểu sâu hệ điều hành Linux.',
-        N'Lương net cạnh tranh, định hướng phát triển rõ ràng lên Architect.',
+        N'Tri?n khai h? t?ng h? t?ng vi?n thong s? d?ng Docker, K8s tren n?n t?ng GCP.',
+        N'Co kinh nghi?m build CI/CD pipelines, am hi?u sau h? ?i?u hanh Linux.',
+        N'L??ng net c?nh tranh, ??nh h??ng phat tri?n ro rang len Architect.',
         N'Docker, K8s, CI/CD',
         N'Middle',
         N'Fulltime Onsite',
@@ -766,9 +766,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         7,
         2,
         N'Flutter Mobile Developer',
-        N'Xây dựng các module giao diện người dùng cho ứng dụng đặt đồ ăn trực tuyến.',
-        N'Có trên 1 năm kinh nghiệm lập trình ứng dụng di động Flutter/Dart.',
-        N'Môi trường công nghệ hiện đại, tuần làm việc 2 ngày remote.',
+        N'Xay d?ng cac module giao di?n ng??i dung cho ?ng d?ng ??t ?? ?n tr?c tuy?n.',
+        N'Co tren 1 n?m kinh nghi?m l?p trinh ?ng d?ng di ??ng Flutter/Dart.',
+        N'Moi tr??ng cong ngh? hi?n ??i, tu?n lam vi?c 2 ngay remote.',
         N'Flutter, Dart',
         N'Junior',
         N'Hybrid',
@@ -790,9 +790,9 @@ VALUES -- 1: Intern + Fulltime Onsite
         18,
         2,
         N'Senior Data Engineer',
-        N'Xây dựng, bảo trì hạ tầng Data Warehouse, luồng xử lý ETL dữ liệu tài chính.',
-        N'Hơn 3 năm kinh nghiệm với Big Data, am hiểu sâu Hadoop, Spark, Kafka.',
-        N'Làm việc từ xa 100%, trợ cấp chi phí mua sắm ghế công thái học.',
+        N'Xay d?ng, b?o tri h? t?ng Data Warehouse, lu?ng x? ly ETL d? li?u tai chinh.',
+        N'H?n 3 n?m kinh nghi?m v?i Big Data, am hi?u sau Hadoop, Spark, Kafka.',
+        N'Lam vi?c t? xa 100%, tr? c?p chi phi mua s?m gh? cong thai h?c.',
         N'Hadoop, Spark, ETL',
         N'Senior',
         N'Fulltime Remote',
@@ -813,10 +813,10 @@ VALUES -- 1: Intern + Fulltime Onsite
         5,
         14,
         2,
-        N'Trợ lý Business Analyst (Part-time BA)',
-        N'Tham gia vẽ biểu đồ UseCase, viết tài liệu đặc tả hệ thống cùng Senior BA.',
-        N'Tư duy logic tốt, biết sử dụng công cụ Figma, Miro hoặc Visio.',
-        N'Cơ hội học hỏi quy trình chuẩn chỉnh, phù hợp làm thêm tích lũy kinh nghiệm.',
+        N'Tr? ly Business Analyst (Part-time BA)',
+        N'Tham gia v? bi?u ?? UseCase, vi?t tai li?u ??c t? h? th?ng cung Senior BA.',
+        N'T? duy logic t?t, bi?t s? d?ng cong c? Figma, Miro ho?c Visio.',
+        N'C? h?i h?c h?i quy trinh chu?n ch?nh, phu h?p lam them tich l?y kinh nghi?m.',
         N'BA, UML, Figma',
         N'Fresher',
         N'Parttime',
@@ -833,7 +833,7 @@ VALUES -- 1: Intern + Fulltime Onsite
         8
     );
 -- =============================================
--- 2. INSERT MAPPING SANG BẢNG job_tech_stack
+-- 2. INSERT MAPPING SANG B?NG job_tech_stack
 -- =============================================
 DECLARE @CurrentRow INT = 1;
 DECLARE @TotalInserted INT = (
@@ -845,7 +845,7 @@ WHILE @CurrentRow <= @TotalInserted BEGIN
 SELECT @TargetJobId = JobId
 FROM @NewInsertedJobs
 WHERE RowNumber = @CurrentRow;
--- Phân bổ tech_id ngẫu nhiên xoay vòng để tạo dữ liệu đa dạng sinh động
+-- Phan b? tech_id ng?u nhien xoay vong ?? t?o d? li?u ?a d?ng sinh ??ng
 IF @CurrentRow % 3 = 0 BEGIN
 INSERT INTO dbo.job_tech_stack(job_id, tech_id)
 VALUES (@TargetJobId, 1),
@@ -870,41 +870,41 @@ END;
 -- Map provinces for the new jobs
 DECLARE @NewJobLocations TABLE (RowNumber INT IDENTITY(1, 1), ProvinceName NVARCHAR(100));
 INSERT INTO @NewJobLocations (ProvinceName)
-VALUES (N'Hà Nội'), (N'Hồ Chí Minh'), (N'Đà Nẵng'), (N'Hà Nội'), (N'Hà Nội'),
-       (N'Hồ Chí Minh'), (N'Hồ Chí Minh'), (N'Hà Nội'), (N'Hà Nội'), (N'Hà Nội');
+VALUES (N'Ha N?i'), (N'H? Chi Minh'), (N'?a N?ng'), (N'Ha N?i'), (N'Ha N?i'),
+       (N'H? Chi Minh'), (N'H? Chi Minh'), (N'Ha N?i'), (N'Ha N?i'), (N'Ha N?i');
 INSERT INTO dbo.job_post_province (job_id, province_id)
 SELECT i.JobId, p.province_id
 FROM @NewInsertedJobs i
 JOIN @NewJobLocations jl ON i.RowNumber = jl.RowNumber
 JOIN dbo.province p ON jl.ProvinceName = p.province_name;
 GO -- =============================================
-    -- 3. INSERT MAPPING SANG BẢNG job_post_province
+    -- 3. INSERT MAPPING SANG B?NG job_post_province
     -- =============================================
 DECLARE @JobLocations TABLE (
         RowNumber INT IDENTITY(1, 1),
         ProvinceName NVARCHAR(100)
     );
 INSERT INTO @JobLocations (ProvinceName)
-VALUES (N'Hà Nội'),
-    (N'Hà Nội'),
-    (N'Hồ Chí Minh'),
-    (N'Hồ Chí Minh'),
-    (N'Hà Nội'),
-    (N'Hồ Chí Minh'),
-    (N'Hà Nội'),
-    (N'Hồ Chí Minh'),
-    (N'Hà Nội'),
-    (N'Hồ Chí Minh'),
-    (N'Hà Nội'),
-    (N'Hồ Chí Minh'),
-    (N'Hồ Chí Minh'),
-    (N'Hà Nội'),
-    (N'Hà Nội'),
-    (N'Hồ Chí Minh'),
-    (N'Hồ Chí Minh'),
-    (N'Đà Nẵng'),
-    (N'Hà Nội'),
-    (N'Hà Nội');
+VALUES (N'Ha N?i'),
+    (N'Ha N?i'),
+    (N'H? Chi Minh'),
+    (N'H? Chi Minh'),
+    (N'Ha N?i'),
+    (N'H? Chi Minh'),
+    (N'Ha N?i'),
+    (N'H? Chi Minh'),
+    (N'Ha N?i'),
+    (N'H? Chi Minh'),
+    (N'Ha N?i'),
+    (N'H? Chi Minh'),
+    (N'H? Chi Minh'),
+    (N'Ha N?i'),
+    (N'Ha N?i'),
+    (N'H? Chi Minh'),
+    (N'H? Chi Minh'),
+    (N'?a N?ng'),
+    (N'Ha N?i'),
+    (N'Ha N?i');
 INSERT INTO dbo.job_post_province (job_id, province_id)
 SELECT i.JobId,
     p.province_id
@@ -912,7 +912,7 @@ FROM @InsertedJobs i
     JOIN @JobLocations jl ON i.RowNumber = jl.RowNumber
     JOIN dbo.province p ON jl.ProvinceName = p.province_name;
 GO -- =============================================
-    -- 4. TRUY VẤN KIỂM TRA LẠI KẾT QUẢ
+    -- 4. TRUY V?N KI?M TRA L?I K?T QU?
     -- =============================================
 SELECT j.job_id,
     j.title,
@@ -930,3 +930,4 @@ WHERE j.company_id = 4
     AND j.status = 'APPROVED'
 ORDER BY j.job_id DESC;
 GO
+

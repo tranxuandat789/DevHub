@@ -31,6 +31,8 @@
             }
         }
     </script>
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
@@ -198,7 +200,54 @@
                                 </div>
                             </div>
 
-                            <a href="/Company/Search" class="flex items-center text-muted font-medium hover:text-primary transition-colors text-[16px] py-2">Danh sách công ty</a>
+                            <!-- Mega menu: Công ty IT -->
+                            <div class="relative" id="company-it-mega-menu">
+                                <button type="button" id="company-it-menu-btn"
+                                        class="flex items-center gap-1 text-muted font-medium hover:text-primary transition-colors text-[16px] py-2">
+                                    Công ty IT
+                                    <svg class="w-4 h-4 transition-transform duration-200" id="company-it-menu-caret" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <!-- Dropdown: 2 cột -->
+                                <div id="company-it-dropdown"
+                                     class="hidden absolute left-0 top-full pt-1 z-[200]"
+                                     style="min-width: 640px">
+                                    <div class="flex shadow-[0_8px_40px_rgba(0,0,0,0.15)] rounded-xl overflow-hidden border border-gray-100 bg-white">
+
+                                        <!-- Cột trái: Công ty nổi bật -->
+                                        <div class="w-56 border-r border-gray-100 py-4 flex-shrink-0 flex flex-col">
+                                            <p class="text-[11px] font-bold text-muted uppercase tracking-wider px-5 mb-2">Công ty nổi bật</p>
+                                            <div id="cit-company-list" class="space-y-0.5 flex-1">
+                                                <!-- JS render -->
+                                                <div class="px-5 py-2 text-muted text-sm">Đang tải...</div>
+                                            </div>
+                                            <div class="border-t border-gray-100 mt-2 pt-2 px-5">
+                                                <a href="/Company/Search" class="text-[13px] text-primary font-semibold hover:underline">
+                                                    Xem tất cả công ty &rarr;
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cột phải: Bài viết mới -->
+                                        <div class="flex-1 py-4 flex flex-col">
+                                            <p class="text-[11px] font-bold text-muted uppercase tracking-wider px-5 mb-2">Bài viết mới từ công ty</p>
+                                            <div id="cit-article-list" class="space-y-1 flex-1">
+                                                <!-- JS render -->
+                                                <div class="px-5 py-2 text-muted text-sm">Đang tải...</div>
+                                            </div>
+                                            <div class="border-t border-gray-100 mt-2 pt-2 px-5">
+                                                <a href="/articles" class="text-[13px] text-primary font-semibold hover:underline">
+                                                    Xem tất cả bài viết từ công ty &rarr;
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
                             <a href="/CareerHandbook" class="flex items-center text-muted font-medium hover:text-primary transition-colors text-[16px] py-2">Cẩm nang nghề nghiệp</a>
                         }
 
@@ -210,53 +259,25 @@
                 {
                     <div class="hidden md:flex items-center space-x-6">
                         <!-- Notification Bell Dropdown -->
-                        <div class="relative group">
-                            <button class="text-muted hover:text-primary transition-colors relative">
+                        <div class="relative group" id="notification-bell-container">
+                            <button class="text-muted hover:text-primary transition-colors relative" id="notification-bell">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-white">3</span>
+                                <span id="notification-badge" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-white hidden">0</span>
                             </button>
                             <!-- Notification Dropdown -->
                             <div class="absolute top-full right-0 pt-2 w-80 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                                 <div class="bg-white border border-[#D6DDEB] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] overflow-hidden">
                                     <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
                                         <span class="font-bold text-dark text-[15px]">Thông báo</span>
-                                        <span class="text-xs text-primary font-medium">3 thông báo mới</span>
+                                        <button id="mark-all-read-btn" class="text-xs text-primary font-medium hover:underline">Đánh dấu tất cả đã đọc</button>
                                     </div>
-                                    @{ var notifBase = isEmployer ? "/recruiter/notifications" : "/candidate/notifications"; }
-                                    <a href="@notifBase/details/1" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                        <div class="w-9 h-9 bg-[#EEF2FF] rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[13px] font-semibold text-dark">Đơn ứng tuyển được xem xét</p>
-                                            <p class="text-[12px] text-muted mt-0.5 line-clamp-1">FPT Software đã xem hồ sơ của bạn</p>
-                                            <p class="text-[11px] text-gray-400 mt-1">2 giờ trước</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>
-                                    </a>
-                                    <a href="@notifBase/details/2" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                        <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[13px] font-semibold text-dark">Lịch phỏng vấn đã xác nhận</p>
-                                            <p class="text-[12px] text-muted mt-0.5 line-clamp-1">Phỏng vấn với VNG Corporation</p>
-                                            <p class="text-[11px] text-gray-400 mt-1">5 giờ trước</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1.5"></div>
-                                    </a>
-                                    <a href="@notifBase/details/3" class="flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-                                        <div class="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-[13px] font-semibold text-dark">Việc làm phù hợp mới</p>
-                                            <p class="text-[12px] text-muted mt-0.5 line-clamp-1">3 công việc mới phù hợp với bạn</p>
-                                            <p class="text-[11px] text-gray-400 mt-1">1 ngày trước</p>
-                                        </div>
-                                        <div class="w-2 h-2 bg-orange-400 rounded-full flex-shrink-0 mt-1.5"></div>
-                                    </a>
+                                    
+                                    <div id="notification-list" class="max-h-[320px] overflow-y-auto">
+                                        <div class="px-4 py-8 text-center text-sm text-gray-500">Đang tải...</div>
+                                    </div>
+                                    
                                     <div class="border-t border-gray-100 px-4 py-2.5 text-center">
+                                        @{ var notifBase = isEmployer ? "/recruiter/notifications" : "/candidate/notifications"; }
                                         <a href="@notifBase" class="text-primary text-[13px] font-bold hover:underline">Xem tất cả thông báo</a>
                                     </div>
                                 </div>
@@ -574,11 +595,105 @@
         }
     })();
     </script>
+    <script>
+    // ── Dropdown "Công ty IT" ──────────────────────────────────────────────
+    (() => {
+        const btn      = document.getElementById('company-it-menu-btn');
+        const dropdown = document.getElementById('company-it-dropdown');
+        const caret    = document.getElementById('company-it-menu-caret');
+        if (!btn || !dropdown) return;
+
+        let loaded = false;
+
+        function open() {
+            dropdown.classList.remove('hidden');
+            caret.style.transform = 'rotate(180deg)';
+            if (!loaded) loadData();
+        }
+        function close() {
+            dropdown.classList.add('hidden');
+            caret.style.transform = '';
+        }
+
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            dropdown.classList.contains('hidden') ? open() : close();
+        });
+        document.addEventListener('click', e => {
+            if (!document.getElementById('company-it-mega-menu').contains(e.target)) close();
+        });
+
+        function timeAgo(dateStr) {
+            if (!dateStr) return '';
+            const diff = Math.floor((Date.now() - new Date(dateStr)) / 60000);
+            if (diff < 60)   return diff + ' phút trước';
+            if (diff < 1440) return Math.floor(diff / 60) + ' giờ trước';
+            return Math.floor(diff / 1440) + ' ngày trước';
+        }
+
+        function loadData() {
+            fetch('/Company/NavData')
+                .then(r => r.json())
+                .then(data => {
+                    loaded = true;
+                    renderCompanies(data.topCompanies);
+                    renderArticles(data.recentArticles);
+                })
+                .catch(() => {});
+        }
+
+        function renderCompanies(companies) {
+            const el = document.getElementById('cit-company-list');
+            if (!el || !companies) return;
+            el.innerHTML = companies.map(c => {
+                const logo = c.logoUrl
+                    ? `<img src="${c.logoUrl}" class="w-7 h-7 rounded object-contain flex-shrink-0 border border-gray-100" />`
+                    : `<span class="w-7 h-7 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px] flex-shrink-0">${(c.companyName||'?')[0]}</span>`;
+                return `<a href="/Company/Detail/${c.companyId}"
+                            class="flex items-center gap-2.5 px-5 py-2 hover:bg-primary/5 hover:text-primary transition-colors group">
+                            ${logo}
+                            <span class="flex-1 min-w-0">
+                                <span class="block text-[13px] font-semibold text-dark group-hover:text-primary truncate">${c.companyName}</span>
+                                <span class="block text-[11px] text-muted">${c.articleCount} bài viết</span>
+                            </span>
+                        </a>`;
+            }).join('');
+        }
+
+        function renderArticles(articles) {
+            const el = document.getElementById('cit-article-list');
+            if (!el || !articles) return;
+            el.innerHTML = articles.map(a => {
+                const thumb = a.thumbnailUrl
+                    ? `<img src="${a.thumbnailUrl}" class="w-14 h-10 rounded-lg object-cover flex-shrink-0" />`
+                    : `<div class="w-14 h-10 rounded-lg bg-gradient-to-br from-[#EEF2FF] to-[#E0E7FF] flex-shrink-0"></div>`;
+                return `<a href="/articles/${a.articleId}"
+                            class="flex items-start gap-3 px-5 py-2 hover:bg-primary/5 transition-colors group">
+                            ${thumb}
+                            <div class="min-w-0">
+                                <p class="text-[13px] font-semibold text-dark group-hover:text-primary line-clamp-2 leading-snug">${a.title||''}</p>
+                                <p class="text-[11px] text-muted mt-0.5">${a.companyName||''} • ${timeAgo(a.approvedAt)}</p>
+                            </div>
+                        </a>`;
+            }).join('');
+        }
+    })();
+    </script>
 
 </body>
 </html>
 
-
+@if (isLoggedIn)
+{
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        window.DevHub = window.DevHub || {};
+        window.DevHub.isEmployer = @(isEmployer.ToString().ToLower());
+    </script>
+    <script src="~/js/notifications.js"></script>
+}
 
 
 

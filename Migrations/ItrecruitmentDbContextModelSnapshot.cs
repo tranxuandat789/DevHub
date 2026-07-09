@@ -117,9 +117,6 @@ namespace DevHub.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ArticleId"));
 
-                    b.Property<int?>("AdminId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("ApprovedAt")
                         .HasColumnType("datetime")
                         .HasColumnName("approved_at");
@@ -177,8 +174,6 @@ namespace DevHub.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.HasKey("ArticleId");
-
-                    b.HasIndex("AdminId");
 
                     b.HasIndex("ApproverId");
 
@@ -256,6 +251,11 @@ namespace DevHub.Migrations
                         .HasColumnName("blog_id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BlogId"));
+
+                    b.Property<string>("AuthorName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("author_name");
 
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)")
@@ -841,6 +841,11 @@ namespace DevHub.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("InterviewType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("interview_type");
 
                     b.Property<string>("Location")
                         .HasMaxLength(255)
@@ -1679,12 +1684,8 @@ namespace DevHub.Migrations
 
             modelBuilder.Entity("DevHub.Models.Article", b =>
                 {
-                    b.HasOne("DevHub.Models.Admin", null)
-                        .WithMany("Articles")
-                        .HasForeignKey("AdminId");
-
                     b.HasOne("DevHub.Models.Admin", "Approver")
-                        .WithMany()
+                        .WithMany("Articles")
                         .HasForeignKey("ApproverId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("FK__article__approver");

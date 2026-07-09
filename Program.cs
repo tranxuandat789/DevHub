@@ -21,6 +21,7 @@ DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR(); // Add SignalR
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -246,6 +247,7 @@ builder.Services.AddHostedService<JobPostAutoCloseService>();
 
 var app = builder.Build();
 
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -272,6 +274,8 @@ app.UseRouting();
 app.UseSession();           // ← phải trước Authentication
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<DevHub.Hubs.NotificationHub>("/notificationHub");
 
 app.MapControllerRoute(
     name: "default",

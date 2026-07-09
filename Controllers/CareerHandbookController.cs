@@ -33,7 +33,7 @@ namespace DevHub.Controllers
             if (!string.IsNullOrWhiteSpace(tag))
             {
                 tag = tag.Trim();
-                query = query.Where(b => b.Tag.Contains(tag));
+                query = query.Where(b => b.Tag != null && b.Tag.Contains(tag));
             }
 
             query = query.OrderByDescending(b => b.PublishedAt ?? b.CreatedAt);

@@ -1,13 +1,13 @@
-﻿-- =============================================
+-- =============================================
 -- SAMPLE DATA FOR OPTIMIZED DATABASE
 -- =============================================
-USE DevHub;
+USE ITRecruitmentDB;
 GO
 SET NOCOUNT ON;
 -- =============================================
 -- 1. INSERT MASTER DATA 
 -- =============================================
--- 1.1 Danh mục Vị trí công việc (common_job_position)
+-- 1.1 Danh m?c V? tri cong vi?c (common_job_position)
 SET IDENTITY_INSERT dbo.common_job_position ON;
 INSERT INTO dbo.common_job_position (position_id, position_name, is_active)
 VALUES (1, N'Senior Backend Developer', 1),
@@ -31,7 +31,7 @@ VALUES (1, N'Senior Backend Developer', 1),
     (19, N'Machine Learning Engineer', 1),
     (20, N'UI/UX Designer', 1);
 SET IDENTITY_INSERT dbo.common_job_position OFF;
--- 1.2 Danh mục Công nghệ (common_technology)
+-- 1.2 Danh m?c Cong ngh? (common_technology)
 SET IDENTITY_INSERT dbo.common_technology ON;
 INSERT INTO dbo.common_technology (tech_id, tech_name, category, is_active)
 VALUES (1, N'Java', 'Backend', 1),
@@ -69,81 +69,81 @@ VALUES (1, N'Java', 'Backend', 1),
     (33, N'Cyber Security', 'Security', 1),
     (34, N'OOP', 'Basic', 1);
 SET IDENTITY_INSERT dbo.common_technology OFF;
--- 1.3 Danh mục Tỉnh thành (province)
+-- 1.3 Danh m?c T?nh thanh (province)
 ;
 WITH seed(province_name) AS (
     SELECT v
     FROM (
-            VALUES (N'Hà Nội'),
-                (N'Hồ Chí Minh'),
-                (N'Hải Phòng'),
-                (N'Đà Nẵng'),
-                (N'Cần Thơ'),
+            VALUES (N'Ha N?i'),
+                (N'H? Chi Minh'),
+                (N'H?i Phong'),
+                (N'?a N?ng'),
+                (N'C?n Th?'),
                 (N'An Giang'),
-                (N'Bà Rịa - Vũng Tàu'),
-                (N'Bắc Giang'),
-                (N'Bắc Kạn'),
-                (N'Bạc Liêu'),
-                (N'Bắc Ninh'),
-                (N'Bến Tre'),
-                (N'Bình Định'),
-                (N'Bình Dương'),
-                (N'Bình Phước'),
-                (N'Bình Thuận'),
-                (N'Cà Mau'),
-                (N'Cao Bằng'),
-                (N'Đắk Lắk'),
-                (N'Đắk Nông'),
-                (N'Điện Biên'),
-                (N'Đồng Nai'),
-                (N'Đồng Tháp'),
+                (N'Ba R?a - V?ng Tau'),
+                (N'B?c Giang'),
+                (N'B?c K?n'),
+                (N'B?c Lieu'),
+                (N'B?c Ninh'),
+                (N'B?n Tre'),
+                (N'Binh ??nh'),
+                (N'Binh D??ng'),
+                (N'Binh Ph??c'),
+                (N'Binh Thu?n'),
+                (N'Ca Mau'),
+                (N'Cao B?ng'),
+                (N'??k L?k'),
+                (N'??k Nong'),
+                (N'?i?n Bien'),
+                (N'??ng Nai'),
+                (N'??ng Thap'),
                 (N'Gia Lai'),
-                (N'Hà Giang'),
-                (N'Hà Nam'),
-                (N'Hà Tĩnh'),
-                (N'Hải Dương'),
-                (N'Hậu Giang'),
-                (N'Hòa Bình'),
-                (N'Hưng Yên'),
-                (N'Khánh Hòa'),
-                (N'Kiên Giang'),
+                (N'Ha Giang'),
+                (N'Ha Nam'),
+                (N'Ha T?nh'),
+                (N'H?i D??ng'),
+                (N'H?u Giang'),
+                (N'Hoa Binh'),
+                (N'H?ng Yen'),
+                (N'Khanh Hoa'),
+                (N'Kien Giang'),
                 (N'Kon Tum'),
-                (N'Lai Châu'),
-                (N'Lâm Đồng'),
-                (N'Lạng Sơn'),
-                (N'Lào Cai'),
+                (N'Lai Chau'),
+                (N'Lam ??ng'),
+                (N'L?ng S?n'),
+                (N'Lao Cai'),
                 (N'Long An'),
-                (N'Nam Định'),
-                (N'Nghệ An'),
-                (N'Ninh Bình'),
-                (N'Ninh Thuận'),
-                (N'Phú Thọ'),
-                (N'Phú Yên'),
-                (N'Quảng Bình'),
-                (N'Quảng Nam'),
-                (N'Quảng Ngãi'),
-                (N'Quảng Ninh'),
-                (N'Quảng Trị'),
-                (N'Sóc Trăng'),
-                (N'Sơn La'),
-                (N'Tây Ninh'),
-                (N'Thái Bình'),
-                (N'Thái Nguyên'),
-                (N'Thanh Hóa'),
-                (N'Thừa Thiên Huế'),
-                (N'Tiền Giang'),
-                (N'Trà Vinh'),
-                (N'Tuyên Quang'),
-                (N'Vĩnh Long'),
-                (N'Vĩnh Phúc'),
-                (N'Yên Bái')
+                (N'Nam ??nh'),
+                (N'Ngh? An'),
+                (N'Ninh Binh'),
+                (N'Ninh Thu?n'),
+                (N'Phu Th?'),
+                (N'Phu Yen'),
+                (N'Qu?ng Binh'),
+                (N'Qu?ng Nam'),
+                (N'Qu?ng Ngai'),
+                (N'Qu?ng Ninh'),
+                (N'Qu?ng Tr?'),
+                (N'Soc Tr?ng'),
+                (N'S?n La'),
+                (N'Tay Ninh'),
+                (N'Thai Binh'),
+                (N'Thai Nguyen'),
+                (N'Thanh Hoa'),
+                (N'Th?a Thien Hu?'),
+                (N'Ti?n Giang'),
+                (N'Tra Vinh'),
+                (N'Tuyen Quang'),
+                (N'V?nh Long'),
+                (N'V?nh Phuc'),
+                (N'Yen Bai')
         ) AS t(v)
 )
 INSERT INTO dbo.province (province_name)
 SELECT s.province_name
 FROM seed s;
 -- =============================================
--- 2. USER ACCOUNT (Sử dụng Filtered Index cho Google_id NULL)
+-- 2. USER ACCOUNT (S? d?ng Filtered Index cho Google_id NULL)
 -- =============================================
 SET IDENTITY_INSERT user_account ON;
 INSERT INTO user_account (
@@ -396,168 +396,168 @@ INSERT INTO dbo.candidate (
     )
 VALUES (
         1,
-        N'Phan Tuấn Anh',
+        N'Phan Tu?n Anh',
         N'Nam',
         '2005-05-12',
         '0987654321',
-        N'Hà Nội',
+        N'Ha N?i',
         12000000,
         18000000,
-        N'Hà Nội',
+        N'Ha N?i',
         3,
         85,
         1
     ),
     (
         2,
-        N'Trần Thị Bích',
-        N'Nữ',
+        N'Tr?n Th? Bich',
+        N'N?',
         '1999-08-20',
         '0978123456',
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         10000000,
         16000000,
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         2,
         75,
         1
     ),
     (
         3,
-        N'Lê Văn Cường',
+        N'Le V?n C??ng',
         N'Nam',
         '1997-03-15',
         '0967123456',
-        N'Đà Nẵng',
+        N'?a N?ng',
         15000000,
         22000000,
-        N'Đà Nẵng',
+        N'?a N?ng',
         5,
         90,
         1
     ),
     (
         9,
-        N'Phạm Văn Đức',
+        N'Ph?m V?n ??c',
         N'Nam',
         '1998-11-05',
         '0934567890',
-        N'Hà Nội',
+        N'Ha N?i',
         15000000,
         23000000,
-        N'Hà Nội',
+        N'Ha N?i',
         4,
         80,
         1
     ),
     (
         10,
-        N'Hoàng Thị Lan',
-        N'Nữ',
+        N'Hoang Th? Lan',
+        N'N?',
         '2000-02-14',
         '0945678901',
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         9000000,
         14000000,
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         1,
         70,
         1
     ),
     (
         11,
-        N'Nguyễn Thị Thu',
-        N'Nữ',
+        N'Nguy?n Th? Thu',
+        N'N?',
         '1998-07-22',
         '0956789012',
-        N'Đà Nẵng',
+        N'?a N?ng',
         11000000,
         17000000,
-        N'Đà Nẵng',
+        N'?a N?ng',
         3,
         78,
         1
     ),
     (
         12,
-        N'Đỗ Văn Hải',
+        N'?? V?n H?i',
         N'Nam',
         '2001-09-10',
         '0967890123',
-        N'Hà Nội',
+        N'Ha N?i',
         18000000,
         26000000,
-        N'Hà Nội',
+        N'Ha N?i',
         6,
         92,
         1
     ),
     (
         13,
-        N'Bùi Trung Kiên',
+        N'Bui Trung Kien',
         N'Nam',
         '2000-04-18',
         '0978901234',
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         13000000,
         20000000,
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         2,
         65,
         1
     ),
     (
         14,
-        N'Vũ Thị Kim Anh',
-        N'Nữ',
+        N'V? Th? Kim Anh',
+        N'N?',
         '1999-12-30',
         '0989012345',
-        N'Hà Nội',
+        N'Ha N?i',
         12000000,
         19000000,
-        N'Hà Nội',
+        N'Ha N?i',
         3,
         82,
         1
     ),
     (
         15,
-        N'Lê Minh Hoàng',
+        N'Le Minh Hoang',
         N'Nam',
         '1998-06-25',
         '0990123456',
-        N'Đà Nẵng',
+        N'?a N?ng',
         14000000,
         21000000,
-        N'Đà Nẵng',
+        N'?a N?ng',
         4,
         88,
         1
     ),
     (
         16,
-        N'Trần Khắc Tùng',
+        N'Tr?n Kh?c Tung',
         N'Nam',
         '1997-01-08',
         '0911234567',
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         16000000,
         24000000,
-        N'Hồ Chí Minh',
+        N'H? Chi Minh',
         5,
         85,
         1
     ),
     (
         17,
-        N'Đặng Quốc Huy',
+        N'??ng Qu?c Huy',
         N'Nam',
         '1999-10-15',
         '0922345678',
-        N'Hà Nội',
+        N'Ha N?i',
         10000000,
         15500000,
-        N'Hà Nội',
+        N'Ha N?i',
         2,
         72,
         1
@@ -582,10 +582,10 @@ INSERT INTO dbo.company (
 VALUES (
         4,
         N'FPT Software',
-        N'Hà Nội',
-        N'FPT Software là công ty công nghệ hàng đầu Việt Nam',
+        N'Ha N?i',
+        N'FPT Software la cong ty cong ngh? hang ??u Vi?t Nam',
         'https://fptsoftware.com',
-        N'Phần mềm',
+        N'Ph?n m?m',
         '0101234567',
         4.1,
         45000000,
@@ -595,8 +595,8 @@ VALUES (
     (
         5,
         N'Viettel Group',
-        N'Hà Nội',
-        N'Tập đoàn Công nghiệp - Viễn thông Quân đội',
+        N'Ha N?i',
+        N'T?p ?oan Cong nghi?p - Vi?n thong Quan ??i',
         'https://viettel.com.vn',
         N'Telecom & IT',
         '0107654321',
@@ -608,10 +608,10 @@ VALUES (
     (
         6,
         N'Techcombank',
-        N'Hồ Chí Minh',
-        N'Ngân hàng TMCP Kỹ Thương Việt Nam',
+        N'H? Chi Minh',
+        N'Ngan hang TMCP K? Th??ng Vi?t Nam',
         'https://techcombank.com',
-        N'Ngân hàng',
+        N'Ngan hang',
         '0109876543',
         3.8,
         35000000,
@@ -621,8 +621,8 @@ VALUES (
     (
         18,
         N'VNG Corporation',
-        N'Hồ Chí Minh',
-        N'Công ty công nghệ hàng đầu với Zalo, ZaloPay...',
+        N'H? Chi Minh',
+        N'Cong ty cong ngh? hang ??u v?i Zalo, ZaloPay...',
         'https://vng.com.vn',
         N'Internet & Game',
         '0101112223',
@@ -634,8 +634,8 @@ VALUES (
     (
         19,
         N'VinGroup',
-        N'Hà Nội',
-        N'Tập đoàn công nghệ - ô tô - bất động sản',
+        N'Ha N?i',
+        N'T?p ?oan cong ngh? - o to - b?t ??ng s?n',
         'https://vingroup.net',
         N'Multi-industry',
         '0102223334',
@@ -647,10 +647,10 @@ VALUES (
     (
         20,
         N'NashTech',
-        N'Hồ Chí Minh',
-        N'Công ty outsourcing phần mềm toàn cầu',
+        N'H? Chi Minh',
+        N'Cong ty outsourcing ph?n m?m toan c?u',
         'https://nashtechglobal.com',
-        N'Phần mềm',
+        N'Ph?n m?m',
         '0103334445',
         3.7,
         95000000,
@@ -660,10 +660,10 @@ VALUES (
     (
         21,
         N'CMC Corporation',
-        N'Hà Nội',
-        N'Tập đoàn công nghệ CMC',
+        N'Ha N?i',
+        N'T?p ?oan cong ngh? CMC',
         'https://cmc.com.vn',
-        N'Phần mềm & Dịch vụ IT',
+        N'Ph?n m?m & D?ch v? IT',
         '0104445556',
         3.7,
         120000000,
@@ -673,10 +673,10 @@ VALUES (
     (
         22,
         N'Bosch Vietnam',
-        N'Hồ Chí Minh',
-        N'Công ty công nghệ Đức tại Việt Nam',
+        N'H? Chi Minh',
+        N'Cong ty cong ngh? ??c t?i Vi?t Nam',
         'https://bosch.com.vn',
-        N'Ô tô & Công nghệ',
+        N'O to & Cong ngh?',
         '0105556667',
         4.0,
         80000000,
@@ -694,7 +694,7 @@ INSERT INTO dbo.recruiter (
     )
 VALUES (
         4,
-        N'Phạm Thị Hương',
+        N'Ph?m Th? H??ng',
         N'HR Manager',
         '0901234567',
         4,
@@ -702,7 +702,7 @@ VALUES (
     ),
     (
         5,
-        N'Trần Minh Quân',
+        N'Tr?n Minh Quan',
         N'Talent Acquisition Lead',
         '0912345678',
         5,
@@ -710,7 +710,7 @@ VALUES (
     ),
     (
         6,
-        N'Lê Thị Ngọc Anh',
+        N'Le Th? Ng?c Anh',
         N'HR Specialist',
         '0923456789',
         6,
@@ -718,7 +718,7 @@ VALUES (
     ),
     (
         18,
-        N'Nguyễn Thị Mai',
+        N'Nguy?n Th? Mai',
         N'HR Director',
         '0933456789',
         18,
@@ -726,7 +726,7 @@ VALUES (
     ),
     (
         19,
-        N'Trần Hoàng Nam',
+        N'Tr?n Hoang Nam',
         N'Talent Manager',
         '0944567890',
         19,
@@ -734,7 +734,7 @@ VALUES (
     ),
     (
         20,
-        N'Lê Thị Thanh',
+        N'Le Th? Thanh',
         N'HR Manager',
         '0955678901',
         20,
@@ -742,7 +742,7 @@ VALUES (
     ),
     (
         21,
-        N'Phạm Minh Châu',
+        N'Ph?m Minh Chau',
         N'Recruitment Lead',
         '0966789012',
         21,
@@ -750,7 +750,7 @@ VALUES (
     ),
     (
         22,
-        N'Đỗ Thị Huyền',
+        N'?? Th? Huy?n',
         N'HR Specialist',
         '0977890123',
         22,
@@ -763,13 +763,13 @@ INSERT INTO dbo.admin (admin_id, username, full_name, role)
 VALUES (
         7,
         'admin_system',
-        N'Nguyễn Văn Trưởng',
+        N'Nguy?n V?n Tr??ng',
         'ADMIN'
     ),
     (
         8,
         'moderator_01',
-        N'Trần Trung Thực',
+        N'Tr?n Trung Th?c',
         'MODERATOR'
     );
 -- =============================================
@@ -827,60 +827,60 @@ INSERT INTO dbo.service_package (
     )
 VALUES (
         1,
-        N'Lẻ',
-        N'Đăng bài lẻ',
+        N'L?',
+        N'??ng bai l?',
         10000,
         10,
         1,
         NULL,
         0,
         0,
-        N'Đăng 1 bài tuyển dụng',
+        N'??ng 1 bai tuy?n d?ng',
         1
     ),
     (
         2,
-        N'Đồng',
-        N'Gói Đồng',
+        N'??ng',
+        N'Goi ??ng',
         40000,
         40,
         5,
         30,
         1,
         0,
-        N'5 bài / 1 tháng',
+        N'5 bai / 1 thang',
         1
     ),
     (
         3,
-        N'Bạc',
-        N'Gói Bạc',
+        N'B?c',
+        N'Goi B?c',
         120000,
         120,
         20,
         90,
         2,
         0,
-        N'20 bài / 3 tháng, đẩy bài',
+        N'20 bai / 3 thang, ??y bai',
         1
     ),
     (
         4,
-        N'Vàng',
-        N'Gói Vàng',
+        N'Vang',
+        N'Goi Vang',
         200000,
         200,
         50,
         180,
         3,
         1,
-        N'50 bài / 6 tháng + AI Chatbot tư vấn',
+        N'50 bai / 6 thang + AI Chatbot t? v?n',
         1
     );
 SET IDENTITY_INSERT dbo.service_package OFF;
 -- =============================================
--- [BỔ SUNG MỚI] 7.1 MUA GÓI (package_transaction)
--- Bắt buộc phải có giao dịch mua gói thành công để tạo lịch sử gói
+-- [B? SUNG M?I] 7.1 MUA GOI (package_transaction)
+-- B?t bu?c ph?i co giao d?ch mua goi thanh cong ?? t?o l?ch s? goi
 -- =============================================
 SET IDENTITY_INSERT dbo.package_transaction ON;
 INSERT INTO dbo.package_transaction (
@@ -907,7 +907,7 @@ VALUES (
         GETDATE(),
         GETDATE()
     ),
-    -- HR FPT mua gói Bạc
+    -- HR FPT mua goi B?c
     (
         2,
         5,
@@ -920,11 +920,11 @@ VALUES (
         GETDATE(),
         GETDATE()
     );
--- HR Viettel mua gói Vàng
+-- HR Viettel mua goi Vang
 SET IDENTITY_INSERT dbo.package_transaction OFF;
 -- =============================================
--- [BỔ SUNG MỚI] 7.2 LỊCH SỬ KÍCH HOẠT GÓI (recruiter_package_history)
--- Điểm trừ bài đăng mẫu sẽ dựa trên ID lịch sử gói này
+-- [B? SUNG M?I] 7.2 L?CH S? KICH HO?T GOI (recruiter_package_history)
+-- ?i?m tr? bai ??ng m?u s? d?a tren ID l?ch s? goi nay
 -- =============================================
 SET IDENTITY_INSERT dbo.company_package_history ON;
 INSERT INTO dbo.company_package_history (
@@ -953,7 +953,7 @@ VALUES (
         DATEADD(day, 90, GETDATE()),
         120000
     ),
-    -- Kích hoạt gói Bạc cho FPT (id=1)
+    -- Kich ho?t goi B?c cho FPT (id=1)
     (
         2,
         5,
@@ -967,7 +967,7 @@ VALUES (
         DATEADD(day, 180, GETDATE()),
         200000
     );
--- Kích hoạt gói Vàng cho Viettel (id=2)
+-- Kich ho?t goi Vang cho Viettel (id=2)
 SET IDENTITY_INSERT dbo.company_package_history OFF;
 -- =============================================
 -- 8. JOB POST (Da dang Working Model + Experience Level)
@@ -1003,9 +1003,9 @@ VALUES (
         18000000,
         28000000,
         N'Senior',
-        N'Tham gia phát triển các dự án lớn cho khách hàng nước ngoài tại FPT Software.',
-        N'4+ năm kinh nghiệm Java Spring Boot, hiểu biết về Microservices',
-        N'Thưởng dự án, bảo hiểm sức khỏe cao cấp, du lịch hàng năm',
+        N'Tham gia phat tri?n cac d? an l?n cho khach hang n??c ngoai t?i FPT Software.',
+        N'4+ n?m kinh nghi?m Java Spring Boot, hi?u bi?t v? Microservices',
+        N'Th??ng d? an, b?o hi?m s?c kh?e cao c?p, du l?ch hang n?m',
         '2026-07-30',
         'APPROVED',
         85,
@@ -1022,9 +1022,9 @@ VALUES (
         13000000,
         21000000,
         N'Mid',
-        N'Làm việc trên các sản phẩm công nghệ cao của Viettel.',
-        N'2+ năm kinh nghiệm ReactJS và TypeScript, hiểu biết về Redux',
-        N'Môi trường năng động, phúc lợi tốt, đào tạo định kỳ',
+        N'Lam vi?c tren cac s?n ph?m cong ngh? cao c?a Viettel.',
+        N'2+ n?m kinh nghi?m ReactJS va TypeScript, hi?u bi?t v? Redux',
+        N'Moi tr??ng n?ng ??ng, phuc l?i t?t, ?ao t?o ??nh k?',
         '2026-06-20',
         'APPROVED',
         70,
@@ -1041,9 +1041,9 @@ VALUES (
         4000000,
         6000000,
         N'Intern',
-        N'Cơ hội thực tập tại VNG, học hỏi từ đội ngũ kỹ sư giàu kinh nghiệm.',
-        N'Sinh viên năm 3-4 CNTT, biết cơ bản C# hoặc .NET, chăm chỉ học hỏi',
-        N'Phụ cấp ăn trưa, mentoring từ senior, cơ hội chuyển chính thức',
+        N'C? h?i th?c t?p t?i VNG, h?c h?i t? ??i ng? k? s? giau kinh nghi?m.',
+        N'Sinh vien n?m 3-4 CNTT, bi?t c? b?n C# ho?c .NET, ch?m ch? h?c h?i',
+        N'Ph? c?p ?n tr?a, mentoring t? senior, c? h?i chuy?n chinh th?c',
         '2026-07-15',
         'APPROVED',
         60,
@@ -1060,9 +1060,9 @@ VALUES (
         7000000,
         12000000,
         N'Fresher',
-        N'Gia nhập đội ngũ phát triển web tại VinGroup.',
-        N'Tốt nghiệp đại học CNTT, biết HTML/CSS/JS cơ bản, ham học hỏi',
-        N'Lương cạnh tranh, bảo hiểm đầy đủ, môi trường hiện đại',
+        N'Gia nh?p ??i ng? phat tri?n web t?i VinGroup.',
+        N'T?t nghi?p ??i h?c CNTT, bi?t HTML/CSS/JS c? b?n, ham h?c h?i',
+        N'L??ng c?nh tranh, b?o hi?m ??y ??, moi tr??ng hi?n ??i',
         '2026-08-01',
         'APPROVED',
         55,
@@ -1079,9 +1079,9 @@ VALUES (
         10000000,
         15000000,
         N'Junior',
-        N'Phát triển các API backend cho hệ thống thương mại điện tử tại NashTech.',
-        N'1+ năm kinh nghiệm Python, biết Django hoặc FastAPI, hiểu REST API',
-        N'Làm việc từ xa 100%, thiết bị hỗ trợ, team quốc tế',
+        N'Phat tri?n cac API backend cho h? th?ng th??ng m?i ?i?n t? t?i NashTech.',
+        N'1+ n?m kinh nghi?m Python, bi?t Django ho?c FastAPI, hi?u REST API',
+        N'Lam vi?c t? xa 100%, thi?t b? h? tr?, team qu?c t?',
         '2026-07-20',
         'APPROVED',
         65,
@@ -1098,9 +1098,9 @@ VALUES (
         25000000,
         40000000,
         N'Senior',
-        N'Xây dựng và vận hành hạ tầng CI/CD cho hệ thống quy mô lớn tại CMC.',
-        N'3+ năm DevOps, thành thạo Docker/K8s, kinh nghiệm AWS hoặc Azure',
-        N'Phúc lợi cao cấp, cổ phần công ty, đào tạo chứng chỉ cloud',
+        N'Xay d?ng va v?n hanh h? t?ng CI/CD cho h? th?ng quy mo l?n t?i CMC.',
+        N'3+ n?m DevOps, thanh th?o Docker/K8s, kinh nghi?m AWS ho?c Azure',
+        N'Phuc l?i cao c?p, c? ph?n cong ty, ?ao t?o ch?ng ch? cloud',
         '2026-08-10',
         'APPROVED',
         80,
@@ -1117,9 +1117,9 @@ VALUES (
         14000000,
         22000000,
         N'Mid',
-        N'Phát triển ứng dụng mobile đa nền tảng cho khách hàng Bosch Vietnam.',
-        N'2+ năm Flutter, biết Dart, kinh nghiệm tích hợp Firebase',
-        N'Remote toàn thời gian, team quốc tế, thưởng hiệu quả dự án',
+        N'Phat tri?n ?ng d?ng mobile ?a n?n t?ng cho khach hang Bosch Vietnam.',
+        N'2+ n?m Flutter, bi?t Dart, kinh nghi?m tich h?p Firebase',
+        N'Remote toan th?i gian, team qu?c t?, th??ng hi?u qu? d? an',
         '2026-07-25',
         'APPROVED',
         72,
@@ -1136,9 +1136,9 @@ VALUES (
         12000000,
         18000000,
         N'Junior',
-        N'Kiểm thử tự động cho các hệ thống phần mềm lớn tại FPT Software.',
-        N'1+ năm automation testing, biết Selenium, Python hoặc Java, hiểu Agile',
-        N'Học 50 chứng chỉ ISTQB, môi trường chuyên nghiệp, thăng tiến nhanh',
+        N'Ki?m th? t? ??ng cho cac h? th?ng ph?n m?m l?n t?i FPT Software.',
+        N'1+ n?m automation testing, bi?t Selenium, Python ho?c Java, hi?u Agile',
+        N'H?c 50 ch?ng ch? ISTQB, moi tr??ng chuyen nghi?p, th?ng ti?n nhanh',
         '2026-07-10',
         'APPROVED',
         58,
@@ -1155,9 +1155,9 @@ VALUES (
         30000000,
         50000000,
         N'Manager',
-        N'Quản lý dự án công nghệ quy mô lớn tại Viettel Group.',
-        N'5+ năm quản lý dự án IT, chứng chỉ PMP hoặc PMI, tiếng Anh tốt',
-        N'Thu nhập cạnh tranh, xe công ty, bảo hiểm cao cấp, cổ phần',
+        N'Qu?n ly d? an cong ngh? quy mo l?n t?i Viettel Group.',
+        N'5+ n?m qu?n ly d? an IT, ch?ng ch? PMP ho?c PMI, ti?ng Anh t?t',
+        N'Thu nh?p c?nh tranh, xe cong ty, b?o hi?m cao c?p, c? ph?n',
         '2026-08-15',
         'APPROVED',
         90,
@@ -1174,9 +1174,9 @@ VALUES (
         20000000,
         32000000,
         N'Senior',
-        N'Xây dựng pipeline dữ liệu lớn phục vụ phân tích kinh doanh tại VNG.',
-        N'3+ năm Data Engineering, thành thạo Spark/Hadoop, biết SQL nâng cao',
-        N'Môi trường dữ liệu thú vị, lương cao, đãi ngộ top đầu thị trường',
+        N'Xay d?ng pipeline d? li?u l?n ph?c v? phan tich kinh doanh t?i VNG.',
+        N'3+ n?m Data Engineering, thanh th?o Spark/Hadoop, bi?t SQL nang cao',
+        N'Moi tr??ng d? li?u thu v?, l??ng cao, ?ai ng? top ??u th? tr??ng',
         '2026-07-28',
         'APPROVED',
         78,
@@ -1242,4 +1242,5 @@ PRINT 'SUCCESS: Seed data completed cleanly!';
 PRINT 'Default Account Password for testing: Ab@123456';
 PRINT '=============================================';
 GO
+
 

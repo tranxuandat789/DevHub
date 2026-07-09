@@ -1,0 +1,287 @@
+@model DevHub.ViewModels.Moderator.ModeratorArticleViewModel
+@{
+    ViewData["Title"] = "Quản lý bài báo";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+
+    string PageUrl(int p) => Url.Action("Index", new
+    {
+        keyword = Model.Keyword,
+        dateFrom = Model.DateFrom,
+        status = Model.Status,
+        companyName = Model.CompanyName,
+        page = p
+    }) ?? "#";
+}
+
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Quản lý bài báo</h1>
+        <p class="text-muted">Quản lý các bài báo do nhà tuyển dụng đăng tải.</p>
+    </div>
+</div>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>@ViewBag.ErrorMessage</span>
+    </div>
+}
+
+<!-- Filters -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
+    <form method="GET" action="/moderator/articles" class="flex flex-col md:flex-row gap-4 items-end">
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Từ khóa</label>
+            <input type="text" name="keyword" value="@Model.Keyword" placeholder="Tiêu đề, nội dung..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Tên công ty</label>
+            <input type="text" name="companyName" value="@Model.CompanyName" placeholder="Nhập tên công ty..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Trạng thái</label>
+            <select name="status" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="">Tất cả</option>
+                <option value="PUBLISHED" selected="@(Model.Status == "PUBLISHED")">Đã xuất bản</option>
+                <option value="HIDDEN" selected="@(Model.Status == "HIDDEN")">Đã ẩn (Bởi NTD)</option>
+                <option value="HIDDEN_BY_MOD" selected="@(Model.Status == "HIDDEN_BY_MOD")">Bị ẩn (Bởi Admin)</option>
+            </select>
+        </div>
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Từ ngày</label>
+            <input type="date" name="dateFrom" value="@Model.DateFrom" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+        </div>
+        <div>
+            <button type="submit" class="bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc</button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-[#D6DDEB]">
+                    <th class="py-4 px-6 text-dark font-bold text-sm">ID</th>
+                    <th class="py-4 px-4 text-dark font-bold text-sm w-16">Ảnh</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Tiêu đề</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Công ty</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Ngày đăng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Trạng thái</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if (Model != null && Model.Articles != null && Model.Articles.Any())
+                {
+                    foreach (var article in Model.Articles)
+                    {
+                        <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-muted font-medium">#@article.ArticleId</td>
+                            <td class="py-4 px-4">
+                                @if (!string.IsNullOrEmpty(article.ThumbnailUrl))
+                                {
+                                    <img src="@article.ThumbnailUrl" alt="thumbnail" class="w-14 h-10 object-cover rounded border border-[#D6DDEB]">
+                                }
+                                else
+                                {
+                                    <div class="w-14 h-10 rounded border border-[#D6DDEB] bg-gray-100 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                }
+                            </td>
+                            <td class="py-4 px-6">
+                                <a href="/articles/@article.ArticleId" target="_blank" class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1 block">@article.Title</a>
+                            </td>
+                            <td class="py-4 px-6 text-muted">@(article.Company?.CompanyName ?? "N/A")</td>
+                            <td class="py-4 px-6 text-muted">@(article.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                            <td class="py-4 px-6 whitespace-nowrap">
+                                @if (article.Status == "PUBLISHED" || article.Status == "APPROVED")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Đã xuất bản</span>
+                                }
+                                else if (article.Status == "HIDDEN_BY_MOD")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Bị ẩn (Bởi Admin)</span>
+                                }
+                                else if (article.Status == "HIDDEN")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Đã ẩn (Bởi NTD)</span>
+                                }
+                                else if (article.Status == "PENDING")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Chờ duyệt</span>
+                                }
+                                else if (article.Status == "REJECTED")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Bị từ chối</span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">@article.Status</span>
+                                }
+                            </td>
+                            <td class="py-4 px-3 text-center whitespace-nowrap">
+                                <a href="/articles/@article.ArticleId" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem trước">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </a>
+                                @if (article.Status != "HIDDEN_BY_MOD")
+                                {
+                                    <button onclick="openActionModal(@article.ArticleId, 'hide')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors" title="Ẩn bài báo">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                                    </button>
+                                }
+                                <button onclick="openActionModal(@article.ArticleId, 'delete')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Xóa bài báo">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="py-8 px-6 text-center text-muted">
+                            Không có bài báo nào.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model != null)
+    {
+        <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
+            <div class="text-sm text-muted">
+                Hiển thị <span class="font-medium text-dark">@Model.FromItem</span> đến <span class="font-medium text-dark">@Model.ToItem</span> của <span class="font-medium text-dark">@Model.TotalCount</span> kết quả
+            </div>
+            @if (Model.TotalPages > 1)
+            {
+                <div class="flex space-x-1">
+                    @if (Model.Page > 1)
+                    {
+                        <a href="@PageUrl(Model.Page - 1)" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang trước</a>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1 border border-[#D6DDEB] rounded text-muted opacity-50 cursor-not-allowed">Trang trước</span>
+                    }
+
+                    @for (int p = 1; p <= Model.TotalPages; p++)
+                    {
+                        if (p == Model.Page)
+                        {
+                            <span class="px-3 py-1 bg-primary text-white rounded">@p</span>
+                        }
+                        else
+                        {
+                            <a href="@PageUrl(p)" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">@p</a>
+                        }
+                    }
+
+                    @if (Model.Page < Model.TotalPages)
+                    {
+                        <a href="@PageUrl(Model.Page + 1)" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50">Trang sau</a>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1 border border-[#D6DDEB] rounded text-muted opacity-50 cursor-not-allowed">Trang sau</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Action Modal (Hide/Delete) -->
+<div id="actionModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-lg p-6 relative">
+        <button onclick="closeActionModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <h3 class="text-2xl font-bold text-dark mb-2" id="actionModalTitle">Tiêu đề modal</h3>
+        <p class="text-muted text-sm mb-6">Vui lòng cung cấp lý do cho thao tác này với bài báo <span id="actionArticleId" class="font-bold"></span>.</p>
+        
+        <div class="mb-6">
+            <label class="block text-dark font-medium mb-2">Lý do <span class="text-red-500">*</span></label>
+            <textarea id="actionReason" rows="4" class="w-full border border-[#D6DDEB] rounded-lg p-3 focus:outline-none focus:border-primary text-dark placeholder-gray-400" placeholder="Nhập lý do cụ thể..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeActionModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
+            <button onclick="submitAction()" id="actionSubmitBtn" class="px-5 py-2.5 rounded-lg text-white font-bold transition-colors shadow-sm">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        let currentActionId = null;
+        let currentActionType = null;
+
+
+        function openActionModal(id, type) {
+            currentActionId = id;
+            currentActionType = type;
+            document.getElementById('actionArticleId').innerText = `#${id}`;
+            document.getElementById('actionReason').value = '';
+            
+            const titleEl = document.getElementById('actionModalTitle');
+            const btnEl = document.getElementById('actionSubmitBtn');
+            
+            if (type === 'hide') {
+                titleEl.innerText = "Ẩn bài báo";
+                btnEl.innerText = "Xác nhận Ẩn";
+                btnEl.className = "px-5 py-2.5 rounded-lg bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors shadow-sm";
+            } else if (type === 'delete') {
+                titleEl.innerText = "Xóa bài báo";
+                btnEl.innerText = "Xác nhận Xóa";
+                btnEl.className = "px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-sm";
+            }
+            
+            document.getElementById('actionModal').classList.remove('hidden');
+        }
+
+        function closeActionModal() {
+            document.getElementById('actionModal').classList.add('hidden');
+            currentActionId = null;
+            currentActionType = null;
+        }
+
+        async function submitAction() {
+            const reason = document.getElementById('actionReason').value.trim();
+            if (!reason) {
+                alert('Vui lòng nhập lý do.');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('reason', reason);
+                const url = `/moderator/articles/${currentActionType}/${currentActionId}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert(`Đã ${currentActionType === 'hide' ? 'ẩn' : 'xóa'} bài báo #${currentActionId} thành công.`);
+                    closeActionModal();
+                    window.location.reload();
+                } else {
+                    alert(`Có lỗi xảy ra khi thực hiện thao tác.`);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Có lỗi hệ thống.");
+            }
+        }
+    </script>
+}

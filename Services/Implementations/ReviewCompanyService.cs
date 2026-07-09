@@ -11,13 +11,16 @@ public class ReviewCompanyService : IReviewCompanyService
 {
     private readonly IReviewCompanyRepository _reviewCompanyRepository;
     private readonly INotificationRepository _notificationRepository;
+    private readonly IAssignModeratorService _assignModeratorService;
 
     public ReviewCompanyService(
         IReviewCompanyRepository reviewCompanyRepository,
-        INotificationRepository notificationRepository)
+        INotificationRepository notificationRepository,
+        IAssignModeratorService assignModeratorService)
     {
         _reviewCompanyRepository = reviewCompanyRepository;
         _notificationRepository = notificationRepository;
+        _assignModeratorService = assignModeratorService;
     }
 
     public async Task<ReviewCompany?> GetByIdAsync(int reviewId)
@@ -55,6 +58,10 @@ public class ReviewCompanyService : IReviewCompanyService
         }
 
         await _reviewCompanyRepository.CreateAsync(review);
+
+        // Auto-assign moderator cho review mới
+        await _assignModeratorService.AutoAssignNewRecordAsync("REVIEW", review.ReviewId);
+
         return (true, "Gửi đánh giá thành công. Vui lòng chờ kiểm duyệt.");
     }
 

@@ -209,6 +209,7 @@ builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IAdminPaymentRepository, AdminPaymentRepository>();
+builder.Services.AddScoped<IIndustryAssignmentRepository, IndustryAssignmentRepository>();
 
 // Register Services
 builder.Services.AddScoped<IAdminService, AdminService>();

@@ -17,6 +17,7 @@ namespace DevHub.Repositories.Interfaces
         Task<Company> AddCompanyAsync(Company company);
         Task<Company?> GetCompanyDetailsAsync(int companyId);
         Task<List<JobPost>> GetCompanyJobsAsync(int companyId);
+        Task<List<Company>> GetAllAsync();
         
         Task<List<CommonTechnology>> GetActiveTechnologiesAsync();
         Task<List<CommonJobPosition>> GetActiveJobPositionsAsync();

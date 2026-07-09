@@ -20,6 +20,9 @@ public interface IAssignModeratorService
     /// <summary>Số records PENDING chưa được assign (moderator_id IS NULL)</summary>
     Task<int> GetUnassignedCountAsync(string taskType, string? filterIndustry = null, int? filterServiceId = null);
 
+    /// <summary>Lấy số lượng Pending theo từng ngành nghề</summary>
+    Task<Dictionary<string, int>> GetPendingCountByIndustryAsync(string taskType);
+
     // ---- Assign Operations ----
 
     /// <summary>

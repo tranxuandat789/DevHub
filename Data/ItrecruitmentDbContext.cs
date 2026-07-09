@@ -68,6 +68,8 @@ public partial class ItrecruitmentDbContext : DbContext
 
     public virtual DbSet<ModeratorTaskType> ModeratorTaskTypes { get; set; }
 
+    public virtual DbSet<ModeratorIndustryAssignment> ModeratorIndustryAssignments { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
 
@@ -1163,6 +1165,45 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasForeignKey(d => d.AssignedBy)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK__mod_task_type__assigned_by");
+        });
+
+        modelBuilder.Entity<ModeratorIndustryAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("moderator_industry_assignment");
+
+            entity.HasIndex(e => new { e.TaskType, e.Industry }, "IX_mod_industry_task_industry").IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ModeratorId).HasColumnName("moderator_id");
+            entity.Property(e => e.TaskType)
+                .HasMaxLength(30)
+                .HasColumnName("task_type");
+            entity.Property(e => e.Industry)
+                .HasMaxLength(100)
+                .HasColumnName("industry");
+            entity.Property(e => e.AssignedBy).HasColumnName("assigned_by");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Moderator)
+                .WithMany()
+                .HasForeignKey(d => d.ModeratorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mod_industry_moderator");
+
+            entity.HasOne(d => d.AssignedByAdmin)
+                .WithMany()
+                .HasForeignKey(d => d.AssignedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mod_industry_assigned_by");
         });
 
         OnModelCreatingPartial(modelBuilder);

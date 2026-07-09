@@ -10,10 +10,12 @@ namespace DevHub.Services.Implementations;
 public class AssignModeratorService : IAssignModeratorService
 {
     private readonly ItrecruitmentDbContext _context;
+    private readonly DevHub.Repositories.Interfaces.IIndustryAssignmentRepository _industryRepo;
 
-    public AssignModeratorService(ItrecruitmentDbContext context)
+    public AssignModeratorService(ItrecruitmentDbContext context, DevHub.Repositories.Interfaces.IIndustryAssignmentRepository industryRepo)
     {
         _context = context;
+        _industryRepo = industryRepo;
     }
 
     // ----------------------------------------------------------------
@@ -146,6 +148,53 @@ public class AssignModeratorService : IAssignModeratorService
         return 0;
     }
 
+    public async Task<Dictionary<string, int>> GetPendingCountByIndustryAsync(string taskType)
+    {
+        var result = new Dictionary<string, int>();
+
+        if (taskType == "COMPANY_APPROVAL")
+        {
+            var counts = await _context.Companies
+                .Where(c => c.Status == "PENDING" && c.Industry != null)
+                .GroupBy(c => c.Industry!)
+                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .ToListAsync();
+            foreach (var item in counts) result[item.Industry] = item.Count;
+        }
+        else if (taskType == "JOB_POST")
+        {
+            var counts = await _context.JobPosts
+                .Include(j => j.Company)
+                .Where(j => j.Status == "PENDING" && j.Company.Industry != null)
+                .GroupBy(j => j.Company.Industry!)
+                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .ToListAsync();
+            foreach (var item in counts) result[item.Industry] = item.Count;
+        }
+        else if (taskType == "REVIEW")
+        {
+            var counts = await _context.ReviewCompanies
+                .Include(r => r.Company)
+                .Where(r => r.Status == "PENDING" && r.Company.Industry != null)
+                .GroupBy(r => r.Company.Industry!)
+                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .ToListAsync();
+            foreach (var item in counts) result[item.Industry] = item.Count;
+        }
+
+        // Đảm bảo các ngành không có pending vẫn có key trong dictionary (bằng 0)
+        var allIndustries = await GetIndustriesAsync();
+        foreach (var ind in allIndustries)
+        {
+            if (!result.ContainsKey(ind))
+            {
+                result[ind] = 0;
+            }
+        }
+
+        return result;
+    }
+
     // ----------------------------------------------------------------
     // Assign Operations
     // ----------------------------------------------------------------
@@ -235,29 +284,47 @@ public class AssignModeratorService : IAssignModeratorService
     /// </summary>
     public async Task AutoAssignNewRecordAsync(string taskType, int recordId)
     {
-        // Lấy mod active ít pending nhất
-        var mods = await GetWorkloadByTaskTypeAsync(taskType);
-        if (mods.Count == 0) return;
+        // 1. Xác định industry của record
+        string? industry = taskType switch {
+            "COMPANY_APPROVAL" => (await _context.Companies.FindAsync(recordId))?.Industry,
+            "JOB_POST"         => (await _context.JobPosts
+                                       .Include(j => j.Company)
+                                       .FirstOrDefaultAsync(j => j.JobId == recordId))?.Company?.Industry,
+            "REVIEW"           => (await _context.ReviewCompanies
+                                       .Include(r => r.Company)
+                                       .FirstOrDefaultAsync(r => r.ReviewId == recordId))?.Company?.Industry,
+            _                  => null
+        };
 
-        var leastBusy = mods.OrderBy(m => m.AssignedPending).First();
+        // 2. Tìm Moderator theo (taskType, industry)
+        int? moderatorId = null;
+        if (!string.IsNullOrEmpty(industry))
+            moderatorId = await _industryRepo.GetModeratorIdAsync(taskType, industry);
 
+        // 3. Fallback: ít việc nhất trong cùng sub-role
+        if (moderatorId == null)
+        {
+            var mods = await GetWorkloadByTaskTypeAsync(taskType);
+            moderatorId = mods.OrderBy(m => m.AssignedPending).FirstOrDefault()?.ModeratorId;
+        }
+
+        if (moderatorId == null) return;
+
+        // 4. Gán vào record
+        int assignedCount = 0;
         if (taskType == "COMPANY_APPROVAL")
-        {
-            await _context.Companies
-                .Where(c => c.CompanyId == recordId)
-                .ExecuteUpdateAsync(s => s.SetProperty(c => c.ModeratorId, leastBusy.ModeratorId));
-        }
+            assignedCount = await _context.Companies.Where(c => c.CompanyId == recordId)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.ModeratorId, moderatorId));
         else if (taskType == "JOB_POST")
-        {
-            await _context.JobPosts
-                .Where(j => j.JobId == recordId)
-                .ExecuteUpdateAsync(s => s.SetProperty(j => j.ModeratorId, leastBusy.ModeratorId));
-        }
+            assignedCount = await _context.JobPosts.Where(j => j.JobId == recordId)
+                .ExecuteUpdateAsync(s => s.SetProperty(j => j.ModeratorId, moderatorId));
         else if (taskType == "REVIEW")
+            assignedCount = await _context.ReviewCompanies.Where(r => r.ReviewId == recordId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ModeratorId, moderatorId));
+
+        if (assignedCount > 0)
         {
-            await _context.ReviewCompanies
-                .Where(r => r.ReviewId == recordId)
-                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ModeratorId, leastBusy.ModeratorId));
+            await WriteAuditLogAsync(null, taskType, moderatorId.Value, 1, industry, null);
         }
     }
 
@@ -322,8 +389,9 @@ public class AssignModeratorService : IAssignModeratorService
         var items = parsedLogs.Select(x => new AssignHistoryItemDto
         {
             LogId         = x.Log.LogId,
-            AdminName     = x.Log.UserId.HasValue && admins.ContainsKey(x.Log.UserId.Value)
-                                ? admins[x.Log.UserId.Value] : "Unknown",
+            AdminName     = x.Log.UserId.HasValue 
+                                ? (admins.ContainsKey(x.Log.UserId.Value) ? admins[x.Log.UserId.Value] : "Unknown Admin") 
+                                : "Hệ thống tự động",
             TaskType      = x.Log.EntityType ?? "",
             ModeratorName = mods.ContainsKey(x.ModId) ? mods[x.ModId] : "Unknown",
             RecordCount   = x.Count,
@@ -364,14 +432,14 @@ public class AssignModeratorService : IAssignModeratorService
     // ----------------------------------------------------------------
 
     private async Task WriteAuditLogAsync(
-        int adminId, string taskType, int moderatorId, int count,
+        int? adminId, string taskType, int moderatorId, int count,
         string? filterIndustry, int? filterServiceId)
     {
         var filterInfo = new { industry = filterIndustry, serviceId = filterServiceId };
         _context.AuditLogs.Add(new AuditLog
         {
             UserId     = adminId,
-            UserType   = "ADMIN",
+            UserType   = adminId.HasValue ? "ADMIN" : "SYSTEM",
             Action     = "ASSIGN_MODERATOR",
             EntityType = taskType,
             EntityId   = null,

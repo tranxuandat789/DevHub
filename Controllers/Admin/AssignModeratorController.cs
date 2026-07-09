@@ -14,107 +14,120 @@ public class AssignModeratorController : Controller
 {
     private readonly IAssignModeratorService _assignService;
     private readonly ItrecruitmentDbContext   _context;
+    private readonly DevHub.Repositories.Interfaces.IIndustryAssignmentRepository _industryRepo;
+    private readonly DevHub.Repositories.Interfaces.ICompanyRepository _companyRepo;
 
     public AssignModeratorController(
         IAssignModeratorService assignService,
-        ItrecruitmentDbContext context)
+        ItrecruitmentDbContext context,
+        DevHub.Repositories.Interfaces.IIndustryAssignmentRepository industryRepo,
+        DevHub.Repositories.Interfaces.ICompanyRepository companyRepo)
     {
         _assignService = assignService;
         _context       = context;
+        _industryRepo  = industryRepo;
+        _companyRepo   = companyRepo;
     }
 
     // -----------------------------------------------------------------------
     // GET /AssignModerator
     // -----------------------------------------------------------------------
     [HttpGet("")]
-    public async Task<IActionResult> Index(
-        string? filterIndustryCompany  = null,
-        int?    filterServiceIdCompany = null,
-        string? filterIndustryJob      = null,
-        int?    filterServiceIdJob     = null,
-        string? filterIndustryReview   = null)
+    public async Task<IActionResult> Index()
     {
+        // 1. Lấy danh sách ngành từ Company (Distinct)
+        var allCompanies = await _companyRepo.GetAllAsync();
+        var allIndustries = allCompanies
+            .Where(c => !string.IsNullOrWhiteSpace(c.Industry))
+            .Select(c => c.Industry.Trim())
+            .Distinct()
+            .OrderBy(i => i)
+            .ToList();
+
+        // 2. Lấy danh sách Moderator khả dụng cho từng loại
+        var compMods = await _assignService.GetWorkloadByTaskTypeAsync("COMPANY_APPROVAL");
+        var jobMods  = await _assignService.GetWorkloadByTaskTypeAsync("JOB_POST");
+        var revMods  = await _assignService.GetWorkloadByTaskTypeAsync("REVIEW");
+
+        // 3. Lấy phân công hiện tại
+        var compAssignments = await _industryRepo.GetAllByTaskTypeAsync("COMPANY_APPROVAL");
+        var jobAssignments  = await _industryRepo.GetAllByTaskTypeAsync("JOB_POST");
+        var revAssignments  = await _industryRepo.GetAllByTaskTypeAsync("REVIEW");
+
+        // Helper func mapping
+        List<IndustryAssignmentItemDto> MapIndustries(List<DevHub.Models.ModeratorIndustryAssignment> assignments)
+        {
+            return allIndustries.Select(ind => {
+                var a = assignments.FirstOrDefault(x => x.Industry == ind);
+                return new IndustryAssignmentItemDto
+                {
+                    IndustryName = ind,
+                    AssignedModeratorId = a?.ModeratorId,
+                    AssignedModeratorName = a?.Moderator?.FullName ?? a?.Moderator?.Username ?? ""
+                };
+            }).ToList();
+        }
+
         var vm = new AssignModeratorViewModel
         {
-            FilterIndustryCompany  = filterIndustryCompany,
-            FilterServiceIdCompany = filterServiceIdCompany,
-            FilterIndustryJob      = filterIndustryJob,
-            FilterServiceIdJob     = filterServiceIdJob,
-            FilterIndustryReview   = filterIndustryReview,
+            // Pending stats có thể giữ lại nếu muốn hiển thị (tuỳ chọn)
+            PendingCompanies = await _assignService.GetUnassignedCountAsync("COMPANY_APPROVAL"),
+            PendingJobPosts  = await _assignService.GetUnassignedCountAsync("JOB_POST"),
+            PendingReviews   = await _assignService.GetUnassignedCountAsync("REVIEW"),
 
-            // Stat cards
-            PendingCompanies = await _assignService.GetUnassignedCountAsync("COMPANY_APPROVAL", filterIndustryCompany, filterServiceIdCompany),
-            PendingJobPosts  = await _assignService.GetUnassignedCountAsync("JOB_POST",  filterIndustryJob,  filterServiceIdJob),
-            PendingReviews   = await _assignService.GetUnassignedCountAsync("REVIEW",    filterIndustryReview),
+            CompanyModerators = compMods.Select(m => new ModeratorSimpleDto { ModeratorId = m.ModeratorId, FullName = m.FullName, Email = m.Email }).ToList(),
+            JobPostModerators = jobMods.Select(m => new ModeratorSimpleDto { ModeratorId = m.ModeratorId, FullName = m.FullName, Email = m.Email }).ToList(),
+            ReviewModerators  = revMods.Select(m => new ModeratorSimpleDto { ModeratorId = m.ModeratorId, FullName = m.FullName, Email = m.Email }).ToList(),
 
-            // Workload per section
-            CompanyModerators = await _assignService.GetWorkloadByTaskTypeAsync("COMPANY_APPROVAL"),
-            JobPostModerators = await _assignService.GetWorkloadByTaskTypeAsync("JOB_POST"),
-            ReviewModerators  = await _assignService.GetWorkloadByTaskTypeAsync("REVIEW"),
-
-            // Filter options
-            Industries      = await _assignService.GetIndustriesAsync(),
-            ServicePackages = await _assignService.GetActivePackagesAsync()
+            CompanyIndustryAssignments = MapIndustries(compAssignments),
+            JobPostIndustryAssignments = MapIndustries(jobAssignments),
+            ReviewIndustryAssignments  = MapIndustries(revAssignments),
         };
 
         return View("~/Views/Admin/AssignModerator/Index.cshtml", vm);
     }
 
     // -----------------------------------------------------------------------
-    // POST /AssignModerator/Assign   — assign N records cho 1 mod
+    // POST /AssignModerator/AssignIndustryBatch
     // -----------------------------------------------------------------------
-    [HttpPost("Assign")]
+    [HttpPost("AssignIndustryBatch")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Assign(AssignBatchRequest req)
+    public async Task<IActionResult> AssignIndustryBatch([FromForm] string taskType, [FromForm] Dictionary<string, int?> assignments)
     {
         int adminId = GetCurrentAdminId();
 
-        int assigned = await _assignService.AssignToModeratorAsync(
-            req.TaskType, req.ModeratorId, req.Count, adminId,
-            req.FilterIndustry, req.FilterServiceId);
+        // 1. Lấy tất cả phân công hiện tại của taskType này
+        var existing = await _context.ModeratorIndustryAssignments
+            .Where(x => x.TaskType == taskType)
+            .ToListAsync();
 
-        if (assigned > 0)
-            TempData["SuccessMsg"] = $"✅ Đã phân công {assigned} công việc [{TaskTypeLabel(req.TaskType)}] thành công!";
-        else
-            TempData["ErrorMsg"] = "Không có công việc nào phù hợp để phân công (có thể đã được assign hết).";
+        // 2. Xóa hết phân công cũ để set lại theo batch
+        _context.ModeratorIndustryAssignments.RemoveRange(existing);
 
-        return RedirectToAction(nameof(Index));
-    }
+        // 3. Thêm các phân công mới (những ngành có chọn Moderator)
+        if (assignments != null)
+        {
+            foreach (var kvp in assignments)
+            {
+                if (kvp.Value.HasValue)
+                {
+                    _context.ModeratorIndustryAssignments.Add(new DevHub.Models.ModeratorIndustryAssignment
+                    {
+                        ModeratorId = kvp.Value.Value,
+                        TaskType = taskType,
+                        Industry = kvp.Key,
+                        AssignedBy = adminId,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    });
+                }
+            }
+        }
 
-    // -----------------------------------------------------------------------
-    // POST /AssignModerator/AutoAssign  — chia đều tất cả
-    // -----------------------------------------------------------------------
-    [HttpPost("AutoAssign")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AutoAssign(
-        string taskType,
-        string? filterIndustry  = null,
-        int?    filterServiceId = null)
-    {
-        int adminId = GetCurrentAdminId();
+        await _context.SaveChangesAsync();
 
-        int total = await _assignService.AutoAssignEvenlyAsync(
-            taskType, adminId, filterIndustry, filterServiceId);
-
-        if (total > 0)
-            TempData["SuccessMsg"] = $"✅ Đã tự động phân chia đều {total} công việc [{TaskTypeLabel(taskType)}] cho các Moderator!";
-        else
-            TempData["ErrorMsg"] = "Không có công việc nào để phân chia, hoặc chưa có Moderator được gán loại công việc này.";
-
-        return RedirectToAction(nameof(Index));
-    }
-
-    // -----------------------------------------------------------------------
-    // GET /AssignModerator/GetStats  — AJAX: pending count sau khi filter
-    // -----------------------------------------------------------------------
-    [HttpGet("GetStats")]
-    public async Task<IActionResult> GetStats(
-        string taskType,
-        string? filterIndustry  = null,
-        int?    filterServiceId = null)
-    {
-        int count = await _assignService.GetUnassignedCountAsync(taskType, filterIndustry, filterServiceId);
-        return Json(new { count });
+        TempData["SuccessMsg"] = $"Đã lưu phân công ngành cho {TaskTypeLabel(taskType)} thành công!";
+        return RedirectToAction("Index");
     }
 
     // -----------------------------------------------------------------------
@@ -147,6 +160,55 @@ public class AssignModeratorController : Controller
         };
 
         return View("~/Views/Admin/AssignModerator/History.cshtml", vm);
+    }
+
+    // -----------------------------------------------------------------------
+    // GET /AssignModerator/SuggestDistribution
+    // -----------------------------------------------------------------------
+    [HttpGet("SuggestDistribution")]
+    public async Task<IActionResult> SuggestDistribution([FromQuery] string taskType)
+    {
+        // 1. Lấy danh sách Moderator cho taskType
+        var mods = await _assignService.GetWorkloadByTaskTypeAsync(taskType);
+        if (mods == null || mods.Count == 0) return Json(new Dictionary<string, int>());
+
+        // 2. Lấy số lượng Pending theo từng ngành
+        var pendingCounts = await _assignService.GetPendingCountByIndustryAsync(taskType);
+
+        // 3. Khởi tạo mảng theo dõi workload của mỗi Mod trong phiên chia này
+        var modWorkloads = mods.ToDictionary(m => m.ModeratorId, m => 0);
+        var result = new Dictionary<string, int?>();
+
+        // 4. Lọc ra các ngành có việc (> 0) và sắp xếp giảm dần
+        var activeIndustries = pendingCounts.Where(p => p.Value > 0).OrderByDescending(p => p.Value).ToList();
+        
+        foreach (var ind in activeIndustries)
+        {
+            // Tìm Mod đang có ít việc nhất hiện tại
+            var minModId = modWorkloads.OrderBy(w => w.Value).First().Key;
+            
+            // Gán ngành này cho Mod đó
+            result[ind.Key] = minModId;
+            
+            // Cộng dồn workload
+            modWorkloads[minModId] += ind.Value;
+        }
+
+        // 5. Các ngành không có việc (0) thì chia đều (Round-Robin)
+        var idleIndustries = pendingCounts.Where(p => p.Value == 0).OrderBy(p => p.Key).ToList();
+        int modIndex = 0;
+        var modIdsList = modWorkloads.Keys.ToList();
+        
+        foreach (var ind in idleIndustries)
+        {
+            if (modIdsList.Count > 0)
+            {
+                result[ind.Key] = modIdsList[modIndex % modIdsList.Count];
+                modIndex++;
+            }
+        }
+
+        return Json(result);
     }
 
     // -----------------------------------------------------------------------

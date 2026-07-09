@@ -148,15 +148,16 @@
         }
         
         function markAllAsRead() {
-            $('.notification-item').removeClass('bg-red-50/20 bg-yellow-50/20 opacity-100 hover:bg-red-50/50 hover:bg-yellow-50/50')
-                .addClass('opacity-75 hover:bg-gray-50')
-                .data('status', 'read');
-            $('.notification-item').find('.text-red-700.bg-red-100').remove();
-            
-            // Cập nhật lại số lượng thông báo ở sidebar
-            $('.sidebar-item[data-menu="notifications"] .absolute.top-0.right-0').remove();
-            
-            applyFilters();
+            $.post('/api/Notification/mark-all-read')
+                .done(function(res) {
+                    if (res.success) {
+                        toastr.success('Đã đánh dấu tất cả là đã đọc.');
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                })
+                .fail(function() {
+                    toastr.error('Có lỗi xảy ra.');
+                });
         }
     </script>
 }

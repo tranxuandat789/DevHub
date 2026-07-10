@@ -12,7 +12,7 @@ public interface IAdminService
     Task<Admin?> GetModeratorByIdAsync(int adminId);
 
     // Create moderator; reactivates existing inactive account with same email
-    Task<(bool Success, string Message)> CreateModeratorAsync(string email, string password, string username, string fullName);
+    Task<(bool Success, string Message, int AdminId)> CreateModeratorAsync(string email, string password, string username, string fullName);
 
     // Update username and full name only
     Task<(bool Success, string Message)> UpdateModeratorAsync(int adminId, string fullName, string username);

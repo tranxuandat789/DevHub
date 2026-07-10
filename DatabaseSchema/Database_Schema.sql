@@ -76,7 +76,9 @@ CREATE TABLE [company] (
     [total_reviews] INT DEFAULT 0,
     [is_verified] BIT DEFAULT 0,
     [profile_completion] INT DEFAULT 0,
-    [status] NVARCHAR(20) DEFAULT 'PENDING' CHECK ([status] IN ('PENDING', 'APPROVED', 'REJECTED'))
+    [moderator_id] INT NULL,
+    [status] NVARCHAR(20) DEFAULT 'PENDING' CHECK ([status] IN ('PENDING', 'APPROVED', 'REJECTED')),
+    CONSTRAINT [FK__company__moderator] FOREIGN KEY ([moderator_id]) REFERENCES [admin]([admin_id]) ON DELETE NO ACTION
 );
 -- =====================================================
 -- Create Company Invitation Table
@@ -194,6 +196,10 @@ CREATE TABLE [package_transaction] (
     [amount_vnd] DECIMAL(18, 2) NOT NULL,
     [discount_amount] DECIMAL(18, 2) DEFAULT 0,
     [final_amount] DECIMAL(18, 2) NOT NULL,
+    [vat_rate] DECIMAL(5, 2) NOT NULL DEFAULT 8,
+    [vat_amount] DECIMAL(18, 2) NOT NULL DEFAULT 0,
+    [total_amount] DECIMAL(18, 2) NOT NULL DEFAULT 0,
+    [buyer_tax_code] NVARCHAR(50) NULL,
     [payment_method] NVARCHAR(50) DEFAULT 'vnpay',
     [vnpay_txn_ref] NVARCHAR(100) NULL,
     [vnpay_transaction_no] NVARCHAR(100) NULL,
@@ -244,7 +250,8 @@ CREATE TABLE [company_package_history] (
 -- =====================================================
 CREATE TABLE [province] (
     [province_id] INT PRIMARY KEY IDENTITY(1, 1),
-    [province_name] NVARCHAR(100) NOT NULL UNIQUE
+    [province_name] NVARCHAR(100) NOT NULL UNIQUE,
+    [is_active] BIT NOT NULL DEFAULT 1
 );
 -- =====================================================
 -- Create Job Post Table
@@ -513,4 +520,17 @@ CREATE TABLE [audit_log] (
     [ip_address] NVARCHAR(50) NULL,
     [created_at] DATETIME DEFAULT GETDATE()
 );
-
+-- =====================================================
+-- Create Moderator Task Type Table
+-- =====================================================
+CREATE TABLE [moderator_task_type] (
+    [id] INT PRIMARY KEY IDENTITY(1, 1),
+    [moderator_id] INT NOT NULL,
+    [task_type] NVARCHAR(30) NULL,
+    [assigned_by] INT NULL,
+    [created_at] DATETIME DEFAULT GETDATE(),
+    [updated_at] DATETIME DEFAULT GETDATE(),
+    CONSTRAINT [FK__mod_task_type__moderator] FOREIGN KEY ([moderator_id]) REFERENCES [admin]([admin_id]) ON DELETE CASCADE,
+    CONSTRAINT [FK__mod_task_type__assigned_by] FOREIGN KEY ([assigned_by]) REFERENCES [admin]([admin_id]) ON DELETE NO ACTION
+);
+CREATE UNIQUE INDEX [IX_moderator_task_type_moderator_id] ON [moderator_task_type] ([moderator_id]);

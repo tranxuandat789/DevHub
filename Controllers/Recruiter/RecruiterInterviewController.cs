@@ -70,8 +70,8 @@ namespace DevHub.Controllers.Recruiter
 
             try
             {
-                var id = await _interviewService.CreateInterviewAsync(recruiterId.Value, model.ApplicationId, model.InterviewDate, model.DurationMinutes, model.InterviewType, model.LocationOrLink, model.Notes);
-                return Ok(new { success = true, message = "Tạo lịch phỏng vấn thành công.", interviewId = id });
+                var interview = await _interviewService.CreateInterviewAsync(recruiterId.Value, model.ApplicationId, model.InterviewDate, model.InterviewType, model.LocationOrLink, model.Notes);
+                return Ok(new { success = true, message = "Tạo lịch phỏng vấn thành công.", interviewId = interview.InterviewId });
             }
             catch (Exception ex)
             {
@@ -90,7 +90,7 @@ namespace DevHub.Controllers.Recruiter
 
             try
             {
-                await _interviewService.UpdateInterviewAsync(recruiterId.Value, id, model.InterviewDate, model.DurationMinutes, model.InterviewType, model.LocationOrLink, model.Notes);
+                await _interviewService.UpdateInterviewAsync(recruiterId.Value, id, model.InterviewDate, model.InterviewType, model.LocationOrLink, model.Notes);
                 return Ok(new { success = true, message = "Cập nhật lịch phỏng vấn thành công." });
             }
             catch (Exception ex)

@@ -54,13 +54,21 @@ namespace DevHub.Services.BackgroundServices
                                 && j.Status.ToUpper() == "APPROVED")
                     .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, "CLOSED"), token);
 
-                if (affected > 0)
+                if (affected > 0 && !token.IsCancellationRequested)
                     _logger.LogInformation("JobPostAutoClose: closed {Count} expired job post(s).", affected);
             }
             catch (Exception ex)
             {
+                if (token.IsCancellationRequested) return; // Ignore errors (and logging) during shutdown.
                 // Never let a failed run crash the background loop.
-                _logger.LogError(ex, "JobPostAutoClose: error while closing expired job posts.");
+                try
+                {
+                    _logger.LogError(ex, "JobPostAutoClose: error while closing expired job posts.");
+                }
+                catch
+                {
+                    // Ignore if logger is already disposed
+                }
             }
         }
     }

@@ -17,6 +17,14 @@ public partial class PackageTransaction
 
     public decimal FinalAmount { get; set; }
 
+    public decimal VatRate { get; set; }
+
+    public decimal VatAmount { get; set; }
+
+    public decimal TotalAmount { get; set; }
+
+    public string? BuyerTaxCode { get; set; }
+
     public string PaymentMethod { get; set; } = null!;
 
     public string? VnpayTxnRef { get; set; }

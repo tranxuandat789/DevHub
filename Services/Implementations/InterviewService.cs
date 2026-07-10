@@ -21,13 +21,23 @@ public class InterviewService : IInterviewService
         _emailHelper = emailHelper;
     }
 
-    public async Task<Interview> CreateInterviewAsync(int applicationId, int recruiterId, int candidateId, DateTime scheduledTime, string interviewType, string? meetingLink, string? location, string? notes)
+    public async Task<Interview> CreateInterviewAsync(int recruiterId, int applicationId, DateTime scheduledTime, string interviewType, string locationOrLink, string? notes)
     {
+        var application = await _context.Applications
+            .Include(a => a.Job)
+            .Include(a => a.Candidate).ThenInclude(c => c.CandidateNavigation)
+            .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+            
+        if (application == null) throw new Exception("Không tìm thấy đơn ứng tuyển");
+
+        var meetingLink = interviewType.ToUpper() == "ONLINE" ? locationOrLink : null;
+        var location = interviewType.ToUpper() == "OFFLINE" ? locationOrLink : null;
+
         var interview = new Interview
         {
             ApplicationId = applicationId,
             RecruiterId = recruiterId,
-            CandidateId = candidateId,
+            CandidateId = application.CandidateId,
             ScheduledTime = scheduledTime,
             InterviewType = interviewType,
             MeetingLink = meetingLink,
@@ -43,16 +53,12 @@ public class InterviewService : IInterviewService
         // Create notification for candidate
         try
         {
-            var application = await _context.Applications
-                .Include(a => a.Job)
-                .Include(a => a.Candidate).ThenInclude(c => c.CandidateNavigation)
-                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
                 
             var title = application?.Job?.Title ?? "công việc";
             
             var n = new Notification
             {
-                UserId = candidateId,
+                UserId = application.CandidateId,
                 UserType = "CANDIDATE",
                 Type = "INTERVIEW",
                 Title = "Lịch phỏng vấn được tạo",
@@ -94,16 +100,19 @@ public class InterviewService : IInterviewService
         return interview;
     }
 
-    public async Task<Interview> UpdateInterviewAsync(int interviewId, DateTime scheduledTime, string interviewType, string? meetingLink, string? location, string? notes)
+    public async Task<Interview> UpdateInterviewAsync(int recruiterId, int interviewId, DateTime scheduledTime, string interviewType, string locationOrLink, string? notes)
     {
         var interview = await _context.Interviews
             .Include(i => i.Application).ThenInclude(a => a.Job)
             .Include(i => i.Candidate).ThenInclude(c => c.CandidateNavigation)
-            .FirstOrDefaultAsync(i => i.InterviewId == interviewId);
+            .FirstOrDefaultAsync(i => i.InterviewId == interviewId && i.RecruiterId == recruiterId);
         if (interview == null)
             throw new Exception("Interview not found");
 
         bool timeChanged = interview.ScheduledTime != scheduledTime;
+
+        var meetingLink = interviewType.ToUpper() == "ONLINE" ? locationOrLink : null;
+        var location = interviewType.ToUpper() == "OFFLINE" ? locationOrLink : null;
 
         interview.ScheduledTime = scheduledTime;
         interview.InterviewType = interviewType;

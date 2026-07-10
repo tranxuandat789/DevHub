@@ -115,6 +115,14 @@ namespace DevHub.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        public IActionResult Error403(string? reason, string? required, string? actual)
+        {
+            ViewBag.Reason = reason;
+            ViewBag.Required = required;
+            ViewBag.Actual = actual;
+            return View();
+        }
+
         // --- Temporary Route to preview UI without creating a new Controller ---
         [Route("JobApproval")]
         public IActionResult JobApprovalPreview()

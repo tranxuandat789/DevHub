@@ -16,15 +16,21 @@ namespace DevHub.Controllers.Admin
         private readonly IAdminService _adminService;
         private readonly IModAssignmentService _modAssignmentService;
         private readonly IAssignModeratorService _assignModeratorService;
+        private readonly DevHub.Repositories.Interfaces.IIndustryAssignmentRepository _industryRepo;
+        private readonly DevHub.Repositories.Interfaces.ICompanyRepository _companyRepo;
 
         public AdminModeratorController(
             IAdminService adminService,
             IModAssignmentService modAssignmentService,
-            IAssignModeratorService assignModeratorService)
+            IAssignModeratorService assignModeratorService,
+            DevHub.Repositories.Interfaces.IIndustryAssignmentRepository industryRepo,
+            DevHub.Repositories.Interfaces.ICompanyRepository companyRepo)
         {
             _adminService            = adminService;
             _modAssignmentService    = modAssignmentService;
             _assignModeratorService  = assignModeratorService;
+            _industryRepo            = industryRepo;
+            _companyRepo             = companyRepo;
         }
 
         // GET: /AdminModerator
@@ -55,6 +61,10 @@ namespace DevHub.Controllers.Admin
                 .Concat(reviewTaskTypes)
                 .ToDictionary(m => m.ModeratorId, m => m.TaskType);
 
+            var industryAssignments = await _industryRepo.GetAllByTaskTypeAsync(null); // Actually, I should probably just fetch all of them
+            var industriesMap = industryAssignments.GroupBy(a => a.ModeratorId)
+                .ToDictionary(g => g.Key, g => g.Select(a => a.Industry).ToList());
+
             var viewModel = new ModeratorListViewModel
             {
                 Items = moderators.Select(m => new ModeratorListItemDto
@@ -65,7 +75,8 @@ namespace DevHub.Controllers.Admin
                     FullName = m.FullName ?? "",
                     IsActive = m.AdminNavigation?.IsActive ?? false,
                     CreatedAt= m.AdminNavigation?.CreatedAt,
-                    TaskType = taskTypeMap.ContainsKey(m.AdminId) ? taskTypeMap[m.AdminId] : null
+                    TaskType = taskTypeMap.ContainsKey(m.AdminId) ? taskTypeMap[m.AdminId] : null,
+                    Industries = industriesMap.ContainsKey(m.AdminId) ? industriesMap[m.AdminId] : new List<string>()
                 }).ToList(),
                 Search = searchTerm,
                 Page = page,
@@ -101,16 +112,11 @@ namespace DevHub.Controllers.Admin
             
             if (result.Success)
             {
-                // Lấy moderator vừa tạo để gán task type
-                var newMod = await _adminService.GetModeratorByIdAsync(
-                    (await _adminService.GetModeratorListAsync("", "active", 1, 1)).Items
-                    .FirstOrDefault(m => m.Username == model.Username)?.AdminId ?? 0);
-
-                if (newMod != null && !string.IsNullOrEmpty(model.TaskType))
+                if (result.AdminId > 0 && !string.IsNullOrEmpty(model.TaskType))
                 {
                     var currentAdminIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                     if (int.TryParse(currentAdminIdStr, out int currentAdminId))
-                        await _assignModeratorService.SetTaskTypeAsync(newMod.AdminId, model.TaskType, currentAdminId);
+                        await _assignModeratorService.SetTaskTypeAsync(result.AdminId, model.TaskType, currentAdminId);
                 }
 
                 TempData["SuccessMsg"] = "Lưu Moderator thành công! Hệ thống đã ghi nhận.";
@@ -209,6 +215,65 @@ namespace DevHub.Controllers.Admin
             }
 
             return RedirectToAction("Index");
+        }
+
+        // GET: /AdminModerator/{id}/industry-settings
+        [HttpGet("{id}/industry-settings")]
+        public async Task<IActionResult> IndustrySettings(int id)
+        {
+            var taskType = await _assignModeratorService.GetTaskTypeAsync(id);
+            if (string.IsNullOrEmpty(taskType))
+            {
+                return Json(new { error = "Moderator này chưa được phân công sub-role (Task Type)." });
+            }
+
+            var currentIndustries = await _industryRepo.GetIndustriesAsync(id);
+            
+            // Get all distinct industries from companies
+            var allCompanies = await _companyRepo.GetAllAsync();
+            var distinctIndustries = allCompanies
+                .Where(c => !string.IsNullOrWhiteSpace(c.Industry))
+                .Select(c => c.Industry.Trim())
+                .Distinct()
+                .OrderBy(i => i)
+                .ToList();
+
+            // Find owners of these industries for this task type
+            var assignments = await _industryRepo.GetAllByTaskTypeAsync(taskType);
+            
+            var industryData = distinctIndustries.Select(ind => {
+                var assignment = assignments.FirstOrDefault(a => a.Industry == ind);
+                return new {
+                    Name = ind,
+                    IsChecked = currentIndustries.Contains(ind),
+                    OwnerId = assignment?.ModeratorId,
+                    OwnerName = assignment?.Moderator?.FullName ?? assignment?.Moderator?.Username
+                };
+            }).ToList();
+
+            return Json(new {
+                taskType = taskType,
+                industries = industryData
+            });
+        }
+
+        // POST: /AdminModerator/{id}/industry-settings
+        [HttpPost("{id}/industry-settings")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateIndustrySettings(int id, [FromForm] string taskType, [FromForm] System.Collections.Generic.List<string> selectedIndustries)
+        {
+            var currentAdminIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(currentAdminIdStr, out int currentAdminId))
+            {
+                await _industryRepo.SetIndustriesAsync(id, taskType, selectedIndustries, currentAdminId);
+                TempData["SuccessMsg"] = "Đã cập nhật phân công ngành thành công!";
+            }
+            else
+            {
+                TempData["ErrorMsg"] = "Không thể xác định Admin ID.";
+            }
+
+            return RedirectToAction("Edit", new { id = id });
         }
     }
 }

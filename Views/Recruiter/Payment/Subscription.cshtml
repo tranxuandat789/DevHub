@@ -229,8 +229,16 @@
                 <span>Giảm giá</span>
                 <span class="font-medium text-green-600" id="modalDiscountPrice">- 0 VNĐ</span>
             </div>
-            <div class="border-t border-gray-100 pt-3 flex justify-between items-center">
-                <span class="font-bold text-gray-800">Tổng cộng</span>
+            <div id="preTaxRow" class="flex justify-between text-gray-700 text-sm font-medium border-t border-gray-100 pt-2 mt-2 hidden">
+                <span>Thành tiền (Trước thuế)</span>
+                <span id="modalPreTaxPrice">0 VNĐ</span>
+            </div>
+            <div id="vatRow" class="flex justify-between text-gray-600 text-sm hidden mt-1.5">
+                <span id="modalVatLabel">Thuế GTGT (8%)</span>
+                <span id="modalVatPrice">0 VNĐ</span>
+            </div>
+            <div class="border-t border-gray-200 pt-3 flex justify-between items-center mt-2">
+                <span class="font-bold text-gray-800">Tổng thanh toán</span>
                 <span class="text-2xl font-bold text-[#4640DE]" id="modalFinalPrice">0 VNĐ</span>
             </div>
         </div>
@@ -277,6 +285,8 @@
             document.getElementById('formPromoCode').value = '';
             document.getElementById('voucherMessage').innerText = '';
             document.getElementById('discountRow').classList.add('hidden');
+            document.getElementById('preTaxRow').classList.add('hidden');
+            document.getElementById('vatRow').classList.add('hidden');
             
             // Auto check deduction (free upgrade without voucher)
             applyVoucher();
@@ -336,7 +346,18 @@
                             document.getElementById('deductionRow').classList.add('hidden');
                         }
 
-                        document.getElementById('modalFinalPrice').innerText = data.finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                        if (data.vatAmount !== undefined) {
+                            document.getElementById('preTaxRow').classList.remove('hidden');
+                            document.getElementById('modalPreTaxPrice').innerText = data.finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                            
+                            document.getElementById('vatRow').classList.remove('hidden');
+                            document.getElementById('modalVatLabel').innerText = 'Thuế GTGT (' + data.vatRate + '%)';
+                            document.getElementById('modalVatPrice').innerText = data.vatAmount.toLocaleString('vi-VN') + ' VNĐ';
+
+                            document.getElementById('modalFinalPrice').innerText = data.totalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                        } else {
+                            document.getElementById('modalFinalPrice').innerText = data.finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                        }
                     } else {
                         msgEl.innerText = data.message;
                         msgEl.className = 'mt-2 text-xs text-red-500';
@@ -347,7 +368,19 @@
                             document.getElementById('modalDeductionPrice').innerText = '- ' + data.deductionAmount.toLocaleString('vi-VN') + ' VNĐ';
                             document.getElementById('deductionRow').classList.remove('hidden');
                         }
-                        document.getElementById('modalFinalPrice').innerText = data.finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                        
+                        if (data.vatAmount !== undefined) {
+                            document.getElementById('preTaxRow').classList.remove('hidden');
+                            document.getElementById('modalPreTaxPrice').innerText = data.finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                            
+                            document.getElementById('vatRow').classList.remove('hidden');
+                            document.getElementById('modalVatLabel').innerText = 'Thuế GTGT (' + data.vatRate + '%)';
+                            document.getElementById('modalVatPrice').innerText = data.vatAmount.toLocaleString('vi-VN') + ' VNĐ';
+
+                            document.getElementById('modalFinalPrice').innerText = data.totalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                        } else {
+                            document.getElementById('modalFinalPrice').innerText = data.finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+                        }
                     }
                 })
                 .catch(err => {

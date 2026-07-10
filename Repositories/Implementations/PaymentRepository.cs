@@ -1,4 +1,4 @@
-﻿using DevHub.Data;
+using DevHub.Data;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +48,14 @@ public class PaymentRepository : IPaymentRepository
             .Include(t => t.Service)
             .Include(t => t.Promotion)
             .FirstOrDefaultAsync(t => t.VnpayTxnRef == vnpTxnRef);
+    }
+
+    public async Task<string?> GetBuyerTaxCodeAsync(int companyId)
+    {
+        var company = await _context.Companies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.CompanyId == companyId);
+        return company?.TaxCode;
     }
 
     public async Task<PackageTransaction?> GetByIdForCompanyAsync(int txId, int companyId)

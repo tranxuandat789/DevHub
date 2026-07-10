@@ -86,6 +86,45 @@
             </div>
         </div>
 
+        <!-- Industry Settings Section -->
+        @if (!string.IsNullOrEmpty(Model.CurrentTaskType))
+        {
+            <div class="mb-6 border-t border-gray-100 pt-6">
+                <div class="flex justify-between items-center mb-1">
+                    <h4 class="font-bold text-dark text-sm uppercase tracking-wide text-gray-500">Phân Ngành Phụ Trách</h4>
+                    <button type="button" id="btnLoadIndustries" class="text-sm text-primary hover:underline font-semibold flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Tải danh sách ngành
+                    </button>
+                </div>
+                <p class="text-xs text-muted mb-3">
+                    Chọn các ngành nghề mà Moderator này sẽ phụ trách duyệt (thuộc <span class="font-semibold">@(Model.CurrentTaskType == "COMPANY_APPROVAL" ? "Duyệt Công Ty" : Model.CurrentTaskType == "JOB_POST" ? "Duyệt Bài Đăng" : "Duyệt Đánh Giá")</span>).
+                </p>
+                
+                <div id="industryLoading" class="hidden py-4 text-center">
+                    <svg class="animate-spin h-5 w-5 text-primary mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                
+                <div id="industryContainer" class="hidden">
+                    <form id="frmIndustrySettings" method="post" action="/AdminModerator/@Model.AdminId/industry-settings">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="taskType" value="@Model.CurrentTaskType" />
+                        <div id="industryList" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 max-h-[300px] overflow-y-auto p-1">
+                            <!-- Injected by JS -->
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-primary bg-opacity-10 text-primary font-bold px-4 py-2 rounded-lg hover:bg-opacity-20 transition-all text-sm border border-primary border-opacity-20">
+                                Lưu Thay Đổi Ngành
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+
         <div class="flex gap-4 pt-6 border-t border-[#D6DDEB]">
             <button type="submit" class="bg-primary text-white font-bold px-8 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
                 Lưu Thay đổi
@@ -98,3 +137,154 @@
     </div>
 
 </form>
+
+<!-- Modal Cảnh Báo Cướp Ngành -->
+<div id="stealModal" class="hidden fixed inset-0 z-[100] bg-gray-900 bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-lg w-[400px] overflow-hidden">
+        <div class="bg-red-50 p-4 flex items-center border-b border-red-100">
+            <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <h3 class="text-lg font-bold text-red-700">Cảnh báo: Đổi người phụ trách</h3>
+        </div>
+        <div class="p-5">
+            <p class="text-gray-700 text-sm mb-3">
+                Ngành <span id="stealIndustryName" class="font-bold text-dark"></span> 
+                đang được phụ trách bởi <span id="stealOwnerName" class="font-bold text-primary"></span>.
+            </p>
+            <p class="text-gray-600 text-xs">Nếu bạn tiếp tục chọn ngành này, <span id="stealOwnerName2" class="font-semibold"></span> sẽ không nhận thêm công việc mới từ ngành này. Các công việc đang chờ duyệt (PENDING) hiện tại của họ sẽ không bị ảnh hưởng.</p>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 flex justify-end space-x-3 border-t border-gray-100">
+            <button type="button" id="btnCancelSteal" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800">Hủy bỏ</button>
+            <button type="button" id="btnConfirmSteal" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg">Xác nhận chuyển</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cảnh Báo Bỏ Trống -->
+<div id="emptyModal" class="hidden fixed inset-0 z-[100] bg-gray-900 bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-lg w-[400px] overflow-hidden">
+        <div class="bg-amber-50 p-4 flex items-center border-b border-amber-100">
+            <svg class="w-6 h-6 text-amber-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <h3 class="text-lg font-bold text-amber-700">Cảnh báo: Bỏ trống ngành</h3>
+        </div>
+        <div class="p-5">
+            <p class="text-gray-700 text-sm mb-3">
+                Bạn vừa bỏ chọn ngành <span id="emptyIndustryName" class="font-bold text-dark"></span>.
+            </p>
+            <p class="text-gray-600 text-xs">Hiện tại chưa có ai khác phụ trách ngành này. Các công việc mới phát sinh sẽ được hệ thống <span class="font-semibold text-amber-600">tự động chuyển cho Moderator ít việc nhất</span> trong loại công việc này.</p>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 flex justify-end space-x-3 border-t border-gray-100">
+            <button type="button" id="btnCancelEmpty" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800">Chọn lại</button>
+            <button type="button" id="btnConfirmEmpty" class="px-4 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg">Xác nhận bỏ trống</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnLoad = document.getElementById('btnLoadIndustries');
+            const loading = document.getElementById('industryLoading');
+            const container = document.getElementById('industryContainer');
+            const list = document.getElementById('industryList');
+            
+            let pendingCheckbox = null;
+
+            if (btnLoad) {
+                btnLoad.addEventListener('click', function () {
+                    btnLoad.classList.add('hidden');
+                    loading.classList.remove('hidden');
+                    
+                    fetch('/AdminModerator/@Model.AdminId/industry-settings')
+                        .then(res => res.json())
+                        .then(data => {
+                            loading.classList.add('hidden');
+                            container.classList.remove('hidden');
+                            
+                            if (data.error) {
+                                list.innerHTML = `<p class="text-red-500 text-sm">${data.error}</p>`;
+                                return;
+                            }
+                            
+                            let html = '';
+                            if (data.industries && data.industries.length > 0) {
+                                data.industries.forEach(ind => {
+                                    const isChecked = ind.isChecked ? 'checked' : '';
+                                    const hasOwner = ind.ownerId && ind.ownerId !== parseInt('@Model.AdminId');
+                                    const lockIcon = hasOwner ? `<svg class="w-3 h-3 text-red-500 inline ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"></path></svg>` : '';
+                                    const ownerText = hasOwner ? `<span class="text-[10px] text-red-500 block">Đang giao: ${ind.ownerName}</span>` : '';
+                                    
+                                    html += `
+                                        <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                                            <input type="checkbox" name="selectedIndustries" value="${ind.name}" ${isChecked} 
+                                                class="industry-checkbox mt-1 form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
+                                                data-owner="${hasOwner ? ind.ownerName : ''}">
+                                            <div class="ml-2">
+                                                <span class="text-sm font-medium text-dark">${ind.name} ${lockIcon}</span>
+                                                ${ownerText}
+                                            </div>
+                                        </label>
+                                    `;
+                                });
+                            } else {
+                                html = '<p class="text-gray-500 text-sm">Chưa có dữ liệu ngành.</p>';
+                            }
+                            list.innerHTML = html;
+                            
+                            // Attach event listeners
+                            document.querySelectorAll('.industry-checkbox').forEach(cb => {
+                                cb.addEventListener('change', function(e) {
+                                    if (this.checked) {
+                                        // Checked
+                                        const owner = this.getAttribute('data-owner');
+                                        if (owner) {
+                                            pendingCheckbox = this;
+                                            this.checked = false; // revert temporarily
+                                            document.getElementById('stealIndustryName').innerText = this.value;
+                                            document.getElementById('stealOwnerName').innerText = owner;
+                                            document.getElementById('stealOwnerName2').innerText = owner;
+                                            document.getElementById('stealModal').classList.remove('hidden');
+                                        }
+                                    } else {
+                                        // Unchecked
+                                        const owner = this.getAttribute('data-owner');
+                                        if (!owner) { // Not stealing, just unchecking own industry
+                                            pendingCheckbox = this;
+                                            this.checked = true; // revert temporarily
+                                            document.getElementById('emptyIndustryName').innerText = this.value;
+                                            document.getElementById('emptyModal').classList.remove('hidden');
+                                        }
+                                    }
+                                });
+                            });
+                        })
+                        .catch(err => {
+                            loading.classList.add('hidden');
+                            btnLoad.classList.remove('hidden');
+                            console.error(err);
+                        });
+                });
+                
+                // Triggers
+                document.getElementById('btnCancelSteal').addEventListener('click', () => {
+                    document.getElementById('stealModal').classList.add('hidden');
+                    pendingCheckbox = null;
+                });
+                document.getElementById('btnConfirmSteal').addEventListener('click', () => {
+                    if (pendingCheckbox) pendingCheckbox.checked = true;
+                    document.getElementById('stealModal').classList.add('hidden');
+                    pendingCheckbox = null;
+                });
+                
+                document.getElementById('btnCancelEmpty').addEventListener('click', () => {
+                    document.getElementById('emptyModal').classList.add('hidden');
+                    pendingCheckbox = null;
+                });
+                document.getElementById('btnConfirmEmpty').addEventListener('click', () => {
+                    if (pendingCheckbox) pendingCheckbox.checked = false;
+                    document.getElementById('emptyModal').classList.add('hidden');
+                    pendingCheckbox = null;
+                });
+            }
+        });
+    </script>
+}

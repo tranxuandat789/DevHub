@@ -10,10 +10,20 @@ namespace DevHub.Services.Implementations;
 public class AssignModeratorService : IAssignModeratorService
 {
     private readonly ItrecruitmentDbContext _context;
+    private readonly DevHub.Repositories.Interfaces.IIndustryAssignmentRepository _industryRepo;
+    private readonly INotificationService _notificationService;
+    private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
-    public AssignModeratorService(ItrecruitmentDbContext context)
+    public AssignModeratorService(
+        ItrecruitmentDbContext context, 
+        DevHub.Repositories.Interfaces.IIndustryAssignmentRepository industryRepo,
+        INotificationService notificationService,
+        DevHub.Helpers.EmailHelper emailHelper)
     {
         _context = context;
+        _industryRepo = industryRepo;
+        _notificationService = notificationService;
+        _emailHelper = emailHelper;
     }
 
     // ----------------------------------------------------------------
@@ -146,6 +156,53 @@ public class AssignModeratorService : IAssignModeratorService
         return 0;
     }
 
+    public async Task<Dictionary<string, int>> GetPendingCountByIndustryAsync(string taskType)
+    {
+        var result = new Dictionary<string, int>();
+
+        if (taskType == "COMPANY_APPROVAL")
+        {
+            var counts = await _context.Companies
+                .Where(c => c.Status == "PENDING" && c.Industry != null)
+                .GroupBy(c => c.Industry!)
+                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .ToListAsync();
+            foreach (var item in counts) result[item.Industry] = item.Count;
+        }
+        else if (taskType == "JOB_POST")
+        {
+            var counts = await _context.JobPosts
+                .Include(j => j.Company)
+                .Where(j => j.Status == "PENDING" && j.Company.Industry != null)
+                .GroupBy(j => j.Company.Industry!)
+                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .ToListAsync();
+            foreach (var item in counts) result[item.Industry] = item.Count;
+        }
+        else if (taskType == "REVIEW")
+        {
+            var counts = await _context.ReviewCompanies
+                .Include(r => r.Company)
+                .Where(r => r.Status == "PENDING" && r.Company.Industry != null)
+                .GroupBy(r => r.Company.Industry!)
+                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .ToListAsync();
+            foreach (var item in counts) result[item.Industry] = item.Count;
+        }
+
+        // Đảm bảo các ngành không có pending vẫn có key trong dictionary (bằng 0)
+        var allIndustries = await GetIndustriesAsync();
+        foreach (var ind in allIndustries)
+        {
+            if (!result.ContainsKey(ind))
+            {
+                result[ind] = 0;
+            }
+        }
+
+        return result;
+    }
+
     // ----------------------------------------------------------------
     // Assign Operations
     // ----------------------------------------------------------------
@@ -191,7 +248,10 @@ public class AssignModeratorService : IAssignModeratorService
 
         // Ghi audit log
         if (assigned > 0)
+        {
             await WriteAuditLogAsync(adminId, taskType, moderatorId, assigned, filterIndustry, filterServiceId);
+            await NotifyModeratorAsync(moderatorId, taskType, assigned);
+        }
 
         return assigned;
     }
@@ -235,32 +295,51 @@ public class AssignModeratorService : IAssignModeratorService
     /// </summary>
     public async Task<int?> AutoAssignNewRecordAsync(string taskType, int recordId)
     {
-        // Lấy mod active ít pending nhất
-        var mods = await GetWorkloadByTaskTypeAsync(taskType);
-        if (mods.Count == 0) return null;
+        // 1. Xác định industry của record
+        string? industry = taskType switch {
+            "COMPANY_APPROVAL" => (await _context.Companies.FindAsync(recordId))?.Industry,
+            "JOB_POST"         => (await _context.JobPosts
+                                       .Include(j => j.Company)
+                                       .FirstOrDefaultAsync(j => j.JobId == recordId))?.Company?.Industry,
+            "REVIEW"           => (await _context.ReviewCompanies
+                                       .Include(r => r.Company)
+                                       .FirstOrDefaultAsync(r => r.ReviewId == recordId))?.Company?.Industry,
+            _                  => null
+        };
 
-        var leastBusy = mods.OrderBy(m => m.AssignedPending).First();
+        // 2. Tìm Moderator theo (taskType, industry)
+        int? moderatorId = null;
+        if (!string.IsNullOrEmpty(industry))
+            moderatorId = await _industryRepo.GetModeratorIdAsync(taskType, industry);
 
+        // 3. Fallback: ít việc nhất trong cùng sub-role
+        if (moderatorId == null)
+        {
+            var mods = await GetWorkloadByTaskTypeAsync(taskType);
+            moderatorId = mods.OrderBy(m => m.AssignedPending).FirstOrDefault()?.ModeratorId;
+        }
+
+        if (moderatorId == null) return null;
+
+        // 4. Gán vào record
+        int assignedCount = 0;
         if (taskType == "COMPANY_APPROVAL")
-        {
-            await _context.Companies
-                .Where(c => c.CompanyId == recordId)
-                .ExecuteUpdateAsync(s => s.SetProperty(c => c.ModeratorId, leastBusy.ModeratorId));
-        }
+            assignedCount = await _context.Companies.Where(c => c.CompanyId == recordId)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.ModeratorId, moderatorId));
         else if (taskType == "JOB_POST")
-        {
-            await _context.JobPosts
-                .Where(j => j.JobId == recordId)
-                .ExecuteUpdateAsync(s => s.SetProperty(j => j.ModeratorId, leastBusy.ModeratorId));
-        }
+            assignedCount = await _context.JobPosts.Where(j => j.JobId == recordId)
+                .ExecuteUpdateAsync(s => s.SetProperty(j => j.ModeratorId, moderatorId));
         else if (taskType == "REVIEW")
+            assignedCount = await _context.ReviewCompanies.Where(r => r.ReviewId == recordId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ModeratorId, moderatorId));
+
+        if (assignedCount > 0)
         {
-            await _context.ReviewCompanies
-                .Where(r => r.ReviewId == recordId)
-                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ModeratorId, leastBusy.ModeratorId));
+            await WriteAuditLogAsync(null, taskType, moderatorId.Value, 1, industry, null);
+            await NotifyModeratorAsync(moderatorId.Value, taskType, 1);
         }
 
-        return leastBusy.ModeratorId;
+        return moderatorId;
     }
 
     // ----------------------------------------------------------------
@@ -324,8 +403,9 @@ public class AssignModeratorService : IAssignModeratorService
         var items = parsedLogs.Select(x => new AssignHistoryItemDto
         {
             LogId         = x.Log.LogId,
-            AdminName     = x.Log.UserId.HasValue && admins.ContainsKey(x.Log.UserId.Value)
-                                ? admins[x.Log.UserId.Value] : "Unknown",
+            AdminName     = x.Log.UserId.HasValue 
+                                ? (admins.ContainsKey(x.Log.UserId.Value) ? admins[x.Log.UserId.Value] : "Unknown Admin") 
+                                : "Hệ thống tự động",
             TaskType      = x.Log.EntityType ?? "",
             ModeratorName = mods.ContainsKey(x.ModId) ? mods[x.ModId] : "Unknown",
             RecordCount   = x.Count,
@@ -366,14 +446,14 @@ public class AssignModeratorService : IAssignModeratorService
     // ----------------------------------------------------------------
 
     private async Task WriteAuditLogAsync(
-        int adminId, string taskType, int moderatorId, int count,
+        int? adminId, string taskType, int moderatorId, int count,
         string? filterIndustry, int? filterServiceId)
     {
         var filterInfo = new { industry = filterIndustry, serviceId = filterServiceId };
         _context.AuditLogs.Add(new AuditLog
         {
             UserId     = adminId,
-            UserType   = "ADMIN",
+            UserType   = adminId.HasValue ? "ADMIN" : "SYSTEM",
             Action     = "ASSIGN_MODERATOR",
             EntityType = taskType,
             EntityId   = null,
@@ -386,5 +466,50 @@ public class AssignModeratorService : IAssignModeratorService
             CreatedAt  = DateTime.Now
         });
         await _context.SaveChangesAsync();
+    }
+
+    private async Task NotifyModeratorAsync(int moderatorId, string taskType, int count)
+    {
+        var mod = await _context.Admins.Include(a => a.AdminNavigation).FirstOrDefaultAsync(a => a.AdminId == moderatorId);
+        if (mod == null) return;
+
+        string taskName = taskType switch
+        {
+            "COMPANY_APPROVAL" => "Công ty",
+            "JOB_POST" => "Tin tuyển dụng",
+            "REVIEW" => "Đánh giá công ty",
+            _ => "Task"
+        };
+
+        string title = "Bạn có công việc mới";
+        string message = $"Bạn vừa được gán {count} {taskName} mới cần xét duyệt.";
+
+        // In-app Notification
+        await _notificationService.SendNotificationAsync(
+            userId: moderatorId,
+            userType: "ADMIN",
+            title: title,
+            message: message,
+            type: "TASK_ASSIGNED",
+            severity: "info",
+            referenceId: null,
+            referenceType: taskType
+        );
+
+        // Email Notification
+        if (mod.AdminNavigation != null && !string.IsNullOrEmpty(mod.AdminNavigation.Email))
+        {
+            var emailBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;'>
+                    <h2 style='color: #0056b3; text-align: center;'>Công Việc Mới Trên DevHub</h2>
+                    <p>Chào <strong>{mod.FullName ?? mod.Username}</strong>,</p>
+                    <p>Bạn vừa được gán <strong>{count}</strong> <strong>{taskName}</strong> mới cần xét duyệt trên hệ thống DevHub.</p>
+                    <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;' />
+                    <p style='color: #888; font-size: 12px; text-align: center;'>Đây là email tự động từ hệ thống DevHub. Vui lòng không trả lời email này.</p>
+                </div>";
+            
+            await _emailHelper.SendEmailAsync(mod.AdminNavigation.Email, "Bạn có công việc mới cần xử lý - DevHub", emailBody);
+        }
     }
 }

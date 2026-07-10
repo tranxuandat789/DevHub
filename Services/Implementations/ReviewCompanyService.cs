@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
+using DevHub.Helpers;
 
 namespace DevHub.Services.Implementations;
 
@@ -13,17 +14,20 @@ public class ReviewCompanyService : IReviewCompanyService
     private readonly INotificationRepository _notificationRepository;
     private readonly IAssignModeratorService _assignModeratorService;
     private readonly INotificationService _notificationService;
+    private readonly EmailHelper _emailHelper;
 
     public ReviewCompanyService(
         IReviewCompanyRepository reviewCompanyRepository,
         INotificationRepository notificationRepository,
         IAssignModeratorService assignModeratorService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        EmailHelper emailHelper)
     {
         _reviewCompanyRepository = reviewCompanyRepository;
         _notificationRepository = notificationRepository;
         _assignModeratorService = assignModeratorService;
         _notificationService = notificationService;
+        _emailHelper = emailHelper;
     }
 
     public async Task<ReviewCompany?> GetByIdAsync(int reviewId)
@@ -62,7 +66,7 @@ public class ReviewCompanyService : IReviewCompanyService
 
         await _reviewCompanyRepository.CreateAsync(review);
 
-        // Auto assign to least busy moderator
+        // Auto-assign moderator cho review mới
         var assignedModId = await _assignModeratorService.AutoAssignNewRecordAsync("REVIEW", review.ReviewId);
         
         // Notify the assigned moderator
@@ -136,6 +140,17 @@ public class ReviewCompanyService : IReviewCompanyService
                     referenceId: reviewId,
                     referenceType: "Review"
                 );
+
+                // Gửi email cho Candidate
+                if (review.Candidate?.CandidateNavigation?.Email != null && 
+                    review.Candidate.CandidateNavigation.EmailNotificationsEnabled)
+                {
+                    string emailBody = EmailHelper.GetBaseTemplate(
+                        "Đánh giá công ty đã được duyệt",
+                        $"<p>Chào {review.Candidate.FullName},</p><p>Đánh giá của bạn cho công ty <b>{review.Company?.CompanyName ?? ""}</b> đã được duyệt và hiện đang hiển thị công khai trên hệ thống.</p><p>Cảm ơn bạn đã đóng góp đánh giá!</p>"
+                    );
+                    await _emailHelper.SendEmailAsync(review.Candidate.CandidateNavigation.Email, "Đánh giá của bạn đã được duyệt", emailBody);
+                }
             }
         }
         return success;
@@ -163,6 +178,17 @@ public class ReviewCompanyService : IReviewCompanyService
                     referenceId: reviewId,
                     referenceType: "Review"
                 );
+
+                // Gửi email cho Candidate
+                if (review.Candidate?.CandidateNavigation?.Email != null && 
+                    review.Candidate.CandidateNavigation.EmailNotificationsEnabled)
+                {
+                    string emailBody = EmailHelper.GetBaseTemplate(
+                        "Đánh giá công ty bị từ chối",
+                        $"<p>Chào {review.Candidate.FullName},</p><p>Đánh giá của bạn cho công ty <b>{review.Company?.CompanyName ?? ""}</b> đã bị từ chối.</p><p><b>Lý do:</b> {reason}</p><p>Vui lòng xem xét lại nội dung và tuân thủ các quy định của hệ thống.</p>"
+                    );
+                    await _emailHelper.SendEmailAsync(review.Candidate.CandidateNavigation.Email, "Đánh giá của bạn bị từ chối", emailBody);
+                }
             }
         }
         return success;

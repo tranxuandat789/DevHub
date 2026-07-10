@@ -16,10 +16,14 @@ namespace DevHub.Controllers.Moderator
     public class CompanyApprovalController : Controller
     {
         private readonly ItrecruitmentDbContext _db;
+        private readonly DevHub.Services.Interfaces.INotificationService _notificationService;
+        private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
-        public CompanyApprovalController(ItrecruitmentDbContext db)
+        public CompanyApprovalController(ItrecruitmentDbContext db, DevHub.Services.Interfaces.INotificationService notificationService, DevHub.Helpers.EmailHelper emailHelper)
         {
             _db = db;
+            _notificationService = notificationService;
+            _emailHelper = emailHelper;
         }
 
         [HttpGet("")]
@@ -86,18 +90,38 @@ namespace DevHub.Controllers.Moderator
             company.IsVerified = true;
             company.Status = "APPROVED";
 
-            var notification = new Notification
+            // Gửi thông báo cho tất cả Recruiter của công ty
+            var recruiters = company.Recruiters.ToList();
+            foreach (var r in recruiters)
             {
-                UserId = company.Recruiters.FirstOrDefault()?.RecruiterId ?? 0,
-                UserType = "RECRUITER",
-                Title = "Yêu cầu xác minh công ty đã được phê duyệt",
-                Message = "Chúc mừng! Công ty của bạn đã được xác minh.",
-                Type = "System",
-                SeverityLevel = "info",
-                IsRead = false,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.Notifications.Add(notification);
+                var userAccount = await _db.UserAccounts.FindAsync(r.RecruiterId);
+                if (userAccount != null)
+                {
+                    // In-app
+                    await _notificationService.SendNotificationAsync(
+                        userAccount.UserId,
+                        "RECRUITER",
+                        "COMPANY_APPROVED",
+                        $"Chúc mừng! Hồ sơ công ty {company.CompanyName} đã được xác minh.",
+                        "/recruiter/profile"
+                    );
+
+                    // Email
+                    if (userAccount.EmailNotificationsEnabled)
+                    {
+                        string subject = "DevHub - Hồ sơ công ty đã được xác minh";
+                        string body = $@"
+                        <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                            <h2 style='color: #4CAF50;'>Công ty của bạn đã được xác minh!</h2>
+                            <p>Chào {r.FullName},</p>
+                            <p>Hồ sơ công ty <strong>{company.CompanyName}</strong> của bạn đã được kiểm duyệt viên xác minh thành công.</p>
+                            <p>Bây giờ bạn có thể bắt đầu đăng tin tuyển dụng.</p>
+                            <p>Trân trọng,<br/>Đội ngũ DevHub</p>
+                        </div>";
+                        await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                    }
+                }
+            }
 
             var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(modIdClaim, out int modId);
@@ -129,18 +153,41 @@ namespace DevHub.Controllers.Moderator
             // Lẽ ra cần có trường lưu lý do từ chối (như RejectedReason) trong Company, nếu chưa có tạm thời bỏ qua
             // company.RejectedReason = reason;
 
-            var notification = new Notification
+            // Gửi thông báo cho tất cả Recruiter của công ty
+            var recruiters = company.Recruiters.ToList();
+            foreach (var r in recruiters)
             {
-                UserId = company.Recruiters.FirstOrDefault()?.RecruiterId ?? 0,
-                UserType = "RECRUITER",
-                Title = "Yêu cầu xác minh công ty bị từ chối",
-                Message = $"Yêu cầu xác minh của bạn đã bị từ chối. Lý do: {reason}",
-                Type = "System",
-                SeverityLevel = "warning",
-                IsRead = false,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.Notifications.Add(notification);
+                var userAccount = await _db.UserAccounts.FindAsync(r.RecruiterId);
+                if (userAccount != null)
+                {
+                    // In-app
+                    await _notificationService.SendNotificationAsync(
+                        userAccount.UserId,
+                        "RECRUITER",
+                        "COMPANY_REJECTED",
+                        $"Yêu cầu xác minh công ty {company.CompanyName} bị từ chối.",
+                        "/recruiter/profile"
+                    );
+
+                    // Email
+                    if (userAccount.EmailNotificationsEnabled)
+                    {
+                        string subject = "DevHub - Yêu cầu xác minh công ty bị từ chối";
+                        string body = $@"
+                        <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                            <h2 style='color: #F44336;'>Xác minh công ty thất bại</h2>
+                            <p>Chào {r.FullName},</p>
+                            <p>Yêu cầu xác minh công ty <strong>{company.CompanyName}</strong> của bạn không được phê duyệt với lý do sau:</p>
+                            <blockquote style='border-left: 4px solid #F44336; padding-left: 10px; color: #555;'>
+                                {reason}
+                            </blockquote>
+                            <p>Vui lòng cập nhật lại giấy tờ và thông tin để được duyệt.</p>
+                            <p>Trân trọng,<br/>Đội ngũ DevHub</p>
+                        </div>";
+                        await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                    }
+                }
+            }
 
             var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(modIdClaim, out int modId);

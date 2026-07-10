@@ -319,17 +319,17 @@ namespace DevHub.Services.Implementations
         {
             var position = string.IsNullOrWhiteSpace(jobTitle) ? "vị trí bạn đã ứng tuyển" : jobTitle;
             var name = string.IsNullOrWhiteSpace(fullName) ? "bạn" : fullName;
-            var subject = "Chúc mừng bạn đã trúng tuyển - DevHub";
+            var subject = $"Thông báo về trạng thái ứng tuyển của bạn vào {position} - DevHub";
             var body = $@"
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;
                         border: 1px solid #D6DDEB; border-radius: 8px;'>
                 <h2 style='color: #4640DE; text-align: center;'>Chúc mừng bạn đã trúng tuyển!</h2>
                 <p>Xin chào {name},</p>
-                <p>Chúng tôi rất vui mừng thông báo rằng bạn đã <b>trúng tuyển (HIRED)</b> vào vị trí <b>""{position}""</b>.</p>
+                <p>Chúng tôi rất vui mừng thông báo rằng bạn đã <b>trúng tuyển</b> vào vị trí <b>""{position}""</b>.</p>
                 <div style='text-align: center; margin: 28px 0;'>
                     <span style='display: inline-block; font-size: 18px; font-weight: bold; color: #16A34A;
                                  background: #ECFDF5; padding: 14px 28px; border-radius: 8px;
-                                 border: 1px dashed #16A34A;'>✓ Đã được tuyển (HIRED)</span>
+                                 border: 1px dashed #16A34A;'>✓ Đã được tuyển</span>
                 </div>
                 <p>Nhà tuyển dụng sẽ sớm liên hệ với bạn để trao đổi các thông tin tiếp theo (Offer letter, ngày nhận việc, v.v.).</p>
                 <p style='color: #4640DE;'>Chúc mừng bạn và chúc bạn có một khởi đầu tuyệt vời tại công ty!</p>

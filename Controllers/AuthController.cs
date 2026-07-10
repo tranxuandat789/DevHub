@@ -875,9 +875,7 @@ public class AuthController : Controller
 
         if (userType?.Trim().ToUpper() == "MODERATOR")
         {
-            if (tType == "COMPANY_APPROVAL") return Redirect("/moderator/company-approvals");
-            if (tType == "REVIEW") return Redirect("/moderator/review-approvals");
-            return Redirect("/moderator/job-approvals");
+            return Redirect("/ModeratorDashboard");
         }
 
         return (userType?.Trim().ToUpper()) switch

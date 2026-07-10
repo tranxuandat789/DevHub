@@ -198,6 +198,52 @@ public class ArticleService : IArticleService
         article.Status = "HIDDEN";
         article.RejectReason = reason;
         await _articleRepo.UpdateAsync(article);
+
+        // Gửi thông báo cho Recruiter của công ty
+        try
+        {
+            if (article.CompanyId.HasValue)
+            {
+                var recruiters = await _recruiterRepo.GetRecruitersByCompanyIdAsync(article.CompanyId.Value);
+                foreach (var r in recruiters)
+                {
+                    var user = r.RecruiterNavigation;
+                    if (user != null)
+                    {
+                        // In-app
+                        await _notificationService.SendNotificationAsync(
+                            user.UserId,
+                            "RECRUITER",
+                            "ARTICLE_REJECTED",
+                            $"Bài viết '{article.Title}' đã bị ẩn/từ chối.",
+                            $"/recruiter/articles"
+                        );
+
+                        // Email
+                        if (user.EmailNotificationsEnabled)
+                        {
+                            string subject = "DevHub - Bài viết chưa được duyệt";
+                            string body = $@"
+                            <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                                <h2 style='color: #F44336;'>Bài viết chưa được duyệt</h2>
+                                <p>Chào {r.FullName},</p>
+                                <p>Bài viết <strong>{article.Title}</strong> của bạn bị ẩn/từ chối với lý do:</p>
+                                <blockquote style='border-left: 4px solid #F44336; padding-left: 10px; color: #555;'>
+                                    {reason}
+                                </blockquote>
+                                <p>Vui lòng cập nhật lại bài viết của bạn.</p>
+                                <p>Trân trọng,<br/>Đội ngũ DevHub</p>
+                            </div>";
+                            await _emailHelper.SendEmailAsync(user.Email, subject, body);
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi
+        }
     }
 
     public async Task ApproveArticleByModAsync(int articleId)
@@ -209,6 +255,48 @@ public class ArticleService : IArticleService
         article.Status = "PUBLISHED";
         article.RejectReason = null;
         await _articleRepo.UpdateAsync(article);
+
+        // Gửi thông báo cho Recruiter của công ty
+        try
+        {
+            if (article.CompanyId.HasValue)
+            {
+                var recruiters = await _recruiterRepo.GetRecruitersByCompanyIdAsync(article.CompanyId.Value);
+                foreach (var r in recruiters)
+                {
+                    var user = r.RecruiterNavigation;
+                    if (user != null)
+                    {
+                        // In-app
+                        await _notificationService.SendNotificationAsync(
+                            user.UserId,
+                            "RECRUITER",
+                            "ARTICLE_APPROVED",
+                            $"Bài viết '{article.Title}' đã được duyệt.",
+                            $"/recruiter/articles"
+                        );
+
+                        // Email
+                        if (user.EmailNotificationsEnabled)
+                        {
+                            string subject = "DevHub - Bài viết đã được duyệt";
+                            string body = $@"
+                            <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                                <h2 style='color: #4CAF50;'>Bài viết đã được duyệt!</h2>
+                                <p>Chào {r.FullName},</p>
+                                <p>Bài viết <strong>{article.Title}</strong> của bạn đã được phê duyệt.</p>
+                                <p>Trân trọng,<br/>Đội ngũ DevHub</p>
+                            </div>";
+                            await _emailHelper.SendEmailAsync(user.Email, subject, body);
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi
+        }
     }
 
     public async Task DeleteArticleByModAsync(int articleId, string reason)

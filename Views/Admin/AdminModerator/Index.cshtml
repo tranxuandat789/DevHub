@@ -69,6 +69,7 @@
                     <th class="py-4 px-6 text-dark font-bold text-sm w-16">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Thông tin Moderator</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center">Loại công việc</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Ngành phụ trách</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center">Trạng thái</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Ngày tham gia</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
@@ -108,6 +109,31 @@
                                 else
                                 {
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">—</span>
+                                }
+                            </td>
+                            <td class="py-4 px-6">
+                                @if (mod.Industries.Any())
+                                {
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach (var ind in mod.Industries.Take(3))
+                                        {
+                                            <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded border border-gray-200">@ind</span>
+                                        }
+                                        @if (mod.Industries.Count > 3)
+                                        {
+                                            <span class="inline-block bg-gray-50 text-gray-400 text-[10px] px-2 py-0.5 rounded border border-gray-200" title="@string.Join(", ", mod.Industries.Skip(3))">
+                                                +@(mod.Industries.Count - 3)
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else if (!string.IsNullOrEmpty(mod.TaskType))
+                                {
+                                    <span class="text-xs text-gray-400 italic">Chưa phân ngành</span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs text-gray-400">—</span>
                                 }
                             </td>
                             <td class="py-4 px-6 text-center">

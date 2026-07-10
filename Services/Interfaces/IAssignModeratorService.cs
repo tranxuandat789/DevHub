@@ -51,7 +51,7 @@ public interface IAssignModeratorService
     /// Auto-assign record mới khi nó được tạo vào hệ thống
     /// (gọi từ service tạo record để gán ngay cho mod ít việc nhất)
     /// </summary>
-    Task AutoAssignNewRecordAsync(string taskType, int recordId);
+    Task<int?> AutoAssignNewRecordAsync(string taskType, int recordId);
 
     // ---- History ----
 

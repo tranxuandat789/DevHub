@@ -1,4 +1,7 @@
 @using System.Security.Claims
+@using DevHub.Data
+@using Microsoft.EntityFrameworkCore
+@inject ItrecruitmentDbContext _layoutDb
 @{
     Layout = "_Layout";
     ViewData["HideHeaderFooter"] = true;
@@ -39,7 +42,7 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white border-r border-[#D6DDEB] hidden md:flex flex-col flex-shrink-0">
             <!-- Logo -->
-            <a href="/" class="p-6 border-b border-[#D6DDEB] flex items-center gap-2 text-decoration-none hover:opacity-80 transition-opacity">
+            <a href="/" class="h-20 px-6 border-b border-[#D6DDEB] flex items-center gap-2 text-decoration-none hover:opacity-80 transition-opacity flex-shrink-0">
                 <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white relative overflow-hidden flex-shrink-0">
                     <div class="absolute w-5 h-5 border-2 border-white rounded-full"></div>
                     <div class="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full"></div>
@@ -55,6 +58,13 @@
                     <a href="/ModeratorDashboard" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("ModeratorDashboard") == true ? "text-primary bg-blue-50 font-bold" : "")">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                         Dashboard
+                    </a>
+                    
+                    <a href="/ModeratorNotification" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("ModeratorNotification") == true ? "text-primary bg-blue-50 font-bold" : "")">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        Thông báo
                     </a>
                     
                     @if (string.IsNullOrEmpty(taskType) || taskType == "JOB_POST")
@@ -84,6 +94,11 @@
                     <a href="/ModeratorBlog" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("ModeratorBlog") == true ? "text-primary bg-blue-50 font-bold" : "")">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Quản lý Blog
+                    </a>
+                    
+                    <a href="/moderator/articles" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("articles") == true ? "text-primary bg-blue-50 font-bold" : "")">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                        Quản lý Bài báo
                     </a>
                     
                     <a href="/ModeratorUser" class="flex items-center gap-3 px-4 py-3 text-muted hover:text-primary hover:bg-blue-50 rounded-lg transition-colors font-medium @(Context.Request.Path.Value?.Contains("ModeratorUser") == true ? "text-primary bg-blue-50 font-bold" : "")">
@@ -134,10 +149,153 @@
     </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-6 md:p-8 overflow-y-auto">
-            @RenderBody()
-        </main>
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b border-[#D6DDEB] h-20 flex items-center justify-end px-6 flex-shrink-0">
+                <div class="flex items-center gap-6">
+                    <!-- Notifications -->
+                    <div class="relative" id="moderator-notification-container">
+                        <button id="moderator-notification-btn" class="relative p-2 text-muted hover:text-primary transition-colors focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span id="moderator-notification-badge" class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="moderator-notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 hidden z-50">
+                            <!-- Content loaded via AJAX -->
+                        </div>
+                    </div>
+                    
+                    <!-- User Profile -->
+                    <div class="flex items-center gap-3 pl-6 border-l border-[#D6DDEB]">
+                        <div class="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                            @{
+                                var modUserId = 0;
+                                int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out modUserId);
+                                var modAdmin = await _layoutDb.Admins.FirstOrDefaultAsync(a => a.AdminId == modUserId);
+                                var displayName = modAdmin?.FullName ?? modAdmin?.Username ?? User.FindFirstValue(ClaimTypes.Name) ?? "Moderator";
+                                var initials = string.IsNullOrEmpty(displayName) ? "M" : displayName.Substring(0, 1).ToUpper();
+                            }
+                            @initials
+                        </div>
+                        <span class="font-medium text-dark">@displayName</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+                @RenderBody()
+            </main>
+        </div>
     </div>
+
+    <!-- Notifications Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const notifBtn = document.getElementById('moderator-notification-btn');
+            const notifDropdown = document.getElementById('moderator-notification-dropdown');
+            const notifBadge = document.getElementById('moderator-notification-badge');
+            
+            // Toggle dropdown
+            notifBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (notifDropdown.classList.contains('hidden')) {
+                    loadNotifications();
+                    notifDropdown.classList.remove('hidden');
+                } else {
+                    notifDropdown.classList.add('hidden');
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!notifDropdown.contains(e.target) && e.target !== notifBtn) {
+                    notifDropdown.classList.add('hidden');
+                }
+            });
+
+            // Fetch unread count
+            function fetchUnreadCount() {
+                fetch('/ModeratorNotification/UnreadCount')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.count > 0) {
+                            notifBadge.textContent = data.count > 99 ? '99+' : data.count;
+                            notifBadge.classList.remove('hidden');
+                        } else {
+                            notifBadge.classList.add('hidden');
+                        }
+                    })
+                    .catch(err => console.error('Error fetching unread count:', err));
+            }
+
+            // Load notifications HTML
+            function loadNotifications() {
+                notifDropdown.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Đang tải...</div>';
+                fetch('/ModeratorNotification/Recent')
+                    .then(res => res.text())
+                    .then(html => {
+                        notifDropdown.innerHTML = html;
+                        // Re-attach events for mark-read buttons if they exist in the partial view
+                        attachNotificationEvents();
+                    })
+                    .catch(err => {
+                        console.error('Error loading notifications:', err);
+                        notifDropdown.innerHTML = '<div class="p-4 text-center text-sm text-red-500">Lỗi khi tải thông báo</div>';
+                    });
+            }
+
+            // Attach events inside dropdown
+            function attachNotificationEvents() {
+                // Navigate to detail page when clicking a notification item
+                const notifItems = notifDropdown.querySelectorAll('.notification-item');
+                notifItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const url = this.getAttribute('data-url');
+                        if (url && url !== '#') {
+                            window.location.href = url;
+                        }
+                    });
+                });
+
+                // Example for 'mark as read' buttons if your partial view uses them
+                const markReadBtns = notifDropdown.querySelectorAll('.mark-read-btn');
+                markReadBtns.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        fetch(`/ModeratorNotification/MarkAsRead/${id}`, { method: 'POST' })
+                            .then(() => {
+                                fetchUnreadCount();
+                                loadNotifications(); // Reload list
+                            });
+                    });
+                });
+
+                const markAllReadBtn = notifDropdown.querySelector('#mark-all-read-btn');
+                if (markAllReadBtn) {
+                    markAllReadBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        fetch('/ModeratorNotification/MarkAllAsRead', { method: 'POST' })
+                            .then(() => {
+                                fetchUnreadCount();
+                                loadNotifications();
+                            });
+                    });
+                }
+            }
+
+            // Initial load
+            fetchUnreadCount();
+            
+            // Poll every 60 seconds
+            setInterval(fetchUnreadCount, 60000);
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

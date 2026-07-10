@@ -1,185 +1,466 @@
 @model IEnumerable<DevHub.Models.BlogPost>
-
 @{
     ViewData["Title"] = "Cẩm nang nghề nghiệp";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    int currentPage = ViewBag.CurrentPage ?? 1;
-    int totalPages = ViewBag.TotalPages ?? 1;
+    var tags = ViewBag.Tags as List<string> ?? new List<string>();
+    int currentPage = (ViewBag.CurrentPage as int?) ?? 1;
+    int totalPages = (ViewBag.TotalPages as int?) ?? 1;
+    string search = ViewBag.SearchKeyword as string ?? "";
+    string currentTag = ViewBag.CurrentTag as string ?? "";
 }
 
-<div class="relative overflow-hidden py-16 mb-8" style="background-color: #F7F5FF; background-image: radial-gradient(circle at 70% 50%, rgba(38,164,255,0.18), transparent 45%), radial-gradient(circle at 25% 60%, rgba(139,92,246,0.12), transparent 40%);">
-    <!-- Blob decorators -->
-    <div class="absolute top-0 right-0 w-72 h-72 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, rgba(38,164,255,0.5), transparent 70%); transform: translate(30%, -30%);"></div>
-    <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-15 blur-3xl" style="background: radial-gradient(circle, rgba(139,92,246,0.5), transparent 70%); transform: translate(-30%, 30%);"></div>
+<style>
+    /* Design Tokens & Colors */
+    :root {
+        --color-primary: #4640DE;
+        --color-secondary: #25324B;
+        --color-success: #22C55E;
+        --color-bg: #F8FAFC;
+        --color-card: #FFFFFF;
+        --color-text-main: #0F172A;
+        --color-text-sub: #64748B;
+        --color-border: #E2E8F0;
+    }
+
+    /* Global Body/Page overrides */
+    body {
+        background-color: var(--color-bg) !important;
+        color: var(--color-text-main) !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    /* Scrollbars */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #F1F5F9;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+    }
+
+    /* Search Hero Section */
+    .search-hero {
+        background: linear-gradient(135deg, #F7F5FC 0%, #EAE6F8 100%);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Custom Checkboxes */
+    .custom-checkbox {
+        position: relative;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #CBD5E1;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .custom-checkbox:checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+    .custom-checkbox:checked::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 5px;
+        height: 9px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    /* Sidebar Accordions */
+    .accordion-header {
+        cursor: pointer;
+        user-select: none;
+    }
+    .accordion-content {
+        transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+        max-height: 500px;
+        overflow: hidden;
+    }
+    .accordion-content.collapsed {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Blog Cards list */
+    .blog-card {
+        background-color: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .blog-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(70, 64, 222, 0.08);
+        border-color: #D6DDEB;
+    }
+
+    @@media (min-width: 1024px) {
+        #filterSidebar {
+            max-height: 980px;
+            overflow-y: auto;
+        }
+    }
+
+    .mobile-filter-drawer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 320px;
+        max-width: 85vw;
+        background-color: #FFFFFF;
+        z-index: 2000;
+        box-shadow: 20px 0 30px rgba(0, 0, 0, 0.15);
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+    }
+    .mobile-filter-drawer.open {
+        transform: translateX(0);
+    }
+    .drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1999;
+        display: none;
+    }
+    .drawer-overlay.active {
+        display: block;
+    }
+</style>
+
+<!-- Search Hero Section -->
+<section class="search-hero py-16 px-4 md:px-8 relative overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <!-- Header -->
-        <div class="text-center">
-            <h1 class="font-epilogue font-bold text-[48px] leading-tight text-dark mb-4">
-                Bài viết <span style="color: #26A4FF;">nổi bật</span>
+        <!-- Breadcrumb -->
+        <div class="text-xs md:text-sm text-slate-500 mb-4 flex items-center space-x-2 font-medium">
+            <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <a href="/" class="hover:text-primary transition-colors">Trang chủ</a>
+            <span>&rsaquo;</span>
+            <span class="text-slate-800 font-semibold">Cẩm nang nghề nghiệp</span>
+        </div>
+
+        <div class="max-w-4xl">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                Khám phá các bài viết <span class="text-primary">cẩm nang nghề nghiệp</span>
             </h1>
-            <p class="text-muted text-lg max-w-2xl mx-auto">
-                Khám phá những góc nhìn mới, mẹo hay và xu hướng nghề nghiệp từ các chuyên gia để phát triển sự nghiệp của bạn.
+            <p class="text-slate-500 text-sm md:text-base mb-8 max-w-xl font-normal leading-relaxed">
+                Chia sẻ kinh nghiệm, kỹ năng phỏng vấn, định hướng nghề nghiệp và nhiều hơn nữa để phát triển sự nghiệp của bạn.
             </p>
         </div>
-    </div>
-</div>
 
-<div class="bg-white pb-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <!-- Categories & Search -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-            <div class="flex flex-wrap gap-3">
-                @{
-                    var currentSearchParam = string.IsNullOrEmpty(ViewBag.SearchKeyword) ? "" : $"&search={Uri.EscapeDataString(ViewBag.SearchKeyword)}";
-                }
-                <a href="/CareerHandbook?@(currentSearchParam.TrimStart('&'))" class="px-5 py-2.5 rounded-full @(string.IsNullOrEmpty(ViewBag.CurrentTag) ? "bg-[#26A4FF] text-white hover:bg-opacity-90" : "bg-gray-100 text-gray-600 hover:bg-gray-200") font-medium text-sm transition">Tất cả</a>
-                @if (ViewBag.Tags != null)
-                {
-                    foreach (var t in (List<string>)ViewBag.Tags)
-                    {
-                        var isActive = ViewBag.CurrentTag == t;
-                        <a href="/CareerHandbook?tag=@Uri.EscapeDataString(t)@currentSearchParam" class="px-5 py-2.5 rounded-full @(isActive ? "bg-[#26A4FF] text-white hover:bg-opacity-90" : "bg-gray-100 text-gray-600 hover:bg-gray-200") font-medium text-sm transition">@t</a>
-                    }
-                }
-            </div>
-            
-            <form action="/CareerHandbook" method="get" class="relative w-full md:w-80">
-                @if (!string.IsNullOrEmpty(ViewBag.CurrentTag))
-                {
-                    <input type="hidden" name="tag" value="@ViewBag.CurrentTag" />
-                }
-                <input type="text" name="search" value="@ViewBag.SearchKeyword" placeholder="Tìm kiếm bài viết..." class="w-full pl-10 pr-4 py-3 rounded-lg border border-bordercolor focus:outline-none focus:border-[#26A4FF] focus:ring-1 focus:ring-[#26A4FF] transition" />
-                <button type="submit" class="absolute left-3 top-3.5 text-gray-400 hover:text-[#26A4FF]">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
-            </form>
-        </div>
-
-        @if (Model != null && Model.Any())
-        {
-            var featured = Model.First();
-            var others = Model.Skip(1);
-
-            <!-- Featured Article -->
-            <div class="mb-16">
-                <a href="/Blog/@featured.Slug" class="group grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition duration-300">
-                    <div class="h-64 md:h-full w-full relative overflow-hidden">
-                        <img src="@(string.IsNullOrEmpty(featured.ThumbnailUrl) ? "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1000&auto=format&fit=crop" : featured.ThumbnailUrl)" alt="Featured Article" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                        @if (currentPage == 1) {
-                            <div class="absolute top-4 left-4">
-                                <span class="bg-[#26A4FF] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Mới nhất</span>
-                            </div>
-                        }
-                    </div>
-                    <div class="p-8 md:pr-12 md:py-12">
-                        <div class="flex items-center gap-3 text-sm text-muted mb-4">
-                            <span class="font-medium text-[#26A4FF]">Tổng hợp</span>
-                            <span>•</span>
-                            <span>@(featured.PublishedAt?.ToString("dd Thg MM, yyyy") ?? featured.CreatedAt?.ToString("dd Thg MM, yyyy"))</span>
-                        </div>
-                        <h2 class="text-3xl font-bold text-dark mb-3 group-hover:text-[#26A4FF] transition line-clamp-2">@featured.Title</h2>
-                        @{
-                            var featuredExcerpt = string.IsNullOrEmpty(featured.Content)
-                                ? ""
-                                : System.Text.RegularExpressions.Regex.Replace(featured.Content, "<.*?>", string.Empty);
-                            if (featuredExcerpt.Length > 150) featuredExcerpt = featuredExcerpt.Substring(0, 150).TrimEnd() + "...";
-                        }
-                        @if (!string.IsNullOrEmpty(featuredExcerpt))
-                        {
-                            <p class="text-muted text-sm leading-relaxed line-clamp-3">@featuredExcerpt</p>
-                        }
-                        <div class="flex items-center justify-between mt-6">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
-                                    @((featured.Publisher?.FullName ?? "Admin")[0])
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-dark">@(featured.Publisher?.FullName ?? "Admin")</p>
-                                </div>
-                            </div>
-                            <span class="text-[#26A4FF] font-medium flex items-center gap-1">
-                                Đọc tiếp <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Article Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @foreach (var article in others)
-                {
-                    <a href="/Blog/@article.Slug" class="group bg-white rounded-xl border border-bordercolor overflow-hidden hover:shadow-md transition flex flex-col">
-                        <div class="h-48 overflow-hidden relative">
-                            <img src="@(string.IsNullOrEmpty(article.ThumbnailUrl) ? "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop" : article.ThumbnailUrl)" alt="Article" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                        </div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <div class="text-xs text-[#26A4FF] font-semibold mb-2 uppercase tracking-wide">Tin tức</div>
-                            <h3 class="text-xl font-bold text-dark mb-2 group-hover:text-[#26A4FF] transition line-clamp-2">@article.Title</h3>
-                            @{
-                                var artExcerpt = string.IsNullOrEmpty(article.Content)
-                                    ? ""
-                                    : System.Text.RegularExpressions.Regex.Replace(article.Content, "<.*?>", string.Empty);
-                                if (artExcerpt.Length > 80) artExcerpt = artExcerpt.Substring(0, 80).TrimEnd() + "...";
-                            }
-                            @if (!string.IsNullOrEmpty(artExcerpt))
-                            {
-                                <p class="text-muted text-xs leading-relaxed mb-2 line-clamp-2">@artExcerpt</p>
-                            }
-                            <div class="flex items-center justify-between mt-auto pt-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-bold">
-                                        @((article.Publisher?.FullName ?? "Admin")[0])
-                                    </div>
-                                    <span class="text-sm font-medium text-dark line-clamp-1">@(article.Publisher?.FullName ?? "Admin")</span>
-                                </div>
-                                <span class="text-xs text-muted">@(article.PublishedAt?.ToString("dd/MM/yyyy") ?? article.CreatedAt?.ToString("dd/MM/yyyy"))</span>
-                            </div>
-                        </div>
-                    </a>
-                }
-            </div>
-
-            <!-- Pagination -->
-            @if (totalPages > 1)
+        <!-- Modern Search Box -->
+        <form method="GET" action="/CareerHandbook" id="searchHeroForm" class="max-w-3xl">
+            @if (!string.IsNullOrEmpty(currentTag))
             {
-                <div class="mt-12 flex justify-center">
-                    <nav class="flex items-center gap-2">
-                        @{
-                            var searchParam = string.IsNullOrEmpty(ViewBag.SearchKeyword) ? "" : $"&search={Uri.EscapeDataString(ViewBag.SearchKeyword)}";
-                            var tagParam = string.IsNullOrEmpty(ViewBag.CurrentTag) ? "" : $"&tag={Uri.EscapeDataString(ViewBag.CurrentTag)}";
-                            var queryParams = searchParam + tagParam;
-                        }
-                        <a href="?page=@(currentPage - 1)@queryParams" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-muted hover:bg-gray-50 transition @(currentPage <= 1 ? "pointer-events-none opacity-50" : "")">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </a>
-                        
-                        @for (int i = 1; i <= totalPages; i++)
-                        {
-                            if (i == currentPage)
-                            {
-                                <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#26A4FF] text-white font-medium">@i</span>
-                            }
-                            else
-                            {
-                                <a href="?page=@i@queryParams" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-dark font-medium hover:bg-gray-50 transition">@i</a>
-                            }
-                        }
-
-                        <a href="?page=@(currentPage + 1)@queryParams" class="w-10 h-10 flex items-center justify-center rounded-lg border border-bordercolor text-muted hover:bg-gray-50 transition @(currentPage >= totalPages ? "pointer-events-none opacity-50" : "")">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </a>
-                    </nav>
-                </div>
+                <input type="hidden" name="tag" value="@currentTag" />
             }
-        }
-        else
-        {
-            <div class="text-center py-20 text-gray-500">
-                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H14"></path></svg>
-                <h3 class="text-xl font-medium">Chưa có bài viết nào</h3>
-                <p class="mt-2 text-sm">Hãy quay lại sau để đọc những bài viết mới nhất nhé.</p>
+            <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-lg flex flex-col md:flex-row items-center gap-2">
+                <div class="flex items-center flex-1 w-full px-3 py-2 border-r-0 md:border-r border-slate-100">
+                    <svg class="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" name="search" value="@search" placeholder="Tìm kiếm bài viết..." class="w-full focus:outline-none text-slate-800 placeholder-slate-400 bg-transparent text-[15px] font-medium">
+                </div>
+                <button type="submit" class="w-full md:w-auto bg-primary text-white font-bold py-3.5 px-8 rounded-xl hover:bg-opacity-90 hover:shadow-md transition-all whitespace-nowrap text-[15px]">
+                    Tìm kiếm bài viết
+                </button>
             </div>
-        }
+        </form>
     </div>
+</section>
+
+<!-- Main Layout Grid -->
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <form method="GET" action="/CareerHandbook" id="filterForm" class="w-full">
+            <input type="hidden" name="search" value="@search" />
+            
+            <div class="flex flex-col lg:flex-row gap-8 w-full items-start">
+                
+                <!-- Sidebar Filter Left -->
+                <div class="w-full lg:w-1/4 lg:sticky lg:top-6 flex-shrink-0">
+                    <button id="mobileFilterBtn" type="button" class="lg:hidden w-full flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-bold mb-4 shadow-sm hover:bg-slate-50 transition-colors">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            Chủ đề bài viết
+                        </span>
+                        <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+
+                    <div id="filterSidebar" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+                        
+                        <!-- Tags Accordion -->
+                        <div class="border-b border-slate-100 pb-3">
+                            <div class="accordion-header flex justify-between items-center py-2" data-accordion="tags">
+                                <span class="font-bold text-slate-800 text-[15px]">Chủ đề phổ biến</span>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <div class="accordion-content pt-2" id="accordion-tags">
+                                <div class="max-h-[300px] overflow-y-auto pr-1 custom-scrollbar space-y-2.5">
+                                    <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                        <input type="radio" name="tag" value="" @(string.IsNullOrEmpty(currentTag) ? "checked" : "") class="accent-[#4640DE] text-primary focus:ring-primary w-4 h-4 border-slate-300" onchange="this.form.submit()" />
+                                        <span>Tất cả chủ đề</span>
+                                    </label>
+                                    @foreach (var t in tags)
+                                    {
+                                        <label class="flex items-center gap-3 text-sm text-slate-600 cursor-pointer hover:text-primary transition-colors font-medium">
+                                            <input type="radio" name="tag" value="@t" @(currentTag == t ? "checked" : "") class="accent-[#4640DE] text-primary focus:ring-primary w-4 h-4 border-slate-300" onchange="this.form.submit()" />
+                                            <span>@t</span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Content Area Right -->
+                <div class="w-full lg:w-3/4 flex-grow">
+                    
+                    @if (!Model.Any())
+                    {
+                        <!-- Empty State -->
+                        <div class="py-20 text-center bg-white border border-slate-200 rounded-2xl p-8 shadow-3xs">
+                            <div class="w-20 h-20 bg-slate-50 text-slate-350 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                <svg class="w-10 h-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Không tìm thấy bài viết nào</h3>
+                            <p class="text-slate-400 text-sm max-w-xs mx-auto leading-relaxed">Chúng tôi không thể tìm thấy kết quả phù hợp. Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm khác.</p>
+                            <a href="/CareerHandbook" class="mt-6 inline-block text-primary font-bold hover:underline">Xóa bộ lọc</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Vertical Layout List -->
+                        <div class="flex flex-col gap-5 w-full">
+                            @foreach (var blog in Model)
+                            {
+                                <div class="blog-card w-full p-4 lg:h-[220px] flex flex-col md:flex-row gap-5 relative overflow-hidden" onclick="window.location.href='/CareerHandbook/@blog.Slug'">
+                                    
+                                    <!-- Thumbnail -->
+                                    <a href="/CareerHandbook/@blog.Slug" class="w-full md:w-[280px] h-[180px] shrink-0 rounded-xl overflow-hidden relative border border-slate-100">
+                                        @if (!string.IsNullOrEmpty(blog.ThumbnailUrl))
+                                        {
+                                            <img src="@blog.ThumbnailUrl" alt="@blog.Title" class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-full h-full bg-slate-100 flex items-center justify-center transition-transform duration-300 hover:scale-105">
+                                                <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(blog.Tag))
+                                        {
+                                            var mainTag = blog.Tag.Split(',').FirstOrDefault()?.Trim();
+                                            if (!string.IsNullOrEmpty(mainTag))
+                                            {
+                                                <span class="absolute top-2 left-2 bg-white/95 backdrop-blur text-slate-800 text-[11px] font-bold px-2 py-1 rounded shadow-sm border border-slate-100">@mainTag</span>
+                                            }
+                                        }
+                                    </a>
+
+                                    <!-- Content -->
+                                    <div class="flex-1 flex flex-col min-w-0 py-1">
+                                        <p class="text-[13px] text-slate-500 mb-2 font-medium flex items-center gap-1.5">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            @(blog.PublishedAt?.ToString("dd/MM/yyyy") ?? blog.CreatedAt?.ToString("dd/MM/yyyy") ?? "")
+                                        </p>
+                                        
+                                        <h3 class="font-extrabold text-xl md:text-2xl text-slate-900 hover:text-primary transition-colors line-clamp-2 mb-3 leading-snug">
+                                            <a href="/CareerHandbook/@blog.Slug">@blog.Title</a>
+                                        </h3>
+                                        
+                                        <p class="text-sm text-slate-500 line-clamp-2 mb-4 leading-relaxed">
+                                            Khám phá những kiến thức bổ ích từ bài viết này. Tìm hiểu chi tiết bằng cách click để đọc.
+                                        </p>
+                                        
+                                        <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-7 h-7 rounded-full bg-[#F7F5FC] flex items-center justify-center text-primary text-xs font-bold border border-[#D6DDEB]">
+                                                    @(!string.IsNullOrWhiteSpace(blog.Publisher?.FullName) ? blog.Publisher.FullName.Substring(0, 1).ToUpper() : "A")
+                                                </div>
+                                                <span class="text-sm font-semibold text-slate-700 truncate max-w-[150px]">
+                                                    @(string.IsNullOrWhiteSpace(blog.Publisher?.FullName) ? "Admin" : blog.Publisher.FullName)
+                                                </span>
+                                            </div>
+                                            <a href="/CareerHandbook/@blog.Slug" class="text-sm text-primary font-bold hover:underline">Đọc bài viết &rsaquo;</a>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (totalPages > 1)
+                        {
+                            <div class="mt-10 flex justify-center">
+                                <nav class="flex items-center space-x-2">
+                                    @if (currentPage > 1)
+                                    {
+                                        <a href="/CareerHandbook?page=@(currentPage - 1)&search=@search&tag=@currentTag" class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                                        </a>
+                                    }
+                                    
+                                    @for (int i = 1; i <= totalPages; i++)
+                                    {
+                                        if (i == currentPage)
+                                        {
+                                            <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white font-bold shadow-sm">@i</span>
+                                        }
+                                        else if (i == 1 || i == totalPages || Math.Abs(i - currentPage) <= 1)
+                                        {
+                                            <a href="/CareerHandbook?page=@i&search=@search&tag=@currentTag" class="w-10 h-10 flex items-center justify-center rounded-xl border border-transparent text-slate-700 hover:bg-slate-100 font-bold transition-colors">@i</a>
+                                        }
+                                        else if (Math.Abs(i - currentPage) == 2)
+                                        {
+                                            <span class="w-10 h-10 flex items-center justify-center text-slate-400 font-bold">...</span>
+                                        }
+                                    }
+
+                                    @if (currentPage < totalPages)
+                                    {
+                                        <a href="/CareerHandbook?page=@(currentPage + 1)&search=@search&tag=@currentTag" class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                        </a>
+                                    }
+                                </nav>
+                            </div>
+                        }
+                    }
+
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Mobile Filter Drawer overlay -->
+<div id="drawerOverlay" class="drawer-overlay"></div>
+
+<!-- Mobile Filter Drawer container -->
+<div id="mobileFilterDrawer" class="mobile-filter-drawer p-6 flex flex-col gap-6">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Lọc bài viết
+        </h2>
+        <button id="closeDrawerBtn" type="button" class="text-slate-400 hover:text-slate-800 text-2xl font-bold leading-none p-1">&times;</button>
+    </div>
+    <div id="drawerFilterBody" class="flex-grow overflow-y-auto pr-1 custom-scrollbar"></div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Accordion expand/collapse
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const contentId = 'accordion-' + header.getAttribute('data-accordion');
+                    const content = document.getElementById(contentId);
+                    const caret = header.querySelector('svg');
+                    
+                    if (content) {
+                        content.classList.toggle('collapsed');
+                        if (caret) {
+                            if (content.classList.contains('collapsed')) {
+                                caret.style.transform = 'rotate(-90deg)';
+                            } else {
+                                caret.style.transform = 'rotate(0deg)';
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Mobile filter drawer logic
+            const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+            const mobileFilterDrawer = document.getElementById('mobileFilterDrawer');
+            const drawerOverlay = document.getElementById('drawerOverlay');
+            const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+            const drawerFilterBody = document.getElementById('drawerFilterBody');
+            const filterSidebar = document.getElementById('filterSidebar');
+
+            if (mobileFilterBtn && mobileFilterDrawer && drawerOverlay && closeDrawerBtn) {
+                mobileFilterBtn.addEventListener('click', () => {
+                    if (drawerFilterBody.children.length === 0 && filterSidebar) {
+                        const clonedFilters = filterSidebar.cloneNode(true);
+                        clonedFilters.classList.remove('bg-white', 'border', 'border-slate-200', 'p-6', 'shadow-sm');
+                        clonedFilters.classList.add('space-y-5', 'pb-16');
+                        
+                        const clonedAccordionHeaders = clonedFilters.querySelectorAll('.accordion-header');
+                        clonedAccordionHeaders.forEach(header => {
+                            header.addEventListener('click', () => {
+                                const contentId = 'accordion-' + header.getAttribute('data-accordion');
+                                const content = clonedFilters.querySelector('#' + contentId);
+                                const caret = header.querySelector('svg');
+                                
+                                if (content) {
+                                    content.classList.toggle('collapsed');
+                                    if (caret) {
+                                        if (content.classList.contains('collapsed')) {
+                                            caret.style.transform = 'rotate(-90deg)';
+                                        } else {
+                                            caret.style.transform = 'rotate(0deg)';
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        
+                        drawerFilterBody.appendChild(clonedFilters);
+                    }
+                    
+                    mobileFilterDrawer.classList.add('open');
+                    drawerOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                const closeDrawer = () => {
+                    mobileFilterDrawer.classList.remove('open');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                };
+
+                closeDrawerBtn.addEventListener('click', closeDrawer);
+                drawerOverlay.addEventListener('click', closeDrawer);
+            }
+        });
+    </script>
+}

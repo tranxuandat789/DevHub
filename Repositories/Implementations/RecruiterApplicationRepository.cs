@@ -184,6 +184,23 @@ namespace DevHub.Repositories.Implementations
                 .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
         }
 
+        public async Task<Application?> UpdateStatusIfApprovedToHiredAsync(int applicationId, int recruiterId)
+        {
+            var rows = await _context.Applications
+                .Where(a => a.ApplicationId == applicationId
+                         && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
+                         && a.Status.ToUpper() == "APPROVED"
+                         && (a.Job.Status == null || a.Job.Status.ToUpper() != "PENDING"))
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, "HIRED"));
+
+            if (rows == 0) return null;
+
+            return await _context.Applications
+                .AsNoTracking()
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+        }
+
         public async Task CreateCandidateNotificationAsync(int candidateId, string title, string message, string severity, int applicationId)
         {
             var n = new Notification
@@ -237,13 +254,13 @@ namespace DevHub.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<(string? Email, string FullName)> GetCandidateContactAsync(int candidateId)
+        public async Task<(string? Email, string FullName, bool EmailNotificationsEnabled)> GetCandidateContactAsync(int candidateId)
         {
             var c = await _context.Candidates
                 .AsNoTracking()
                 .Include(x => x.CandidateNavigation)
                 .FirstOrDefaultAsync(x => x.CandidateId == candidateId);
-            return (c?.CandidateNavigation?.Email, c?.FullName ?? "");
+            return (c?.CandidateNavigation?.Email, c?.FullName ?? "", c?.CandidateNavigation?.EmailNotificationsEnabled ?? true);
         }
 
         public async Task<int> CountApplicationsAtCompanyAsync(int candidateId, int recruiterId)

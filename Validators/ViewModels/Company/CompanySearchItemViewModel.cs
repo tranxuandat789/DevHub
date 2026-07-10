@@ -16,5 +16,9 @@ namespace DevHub.ViewModels.Company
         // Ranking and Tech badges properties
         public int SystemRank { get; set; }
         public List<string> TechStacks { get; set; } = new();
+        
+        // Articles preview (up to 2 shown, total count for "read more" link)
+        public List<(int ArticleId, string Title, string Slug)> ArticlesPreviews { get; set; } = new();
+        public int TotalArticleCount { get; set; }
     }
 }

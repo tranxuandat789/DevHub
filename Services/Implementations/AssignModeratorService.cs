@@ -11,11 +11,19 @@ public class AssignModeratorService : IAssignModeratorService
 {
     private readonly ItrecruitmentDbContext _context;
     private readonly DevHub.Repositories.Interfaces.IIndustryAssignmentRepository _industryRepo;
+    private readonly INotificationService _notificationService;
+    private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
-    public AssignModeratorService(ItrecruitmentDbContext context, DevHub.Repositories.Interfaces.IIndustryAssignmentRepository industryRepo)
+    public AssignModeratorService(
+        ItrecruitmentDbContext context, 
+        DevHub.Repositories.Interfaces.IIndustryAssignmentRepository industryRepo,
+        INotificationService notificationService,
+        DevHub.Helpers.EmailHelper emailHelper)
     {
         _context = context;
         _industryRepo = industryRepo;
+        _notificationService = notificationService;
+        _emailHelper = emailHelper;
     }
 
     // ----------------------------------------------------------------
@@ -240,7 +248,10 @@ public class AssignModeratorService : IAssignModeratorService
 
         // Ghi audit log
         if (assigned > 0)
+        {
             await WriteAuditLogAsync(adminId, taskType, moderatorId, assigned, filterIndustry, filterServiceId);
+            await NotifyModeratorAsync(moderatorId, taskType, assigned);
+        }
 
         return assigned;
     }
@@ -282,7 +293,7 @@ public class AssignModeratorService : IAssignModeratorService
     /// Gán record mới vừa tạo vào moderator ít việc nhất (auto-assign realtime)
     /// Gọi từ service tạo Company / JobPost / Review
     /// </summary>
-    public async Task AutoAssignNewRecordAsync(string taskType, int recordId)
+    public async Task<int?> AutoAssignNewRecordAsync(string taskType, int recordId)
     {
         // 1. Xác định industry của record
         string? industry = taskType switch {
@@ -308,7 +319,7 @@ public class AssignModeratorService : IAssignModeratorService
             moderatorId = mods.OrderBy(m => m.AssignedPending).FirstOrDefault()?.ModeratorId;
         }
 
-        if (moderatorId == null) return;
+        if (moderatorId == null) return null;
 
         // 4. Gán vào record
         int assignedCount = 0;
@@ -325,7 +336,10 @@ public class AssignModeratorService : IAssignModeratorService
         if (assignedCount > 0)
         {
             await WriteAuditLogAsync(null, taskType, moderatorId.Value, 1, industry, null);
+            await NotifyModeratorAsync(moderatorId.Value, taskType, 1);
         }
+
+        return moderatorId;
     }
 
     // ----------------------------------------------------------------
@@ -452,5 +466,50 @@ public class AssignModeratorService : IAssignModeratorService
             CreatedAt  = DateTime.Now
         });
         await _context.SaveChangesAsync();
+    }
+
+    private async Task NotifyModeratorAsync(int moderatorId, string taskType, int count)
+    {
+        var mod = await _context.Admins.Include(a => a.AdminNavigation).FirstOrDefaultAsync(a => a.AdminId == moderatorId);
+        if (mod == null) return;
+
+        string taskName = taskType switch
+        {
+            "COMPANY_APPROVAL" => "Công ty",
+            "JOB_POST" => "Tin tuyển dụng",
+            "REVIEW" => "Đánh giá công ty",
+            _ => "Task"
+        };
+
+        string title = "Bạn có công việc mới";
+        string message = $"Bạn vừa được gán {count} {taskName} mới cần xét duyệt.";
+
+        // In-app Notification
+        await _notificationService.SendNotificationAsync(
+            userId: moderatorId,
+            userType: "ADMIN",
+            title: title,
+            message: message,
+            type: "TASK_ASSIGNED",
+            severity: "info",
+            referenceId: null,
+            referenceType: taskType
+        );
+
+        // Email Notification
+        if (mod.AdminNavigation != null && !string.IsNullOrEmpty(mod.AdminNavigation.Email))
+        {
+            var emailBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;'>
+                    <h2 style='color: #0056b3; text-align: center;'>Công Việc Mới Trên DevHub</h2>
+                    <p>Chào <strong>{mod.FullName ?? mod.Username}</strong>,</p>
+                    <p>Bạn vừa được gán <strong>{count}</strong> <strong>{taskName}</strong> mới cần xét duyệt trên hệ thống DevHub.</p>
+                    <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;' />
+                    <p style='color: #888; font-size: 12px; text-align: center;'>Đây là email tự động từ hệ thống DevHub. Vui lòng không trả lời email này.</p>
+                </div>";
+            
+            await _emailHelper.SendEmailAsync(mod.AdminNavigation.Email, "Bạn có công việc mới cần xử lý - DevHub", emailBody);
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
+using DevHub.Helpers;
 
 namespace DevHub.Services.Implementations;
 
@@ -12,15 +13,21 @@ public class ReviewCompanyService : IReviewCompanyService
     private readonly IReviewCompanyRepository _reviewCompanyRepository;
     private readonly INotificationRepository _notificationRepository;
     private readonly IAssignModeratorService _assignModeratorService;
+    private readonly INotificationService _notificationService;
+    private readonly EmailHelper _emailHelper;
 
     public ReviewCompanyService(
         IReviewCompanyRepository reviewCompanyRepository,
         INotificationRepository notificationRepository,
-        IAssignModeratorService assignModeratorService)
+        IAssignModeratorService assignModeratorService,
+        INotificationService notificationService,
+        EmailHelper emailHelper)
     {
         _reviewCompanyRepository = reviewCompanyRepository;
         _notificationRepository = notificationRepository;
         _assignModeratorService = assignModeratorService;
+        _notificationService = notificationService;
+        _emailHelper = emailHelper;
     }
 
     public async Task<ReviewCompany?> GetByIdAsync(int reviewId)
@@ -60,7 +67,23 @@ public class ReviewCompanyService : IReviewCompanyService
         await _reviewCompanyRepository.CreateAsync(review);
 
         // Auto-assign moderator cho review mới
-        await _assignModeratorService.AutoAssignNewRecordAsync("REVIEW", review.ReviewId);
+        var assignedModId = await _assignModeratorService.AutoAssignNewRecordAsync("REVIEW", review.ReviewId);
+        
+        // Notify the assigned moderator
+        if (assignedModId.HasValue)
+        {
+            var company = await _reviewCompanyRepository.GetByIdAsync(review.ReviewId); // to get company name
+            await _notificationService.SendNotificationAsync(
+                userId: assignedModId.Value,
+                userType: "MODERATOR",
+                title: "Đánh giá công ty mới chờ duyệt",
+                message: $"Một đánh giá mới cho công ty '{company?.Company?.CompanyName ?? "Unknown"}' đang chờ bạn duyệt.",
+                type: "REVIEW",
+                severity: "info",
+                referenceId: review.ReviewId,
+                referenceType: "Review"
+            );
+        }
 
         return (true, "Gửi đánh giá thành công. Vui lòng chờ kiểm duyệt.");
     }
@@ -77,6 +100,19 @@ public class ReviewCompanyService : IReviewCompanyService
         var success = await _reviewCompanyRepository.UpdateAsync(review);
         if (success)
         {
+            if (existing.ModeratorId.HasValue)
+            {
+                await _notificationService.SendNotificationAsync(
+                    userId: existing.ModeratorId.Value,
+                    userType: "MODERATOR",
+                    title: "Đánh giá cập nhật chờ duyệt",
+                    message: $"Đánh giá ID {existing.ReviewId} đã được cập nhật và cần duyệt lại.",
+                    type: "REVIEW",
+                    severity: "info",
+                    referenceId: existing.ReviewId,
+                    referenceType: "Review"
+                );
+            }
             return (true, "Cập nhật đánh giá thành công. Vui lòng chờ kiểm duyệt lại.");
         }
         return (false, "Có lỗi xảy ra khi cập nhật đánh giá.");
@@ -93,23 +129,28 @@ public class ReviewCompanyService : IReviewCompanyService
                 // Cập nhật rating công ty
                 await _reviewCompanyRepository.UpdateCompanyRatingAsync(review.CompanyId);
 
-                // Gửi notification cho Candidate (Removed to fix build)
-                /*
-                var candidateUser = await GetUserIdByCandidateId(review.CandidateId); 
-                await _notificationRepository.AddNotificationAsync(new Notification
+                // Gửi notification cho Candidate
+                await _notificationService.SendNotificationAsync(
+                    userId: review.CandidateId,
+                    userType: "CANDIDATE",
+                    title: "Đánh giá của bạn đã được duyệt",
+                    message: $"Đánh giá của bạn cho công ty {review.Company?.CompanyName ?? ""} đã được duyệt và hiển thị công khai.",
+                    type: "REVIEW_APPROVED",
+                    severity: "info",
+                    referenceId: reviewId,
+                    referenceType: "Review"
+                );
+
+                // Gửi email cho Candidate
+                if (review.Candidate?.CandidateNavigation?.Email != null && 
+                    review.Candidate.CandidateNavigation.EmailNotificationsEnabled)
                 {
-                    UserId = review.CandidateId,
-                    UserType = "CANDIDATE",
-                    Type = "REVIEW_APPROVED",
-                    Title = "Đánh giá của bạn đã được duyệt",
-                    Message = $"Đánh giá của bạn cho công ty {review.Company?.CompanyName ?? ""} đã được duyệt và hiển thị công khai.",
-                    ReferenceType = "Review",
-                    ReferenceId = reviewId,
-                    SeverityLevel = "Info",
-                    IsRead = false,
-                    CreatedAt = DateTime.Now
-                });
-                */
+                    string emailBody = EmailHelper.GetBaseTemplate(
+                        "Đánh giá công ty đã được duyệt",
+                        $"<p>Chào {review.Candidate.FullName},</p><p>Đánh giá của bạn cho công ty <b>{review.Company?.CompanyName ?? ""}</b> đã được duyệt và hiện đang hiển thị công khai trên hệ thống.</p><p>Cảm ơn bạn đã đóng góp đánh giá!</p>"
+                    );
+                    await _emailHelper.SendEmailAsync(review.Candidate.CandidateNavigation.Email, "Đánh giá của bạn đã được duyệt", emailBody);
+                }
             }
         }
         return success;
@@ -126,22 +167,28 @@ public class ReviewCompanyService : IReviewCompanyService
                 // Remove from company rating
                 await _reviewCompanyRepository.UpdateCompanyRatingAsync(review.CompanyId);
 
-                // Gửi notification cho Candidate (Removed to fix build)
-                /*
-                await _notificationRepository.AddNotificationAsync(new Notification
+                // Gửi notification cho Candidate
+                await _notificationService.SendNotificationAsync(
+                    userId: review.CandidateId,
+                    userType: "CANDIDATE",
+                    title: "Đánh giá của bạn đã bị từ chối",
+                    message: $"Đánh giá của bạn cho công ty {review.Company?.CompanyName ?? ""} đã bị từ chối với lý do: {reason}",
+                    type: "REVIEW_REJECTED",
+                    severity: "warning",
+                    referenceId: reviewId,
+                    referenceType: "Review"
+                );
+
+                // Gửi email cho Candidate
+                if (review.Candidate?.CandidateNavigation?.Email != null && 
+                    review.Candidate.CandidateNavigation.EmailNotificationsEnabled)
                 {
-                    UserId = review.CandidateId,
-                    UserType = "CANDIDATE",
-                    Type = "REVIEW_REJECTED",
-                    Title = "Đánh giá của bạn đã bị từ chối",
-                    Message = $"Đánh giá của bạn cho công ty {review.Company?.CompanyName ?? ""} đã bị từ chối với lý do: {reason}",
-                    ReferenceType = "Review",
-                    ReferenceId = reviewId,
-                    SeverityLevel = "Warning",
-                    IsRead = false,
-                    CreatedAt = DateTime.Now
-                });
-                */
+                    string emailBody = EmailHelper.GetBaseTemplate(
+                        "Đánh giá công ty bị từ chối",
+                        $"<p>Chào {review.Candidate.FullName},</p><p>Đánh giá của bạn cho công ty <b>{review.Company?.CompanyName ?? ""}</b> đã bị từ chối.</p><p><b>Lý do:</b> {reason}</p><p>Vui lòng xem xét lại nội dung và tuân thủ các quy định của hệ thống.</p>"
+                    );
+                    await _emailHelper.SendEmailAsync(review.Candidate.CandidateNavigation.Email, "Đánh giá của bạn bị từ chối", emailBody);
+                }
             }
         }
         return success;

@@ -22,6 +22,7 @@ public class ReviewCompanyRepository : IReviewCompanyRepository
     {
         return await _db.ReviewCompanies
             .Include(r => r.Candidate)
+                .ThenInclude(c => c.CandidateNavigation)
             .Include(r => r.Company)
             .FirstOrDefaultAsync(r => r.ReviewId == reviewId);
     }
@@ -147,4 +148,5 @@ public class ReviewCompanyRepository : IReviewCompanyRepository
 
         await _db.SaveChangesAsync();
     }
+
 }

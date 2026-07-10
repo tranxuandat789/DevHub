@@ -1,0 +1,55 @@
+@model IEnumerable<DevHub.Validators.ViewModels.Shared.NotificationItemViewModel>
+@{
+    var userType = ViewBag.UserType as string;
+}
+
+@if (Model != null && Model.Any())
+{
+    @foreach (var notif in Model)
+    {
+        string bgColor = notif.IsRead == true ? "bg-white opacity-80" : "bg-[#f8f9fc]";
+        string dotColor = notif.IsRead == true ? "bg-transparent" : "bg-[#0f62fe]";
+        string titleColor = notif.IsRead == true ? "text-gray-600" : "text-gray-900 font-medium";
+
+        string targetUrl = "#";
+        bool isEmployer = userType == "RECRUITER";
+        bool isModerator = userType == "MODERATOR";
+        
+        if (isEmployer) targetUrl = $"/recruiter/notifications/details/{notif.NotificationId}";
+        else if (isModerator) targetUrl = $"/ModeratorNotification/Details/{notif.NotificationId}";
+        else targetUrl = $"/candidate/notifications/details/{notif.NotificationId}";
+
+        string timeAgo = "";
+        var seconds = notif.CreatedAt.HasValue ? (DateTime.UtcNow - notif.CreatedAt.Value).TotalSeconds : 0;
+        if (seconds >= 31536000) timeAgo = Math.Floor(seconds / 31536000) + " năm trước";
+        else if (seconds >= 2592000) timeAgo = Math.Floor(seconds / 2592000) + " tháng trước";
+        else if (seconds >= 86400) timeAgo = Math.Floor(seconds / 86400) + " ngày trước";
+        else if (seconds >= 3600) timeAgo = Math.Floor(seconds / 3600) + " giờ trước";
+        else if (seconds >= 60) timeAgo = Math.Floor(seconds / 60) + " phút trước";
+        else timeAgo = "Vừa xong";
+
+        <div data-id="@notif.NotificationId" data-url="@targetUrl" class="notification-item flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 cursor-pointer @bgColor">
+            <div class="flex-1 min-w-0 pr-2">
+                <p class="text-[13px] @titleColor">@notif.Title</p>
+                <p class="text-[11px] text-gray-400 mt-1">@timeAgo</p>
+            </div>
+            <div class="w-2 h-2 @dotColor rounded-full flex-shrink-0 mt-1.5 unread-dot"></div>
+        </div>
+    }
+}
+else
+{
+    <div class="px-4 py-8 text-center text-sm text-gray-500">Không có thông báo nào.</div>
+}
+
+<div id="unread-count-data" data-count="@ViewBag.UnreadCount" style="display:none;"></div>
+<div class="border-t border-gray-100 p-2 text-center">
+    @{
+        bool isEmp = userType == "RECRUITER";
+        bool isMod = userType == "MODERATOR";
+        string viewAllUrl = "/candidate/notifications";
+        if (isEmp) viewAllUrl = "/recruiter/notifications";
+        else if (isMod) viewAllUrl = "/ModeratorNotification";
+    }
+    <a href="@viewAllUrl" class="text-xs text-primary font-medium hover:underline">Xem tất cả thông báo</a>
+</div>

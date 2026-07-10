@@ -19,13 +19,19 @@ namespace DevHub.Services.Implementations
         private readonly IRecruiterRepository _recruiterProfileRepository;
         private readonly IUserAccountRepository _userRepository;
         private readonly IAssignModeratorService _assignModeratorService;
+        private readonly INotificationService _notificationService;
 
         //Constructor Injection
-        public RecruiterService(IRecruiterRepository recruiterProfileRepository, IUserAccountRepository userRepository, IAssignModeratorService assignModeratorService)
+        public RecruiterService(
+            IRecruiterRepository recruiterProfileRepository, 
+            IUserAccountRepository userRepository, 
+            IAssignModeratorService assignModeratorService,
+            INotificationService notificationService)
         {
             _recruiterProfileRepository = recruiterProfileRepository;
             _userRepository = userRepository;
             _assignModeratorService = assignModeratorService;
+            _notificationService = notificationService;
         }
 
         public async Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId)
@@ -164,7 +170,21 @@ namespace DevHub.Services.Implementations
 
                 if (recruiter.CompanyId.HasValue)
                 {
-                    await _assignModeratorService.AutoAssignNewRecordAsync("COMPANY_APPROVAL", recruiter.CompanyId.Value);
+                    var assignedModId = await _assignModeratorService.AutoAssignNewRecordAsync("COMPANY_APPROVAL", recruiter.CompanyId.Value);
+                    
+                    if (assignedModId.HasValue)
+                    {
+                        await _notificationService.SendNotificationAsync(
+                            userId: assignedModId.Value,
+                            userType: "MODERATOR",
+                            title: "Yêu cầu duyệt công ty mới",
+                            message: $"Công ty '{recruiter.Company.CompanyName}' đang chờ bạn kiểm duyệt.",
+                            type: "COMPANY_APPROVAL",
+                            severity: "info",
+                            referenceId: recruiter.CompanyId.Value,
+                            referenceType: "Company"
+                        );
+                    }
                 }
             }
             catch

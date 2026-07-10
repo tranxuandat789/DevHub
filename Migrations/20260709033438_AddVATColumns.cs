@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,40 +11,40 @@ namespace DevHub.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Recommend",
-                table: "review_company",
-                newName: "recommend");
+            // migrationBuilder.RenameColumn(
+            //     name: "Recommend",
+            //     table: "review_company",
+            //     newName: "recommend");
 
-            migrationBuilder.RenameColumn(
-                name: "WorkspaceRating",
-                table: "review_company",
-                newName: "workspace_rating");
+            // migrationBuilder.RenameColumn(
+            //     name: "WorkspaceRating",
+            //     table: "review_company",
+            //     newName: "workspace_rating");
 
-            migrationBuilder.RenameColumn(
-                name: "TrainingRating",
-                table: "review_company",
-                newName: "training_rating");
+            // migrationBuilder.RenameColumn(
+            //     name: "TrainingRating",
+            //     table: "review_company",
+            //     newName: "training_rating");
 
-            migrationBuilder.RenameColumn(
-                name: "SalaryRating",
-                table: "review_company",
-                newName: "salary_rating");
+            // migrationBuilder.RenameColumn(
+            //     name: "SalaryRating",
+            //     table: "review_company",
+            //     newName: "salary_rating");
 
-            migrationBuilder.RenameColumn(
-                name: "OtPolicy",
-                table: "review_company",
-                newName: "ot_policy");
+            // migrationBuilder.RenameColumn(
+            //     name: "OtPolicy",
+            //     table: "review_company",
+            //     newName: "ot_policy");
 
-            migrationBuilder.RenameColumn(
-                name: "CultureRating",
-                table: "review_company",
-                newName: "culture_rating");
+            // migrationBuilder.RenameColumn(
+            //     name: "CultureRating",
+            //     table: "review_company",
+            //     newName: "culture_rating");
 
-            migrationBuilder.RenameColumn(
-                name: "CareRating",
-                table: "review_company",
-                newName: "care_rating");
+            // migrationBuilder.RenameColumn(
+            //     name: "CareRating",
+            //     table: "review_company",
+            //     newName: "care_rating");
 
             migrationBuilder.AlterColumn<string>(
                 name: "ot_policy",
@@ -56,12 +56,12 @@ namespace DevHub.Migrations
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
-            migrationBuilder.AddColumn<bool>(
-                name: "is_active",
-                table: "province",
-                type: "bit",
-                nullable: false,
-                defaultValue: true);
+            // migrationBuilder.AddColumn<bool>(
+            //     name: "is_active",
+            //     table: "province",
+            //     type: "bit",
+            //     nullable: false,
+            //     defaultValue: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "buyer_tax_code",

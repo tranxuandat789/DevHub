@@ -21,6 +21,7 @@ DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR(); // Add SignalR
 
 builder.Services.AddHttpClient<DevHub.Helpers.CvParserHelper>();
 
@@ -70,6 +71,24 @@ builder.Services.AddAuthentication(options =>
             path.Contains("moderator",          StringComparison.OrdinalIgnoreCase) ||
             path.Equals("/Auth/AdminLogout",    StringComparison.OrdinalIgnoreCase))
             return "AdminCookies";
+
+        // Luồng đặc biệt: Các endpoint dùng chung nhiều role (Notification, SignalR hub...)
+        // Ưu tiên dùng Referer header để biết user đang ở context nào (recruiter/admin/candidate)
+        // vì kiểm tra cookie presence không đáng tin khi user có nhiều cookie từ nhiều tài khoản.
+        if (path.StartsWith("/Notification",     StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/notificationHub",  StringComparison.OrdinalIgnoreCase))
+        {
+            var referer = ctx.Request.Headers["Referer"].ToString().ToLower();
+            // Nếu AJAX xuất phát từ trang Recruiter → dùng EmployerCookies
+            if (referer.Contains("/recruiter") || referer.Contains("/employer"))
+                return "EmployerCookies";
+            // Nếu AJAX xuất phát từ trang Admin/Moderator → dùng AdminCookies
+            if (referer.Contains("/admin") || referer.Contains("/moderator"))
+                return "AdminCookies";
+            // Nếu AJAX xuất phát từ trang Candidate hoặc không có referer
+            // → dùng App.Candidate cookie (mặc định)
+            return CookieAuthenticationDefaults.AuthenticationScheme;
+        }
             
         // Luồng 3: Nếu không phải các trường hợp đặc biệt trên (trang chủ, trang tìm việc...)
         // => Sử dụng Cookie mặc định của hệ thống (dành cho Ứng viên).
@@ -250,9 +269,10 @@ builder.Services.AddScoped<IAdminPaymentService, AdminPaymentService>();
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.
 builder.Services.AddHostedService<JobPostAutoCloseService>();
-
+builder.Services.AddHostedService<ModeratorSlaNotificationService>();
 
 var app = builder.Build();
+
 
 if (!app.Environment.IsDevelopment())
 {
@@ -281,6 +301,8 @@ app.UseSession();           // ← phải trước Authentication
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<DevHub.Hubs.NotificationHub>("/notificationHub");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -295,11 +317,62 @@ using (var scope = app.Services.CreateScope())
             BEGIN
                 ALTER TABLE province ADD is_active bit NOT NULL DEFAULT 1;
             END
+
+            IF COL_LENGTH('package_transaction', 'buyer_tax_code') IS NULL
+            BEGIN
+                ALTER TABLE package_transaction ADD buyer_tax_code nvarchar(50) NULL;
+            END
+            
+            IF COL_LENGTH('package_transaction', 'total_amount') IS NULL
+            BEGIN
+                ALTER TABLE package_transaction ADD total_amount decimal(18,2) NOT NULL DEFAULT 0;
+            END
+            
+            IF COL_LENGTH('package_transaction', 'vat_amount') IS NULL
+            BEGIN
+                ALTER TABLE package_transaction ADD vat_amount decimal(18,2) NOT NULL DEFAULT 0;
+            END
+            
+            IF COL_LENGTH('package_transaction', 'vat_rate') IS NULL
+            BEGIN
+                ALTER TABLE package_transaction ADD vat_rate decimal(5,2) NOT NULL DEFAULT 8;
+            END
+
+            IF OBJECT_ID('moderator_task_type', 'U') IS NULL
+            BEGIN
+                CREATE TABLE moderator_task_type (
+                    id int IDENTITY(1,1) PRIMARY KEY,
+                    moderator_id int NOT NULL UNIQUE,
+                    task_type nvarchar(30) NULL,
+                    assigned_by int NULL,
+                    created_at datetime NOT NULL DEFAULT getdate(),
+                    updated_at datetime NOT NULL DEFAULT getdate(),
+                    CONSTRAINT FK__mod_task_type__moderator FOREIGN KEY (moderator_id) REFERENCES user_account(user_id) ON DELETE CASCADE,
+                    CONSTRAINT FK__mod_task_type__assigned_by FOREIGN KEY (assigned_by) REFERENCES user_account(user_id)
+                );
+            END
+            
+            IF OBJECT_ID('moderator_industry_assignment', 'U') IS NULL
+            BEGIN
+                CREATE TABLE moderator_industry_assignment (
+                    id int IDENTITY(1,1) PRIMARY KEY,
+                    moderator_id int NOT NULL,
+                    task_type nvarchar(30) NULL,
+                    industry nvarchar(100) NULL,
+                    assigned_by int NOT NULL,
+                    created_at datetime NOT NULL DEFAULT getdate(),
+                    updated_at datetime NOT NULL DEFAULT getdate(),
+                    CONSTRAINT FK_mod_industry_moderator FOREIGN KEY (moderator_id) REFERENCES user_account(user_id),
+                    CONSTRAINT FK_mod_industry_assigned_by FOREIGN KEY (assigned_by) REFERENCES user_account(user_id),
+                    CONSTRAINT IX_mod_industry_task_industry UNIQUE (task_type, industry)
+                );
+            END
         ");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Migration hotfix failed: {ex.Message}");
+        Console.WriteLine($"Migration hotfix failed: {ex}");
+        throw;
     }
 }
 

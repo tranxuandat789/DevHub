@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System.Threading.Tasks;
 using DevHub.ViewModels.Candidate;
+using DevHub.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevHub.Controllers
 {
@@ -19,6 +21,7 @@ namespace DevHub.Controllers
         private readonly ICandidateSkillService _skillService;
         private readonly ICommonTechnologyService _techService;
         private readonly IRecommendationService _recommendationService;
+        private readonly ItrecruitmentDbContext _context;
 
         public CandidateController(
             IAuthService authService,
@@ -27,7 +30,8 @@ namespace DevHub.Controllers
             ICvService cvService,
             ICandidateSkillService skillService,
             ICommonTechnologyService techService,
-            IRecommendationService recommendationService)
+            IRecommendationService recommendationService,
+            ItrecruitmentDbContext context)
         {
             _authService = authService;
             _env = env;
@@ -36,6 +40,7 @@ namespace DevHub.Controllers
             _skillService = skillService;
             _techService = techService;
             _recommendationService = recommendationService;
+            _context = context;
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
@@ -306,6 +311,36 @@ namespace DevHub.Controllers
         public IActionResult ChangePassword()
         {
             return View("~/Views/Candidate/CandidateProfile/ChangePassword.cshtml");
+        }
+
+        [Authorize(Roles = "CANDIDATE,Candidate")]
+        public async Task<IActionResult> NotificationSettings()
+        {
+            var email  = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Email == email);
+            if (dbUser == null) return NotFound();
+
+            ViewBag.EmailNotificationsEnabled = dbUser.EmailNotificationsEnabled;
+            ViewBag.NotifSettingsPostUrl = "/Candidate/NotificationSettings";
+            return View("~/Views/Candidate/CandidateProfile/NotificationSettings.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "CANDIDATE,Candidate")]
+        public async Task<IActionResult> NotificationSettings(bool emailEnabled = false)
+        {
+            var email  = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Email == email);
+            if (dbUser == null) return NotFound();
+
+            dbUser.EmailNotificationsEnabled = emailEnabled;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = emailEnabled
+                ? "Đã bật thông báo qua email."
+                : "Đã tắt thông báo qua email.";
+            return RedirectToAction("NotificationSettings");
         }
     }
 }

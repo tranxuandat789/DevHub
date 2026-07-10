@@ -42,6 +42,7 @@ namespace DevHub.ViewModels.Recruiter
         // Approve/Reject are blocked while the job is frozen (pending re-review).
         public bool CanApprove => (Status ?? "").ToUpper() == "PENDING" && !IsFrozen;
         public bool CanReject => (Status ?? "").ToUpper() == "PENDING" && !IsFrozen;
+        public bool CanHire => (Status ?? "").ToUpper() == "APPROVED" && !IsFrozen;
         public bool CanScheduleInterview => (Status ?? "").ToUpper() == "APPROVED";
     }
 }

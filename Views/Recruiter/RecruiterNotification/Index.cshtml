@@ -2,6 +2,13 @@
 @{
     Layout = "_RecruiterLayout";
     ViewData["Title"] = "Quản lý thông báo";
+
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages  = ViewBag.TotalPages  ?? 1;
+    int totalItems  = ViewBag.TotalItems  ?? 0;
+    int pageSize    = 5;
+    int fromItem    = totalItems == 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    int toItem      = Math.Min(currentPage * pageSize, totalItems);
 }
 
 <div class="p-6 sm:px-10 sm:pt-4 sm:pb-10">
@@ -22,21 +29,18 @@
         <!-- Filter Bar -->
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-end">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Mức độ quan trọng</label>
-                <select id="filterSeverity" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[180px]">
-                    <option value="">Tất cả</option>
-                    <option value="critical">Quan trọng (Đỏ)</option>
-                    <option value="warning">Cảnh báo (Vàng)</option>
-                    <option value="info">Thông tin (Xanh)</option>
-                </select>
-            </div>
-            
-            <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Trạng thái</label>
                 <select id="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[150px]">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="unread">Chưa đọc</option>
-                    <option value="read">Đã đọc</option>
+                    <option value="all" selected="@(ViewBag.CurrentStatus == "all" ? "selected" : null)">Tất cả trạng thái</option>
+                    <option value="unread" selected="@(ViewBag.CurrentStatus == "unread" ? "selected" : null)">Chưa đọc</option>
+                    <option value="read" selected="@(ViewBag.CurrentStatus == "read" ? "selected" : null)">Đã đọc</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Sắp xếp</label>
+                <select id="filterSort" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[150px]">
+                    <option value="newest" selected="@(ViewBag.CurrentSort == "newest" ? "selected" : null)">Mới nhất</option>
+                    <option value="oldest" selected="@(ViewBag.CurrentSort == "oldest" ? "selected" : null)">Cũ nhất</option>
                 </select>
             </div>
 
@@ -46,47 +50,77 @@
         </div>
 
         <!-- Notification List -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" id="notificationList">
+        <div class="space-y-4" id="notificationList">
             
             @if (Model != null && Model.Any())
             {
-                foreach (var notif in Model)
+                foreach (var notification in Model)
                 {
-                    string severityClass = notif.SeverityLevel == "critical" ? "bg-red-50/20 hover:bg-red-50/50" : 
-                                           notif.SeverityLevel == "warning" ? "bg-yellow-50/20 hover:bg-yellow-50/50" : 
-                                           "hover:bg-gray-50";
-                    string severityTextClass = notif.SeverityLevel == "critical" ? "text-red-600" : 
-                                               notif.SeverityLevel == "warning" ? "text-yellow-600" : 
-                                               "text-blue-500";
-                    string severityLabel = notif.SeverityLevel == "critical" ? "Quan trọng" : 
-                                           notif.SeverityLevel == "warning" ? "Cảnh báo" : 
-                                           "Thông tin";
-                    string status = notif.IsRead == true ? "read" : "unread";
-                    string opacityClass = notif.IsRead == true ? "opacity-75" : "opacity-100";
+                    string bgColor = notification.IsRead == true ? "bg-white opacity-80" : "bg-[#f8f9fc]";
+                    string titleColor = notification.IsRead == true ? "text-gray-600 font-medium" : "text-gray-900 font-bold";
+                    string dotColor = notification.IsRead == true ? "bg-transparent" : "bg-[#0f62fe]";
+                    string status = notification.IsRead == true ? "read" : "unread";
 
-                    <a href="/recruiter/notifications/details/@notif.NotificationId" class="notification-item block p-5 border-b border-gray-100 transition-colors @severityClass @opacityClass" data-severity="@(notif.SeverityLevel ?? "info")" data-status="@status">
-                        <div class="flex items-start gap-4">
-                            <div class="flex-1">
-                                <div class="flex items-start justify-between gap-4">
-                                    <h3 class="font-bold text-gray-900 text-base">@notif.Title</h3>
-                                    @if (notif.IsRead != true)
-                                    {
-                                        <span class="text-[10px] uppercase tracking-wide font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded whitespace-nowrap">Mới</span>
-                                    }
-                                </div>
-                                <p class="text-gray-600 text-sm mt-1.5 line-clamp-2 leading-relaxed">@notif.Message</p>
-                                <div class="flex items-center gap-4 mt-3 text-xs text-gray-500 font-medium">
-                                    <span class="flex items-center gap-1.5"><i class="far fa-clock"></i> @(notif.CreatedAt?.ToString("dd/MM/yyyy HH:mm"))</span>
-                                    <span class="flex items-center gap-1.5 @severityTextClass"><i class="fas fa-circle text-[6px]"></i> @severityLabel</span>
+                    string ctaText = "";
+                    string ctaUrl = "";
+
+                    if (notification.ReferenceId.HasValue)
+                    {
+                        switch (notification.ReferenceType)
+                        {
+                            case "Application":
+                                ctaText = "Xem chi tiết";
+                                ctaUrl = $"/recruiter/recruiterapplication/details/{notification.ReferenceId}";
+                                break;
+                            case "JobPost":
+                                ctaText = "Xem tin tuyển dụng";
+                                ctaUrl = $"/recruiter/jobpost/detail/{notification.ReferenceId}";
+                                break;
+                            case "Company":
+                            case "Account":
+                                ctaText = "Xem hồ sơ công ty";
+                                ctaUrl = "/recruiter/settings?tab=company";
+                                break;
+                        }
+                    }
+
+                    <div class="notification-item block border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all rounded-xl p-5 group @bgColor" data-status="@status">
+                        <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                            <div class="flex items-start gap-3 w-full">
+                                <!-- Read/Unread Status Indicator -->
+                                <div class="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 @dotColor"></div>
+                                
+                                <div class="flex-1">
+                                    <a href="/recruiter/notifications/details/@notification.NotificationId" class="text-[16px] @titleColor group-hover:text-primary transition-colors block mb-1">
+                                        @notification.Title
+                                    </a>
+                                    <p class="text-sm text-gray-600 mb-2 leading-relaxed">@notification.Message</p>
+                                    
+
+
+                                    <span class="text-[12px] text-gray-400 block mt-2">
+                                        @(notification.CreatedAt.HasValue ? notification.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")
+                                    </span>
                                 </div>
                             </div>
+                            
+                            <div class="flex-shrink-0 w-full md:w-auto mt-3 md:mt-0 ml-0 md:ml-4 flex flex-col gap-2">
+                                @if (!string.IsNullOrEmpty(ctaText) && !string.IsNullOrEmpty(ctaUrl))
+                                {
+                                    <a href="@ctaUrl" class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 w-full md:w-auto transition-colors whitespace-nowrap">
+                                        @ctaText
+                                    </a>
+                                }
+
+
+                            </div>
                         </div>
-                    </a>
+                    </div>
                 }
             }
             
             <!-- Empty state -->
-            <div id="noNotifications" class="@((Model != null && Model.Any()) ? "hidden" : "") p-12 text-center text-gray-500">
+            <div id="noNotifications" class="@((Model != null && Model.Any()) ? "hidden" : "") p-12 text-center text-gray-500 bg-white rounded-xl border border-gray-200">
                 <i class="far fa-bell-slash text-5xl mb-4 text-gray-300"></i>
                 <p class="text-lg font-medium text-gray-700">Không có thông báo nào</p>
                 <p class="text-sm mt-1">Không tìm thấy thông báo phù hợp với bộ lọc của bạn.</p>
@@ -95,68 +129,78 @@
         </div>
         
         <!-- Pagination -->
-        <div class="mt-6 flex justify-between items-center" id="paginationControls">
-            <span class="text-sm text-gray-500">Hiển thị <span class="font-medium text-gray-900">1</span> đến <span class="font-medium text-gray-900">3</span> trong số <span class="font-medium text-gray-900">3</span> thông báo</span>
-            <div class="flex gap-1.5">
-                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 cursor-not-allowed shadow-sm">
-                    <i class="fas fa-chevron-left text-xs"></i>
-                </button>
-                <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#4640DE] text-white font-bold text-sm shadow-sm border border-[#4640DE]">
-                    1
-                </button>
-                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 font-bold text-sm transition-colors shadow-sm">
-                    <i class="fas fa-chevron-right text-xs"></i>
-                </button>
+        @if (totalItems > 0)
+        {
+            <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-3" id="paginationControls">
+                <span class="text-sm text-gray-500">
+                    Hiển thị <span class="font-medium text-gray-900">@fromItem</span> đến
+                    <span class="font-medium text-gray-900">@toItem</span> trong số
+                    <span class="font-medium text-gray-900">@totalItems</span> thông báo
+                </span>
+                @if (totalPages > 1)
+                {
+                    <div class="flex gap-1.5">
+                        @if (currentPage > 1)
+                        {
+                            <a href="?page=@(currentPage - 1)" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-300 cursor-not-allowed shadow-sm">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </span>
+                        }
+
+                        @for (int p = 1; p <= totalPages; p++)
+                        {
+                            if (p == currentPage)
+                            {
+                                <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#4640DE] text-white font-bold text-sm shadow-sm border border-[#4640DE]">@p</span>
+                            }
+                            else
+                            {
+                                <a href="?page=@p" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 font-bold text-sm transition-colors shadow-sm">@p</a>
+                            }
+                        }
+
+                        @if (currentPage < totalPages)
+                        {
+                            <a href="?page=@(currentPage + 1)" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-300 cursor-not-allowed shadow-sm">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </span>
+                        }
+                    </div>
+                }
             </div>
-        </div>
+        }
+
     </div>
 </div>
 
 @section Scripts {
     <script>
         function applyFilters() {
-            const severity = $('#filterSeverity').val();
-            const status = $('#filterStatus').val();
-
-            let visibleCount = 0;
-
-            $('.notification-item').each(function() {
-                const item = $(this);
-                const itemSeverity = item.data('severity');
-                const itemStatus = item.data('status');
-                
-                let show = true;
-
-                if (severity && itemSeverity !== severity) show = false;
-                if (status && itemStatus !== status) show = false;
-
-                if (show) {
-                    item.show();
-                    visibleCount++;
-                } else {
-                    item.hide();
-                }
-            });
-
-            if (visibleCount === 0) {
-                $('#noNotifications').removeClass('hidden');
-                $('#paginationControls').hide();
-            } else {
-                $('#noNotifications').addClass('hidden');
-                $('#paginationControls').show();
-            }
+            const status = document.getElementById('filterStatus').value;
+            const sort = document.getElementById('filterSort').value;
+            window.location.href = `?status=${status}&sort=${sort}`;
         }
         
         function markAllAsRead() {
-            $('.notification-item').removeClass('bg-red-50/20 bg-yellow-50/20 opacity-100 hover:bg-red-50/50 hover:bg-yellow-50/50')
-                .addClass('opacity-75 hover:bg-gray-50')
-                .data('status', 'read');
-            $('.notification-item').find('.text-red-700.bg-red-100').remove();
-            
-            // Cập nhật lại số lượng thông báo ở sidebar
-            $('.sidebar-item[data-menu="notifications"] .absolute.top-0.right-0').remove();
-            
-            applyFilters();
+            $.post('/Notification/MarkAllAsRead')
+                .done(function() {
+                    window.location.reload();
+                })
+                .fail(function() {
+                    window.location.reload();
+                });
         }
     </script>
 }

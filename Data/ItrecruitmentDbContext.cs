@@ -193,6 +193,9 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("tag");
             entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.AuthorName)
+                .HasMaxLength(255)
+                .HasColumnName("author_name");
             entity.Property(e => e.ThumbnailUrl)
                 .HasMaxLength(500)
                 .HasColumnName("thumbnail_url");
@@ -885,7 +888,7 @@ public partial class ItrecruitmentDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__article__company");
 
-            entity.HasOne(d => d.Approver).WithMany()
+            entity.HasOne(d => d.Approver).WithMany(p => p.Articles)
                 .HasForeignKey(d => d.ApproverId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK__article__approver");

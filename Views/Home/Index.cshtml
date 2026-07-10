@@ -93,7 +93,7 @@
                                 }
                                 else
                                 {
-                                    <span class="font-bold text-3xl text-dark italic">@(job.Company?.CompanyName?.Substring(0, 1) ?? "C")</span>
+                                    <span class="font-bold text-3xl text-dark italic">@(!string.IsNullOrWhiteSpace(job.Company?.CompanyName) ? job.Company.CompanyName.Substring(0, 1) : "C")</span>
                                 }
                             </div>
                             @{
@@ -171,7 +171,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-white font-bold text-3xl leading-tight text-center tracking-wide">@(company.CompanyName?.Substring(0, 1) ?? "C")</span>
+                                    <span class="text-white font-bold text-3xl leading-tight text-center tracking-wide">@(!string.IsNullOrWhiteSpace(company.CompanyName) ? company.CompanyName.Substring(0, 1) : "C")</span>
                                 }
                             </div>
                             <h3 class="text-[16px] font-semibold text-[#121212] leading-snug line-clamp-2">@company.CompanyName</h3>

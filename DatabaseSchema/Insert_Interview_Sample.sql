@@ -1,10 +1,10 @@
-﻿USE DevHub;
+USE ITRecruitmentDB;
 GO
 SET NOCOUNT ON;
 /* ============================================================
- Chèn 1 Interview mẫu cho 1 application đang APPROVED
- (chưa có interview). recruiter_id lấy từ job của application.
- Idempotent: nếu application đó đã có interview thì bỏ qua.
+ Chen 1 Interview m?u cho 1 application ?ang APPROVED
+ (ch?a co interview). recruiter_id l?y t? job c?a application.
+ Idempotent: n?u application ?o ?a co interview thi b? qua.
  ============================================================ */
 DECLARE @appId INT,
     @candidateId INT,
@@ -24,7 +24,7 @@ WHERE UPPER(a.status) = 'APPROVED'
         WHERE i.application_id = a.application_id
     )
 ORDER BY a.application_id;
-IF @appId IS NULL BEGIN PRINT N'Không tìm thấy application APPROVED nào (chưa có interview).';
+IF @appId IS NULL BEGIN PRINT N'Khong tim th?y application APPROVED nao (ch?a co interview).';
 END
 ELSE BEGIN
 INSERT INTO dbo.interview (
@@ -44,14 +44,15 @@ VALUES (
         @recruiterId,
         @candidateId,
         DATEADD(DAY, 3, GETDATE()),
-        -- lịch sau 3 ngày (>= 24h)
+        -- l?ch sau 3 ngay (>= 24h)
         N'https://meet.google.com/abc-defg-hij',
-        N'Phòng họp tầng 5 - Văn phòng công ty',
+        N'Phong h?p t?ng 5 - V?n phong cong ty',
         'SCHEDULED',
-        N'Phỏng vấn vòng 1 cho vị trí: ' + ISNULL(@jobTitle, N''),
+        N'Ph?ng v?n vong 1 cho v? tri: ' + ISNULL(@jobTitle, N''),
         GETDATE(),
         GETDATE()
     );
-PRINT N'Đã chèn interview cho application_id = ' + CAST(@appId AS NVARCHAR(10));
+PRINT N'?a chen interview cho application_id = ' + CAST(@appId AS NVARCHAR(10));
 END
 GO
+

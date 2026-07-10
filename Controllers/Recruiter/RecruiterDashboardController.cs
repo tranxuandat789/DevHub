@@ -25,8 +25,11 @@ namespace DevHub.Controllers.Recruiter
             _logger = logger;
         }
 
-        // range: "7" | "30" | "year". Default "30".
-        public async Task<IActionResult> Index(string? range)
+        public async Task<IActionResult> Index(
+            string? jobStatus, 
+            string? jobQ, 
+            string? jobSort, 
+            int jobPage = 1)
         {
             // Resolve the logged-in recruiter (auth concern stays in the controller).
             var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
@@ -39,7 +42,7 @@ namespace DevHub.Controllers.Recruiter
 
             try
             {
-                var viewModel = await _dashboardService.GetDashboardAsync(companyId, recruiterId, range);
+                var viewModel = await _dashboardService.GetDashboardAsync(companyId, recruiterId, jobStatus, jobQ, jobSort, jobPage);
                 return View("~/Views/Recruiter/RecruiterDashboard/Index.cshtml", viewModel);
             }
             catch (Exception ex)

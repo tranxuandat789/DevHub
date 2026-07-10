@@ -630,7 +630,7 @@ public class AuthController : Controller
             if (!string.IsNullOrEmpty(inviteToken))
             {
                 var invitation = await _invitationService.ValidateTokenAsync(inviteToken);
-                if (invitation != null && user.Recruiter != null)
+                if (invitation != null && user.Recruiter != null && user.Email.Equals(invitation.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     // Cập nhật Recruiter
                     user.Recruiter.CompanyId = invitation.CompanyId;
@@ -1032,7 +1032,7 @@ public class AuthController : Controller
                 int? assignedCompanyId = null;
                 bool isCompanyAdmin = false; // Default to false if not creating a company
 
-                if (invitation != null)
+                if (invitation != null && user.Email.Equals(invitation.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     // Người dùng được mời, dùng CompanyId của công ty đã mời
                     assignedCompanyId = invitation.CompanyId;

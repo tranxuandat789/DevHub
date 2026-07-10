@@ -233,11 +233,11 @@ public class AssignModeratorService : IAssignModeratorService
     /// Gán record mới vừa tạo vào moderator ít việc nhất (auto-assign realtime)
     /// Gọi từ service tạo Company / JobPost / Review
     /// </summary>
-    public async Task AutoAssignNewRecordAsync(string taskType, int recordId)
+    public async Task<int?> AutoAssignNewRecordAsync(string taskType, int recordId)
     {
         // Lấy mod active ít pending nhất
         var mods = await GetWorkloadByTaskTypeAsync(taskType);
-        if (mods.Count == 0) return;
+        if (mods.Count == 0) return null;
 
         var leastBusy = mods.OrderBy(m => m.AssignedPending).First();
 
@@ -259,6 +259,8 @@ public class AssignModeratorService : IAssignModeratorService
                 .Where(r => r.ReviewId == recordId)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.ModeratorId, leastBusy.ModeratorId));
         }
+
+        return leastBusy.ModeratorId;
     }
 
     // ----------------------------------------------------------------

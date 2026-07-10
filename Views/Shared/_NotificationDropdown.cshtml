@@ -5,49 +5,19 @@
 
 @if (Model != null && Model.Any())
 {
-    foreach (var notif in Model)
+    @foreach (var notif in Model)
     {
-        string iconColor = "text-primary";
-        string bgColor = "bg-[#EEF2FF]";
-        string dotColor = "bg-primary";
-        string iconPath = "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z";
-
-        if (notif.SeverityLevel == "success")
-        {
-            iconColor = "text-green-600";
-            bgColor = "bg-green-100";
-            dotColor = "bg-green-500";
-            iconPath = "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z";
-        }
-        else if (notif.SeverityLevel == "warning")
-        {
-            iconColor = "text-orange-500";
-            bgColor = "bg-orange-100";
-            dotColor = "bg-orange-400";
-            iconPath = "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z";
-        }
-        else if (notif.SeverityLevel == "danger")
-        {
-            iconColor = "text-red-600";
-            bgColor = "bg-red-100";
-            dotColor = "bg-red-500";
-            iconPath = "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z";
-        }
+        string bgColor = notif.IsRead == true ? "bg-white opacity-80" : "bg-[#f8f9fc]";
+        string dotColor = notif.IsRead == true ? "bg-transparent" : "bg-[#0f62fe]";
+        string titleColor = notif.IsRead == true ? "text-gray-600" : "text-gray-900 font-medium";
 
         string targetUrl = "#";
-        if (!string.IsNullOrEmpty(notif.ReferenceType))
-        {
-            bool isEmployer = userType == "RECRUITER";
-            switch (notif.ReferenceType)
-            {
-                case "Application":
-                    targetUrl = isEmployer ? $"/Recruiter/ApplicantList?jobId={notif.ReferenceId}" : "/Candidate/Dashboard";
-                    break;
-                case "Article":
-                    targetUrl = $"/articles/{notif.ReferenceId}";
-                    break;
-            }
-        }
+        bool isEmployer = userType == "RECRUITER";
+        bool isModerator = userType == "MODERATOR";
+        
+        if (isEmployer) targetUrl = $"/recruiter/notifications/details/{notif.NotificationId}";
+        else if (isModerator) targetUrl = $"/ModeratorNotification/Details/{notif.NotificationId}";
+        else targetUrl = $"/candidate/notifications/details/{notif.NotificationId}";
 
         string timeAgo = "";
         var seconds = notif.CreatedAt.HasValue ? (DateTime.UtcNow - notif.CreatedAt.Value).TotalSeconds : 0;
@@ -58,21 +28,12 @@
         else if (seconds >= 60) timeAgo = Math.Floor(seconds / 60) + " phút trước";
         else timeAgo = "Vừa xong";
 
-        <div data-id="@notif.NotificationId" data-url="@targetUrl" class="notification-item flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 cursor-pointer @(notif.IsRead == true ? "opacity-70" : "")">
-            <div class="w-9 h-9 @bgColor rounded-full flex items-center justify-center flex-shrink-0">
-                <svg class="w-4 h-4 @iconColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="@iconPath"></path>
-                </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-[13px] font-semibold text-dark">@notif.Title</p>
-                <p class="text-[12px] text-muted mt-0.5 line-clamp-2">@notif.Message</p>
+        <div data-id="@notif.NotificationId" data-url="@targetUrl" class="notification-item flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 cursor-pointer @bgColor">
+            <div class="flex-1 min-w-0 pr-2">
+                <p class="text-[13px] @titleColor">@notif.Title</p>
                 <p class="text-[11px] text-gray-400 mt-1">@timeAgo</p>
             </div>
-            @if (notif.IsRead != true)
-            {
-                <div class="w-2 h-2 @dotColor rounded-full flex-shrink-0 mt-1.5 unread-dot"></div>
-            }
+            <div class="w-2 h-2 @dotColor rounded-full flex-shrink-0 mt-1.5 unread-dot"></div>
         </div>
     }
 }
@@ -81,8 +42,14 @@ else
     <div class="px-4 py-8 text-center text-sm text-gray-500">Không có thông báo nào.</div>
 }
 
-<script>
-    if (typeof updateBadgeCount === 'function') {
-        updateBadgeCount(@ViewBag.UnreadCount);
+<div id="unread-count-data" data-count="@ViewBag.UnreadCount" style="display:none;"></div>
+<div class="border-t border-gray-100 p-2 text-center">
+    @{
+        bool isEmp = userType == "RECRUITER";
+        bool isMod = userType == "MODERATOR";
+        string viewAllUrl = "/candidate/notifications";
+        if (isEmp) viewAllUrl = "/recruiter/notifications";
+        else if (isMod) viewAllUrl = "/ModeratorNotification";
     }
-</script>
+    <a href="@viewAllUrl" class="text-xs text-primary font-medium hover:underline">Xem tất cả thông báo</a>
+</div>

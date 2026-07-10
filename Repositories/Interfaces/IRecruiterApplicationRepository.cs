@@ -37,11 +37,14 @@ namespace DevHub.Repositories.Interfaces
         // Returns the updated application (for notification) or null when it was not eligible.
         Task<Application?> UpdateStatusIfPendingAsync(int applicationId, int recruiterId, string newStatus);
 
+        // Hire: only updates when the application belongs to the recruiter and is APPROVED.
+        Task<Application?> UpdateStatusIfApprovedToHiredAsync(int applicationId, int recruiterId);
+
         // Creates a notification addressed to a candidate.
         Task CreateCandidateNotificationAsync(int candidateId, string title, string message, string severity, int applicationId);
 
-        // Candidate contact (email + full name) for sending approve/reject emails.
-        Task<(string? Email, string FullName)> GetCandidateContactAsync(int candidateId);
+        // Candidate contact (email, full name, email notifications enabled) for sending emails.
+        Task<(string? Email, string FullName, bool EmailNotificationsEnabled)> GetCandidateContactAsync(int candidateId);
 
         // Dropdown options (values are bound from these lists only).
         Task<List<CommonTechnology>> GetActiveTechOptionsAsync();

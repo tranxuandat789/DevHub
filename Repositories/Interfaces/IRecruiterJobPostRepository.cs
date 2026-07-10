@@ -4,7 +4,7 @@ namespace DevHub.Repositories.Interfaces;
 public interface IRecruiterJobPostRepository
 {
     Task<JobPost> CreateJobPostAndDecrementQuotaAsync(JobPost jobPost, int packageHistoryId);
-    Task NotifyModeratorsAsync(string title, string message, string referenceType, int referenceId);
+    Task NotifyModeratorAsync(int moderatorId, string title, string message, string referenceType, int referenceId);
 
     // Batch-notify candidates with an active (PENDING/APPROVED) application on a job, used after the
     // recruiter edits an APPROVED job and it returns to PENDING re-review (their application is frozen).

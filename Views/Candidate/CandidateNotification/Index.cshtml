@@ -4,6 +4,13 @@
     ViewData["Title"] = "Thông báo";
     ViewData["IsCandidate"] = "true";
     ViewData["ActiveMenu"] = "Notifications";
+
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages  = ViewBag.TotalPages  ?? 1;
+    int totalItems  = ViewBag.TotalItems  ?? 0;
+    int pageSize    = 5;
+    int fromItem    = totalItems == 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    int toItem      = Math.Min(currentPage * pageSize, totalItems);
 }
 
 <div class="bg-[#F8F9FA] min-h-screen py-10">
@@ -28,68 +35,94 @@
                         </div>
                     </div>
 
+                    <!-- Filter Bar -->
+                    <div class="bg-gray-50 p-4 rounded-lg border border-[#D6DDEB] mb-6 flex flex-wrap gap-4 items-end">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Trạng thái</label>
+                            <select id="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[150px]">
+                                <option value="all" selected="@(ViewBag.CurrentStatus == "all" ? "selected" : null)">Tất cả</option>
+                                <option value="unread" selected="@(ViewBag.CurrentStatus == "unread" ? "selected" : null)">Chưa đọc</option>
+                                <option value="read" selected="@(ViewBag.CurrentStatus == "read" ? "selected" : null)">Đã đọc</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Sắp xếp</label>
+                            <select id="filterSort" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#4640DE] focus:border-[#4640DE] outline-none min-w-[150px]">
+                                <option value="newest" selected="@(ViewBag.CurrentSort == "newest" ? "selected" : null)">Mới nhất</option>
+                                <option value="oldest" selected="@(ViewBag.CurrentSort == "oldest" ? "selected" : null)">Cũ nhất</option>
+                            </select>
+                        </div>
+
+                        <button onclick="applyFilters()" class="bg-[#4640DE] text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors shadow-sm">
+                            Lọc
+                        </button>
+                    </div>
+
                     <!-- Notification List -->
                     <div class="space-y-4">
                         @if (Model != null && Model.Any())
                         {
                             foreach (var notification in Model)
                             {
-                                string bgColor = "bg-gray-50/20";
-                                string borderColor = "border-[#D6DDEB]";
-                                string iconBgColor = "bg-gray-100";
-                                string iconTextColor = "text-gray-500";
+                                string bgColor = notification.IsRead == true ? "bg-white opacity-80" : "bg-[#f8f9fc]";
+                                string titleColor = notification.IsRead == true ? "text-gray-600 font-medium" : "text-gray-900 font-bold";
+                                string dotColor = notification.IsRead == true ? "bg-transparent" : "bg-[#0f62fe]";
                                 
-                                if (notification.SeverityLevel == "danger")
+                                string ctaText = "";
+                                string ctaUrl = "";
+
+                                if (notification.ReferenceId.HasValue)
                                 {
-                                    bgColor = "bg-red-50/30";
-                                    borderColor = "border-red-200 hover:border-red-300";
-                                    iconBgColor = "bg-red-100";
-                                    iconTextColor = "text-red-600";
-                                }
-                                else if (notification.SeverityLevel == "warning")
-                                {
-                                    bgColor = "bg-yellow-50/30";
-                                    borderColor = "border-yellow-200 hover:border-yellow-300";
-                                    iconBgColor = "bg-yellow-100";
-                                    iconTextColor = "text-yellow-600";
-                                }
-                                else if (notification.SeverityLevel == "success")
-                                {
-                                    bgColor = "bg-green-50/30";
-                                    borderColor = "border-green-200 hover:border-green-300";
-                                    iconBgColor = "bg-green-100";
-                                    iconTextColor = "text-green-600";
-                                }
-                                else if (notification.SeverityLevel == "info")
-                                {
-                                    bgColor = "bg-blue-50/20";
-                                    borderColor = "border-blue-200 hover:border-blue-300";
-                                    iconBgColor = "bg-blue-100";
-                                    iconTextColor = "text-blue-600";
+                                    switch (notification.ReferenceType)
+                                    {
+                                        case "Application":
+                                            ctaText = "Xem danh sách";
+                                            ctaUrl = "/candidate/applications";
+                                            break;
+                                        case "JobPost":
+                                            ctaText = "Xem tin tuyển dụng";
+                                            ctaUrl = $"/candidate/jobs/details/{notification.ReferenceId}";
+                                            break;
+                                        case "Company":
+                                            ctaText = "Xem hồ sơ công ty";
+                                            ctaUrl = $"/company/details/{notification.ReferenceId}";
+                                            break;
+                                        case "Interview":
+                                            ctaText = "Xem lịch";
+                                            ctaUrl = $"/candidate/interviews/details/{notification.ReferenceId}";
+                                            break;
+                                    }
                                 }
 
-                                <div class="block border @borderColor hover:shadow-sm transition-all rounded-xl p-5 group @bgColor">
-                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                        <div class="flex items-start gap-4">
-                                            <div class="w-12 h-12 rounded-full flex items-center justify-center @iconBgColor @iconTextColor flex-shrink-0">
-                                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <a href="/candidate/notifications/details/@notification.NotificationId" class="text-[16px] font-bold @(notification.IsRead == true ? "text-gray-700" : "text-dark") group-hover:text-primary transition-colors flex items-center gap-2">
+                                <div class="block border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all rounded-xl p-5 group @bgColor">
+                                    <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                                        <div class="flex items-start gap-3 w-full">
+                                            <!-- Read/Unread Status Indicator -->
+                                            <div class="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 @dotColor"></div>
+                                            
+                                            <div class="flex-1">
+                                                <a href="/candidate/notifications/details/@notification.NotificationId" class="text-[16px] @titleColor group-hover:text-primary transition-colors block mb-1">
                                                     @notification.Title
-                                                    @if (notification.IsRead != true)
-                                                    {
-                                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                                    }
                                                 </a>
-                                                <p class="text-sm text-gray-600 mt-1 line-clamp-2">@notification.Message</p>
-                                                <span class="text-[12px] text-gray-400 mt-2 block">@(notification.CreatedAt.HasValue ? notification.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")</span>
+                                                <p class="text-sm text-gray-600 mb-2 leading-relaxed">@notification.Message</p>
+                                                
+
+
+                                                <span class="text-[12px] text-gray-400 block mt-2">
+                                                    @(notification.CreatedAt.HasValue ? notification.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "")
+                                                </span>
                                             </div>
                                         </div>
-                                        <div class="flex-shrink-0 w-full md:w-auto mt-2 md:mt-0">
-                                            <a href="/candidate/notifications/details/@notification.NotificationId" class="px-4 py-2 rounded-lg text-sm font-medium border border-[#D6DDEB] hover:bg-gray-50 text-gray-700 w-full md:w-auto text-center transition-colors block">Chi tiết</a>
+                                        
+                                        <div class="flex-shrink-0 w-full md:w-auto mt-3 md:mt-0 ml-0 md:ml-4 flex flex-col gap-2">
+                                            @if (!string.IsNullOrEmpty(ctaText) && !string.IsNullOrEmpty(ctaUrl))
+                                            {
+                                                <a href="@ctaUrl" class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 w-full md:w-auto transition-colors whitespace-nowrap">
+                                                    @ctaText
+                                                </a>
+                                            }
+
+
                                         </div>
                                     </div>
                                 </div>
@@ -102,6 +135,59 @@
                             </div>
                         }
                     </div>
+
+                    <!-- Pagination -->
+                    @if (totalItems > 0)
+                    {
+                        <div class="mt-6 pt-4 border-t border-[#D6DDEB] flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <span class="text-sm text-gray-500">
+                                Hiển thị <span class="font-medium text-dark">@fromItem</span> – <span class="font-medium text-dark">@toItem</span>
+                                trong tổng số <span class="font-medium text-dark">@totalItems</span> thông báo
+                            </span>
+                            @if (totalPages > 1)
+                            {
+                                <div class="flex gap-1.5">
+                                    @if (currentPage > 1)
+                                    {
+                                        <a href="?page=@(currentPage - 1)" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] bg-white text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] bg-white text-gray-300 cursor-not-allowed">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                        </span>
+                                    }
+
+                                    @for (int p = 1; p <= totalPages; p++)
+                                    {
+                                        if (p == currentPage)
+                                        {
+                                            <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-[#4640DE] text-white font-bold text-sm shadow-sm">@p</span>
+                                        }
+                                        else
+                                        {
+                                            <a href="?page=@p" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors shadow-sm">@p</a>
+                                        }
+                                    }
+
+                                    @if (currentPage < totalPages)
+                                    {
+                                        <a href="?page=@(currentPage + 1)" class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] bg-white text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-[#D6DDEB] bg-white text-gray-300 cursor-not-allowed">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -110,19 +196,17 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            $('#mark-all-read-btn-page').click(function() {
-                $.post('/api/Notification/mark-all-read')
-                    .done(function(res) {
-                        if (res.success) {
-                            toastr.success('Đã đánh dấu tất cả là đã đọc.');
-                            setTimeout(() => window.location.reload(), 1000);
-                        }
-                    })
-                    .fail(function() {
-                        toastr.error('Có lỗi xảy ra.');
-                    });
-            });
+        document.getElementById('mark-all-read-btn-page')?.addEventListener('click', function() {
+            fetch('/Notification/MarkAllAsRead', { method: 'POST', headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' } })
+                .then(() => window.location.reload())
+                .catch(() => alert('Có lỗi xảy ra.'));
         });
+
+        function applyFilters() {
+            const status = document.getElementById('filterStatus').value;
+            const sort = document.getElementById('filterSort').value;
+            window.location.href = `?status=${status}&sort=${sort}`;
+        }
     </script>
 }
+

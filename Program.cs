@@ -71,6 +71,24 @@ builder.Services.AddAuthentication(options =>
             path.Contains("moderator",          StringComparison.OrdinalIgnoreCase) ||
             path.Equals("/Auth/AdminLogout",    StringComparison.OrdinalIgnoreCase))
             return "AdminCookies";
+
+        // Luồng đặc biệt: Các endpoint dùng chung nhiều role (Notification, SignalR hub...)
+        // Ưu tiên dùng Referer header để biết user đang ở context nào (recruiter/admin/candidate)
+        // vì kiểm tra cookie presence không đáng tin khi user có nhiều cookie từ nhiều tài khoản.
+        if (path.StartsWith("/Notification",     StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith("/notificationHub",  StringComparison.OrdinalIgnoreCase))
+        {
+            var referer = ctx.Request.Headers["Referer"].ToString().ToLower();
+            // Nếu AJAX xuất phát từ trang Recruiter → dùng EmployerCookies
+            if (referer.Contains("/recruiter") || referer.Contains("/employer"))
+                return "EmployerCookies";
+            // Nếu AJAX xuất phát từ trang Admin/Moderator → dùng AdminCookies
+            if (referer.Contains("/admin") || referer.Contains("/moderator"))
+                return "AdminCookies";
+            // Nếu AJAX xuất phát từ trang Candidate hoặc không có referer
+            // → dùng App.Candidate cookie (mặc định)
+            return CookieAuthenticationDefaults.AuthenticationScheme;
+        }
             
         // Luồng 3: Nếu không phải các trường hợp đặc biệt trên (trang chủ, trang tìm việc...)
         // => Sử dụng Cookie mặc định của hệ thống (dành cho Ứng viên).

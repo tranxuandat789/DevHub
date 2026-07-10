@@ -94,7 +94,18 @@ public class ArticleRepository : IArticleRepository
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(a => a.Status == status);
+            if (status == "HIDDEN_BY_MOD")
+            {
+                query = query.Where(a => a.Status == "HIDDEN" && a.RejectReason != null && a.RejectReason != "");
+            }
+            else if (status == "HIDDEN")
+            {
+                query = query.Where(a => a.Status == "HIDDEN" && (a.RejectReason == null || a.RejectReason == ""));
+            }
+            else
+            {
+                query = query.Where(a => a.Status == status);
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(companyName))

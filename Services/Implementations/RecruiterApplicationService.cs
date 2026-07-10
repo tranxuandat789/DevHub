@@ -170,7 +170,7 @@ namespace DevHub.Services.Implementations
             }
 
             // Best-effort email to the candidate (won't fail the approve action).
-            await SendCandidateDecisionEmailSafeAsync(app.CandidateId, isApproved: true, jobTitle: app.Job?.Title);
+            await SendCandidateDecisionEmailSafeAsync(app.CandidateId, "APPROVED", app.Job?.Title);
 
             // Approving unlocks Interview Scheduling for this application (gated in the Interview flow).
             return (true, "Đã duyệt ứng viên. Bạn có thể lên lịch phỏng vấn.");
@@ -205,28 +205,65 @@ namespace DevHub.Services.Implementations
             }
 
             // Best-effort email to the candidate.
-            await SendCandidateDecisionEmailSafeAsync(app.CandidateId, isApproved: false, jobTitle: app.Job?.Title);
+            await SendCandidateDecisionEmailSafeAsync(app.CandidateId, "REJECTED", app.Job?.Title);
 
             return (true, "Đã từ chối ứng viên.");
         }
 
-        // Sends the approve/reject email to the candidate. Best-effort: never throws to the caller.
-        private async Task SendCandidateDecisionEmailSafeAsync(int candidateId, bool isApproved, string? jobTitle)
+        public async Task<(bool Success, string Message)> HireAsync(int recruiterId, int applicationId)
         {
+            var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
+            if (appCheck == null)
+                return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");
+            if ((jobStatus ?? "").ToUpper() == "PENDING")
+                return (false, "Tin tuyển dụng đang chờ kiểm duyệt lại. Vui lòng chờ sau khi tin được duyệt.");
+
+            var app = await _repo.UpdateStatusIfApprovedToHiredAsync(applicationId, recruiterId);
+            if (app == null)
+                return (false, "Đơn ứng tuyển không ở trạng thái được chấp nhận để có thể tuyển dụng.");
+
             try
             {
-                var (email, fullName) = await _repo.GetCandidateContactAsync(candidateId);
-                if (string.IsNullOrWhiteSpace(email)) return;
-
-                var (subject, body) = isApproved
-                    ? BuildApprovedEmail(fullName, jobTitle)
-                    : BuildRejectedEmail(fullName, jobTitle);
-
-                await _emailHelper.SendEmailAsync(email!, subject, body);
+                await _repo.CreateCandidateNotificationAsync(
+                    app.CandidateId,
+                    $"Thông báo về trạng thái ứng tuyển của bạn vào {app.Job?.Title}",
+                    $"Chúc mừng! Bạn đã được tuyển vào vị trí \"{app.Job?.Title}\".",
+                    "success",
+                    app.ApplicationId);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to send candidate decision email (candidate {CandidateId}, approved={Approved})", candidateId, isApproved);
+                _logger.LogWarning(ex, "Failed to create hired notification for application {ApplicationId}", app.ApplicationId);
+            }
+
+            // Best-effort email to the candidate.
+            await SendCandidateDecisionEmailSafeAsync(app.CandidateId, "HIRED", app.Job?.Title);
+
+            return (true, "Đã chuyển ứng viên sang trạng thái HIRED.");
+        }
+
+        // Sends the approve/reject/hire email to the candidate. Best-effort: never throws to the caller.
+        private async Task SendCandidateDecisionEmailSafeAsync(int candidateId, string decisionType, string? jobTitle)
+        {
+            try
+            {
+                var (email, fullName, emailNotificationsEnabled) = await _repo.GetCandidateContactAsync(candidateId);
+                if (string.IsNullOrWhiteSpace(email) || !emailNotificationsEnabled) return;
+
+                var (subject, body) = decisionType switch
+                {
+                    "APPROVED" => BuildApprovedEmail(fullName, jobTitle),
+                    "REJECTED" => BuildRejectedEmail(fullName, jobTitle),
+                    "HIRED" => BuildHiredEmail(fullName, jobTitle),
+                    _ => ("", "")
+                };
+
+                if (!string.IsNullOrEmpty(subject))
+                    await _emailHelper.SendEmailAsync(email!, subject, body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send candidate decision email (candidate {CandidateId}, decision={Decision})", candidateId, decisionType);
             }
         }
 
@@ -272,6 +309,30 @@ namespace DevHub.Services.Implementations
                 </div>
                 <p>Rất tiếc, hồ sơ của bạn chưa phù hợp với vị trí này ở thời điểm hiện tại. Đây không phải là đánh giá về toàn bộ năng lực của bạn — hãy tiếp tục theo dõi và ứng tuyển các vị trí phù hợp khác trên DevHub.</p>
                 <p style='color: #4640DE;'>Chúc bạn sớm tìm được công việc phù hợp!</p>
+                <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+            </div>";
+            return (subject, body);
+        }
+
+        private static (string Subject, string Body) BuildHiredEmail(string fullName, string? jobTitle)
+        {
+            var position = string.IsNullOrWhiteSpace(jobTitle) ? "vị trí bạn đã ứng tuyển" : jobTitle;
+            var name = string.IsNullOrWhiteSpace(fullName) ? "bạn" : fullName;
+            var subject = "Chúc mừng bạn đã trúng tuyển - DevHub";
+            var body = $@"
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;
+                        border: 1px solid #D6DDEB; border-radius: 8px;'>
+                <h2 style='color: #4640DE; text-align: center;'>Chúc mừng bạn đã trúng tuyển!</h2>
+                <p>Xin chào {name},</p>
+                <p>Chúng tôi rất vui mừng thông báo rằng bạn đã <b>trúng tuyển (HIRED)</b> vào vị trí <b>""{position}""</b>.</p>
+                <div style='text-align: center; margin: 28px 0;'>
+                    <span style='display: inline-block; font-size: 18px; font-weight: bold; color: #16A34A;
+                                 background: #ECFDF5; padding: 14px 28px; border-radius: 8px;
+                                 border: 1px dashed #16A34A;'>✓ Đã được tuyển (HIRED)</span>
+                </div>
+                <p>Nhà tuyển dụng sẽ sớm liên hệ với bạn để trao đổi các thông tin tiếp theo (Offer letter, ngày nhận việc, v.v.).</p>
+                <p style='color: #4640DE;'>Chúc mừng bạn và chúc bạn có một khởi đầu tuyệt vời tại công ty!</p>
                 <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
                 <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
             </div>";

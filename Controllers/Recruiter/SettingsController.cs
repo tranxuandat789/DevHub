@@ -80,7 +80,11 @@ namespace DevHub.Controllers.Recruiter
                 ViewBag.Invitations = await _invitationService.GetPendingInvitationsAsync(dbUser.Recruiter.CompanyId.Value);
             }
 
+            if (tab.ToLower() == "notifications")
+                await LoadNotificationSettingsAsync();
+
             return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+
         }
 
         [HttpPost("account")]
@@ -589,6 +593,35 @@ namespace DevHub.Controllers.Recruiter
             }
 
             return RedirectToAction("Index", new { tab = "members" });
+        }
+        // Load notification settings into ViewBag when tab=notifications
+        private async Task LoadNotificationSettingsAsync()
+        {
+            var email  = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Email == email);
+            if (dbUser != null)
+            {
+                ViewBag.EmailNotificationsEnabled = dbUser.EmailNotificationsEnabled;
+                ViewBag.NotifSettingsPostUrl = "/Recruiter/Settings/notification-settings";
+            }
+        }
+
+        [HttpPost("notification-settings")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateNotificationSettings(bool emailEnabled = false)
+        {
+            var email  = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Email == email);
+            if (dbUser == null)
+                return NotFound();
+
+            dbUser.EmailNotificationsEnabled = emailEnabled;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = emailEnabled
+                ? "Đã bật thông báo qua email."
+                : "Đã tắt thông báo qua email.";
+            return RedirectToAction("Index", new { tab = "notifications" });
         }
     }
 }

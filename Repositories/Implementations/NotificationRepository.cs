@@ -26,9 +26,8 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<List<Notification>> GetUserNotificationsAsync(int userId, string userType, int limit = 20)
     {
-        var userTypeLower = userType.ToLower();
         return await _context.Notifications
-            .Where(n => n.UserId == userId && n.UserType.ToLower() == userTypeLower)
+            .Where(n => n.UserId == userId && n.UserType == userType)
             .OrderByDescending(n => n.CreatedAt)
             .Take(limit)
             .ToListAsync();
@@ -36,9 +35,8 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<int> GetUnreadCountAsync(int userId, string userType)
     {
-        var userTypeLower = userType.ToLower();
         return await _context.Notifications
-            .CountAsync(n => n.UserId == userId && n.UserType.ToLower() == userTypeLower && (n.IsRead == false || n.IsRead == null));
+            .CountAsync(n => n.UserId == userId && n.UserType == userType && (n.IsRead == false || n.IsRead == null));
     }
 
     public async Task MarkAsReadAsync(int notificationId)
@@ -53,19 +51,22 @@ public class NotificationRepository : INotificationRepository
 
     public async Task MarkAllAsReadAsync(int userId, string userType)
     {
-        var userTypeLower = userType.ToLower();
         var unreadNotifs = await _context.Notifications
-            .Where(n => n.UserId == userId && n.UserType.ToLower() == userTypeLower && (n.IsRead == false || n.IsRead == null))
+            .Where(n => n.UserId == userId && n.UserType == userType && (n.IsRead == false || n.IsRead == null))
             .ToListAsync();
 
         foreach (var n in unreadNotifs)
         {
             n.IsRead = true;
         }
+        await _context.SaveChangesAsync();
+    }
 
-        if (unreadNotifs.Any())
-        {
-            await _context.SaveChangesAsync();
-        }
+    public async Task<string?> GetFirstUserTypeByUserIdAsync(int userId)
+    {
+        return await _context.Notifications
+            .Where(n => n.UserId == userId)
+            .Select(n => n.UserType)
+            .FirstOrDefaultAsync();
     }
 }

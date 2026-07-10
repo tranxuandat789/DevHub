@@ -26,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.text())
             .then(html => {
                 notifList.innerHTML = html;
+                const countData = notifList.querySelector('#unread-count-data');
+                if (countData) {
+                    const count = parseInt(countData.getAttribute('data-count')) || 0;
+                    window.updateBadgeCount(count);
+                }
                 attachClickEvents();
             })
             .catch(err => console.error('Error fetching notifications:', err));
@@ -87,20 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Get target URL based on user role and reference type (For Toastr notification click)
     function getNotificationUrl(notif) {
-        if (!notif.referenceType) return "#";
-        
+        if (!notif.notificationId) return "#";
         const isEmployer = window.DevHub && window.DevHub.isEmployer;
-        
-        switch (notif.referenceType) {
-            case 'Application':
-                return isEmployer 
-                    ? `/Recruiter/ApplicantList?jobId=${notif.referenceId}` 
-                    : `/Candidate/Dashboard`;
-            case 'Article':
-                return `/articles/${notif.referenceId}`;
-            default:
-                return "#";
-        }
+        return isEmployer 
+            ? `/recruiter/notifications/details/${notif.notificationId}` 
+            : `/candidate/notifications/details/${notif.notificationId}`;
     }
 
     // SignalR Setup

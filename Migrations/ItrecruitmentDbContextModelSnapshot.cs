@@ -1631,6 +1631,9 @@ namespace DevHub.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
 
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<string>("GoogleId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")

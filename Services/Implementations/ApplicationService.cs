@@ -9,10 +9,14 @@ namespace DevHub.Services.Implementations;
 public class ApplicationService : IApplicationService
 {
     private readonly ItrecruitmentDbContext _context;
+    private readonly INotificationService _notificationService;
+    private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
-    public ApplicationService(ItrecruitmentDbContext context)
+    public ApplicationService(ItrecruitmentDbContext context, INotificationService notificationService, DevHub.Helpers.EmailHelper emailHelper)
     {
         _context = context;
+        _notificationService = notificationService;
+        _emailHelper = emailHelper;
     }
 
     public async Task<ApplyJobDataViewModel?> GetApplyInfoAsync(int candidateId)
@@ -99,6 +103,64 @@ public class ApplicationService : IApplicationService
         job.ApplicationCount = (job.ApplicationCount ?? 0) + 1;
 
         await _context.SaveChangesAsync();
+
+        // Gửi thông báo cho tất cả recruiter thuộc công ty đăng tin
+        var recruiters = await _context.Recruiters
+            .Include(r => r.RecruiterNavigation)
+            .Where(r => r.CompanyId == job.CompanyId)
+            .Select(r => new {
+                r.RecruiterId,
+                r.RecruiterNavigation.Email,
+                r.RecruiterNavigation.EmailNotificationsEnabled
+            })
+            .ToListAsync();
+
+        var candidateName = candidate.FullName ?? "Ứng viên";
+        var jobTitle = job.Title ?? "vị trí tuyển dụng";
+
+        foreach (var recruiter in recruiters)
+        {
+            try
+            {
+                await _notificationService.SendNotificationAsync(
+                    userId: recruiter.RecruiterId,
+                    userType: "RECRUITER",
+                    title: $"Ứng viên {candidateName} đã ứng tuyển {jobTitle}",
+                    message: $"{candidateName} vừa ứng tuyển vào vị trí {jobTitle}.",
+                    type: "APPLICATION",
+                    severity: "info",
+                    referenceId: application.ApplicationId,
+                    referenceType: "Application"
+                );
+            }
+            catch
+            {
+                // Best-effort: không block nếu gửi thông báo thất bại
+            }
+
+            try
+            {
+                if (recruiter.EmailNotificationsEnabled && !string.IsNullOrWhiteSpace(recruiter.Email))
+                {
+                    var subject = $"Ứng viên mới: {candidateName} - {jobTitle}";
+                    var body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                        <h2 style='color: #4640DE;'>Thông báo ứng viên mới</h2>
+                        <p>Chào bạn,</p>
+                        <p>Ứng viên <b>{candidateName}</b> vừa nộp hồ sơ ứng tuyển vào vị trí <b>{jobTitle}</b>.</p>
+                        <p>Vui lòng đăng nhập vào hệ thống DevHub để xem chi tiết hồ sơ ứng viên và xử lý.</p>
+                        <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                        <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                    </div>";
+                    
+                    await _emailHelper.SendEmailAsync(recruiter.Email, subject, body);
+                }
+            }
+            catch
+            {
+                // Best-effort
+            }
+        }
 
         return (true, "Ứng tuyển thành công!");
     }

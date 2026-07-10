@@ -44,6 +44,7 @@
             <select name="status" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
                 <option value="">Tất cả</option>
                 <option value="PUBLISHED" selected="@(Model.Status == "PUBLISHED")">Đã xuất bản</option>
+                <option value="PENDING" selected="@(Model.Status == "PENDING")">Chờ duyệt</option>
                 <option value="HIDDEN" selected="@(Model.Status == "HIDDEN")">Đã ẩn (Bởi NTD)</option>
                 <option value="HIDDEN_BY_MOD" selected="@(Model.Status == "HIDDEN_BY_MOD")">Bị ẩn (Bởi Admin)</option>
             </select>
@@ -64,7 +65,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-gray-50 border-b border-[#D6DDEB]">
-                    <th class="py-4 px-6 text-dark font-bold text-sm">ID</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">STT</th>
                     <th class="py-4 px-4 text-dark font-bold text-sm w-16">Ảnh</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Tiêu đề</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Công ty</th>
@@ -76,10 +77,11 @@
             <tbody class="text-sm">
                 @if (Model != null && Model.Articles != null && Model.Articles.Any())
                 {
+                    int index = Model.FromItem;
                     foreach (var article in Model.Articles)
                     {
                         <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                            <td class="py-4 px-6 text-muted font-medium">#@article.ArticleId</td>
+                            <td class="py-4 px-6 text-muted font-medium">@(index++)</td>
                             <td class="py-4 px-4">
                                 @if (!string.IsNullOrEmpty(article.ThumbnailUrl))
                                 {
@@ -102,11 +104,11 @@
                                 {
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Đã xuất bản</span>
                                 }
-                                else if (article.Status == "HIDDEN_BY_MOD")
+                                else if (article.Status == "HIDDEN" && !string.IsNullOrEmpty(article.RejectReason))
                                 {
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Bị ẩn (Bởi Admin)</span>
                                 }
-                                else if (article.Status == "HIDDEN")
+                                else if (article.Status == "HIDDEN" && string.IsNullOrEmpty(article.RejectReason))
                                 {
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Đã ẩn (Bởi NTD)</span>
                                 }
@@ -124,10 +126,28 @@
                                 }
                             </td>
                             <td class="py-4 px-3 text-center whitespace-nowrap">
-                                <a href="/articles/@article.ArticleId" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem trước">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                </a>
-                                @if (article.Status != "HIDDEN_BY_MOD")
+                                @if (article.Status == "PUBLISHED" || article.Status == "APPROVED")
+                                {
+                                    <a href="/articles/@article.ArticleId" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem trên trang chủ">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="/moderator/articles/detail/@article.ArticleId" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem chi tiết">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </a>
+                                }
+                                @if (article.Status == "PENDING")
+                                {
+                                    <button onclick="approveArticle(@article.ArticleId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Duyệt bài báo">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                    <button onclick="openActionModal(@article.ArticleId, 'reject')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Từ chối duyệt">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                }
+                                else if (!(article.Status == "HIDDEN" && !string.IsNullOrEmpty(article.RejectReason)))
                                 {
                                     <button onclick="openActionModal(@article.ArticleId, 'hide')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors" title="Ẩn bài báo">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
@@ -198,7 +218,40 @@
     }
 </div>
 
-<!-- Action Modal (Hide/Delete) -->
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 z-[300] hidden bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-4 min-w-[200px]">
+        <svg class="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p id="loadingText" class="text-dark font-medium text-sm">Đang xử lý...</p>
+    </div>
+</div>
+
+<!-- Approve Confirm Modal -->
+<div id="approveModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeApproveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-dark">Duyệt bài báo</h3>
+                <p class="text-muted text-sm mt-1">Bài báo <span id="approveArticleId" class="font-bold text-dark"></span> sẽ được xuất bản sau khi duyệt.</p>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button onclick="closeApproveModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
+            <button onclick="confirmApprove()" class="px-5 py-2.5 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 transition-colors shadow-sm">Xác nhận Duyệt</button>
+        </div>
+    </div>
+</div>
+
+<!-- Action Modal (Hide/Delete/Reject) -->
 <div id="actionModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
     <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-lg p-6 relative">
         <button onclick="closeActionModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
@@ -240,6 +293,10 @@
                 titleEl.innerText = "Ẩn bài báo";
                 btnEl.innerText = "Xác nhận Ẩn";
                 btnEl.className = "px-5 py-2.5 rounded-lg bg-yellow-600 text-white font-bold hover:bg-yellow-700 transition-colors shadow-sm";
+            } else if (type === 'reject') {
+                titleEl.innerText = "Từ chối bài báo";
+                btnEl.innerText = "Xác nhận Từ chối";
+                btnEl.className = "px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-sm";
             } else if (type === 'delete') {
                 titleEl.innerText = "Xóa bài báo";
                 btnEl.innerText = "Xác nhận Xóa";
@@ -247,6 +304,50 @@
             }
             
             document.getElementById('actionModal').classList.remove('hidden');
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text || 'Đang xử lý...';
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        let pendingApproveId = null;
+
+        function approveArticle(id) {
+            pendingApproveId = id;
+            document.getElementById('approveArticleId').innerText = `#${id}`;
+            document.getElementById('approveModal').classList.remove('hidden');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.add('hidden');
+            pendingApproveId = null;
+        }
+
+        async function confirmApprove() {
+            if (!pendingApproveId) return;
+            const id = pendingApproveId;
+            closeApproveModal();
+            showLoading('Đang duyệt bài báo...');
+            try {
+                const response = await fetch(`/moderator/articles/approve-pending/${id}`, { method: 'POST' });
+                hideLoading();
+                if (response.ok) {
+                    alert(`Đã duyệt bài báo #${id} thành công.`);
+                    window.location.reload();
+                } else {
+                    const errorText = await response.text();
+                    alert(`Có lỗi xảy ra: ${errorText}`);
+                }
+            } catch (e) {
+                hideLoading();
+                console.error(e);
+                alert("Có lỗi hệ thống.");
+            }
         }
 
         function closeActionModal() {
@@ -261,24 +362,29 @@
                 alert('Vui lòng nhập lý do.');
                 return;
             }
-            
+
+            const actionLabel = currentActionType === 'hide' ? 'ẩn' : (currentActionType === 'reject' ? 'từ chối' : 'xóa');
+            closeActionModal();
+            showLoading(`Đang ${actionLabel} bài báo...`);
+
             try {
                 const formData = new FormData();
                 formData.append('reason', reason);
-                const url = `/moderator/articles/${currentActionType}/${currentActionId}`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
-                
+                let endpointType = currentActionType;
+                if (endpointType === 'reject') endpointType = 'reject-pending';
+                const url = `/moderator/articles/${endpointType}/${currentActionId}`;
+                const response = await fetch(url, { method: 'POST', body: formData });
+
+                hideLoading();
                 if (response.ok) {
-                    alert(`Đã ${currentActionType === 'hide' ? 'ẩn' : 'xóa'} bài báo #${currentActionId} thành công.`);
-                    closeActionModal();
+                    alert(`Đã ${actionLabel} bài báo #${currentActionId} thành công.`);
                     window.location.reload();
                 } else {
-                    alert(`Có lỗi xảy ra khi thực hiện thao tác.`);
+                    const errorText = await response.text();
+                    alert(`Có lỗi xảy ra khi thực hiện thao tác: ${errorText}`);
                 }
             } catch (e) {
+                hideLoading();
                 console.error(e);
                 alert("Có lỗi hệ thống.");
             }

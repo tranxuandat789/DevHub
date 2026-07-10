@@ -57,7 +57,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                     Xem trước
                 </button>
-                <button type="button" id="btnPublish" onclick="submitPost()"
+                <button type="button" id="btnPublish" onclick="showPublishModal()"
                     class="w-full bg-primary text-white font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-all flex justify-center items-center gap-2 shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Xuất bản</span>
@@ -109,6 +109,25 @@
         </div>
     </div>
 </form>
+
+<!-- Modal Xác nhận đăng bài -->
+<div id="publishConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+        <div class="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-dark">Xác nhận đăng bài</h3>
+            <button type="button" onclick="closePublishModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <p class="text-dark">Bạn có chắc chắn muốn xuất bản bài viết này không?</p>
+        </div>
+        <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+            <button type="button" onclick="closePublishModal()" class="bg-white text-dark font-medium px-4 py-2 rounded-lg border border-[#D6DDEB] hover:bg-gray-100 transition-colors">Hủy</button>
+            <button type="button" onclick="confirmPublish()" class="bg-primary text-white font-medium px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">Xác nhận</button>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Preview -->
 <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
@@ -415,13 +434,9 @@
             document.getElementById('previewModal').classList.remove('hidden');
         }
 
-        function saveDraft() { submitForm('draft'); }
-        function submitPost() { submitForm('publish'); }
-
-        function submitForm(actionType) {
+        function validateForm() {
             const contentHtml = quill.root.innerHTML === '<p><br></p>' ? '' : quill.root.innerHTML;
             document.getElementById('Content').value = contentHtml;
-            const form = document.getElementById('blogForm');
             
             let isValid = true;
             if (!document.getElementById('Title').value.trim()) {
@@ -436,9 +451,31 @@
             } else {
                 document.getElementById('ContentError').classList.add('hidden');
             }
+            return isValid;
+        }
 
-            if (!isValid) return;
+        function showPublishModal() {
+            if (validateForm()) {
+                document.getElementById('publishConfirmModal').classList.remove('hidden');
+            }
+        }
 
+        function closePublishModal() {
+            document.getElementById('publishConfirmModal').classList.add('hidden');
+        }
+
+        function confirmPublish() {
+            closePublishModal();
+            submitPost();
+        }
+
+        function saveDraft() { submitForm('draft'); }
+        function submitPost() { submitForm('publish'); }
+
+        function submitForm(actionType) {
+            if (!validateForm()) return;
+
+            const form = document.getElementById('blogForm');
             const formData = new FormData(form);
             formData.set('actionType', actionType === 'draft' ? 'draft' : 'publish');
 

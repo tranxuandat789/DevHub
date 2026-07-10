@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DevHub.Migrations
 {
     [DbContext(typeof(ItrecruitmentDbContext))]
-    [Migration("20260709055200_AddModeratorIdToJobPost")]
-    partial class AddModeratorIdToJobPost
+    [Migration("20260710030020_DropBlogPostTagUniqueConstraint")]
+    partial class DropBlogPostTagUniqueConstraint
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1633,6 +1633,9 @@ namespace DevHub.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<string>("GoogleId")
                         .HasMaxLength(255)

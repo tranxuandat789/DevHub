@@ -147,4 +147,5 @@ public class ReviewCompanyRepository : IReviewCompanyRepository
 
         await _db.SaveChangesAsync();
     }
+
 }

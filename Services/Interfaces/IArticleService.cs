@@ -17,5 +17,6 @@ public interface IArticleService
     // Moderator methods
     Task<(IEnumerable<Article> Articles, int TotalPages, int TotalItems)> GetArticlesForModeratorAsync(string keyword, string dateFrom, string status, string companyName, int page, int pageSize);
     Task HideArticleByModAsync(int articleId, string reason);
+    Task ApproveArticleByModAsync(int articleId);
     Task DeleteArticleByModAsync(int articleId, string reason);
 }

@@ -19,19 +19,28 @@ namespace DevHub.Controllers.Recruiter
     {
         private readonly IArticleService _articleService;
         private readonly IWebHostEnvironment _env;
+        private readonly IAuthService _authService;
 
-        public ArticleController(IArticleService articleService, IWebHostEnvironment env)
+        public ArticleController(IArticleService articleService, IWebHostEnvironment env, IAuthService authService)
         {
             _articleService = articleService;
             _env = env;
+            _authService = authService;
         }
 
         [HttpGet("")]
         [HttpGet("Index")]
         public async Task<IActionResult> Index(string keyword, string dateFrom, string status, string sortBy, int page = 1)
         {
-            var recruiterIdClaim = User.FindFirst("UserId")?.Value ?? "0";
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
+
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser != null && dbUser.Recruiter != null)
+            {
+                // Removed company verification check
+            }
 
             var allArticles = await _articleService.GetArticlesForRecruiterAsync(recruiterId);
 
@@ -66,16 +75,23 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpGet("Create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.AuthorName = User.FindFirst("FullName")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser != null && dbUser.Recruiter != null)
+            {
+                // Removed company verification and profile completion check to allow posting immediately
+            }
+
+            ViewBag.AuthorName = dbUser?.Recruiter?.Company?.CompanyName ?? User.FindFirst("FullName")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "Unknown";
             return View("~/Views/Recruiter/Article/Create.cshtml");
         }
 
         [HttpPost("CreatePost")]
         public async Task<IActionResult> CreatePost([FromForm] ArticleCreateViewModel model)
         {
-            var recruiterIdClaim = User.FindFirst("UserId")?.Value ?? "0";
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 
             if (!ModelState.IsValid)
@@ -179,7 +195,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpPost("EditPost/{id}")]
         public async Task<IActionResult> EditPost(int id, [FromForm] ArticleEditViewModel model)
         {
-            var recruiterIdClaim = User.FindFirst("UserId")?.Value ?? "0";
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 
             if (!ModelState.IsValid)
@@ -198,14 +214,15 @@ namespace DevHub.Controllers.Recruiter
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                var errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return StatusCode(500, new { success = false, message = errorMsg });
             }
         }
 
         [HttpPost("SubmitReview/{id}")]
         public async Task<IActionResult> SubmitReview(int id)
         {
-            var recruiterIdClaim = User.FindFirst("UserId")?.Value ?? "0";
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 
             try
@@ -222,7 +239,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpPost("ToggleVisibility/{id}")]
         public async Task<IActionResult> ToggleVisibility(int id)
         {
-            var recruiterIdClaim = User.FindFirst("UserId")?.Value ?? "0";
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 
             try
@@ -243,7 +260,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpPost("Delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var recruiterIdClaim = User.FindFirst("UserId")?.Value ?? "0";
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 
             try
@@ -259,6 +276,23 @@ namespace DevHub.Controllers.Recruiter
             {
                 return NotFound();
             }
+        }
+        [HttpGet("Detail/{id}")]
+        public async Task<IActionResult> Detail(int id)
+        {
+            var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
+            int recruiterId = int.Parse(recruiterIdClaim);
+
+            var article = await _articleService.GetArticleByIdAsync(id);
+            if (article == null)
+                return NotFound();
+
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var recruiter = await _authService.FindUserByEmailAsync(email);
+            if (article.CompanyId != recruiter?.Recruiter?.CompanyId)
+                return Forbid();
+
+            return View("~/Views/Recruiter/Article/Detail.cshtml", article);
         }
     }
 }

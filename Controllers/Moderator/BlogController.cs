@@ -111,7 +111,15 @@ namespace DevHub.Controllers.Moderator
             }
 
             bool isPublished = actionType == "publish";
-            await _blogPostService.CreateBlogPostAsync(publisherId, model.Title, model.Content, thumbnailUrl, model.Tag, isPublished, model.AuthorName);
+            try
+            {
+                await _blogPostService.CreateBlogPostAsync(publisherId, model.Title, model.Content, thumbnailUrl, model.Tag, isPublished, model.AuthorName);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE KEY") == true || ex.InnerException?.Message.Contains("duplicate key") == true)
+            {
+                ModelState.AddModelError("Tag", $"Tag '{model.Tag}' đã tồn tại. Vui lòng chọn tag khác.");
+                return View("~/Views/Moderator/Blog/Create.cshtml", model);
+            }
 
             TempData["SuccessMessage"] = isPublished ? "Đăng bài viết thành công!" : "Lưu bản nháp thành công!";
             return RedirectToAction("Index");
@@ -228,7 +236,15 @@ namespace DevHub.Controllers.Moderator
             }
 
             bool isPublished = actionType == "publish";
-            await _blogPostService.UpdateBlogPostAsync(id, model.Title, model.Content, thumbnailUrl, model.Tag, isPublished, model.AuthorName);
+            try
+            {
+                await _blogPostService.UpdateBlogPostAsync(id, model.Title, model.Content, thumbnailUrl, model.Tag, isPublished, model.AuthorName);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException?.Message.Contains("UNIQUE KEY") == true || ex.InnerException?.Message.Contains("duplicate key") == true)
+            {
+                ModelState.AddModelError("Tag", $"Tag '{model.Tag}' đã tồn tại. Vui lòng chọn tag khác.");
+                return View("~/Views/Moderator/Blog/Edit.cshtml", model);
+            }
 
             TempData["SuccessMessage"] = isPublished ? "Cập nhật và xuất bản bài viết thành công!" : "Đã cập nhật bản nháp!";
             return RedirectToAction("Index");

@@ -8,8 +8,26 @@
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
     int totalItems = ViewBag.TotalItems ?? 0;
+
+    bool profileIncomplete = ViewBag.ProfileIncomplete == true;
 }
 
+@if (profileIncomplete)
+{
+    <!-- Check: Company profile completeness is not satisfied -->
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-md w-full mx-4 p-8 text-center" style="font-family:Inter,sans-serif">
+            <div class="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#25324B] mb-2">Chưa thể sử dụng tính năng Blog</h3>
+            <p class="text-[#515B6F] text-sm mb-6">Thông tin doanh nghiệp của bạn chưa đầy đủ hoặc chưa được kiểm duyệt!</p>
+            <a href="/Recruiter/Settings?tab=company" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark transition-all w-full">
+                Hoàn thiện hồ sơ công ty
+            </a>
+        </div>
+    </div>
+}
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
         <h1 class="text-2xl font-bold text-dark">Quản lý bài báo</h1>
@@ -39,11 +57,10 @@
             <label class="block text-dark font-medium mb-2 text-sm">Trạng thái</label>
             <select name="status" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-sm transition-colors text-muted">
                 <option value="" selected="@(string.IsNullOrEmpty(ViewBag.Status))">Tất cả</option>
-                <option value="1" selected="@(ViewBag.Status == "1")">Đã xuất bản</option>
-                <option value="3" selected="@(ViewBag.Status == "3")">Đang chờ duyệt</option>
-                <option value="0" selected="@(ViewBag.Status == "0")">Bản nháp</option>
-                <option value="4" selected="@(ViewBag.Status == "4")">Bị từ chối</option>
-                <option value="2" selected="@(ViewBag.Status == "2")">Ẩn</option>
+                <option value="PUBLISHED" selected="@(ViewBag.Status == "PUBLISHED")">Đã xuất bản</option>
+                <option value="DRAFT" selected="@(ViewBag.Status == "DRAFT")">Bản nháp</option>
+                <option value="PENDING" selected="@(ViewBag.Status == "PENDING")">Đang chờ duyệt</option>
+                <option value="HIDDEN" selected="@(ViewBag.Status == "HIDDEN")">Ẩn</option>
             </select>
         </div>
         <div class="w-full">
@@ -93,7 +110,14 @@
                                     </div>
                                 }
                                 <div>
-                                    <a href="/Blog/@item.Slug" target="_blank" class="text-[15px] font-bold text-dark hover:text-primary transition-colors block line-clamp-1">@item.Title</a>
+                                    @if (item.Status == "PUBLISHED")
+                                    {
+                                        <a href="/articles/@item.ArticleId" target="_blank" class="text-[15px] font-bold text-dark hover:text-primary transition-colors block line-clamp-1">@item.Title</a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Recruiter/Article/Detail/@item.ArticleId" class="text-[15px] font-bold text-dark hover:text-primary transition-colors block line-clamp-1">@item.Title</a>
+                                    }
                                     <div class="text-xs text-muted mt-0.5">
                                         Bởi: @(item.Company?.CompanyName ?? "Unknown")
                                     </div>
@@ -115,29 +139,41 @@
                                 }
                                 else if (item.Status == "PENDING")
                                 {
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                                        Chờ duyệt
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+                                        Đang chờ duyệt
                                     </span>
                                 }
-                                else if (item.Status == "REJECTED")
+                                else if (item.Status == "HIDDEN" && !string.IsNullOrEmpty(item.RejectReason))
                                 {
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
-                                        Bị từ chối
+                                        Bị ẩn (Bởi Admin)
                                     </span>
                                 }
                                 else 
                                 {
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">
                                         Ẩn
                                     </span>
                                 }
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
+                                    @if (item.Status == "PUBLISHED")
+                                    {
+                                        <a href="/articles/@item.ArticleId" target="_blank" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Xem trên trang chủ">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Recruiter/Article/Detail/@item.ArticleId" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Xem chi tiết">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        </a>
+                                    }
                                     <a href="/Recruiter/Article/Edit/@item.ArticleId" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="Chỉnh sửa">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     </a>
-                                    @if(item.Status == "PUBLISHED" || item.Status == "HIDDEN")
+                                    @if(item.Status == "PUBLISHED" || (item.Status == "HIDDEN" && string.IsNullOrEmpty(item.RejectReason)))
                                     {
                                     <button onclick="openToggleModal(@item.ArticleId, '@item.Status')" class="p-1.5 text-gray-400 hover:text-primary transition-colors" title="@(item.Status == "PUBLISHED" ? "Ẩn bài viết" : "Xuất bản bài viết")">
                                         @if(item.Status == "PUBLISHED")
@@ -252,7 +288,7 @@
         function openToggleModal(id, currentStatus) {
             _pendingToggleId = id;
             _pendingToggleStatus = currentStatus;
-            const isHide = currentStatus === 1;
+            const isHide = currentStatus === 'PUBLISHED';
             document.getElementById('toggleTitle').textContent = isHide ? 'Ẩn bài viết' : 'Xuất bản bài viết';
             document.getElementById('toggleMessage').textContent = isHide
                 ? 'Bài viết sẽ bị ẩn khỏi trang chủ và người dùng sẽ không thể xem. Bạn có muốn tiếp tục?'
@@ -275,7 +311,7 @@
         async function confirmToggle() {
             if (!_pendingToggleId) return;
             const id = _pendingToggleId;
-            const action = _pendingToggleStatus === 1 ? 'ẩn' : 'xuất bản';
+            const action = _pendingToggleStatus === 'PUBLISHED' ? 'ẩn' : 'xuất bản';
             closeToggleModal();
             showLoading(`Đang ${action} bài viết...`);
             try {

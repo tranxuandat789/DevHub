@@ -90,4 +90,9 @@ public class NotificationService : INotificationService
     {
         await _notificationRepository.MarkAllAsReadAsync(userId, userType);
     }
+
+    public async Task<string?> GetFirstNotificationUserTypeAsync(int userId)
+    {
+        return await _notificationRepository.GetFirstUserTypeByUserIdAsync(userId);
+    }
 }

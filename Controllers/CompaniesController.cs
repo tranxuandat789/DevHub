@@ -52,9 +52,9 @@ namespace DevHub.Controllers
         [HttpGet("Company/NavData")]
         public async Task<IActionResult> NavData()
         {
-            // Top 5 công ty theo số bài viết APPROVED
+            // Top 5 công ty theo số bài viết PUBLISHED
             var topCompanies = await _db.Articles
-                .Where(a => a.Status == "APPROVED")
+                .Where(a => a.Status == "PUBLISHED")
                 .GroupBy(a => a.Company)
                 .Select(g => new
                 {
@@ -69,10 +69,10 @@ namespace DevHub.Controllers
 
             // 3 bài viết mới nhất
             var recentArticles = await _db.Articles
-                .Where(a => a.Status == "APPROVED")
+                .Where(a => a.Status == "PUBLISHED")
                 .Include(a => a.Company)
-                .OrderByDescending(a => a.ApprovedAt)
-                .Take(3)
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(5)
                 .Select(a => new
                 {
                     articleId    = a.ArticleId,
@@ -80,7 +80,7 @@ namespace DevHub.Controllers
                     thumbnailUrl = a.ThumbnailUrl,
                     companyId    = a.CompanyId,
                     companyName  = a.Company != null ? a.Company.CompanyName : "",
-                    approvedAt   = a.ApprovedAt
+                    approvedAt   = a.CreatedAt
                 })
                 .ToListAsync();
 

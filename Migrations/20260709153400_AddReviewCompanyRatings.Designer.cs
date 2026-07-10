@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DevHub.Migrations
 {
     [DbContext(typeof(ItrecruitmentDbContext))]
-    [Migration("20260708174259_AddAuthorNameToBlogPost")]
-    partial class AddAuthorNameToBlogPost
+    [Migration("20260709153400_AddReviewCompanyRatings")]
+    partial class AddReviewCompanyRatings
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -128,7 +128,7 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("approver_id");
 
-                    b.Property<int>("CompanyId")
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("company_id");
 
@@ -596,6 +596,10 @@ namespace DevHub.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_verified");
 
+                    b.Property<int?>("ModeratorId")
+                        .HasColumnType("int")
+                        .HasColumnName("moderator_id");
+
                     b.Property<int?>("ProfileCompletion")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -633,6 +637,8 @@ namespace DevHub.Migrations
                         .HasColumnName("website");
 
                     b.HasKey("CompanyId");
+
+                    b.HasIndex("ModeratorId");
 
                     b.ToTable("company", (string)null);
                 });
@@ -1067,6 +1073,51 @@ namespace DevHub.Migrations
                     b.ToTable("mod_tier_assignment", (string)null);
                 });
 
+            modelBuilder.Entity("DevHub.Models.ModeratorTaskType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssignedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("assigned_by");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int>("ModeratorId")
+                        .HasColumnType("int")
+                        .HasColumnName("moderator_id");
+
+                    b.Property<string>("TaskType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("task_type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedBy");
+
+                    b.HasIndex("ModeratorId")
+                        .IsUnique();
+
+                    b.ToTable("moderator_task_type", (string)null);
+                });
+
             modelBuilder.Entity("DevHub.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -1309,6 +1360,12 @@ namespace DevHub.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProvinceId"));
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
                     b.Property<string>("ProvinceName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1377,6 +1434,10 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("candidate_id");
 
+                    b.Property<int?>("CareRating")
+                        .HasColumnType("int")
+                        .HasColumnName("care_rating");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("company_id");
@@ -1391,6 +1452,10 @@ namespace DevHub.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("CultureRating")
+                        .HasColumnType("int")
+                        .HasColumnName("culture_rating");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)")
@@ -1410,6 +1475,11 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("moderator_id");
 
+                    b.Property<string>("OtPolicy")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("ot_policy");
+
                     b.Property<string>("Pros")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -1419,10 +1489,18 @@ namespace DevHub.Migrations
                         .HasColumnType("int")
                         .HasColumnName("rating");
 
+                    b.Property<bool?>("Recommend")
+                        .HasColumnType("bit")
+                        .HasColumnName("recommend");
+
                     b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("rejection_reason");
+
+                    b.Property<int?>("SalaryRating")
+                        .HasColumnType("int")
+                        .HasColumnName("salary_rating");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1432,11 +1510,19 @@ namespace DevHub.Migrations
                         .HasDefaultValue("pending")
                         .HasColumnName("status");
 
+                    b.Property<int?>("TrainingRating")
+                        .HasColumnType("int")
+                        .HasColumnName("training_rating");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("WorkspaceRating")
+                        .HasColumnType("int")
+                        .HasColumnName("workspace_rating");
 
                     b.HasKey("ReviewId")
                         .HasName("PK__review_r__60883D90CFCBFACD");
@@ -1547,6 +1633,9 @@ namespace DevHub.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<string>("GoogleId")
                         .HasMaxLength(255)
@@ -1697,7 +1786,6 @@ namespace DevHub.Migrations
                         .WithMany("Articles")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("FK__article__company");
 
                     b.Navigation("Approver");
@@ -1763,6 +1851,17 @@ namespace DevHub.Migrations
                     b.Navigation("Candidate");
 
                     b.Navigation("Tech");
+                });
+
+            modelBuilder.Entity("DevHub.Models.Company", b =>
+                {
+                    b.HasOne("DevHub.Models.Admin", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK__company__moderator_id");
+
+                    b.Navigation("Moderator");
                 });
 
             modelBuilder.Entity("DevHub.Models.CompanyInvitation", b =>
@@ -1902,6 +2001,27 @@ namespace DevHub.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("DevHub.Models.ModeratorTaskType", b =>
+                {
+                    b.HasOne("DevHub.Models.Admin", "AssignedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("AssignedBy")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK__mod_task_type__assigned_by");
+
+                    b.HasOne("DevHub.Models.Admin", "Moderator")
+                        .WithOne("ModeratorTaskType")
+                        .HasForeignKey("DevHub.Models.ModeratorTaskType", "ModeratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK__mod_task_type__moderator");
+
+                    b.Navigation("AssignedByAdmin");
+
+                    b.Navigation("Moderator");
+                });
+
             modelBuilder.Entity("DevHub.Models.PackageTransaction", b =>
                 {
                     b.HasOne("DevHub.Models.Company", "Company")
@@ -2013,6 +2133,8 @@ namespace DevHub.Migrations
                     b.Navigation("JobPosts");
 
                     b.Navigation("ModTierAssignments");
+
+                    b.Navigation("ModeratorTaskType");
                 });
 
             modelBuilder.Entity("DevHub.Models.Application", b =>

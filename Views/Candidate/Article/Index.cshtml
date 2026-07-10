@@ -109,41 +109,6 @@
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
     <div class="flex gap-8 items-start">
 
-        <!-- Sidebar -->
-        <aside class="w-56 flex-shrink-0 hidden lg:block">
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div class="px-4 py-3 border-b border-gray-100">
-                    <p class="text-[12px] font-bold text-muted uppercase tracking-wider">Công ty nổi bật</p>
-                </div>
-                <div class="divide-y divide-gray-50">
-                    @foreach (var c in Model.CompanyFilters)
-                    {
-                        bool active = Model.CompanyId == c.CompanyId;
-                        <a href="@BuildUrl(cid: active ? (int?)null : c.CompanyId, pg: 1)"
-                           class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-primary/5 transition-colors @(active ? "bg-primary/10" : "")">
-                            @if (!string.IsNullOrEmpty(c.LogoUrl))
-                            {
-                                <img src="@c.LogoUrl" class="w-7 h-7 rounded object-contain border border-gray-100 flex-shrink-0" />
-                            }
-                            else
-                            {
-                                <span class="w-7 h-7 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px] flex-shrink-0">
-                                    @(c.CompanyName?.FirstOrDefault())
-                                </span>
-                            }
-                            <span class="flex-1 min-w-0 text-[13px] @(active ? "font-semibold text-primary" : "text-dark") truncate">@c.CompanyName</span>
-                            <span class="text-[11px] text-muted flex-shrink-0">@c.Count</span>
-                        </a>
-                    }
-                </div>
-                <div class="px-4 py-3 border-t border-gray-100">
-                    <a href="/Company/Search" class="text-[12px] text-primary font-semibold hover:underline">
-                        Xem tất cả công ty →
-                    </a>
-                </div>
-            </div>
-        </aside>
-
         <!-- Article list -->
         <div class="flex-1 min-w-0">
             <!-- Count -->

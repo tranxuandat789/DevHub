@@ -1,0 +1,65 @@
+@model DevHub.Models.Notification
+@{
+    ViewData["Title"] = "Chi tiết thông báo";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+}
+
+<div class="mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <a href="/ModeratorNotification" class="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors text-decoration-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900 m-0">Chi tiết thông báo</h1>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-6 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-gray-900 mb-2">@Model.Title</h2>
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+            <div class="flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</span>
+            </div>
+            
+
+        </div>
+    </div>
+    
+    <div class="p-6 bg-gray-50/30">
+        <div class="prose prose-sm max-w-none text-gray-700">
+            @Html.Raw(Model.Message?.Replace("\n", "<br/>"))
+        </div>
+        
+        @if (Model.ReferenceId.HasValue && !string.IsNullOrEmpty(Model.ReferenceType))
+        {
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                @{
+                    string linkUrl = "#";
+                    string linkText = "Xem chi tiết";
+                    
+                    if (Model.ReferenceType == "JobPost")
+                    {
+                        linkUrl = "/moderator/job-approvals";
+                        linkText = "Xem danh sách bài đăng chờ duyệt";
+                    }
+                    else if (Model.ReferenceType == "COMPANY")
+                    {
+                        linkUrl = "/moderator/company-approvals";
+                        linkText = "Xem danh sách công ty";
+                    }
+                    else if (Model.ReferenceType == "ARTICLE")
+                    {
+                        linkUrl = $"/moderator/articles/detail/{Model.ReferenceId}";
+                        linkText = "Xem bài viết";
+                    }
+                }
+                
+                <a href="@linkUrl" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors text-decoration-none shadow-sm">
+                    <span>@linkText</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+            </div>
+        }
+    </div>
+</div>

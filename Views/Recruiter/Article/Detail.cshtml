@@ -1,0 +1,134 @@
+@model DevHub.Models.Article
+@{
+    ViewData["Title"] = "Chi tiết bài viết";
+    ViewData["ActiveMenu"] = "Blogs";
+    Layout = "_RecruiterLayout";
+}
+
+<div class="mb-8">
+    <a href="/Recruiter/Article" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Quay lại danh sách bài báo
+    </a>
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-[32px] font-bold text-dark mb-2">Chi tiết bài báo</h1>
+            <p class="text-muted text-sm">Xem chi tiết bài báo đã đăng hoặc đang chờ duyệt của bạn.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            @if (Model.Status == "PUBLISHED" || (Model.Status == "HIDDEN" && string.IsNullOrEmpty(Model.RejectReason)))
+            {
+                <a href="/Recruiter/Article/Edit/@Model.ArticleId" class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors shadow-sm inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Chỉnh sửa
+                </a>
+            }
+            else if (Model.Status == "HIDDEN" && !string.IsNullOrEmpty(Model.RejectReason))
+            {
+                <a href="/Recruiter/Article/Edit/@Model.ArticleId" class="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors shadow-sm inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Sửa bài để duyệt lại
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == "HIDDEN" && !string.IsNullOrEmpty(Model.RejectReason))
+{
+    <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-5 shadow-sm">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 mt-0.5">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-bold text-red-800">Bài viết đã bị kiểm duyệt viên ẩn</h3>
+                <div class="mt-2 text-sm text-red-700">
+                    <p><strong>Lý do:</strong> @Model.RejectReason</p>
+                    <p class="mt-1">Vui lòng chỉnh sửa lại bài viết theo yêu cầu để được xem xét duyệt lại.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (Model.Status == "PENDING")
+{
+    <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-5 shadow-sm">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 mt-0.5">
+                <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-bold text-yellow-800">Bài viết đang chờ duyệt</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                    <p>Bài viết của bạn đang trong quá trình chờ kiểm duyệt viên xác nhận.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] overflow-hidden">
+            @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+            {
+                <div class="w-full h-[300px] bg-gray-100">
+                    <img src="@Model.ThumbnailUrl" alt="Thumbnail" class="w-full h-full object-cover">
+                </div>
+            }
+            <div class="p-8">
+                <h1 class="text-3xl font-bold text-dark mb-4 leading-tight">@Model.Title</h1>
+                
+                <div class="flex flex-wrap items-center gap-4 text-sm text-muted mb-8 pb-6 border-b border-[#D6DDEB]">
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>Ngày đăng: @(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        <span>Công ty: @(Model.Company?.CompanyName ?? "N/A")</span>
+                    </div>
+                </div>
+
+                <div class="prose prose-lg max-w-none text-dark">
+                    @Html.Raw(Model.Content)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
+            <h3 class="font-bold text-dark text-base mb-4 border-b pb-2">Thông tin trạng thái</h3>
+            <ul class="space-y-4 text-sm text-dark">
+                <li class="flex justify-between items-center">
+                    <span class="text-muted">Trạng thái:</span>
+                    @if (Model.Status == "PUBLISHED")
+                    {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Đã xuất bản</span>
+                    }
+                    else if (Model.Status == "PENDING")
+                    {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">Đang chờ duyệt</span>
+                    }
+                    else if (Model.Status == "HIDDEN" && !string.IsNullOrEmpty(Model.RejectReason))
+                    {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Bị ẩn (Bởi Admin)</span>
+                    }
+                    else 
+                    {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">@Model.Status</span>
+                    }
+                </li>
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <li class="flex justify-between items-center">
+                        <span class="text-muted">Lần cập nhật cuối:</span>
+                        <span class="font-medium">@Model.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

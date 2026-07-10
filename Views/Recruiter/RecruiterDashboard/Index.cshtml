@@ -177,9 +177,10 @@
                     @if (Model.HasActivePackage)
                     {
                         <div class="hidden sm:block">
-                            <p class="text-xs text-gray-500 mb-1 text-right">@Model.PostsRemaining / @Model.PostsGranted lượt còn lại</p>
+                            <p class="text-xs text-gray-500 mb-1 text-right">@Model.PostsRemaining lượt còn lại</p>
                             @{
                                 var pct = Model.PostsGranted > 0 ? (int)((double)Model.PostsRemaining / Model.PostsGranted * 100) : 0;
+                                if (pct > 100) pct = 100;
                             }
                             <div class="w-40 bg-gray-100 rounded-full h-2">
                                 <div class="h-2 rounded-full @(pct <= 20 ? "bg-red-500" : "bg-[#4640DE]")" style="width: @pct%"></div>
@@ -195,171 +196,223 @@
             </div>
         </div>
 
-        <!-- Statistics Chart -->
-        <div class="bg-white rounded-xl shadow-sm border border-[#F6F5FD] p-8 mb-8 xl:mb-10 overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <!-- Job Stats Table (Full Width) -->
+        <div id="job-stats-table" class="bg-white rounded-xl shadow-sm border border-[#F6F5FD] mb-8 xl:mb-10 overflow-hidden flex flex-col">
+            <div class="p-8 border-b border-gray-100 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 bg-gray-50/50">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-900">Thống kê ứng tuyển & Phỏng vấn</h3>
-                    <p class="text-sm text-gray-500 mt-1">
-                        Biểu đồ thể hiện sự tương tác của ứng viên
-                        @switch (Model.StatsRange)
-                        {
-                            case "7": <text>trong 7 ngày qua</text> break;
-                            case "year": <text>trong 1 năm qua (theo tháng)</text> break;
-                            default: <text>trong 30 ngày qua</text> break;
-                        }
-                    </p>
+                    <h3 class="text-xl font-bold text-gray-900">Thống kê tin tuyển dụng</h3>
+                    <p class="text-sm text-gray-500 mt-1">Quản lý và theo dõi hiệu quả tuyển dụng</p>
                 </div>
-                <select onchange="window.location.href='/recruiter/dashboard?range=' + this.value"
-                        class="bg-gray-50 border border-[#F6F5FD] text-gray-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-sm outline-none font-medium cursor-pointer">
-                    <option value="7" selected="@(Model.StatsRange == "7")">7 ngày qua</option>
-                    <option value="30" selected="@(Model.StatsRange == "30")">30 ngày qua</option>
-                    <option value="year" selected="@(Model.StatsRange == "year")">1 năm qua (theo tháng)</option>
-                </select>
-            </div>
-            <div class="relative h-[380px] w-full">
-                <canvas id="dashboardChart"></canvas>
-            </div>
-        </div>
-
-        @* [#9] Applicants per job — bar chart *@
-        <div class="bg-white rounded-xl shadow-sm border border-[#F6F5FD] p-8 mb-8 xl:mb-10">
-            <h3 class="text-xl font-bold text-gray-900 mb-1">Ứng viên theo tin tuyển dụng</h3>
-            <p class="text-sm text-gray-500 mb-6">Số lượt ứng tuyển của các tin gần đây</p>
-            <div class="relative h-[300px] w-full">
-                <canvas id="jobApplicantChart"></canvas>
-            </div>
-        </div>
-
-        @* [#6] Recent Applicants *@
-        <div class="bg-white rounded-xl shadow-sm border border-[#F6F5FD] p-8 mb-8 xl:mb-10">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900">Ứng viên mới nhất</h3>
-                    <p class="text-sm text-gray-500 mt-1">Các lượt ứng tuyển gần đây nhất</p>
-                </div>
-            </div>
-            @if (Model.RecentApplications.Any())
-            {
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @foreach (var app in Model.RecentApplications)
-                    {
-                        var avatarUrl = !string.IsNullOrEmpty(app.AvatarUrl)
-                            ? app.AvatarUrl
-                            : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(app.CandidateName)}&background=4640DE&color=fff&size=64";
-                        var (appBadgeCss, appBadgeLabel) = app.ApplicationStatus.ToUpper() switch
-                        {
-                            "PENDING" => ("bg-yellow-100 text-yellow-700", "Chờ duyệt"),
-                            "APPROVED" or "FINISHED" => ("bg-green-100 text-green-700", "Đã duyệt"),
-                            "HIRED" => ("bg-blue-100 text-blue-700", "Trúng tuyển"),
-                            "REJECTED" => ("bg-red-100 text-red-700", "Từ chối"),
-                            "FAILED" => ("bg-red-100 text-red-700", "Không đạt"),
-                            "CANCELLED" => ("bg-gray-100 text-gray-600", "Đã hủy"),
-                            _ => ("bg-gray-100 text-gray-600", app.ApplicationStatus)
-                        };
-                        <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                            <img src="@avatarUrl" alt="@app.CandidateName" class="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm">
-                            <div class="min-w-0 flex-1">
-                                <p class="font-semibold text-gray-900 text-sm truncate">@app.CandidateName</p>
-                                <p class="text-xs text-gray-500 truncate mt-0.5">@app.JobTitle</p>
-                                <div class="flex items-center gap-2 mt-1.5">
-                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium @appBadgeCss">@appBadgeLabel</span>
-                                    <span class="text-xs text-gray-400">@(app.AppliedAt?.ToString("dd/MM HH:mm"))</span>
-                                </div>
-                            </div>
+                <form method="get" action="/recruiter/dashboard" class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                    <!-- Keyword Search -->
+                    <div class="relative w-full sm:w-64">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                    }
-                </div>
-            }
-            else
+                        <input type="text" name="jobQ" value="@Model.JobStats.Keyword" placeholder="Tìm tên vị trí..."
+                               class="bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2.5 outline-none shadow-sm transition-all hover:border-gray-300">
+                    </div>
+                    <!-- Status Filter -->
+                    <select name="jobStatus" onchange="this.form.submit()" class="bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full sm:w-40 p-2.5 outline-none shadow-sm cursor-pointer hover:border-gray-300">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="APPROVED" selected="@(Model.JobStats.FilterStatus == "APPROVED")">Đang tuyển</option>
+                        <option value="PENDING" selected="@(Model.JobStats.FilterStatus == "PENDING")">Chờ duyệt</option>
+                        <option value="REJECTED" selected="@(Model.JobStats.FilterStatus == "REJECTED")">Bị từ chối</option>
+                        <option value="CLOSED" selected="@(Model.JobStats.FilterStatus == "CLOSED")">Đã đóng</option>
+                    </select>
+                    <!-- Sort By -->
+                    <select name="jobSort" onchange="this.form.submit()" class="bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full sm:w-48 p-2.5 outline-none shadow-sm cursor-pointer hover:border-gray-300">
+                        <option value="pending_desc" selected="@(Model.JobStats.SortBy == "pending_desc")">Nhiều đơn chờ nhất</option>
+                        <option value="newest" selected="@(Model.JobStats.SortBy == "newest")">Mới đăng nhất</option>
+                        <option value="oldest" selected="@(Model.JobStats.SortBy == "oldest")">Cũ nhất</option>
+                        <option value="name_az" selected="@(Model.JobStats.SortBy == "name_az")">Tên A-Z</option>
+                    </select>
+                </form>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
+                            <th class="px-6 py-4 font-medium uppercase tracking-wider">Vị trí</th>
+                            <th class="px-6 py-4 font-medium uppercase tracking-wider whitespace-nowrap">Ngày đăng</th>
+                            <th class="px-6 py-4 font-medium uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-4 py-4 font-medium uppercase tracking-wider text-center">Chờ duyệt</th>
+                            <th class="px-4 py-4 font-medium uppercase tracking-wider text-center">Đã duyệt</th>
+                            <th class="px-4 py-4 font-medium uppercase tracking-wider text-center">Trúng tuyển</th>
+                            <th class="px-4 py-4 font-medium uppercase tracking-wider text-center">Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm">
+                        @if (Model.JobStats.Items.Any())
+                        {
+                            foreach (var job in Model.JobStats.Items)
+                            {
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-bold text-gray-900 text-base">
+                                        <a href="/Recruiter/RecruiterApplication?jobId=@job.JobId" class="hover:text-[#4640DE] transition-colors line-clamp-1">@job.Title</a>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-500 whitespace-nowrap">@job.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                                    <td class="px-6 py-4">
+                                        @{
+                                            var (badgeCss, badgeLabel) = (job.Status.ToUpper()) switch
+                                            {
+                                                "APPROVED" => ("bg-blue-100 text-blue-800", "Đang tuyển"),
+                                                "PENDING" => ("bg-yellow-100 text-yellow-800", "Chờ duyệt"),
+                                                "REJECTED" => ("bg-red-100 text-red-800", "Bị từ chối"),
+                                                "CLOSED" => ("bg-gray-100 text-gray-800", "Đã đóng"),
+                                                _ => ("bg-gray-100 text-gray-800", job.Status)
+                                            };
+                                        }
+                                        <span class="px-3 py-1 inline-flex text-xs font-semibold rounded-full @badgeCss whitespace-nowrap">@badgeLabel</span>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        @if (job.PendingCount > 0)
+                                        {
+                                            <a href="/Recruiter/RecruiterApplication?jobId=@job.JobId&Status=PENDING" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-50 text-yellow-600 font-bold hover:bg-yellow-100 transition-colors">@job.PendingCount</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400">0</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        @if (job.ApprovedCount > 0)
+                                        {
+                                            <a href="/Recruiter/RecruiterApplication?jobId=@job.JobId&Status=APPROVED" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 font-bold hover:bg-green-100 transition-colors">@job.ApprovedCount</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400">0</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        @if (job.HiredCount > 0)
+                                        {
+                                            <a href="/Recruiter/RecruiterApplication?jobId=@job.JobId&Status=HIRED" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#4640DE]/10 text-[#4640DE] font-bold hover:bg-[#4640DE]/20 transition-colors">@job.HiredCount</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400">0</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-4 text-center font-bold text-gray-900">@job.TotalApplicationCount</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="px-6 py-10 text-center text-gray-500 text-base">
+                                    Không có tin tuyển dụng nào khớp với bộ lọc.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            @if (Model.JobStats.TotalPages > 1)
             {
-                <div class="py-10 text-center text-gray-400">
-                    <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-                    <p class="text-sm">Chưa có ứng viên nào ứng tuyển.</p>
+                <div class="px-8 py-5 border-t border-gray-100 bg-white flex justify-end">
+                    @{
+                        int totalPages = Model.JobStats.TotalPages;
+                        int currentPage = Model.JobStats.Page;
+                        int windowSize = 3;
+                        int startPage = Math.Max(1, currentPage - windowSize / 2);
+                        int endPage = Math.Min(totalPages, startPage + windowSize - 1);
+                        
+                        if (endPage - startPage + 1 < windowSize) {
+                            startPage = Math.Max(1, endPage - windowSize + 1);
+                        }
+                    }
+                    <nav class="flex items-center gap-1">
+                        @if (currentPage > 1) {
+                            <a href="/recruiter/dashboard?jobPage=@(currentPage - 1)&jobStatus=@Model.JobStats.FilterStatus&jobQ=@Model.JobStats.Keyword&jobSort=@Model.JobStats.SortBy#job-stats-table" class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50 border-gray-200">
+                                &laquo;
+                            </a>
+                        }
+
+                        @if (startPage > 1) {
+                            <a href="/recruiter/dashboard?jobPage=1&jobStatus=@Model.JobStats.FilterStatus&jobQ=@Model.JobStats.Keyword&jobSort=@Model.JobStats.SortBy#job-stats-table" class="px-3.5 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50 border-gray-200">1</a>
+                            if (startPage > 2) {
+                                <span class="px-3.5 py-2 text-sm text-gray-500">...</span>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++) {
+                            var activeCss = (i == currentPage) ? "bg-[#4640DE] text-white font-bold border-[#4640DE]" : "bg-white text-gray-700 hover:bg-gray-50 border-gray-200";
+                            <a href="/recruiter/dashboard?jobPage=@i&jobStatus=@Model.JobStats.FilterStatus&jobQ=@Model.JobStats.Keyword&jobSort=@Model.JobStats.SortBy#job-stats-table" class="px-3.5 py-2 text-sm rounded-lg border transition-colors @activeCss">@i</a>
+                        }
+
+                        @if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                                <span class="px-3.5 py-2 text-sm text-gray-500">...</span>
+                            }
+                            <a href="/recruiter/dashboard?jobPage=@totalPages&jobStatus=@Model.JobStats.FilterStatus&jobQ=@Model.JobStats.Keyword&jobSort=@Model.JobStats.SortBy#job-stats-table" class="px-3.5 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50 border-gray-200">@totalPages</a>
+                        }
+
+                        @if (currentPage < totalPages) {
+                            <a href="/recruiter/dashboard?jobPage=@(currentPage + 1)&jobStatus=@Model.JobStats.FilterStatus&jobQ=@Model.JobStats.Keyword&jobSort=@Model.JobStats.SortBy#job-stats-table" class="px-3 py-2 text-sm rounded-lg border bg-white text-gray-700 hover:bg-gray-50 border-gray-200">
+                                &raquo;
+                            </a>
+                        }
+                    </nav>
                 </div>
             }
         </div>
 
         <!-- Two Columns -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-10">
-            <!-- Left Column: Recent Job Posts -->
-            <div class="bg-white rounded-xl shadow-sm border border-[#F6F5FD] flex flex-col h-full overflow-hidden">
-                <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <!-- Left Column: Recent Applicants -->
+            <div class="bg-white rounded-xl shadow-sm border border-[#F6F5FD] p-8 flex flex-col h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">Tin tuyển dụng gần đây</h3>
-                        <p class="text-sm text-gray-500 mt-1">Trạng thái và lượt ứng tuyển</p>
+                        <h3 class="text-xl font-bold text-gray-900">Ứng viên mới nhất</h3>
+                        <p class="text-sm text-gray-500 mt-1">Các lượt ứng tuyển gần đây nhất</p>
                     </div>
-                    <a href="/Recruiter/JobPost" class="text-[#4640DE] font-semibold text-sm hover:underline flex items-center gap-1">
-                        Xem tất cả
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
                 </div>
-                <div class="p-0 flex-1 overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
-                                <th class="px-8 py-4 font-medium uppercase tracking-wider">Vị trí</th>
-                                <th class="px-8 py-4 font-medium uppercase tracking-wider">Ứng viên</th>
-                                <th class="px-8 py-4 font-medium uppercase tracking-wider">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm">
-                            @if (Model.JobPostApplicantCounts.Any())
+                <div class="flex-1 overflow-y-auto pr-2" style="max-h: 500px;">
+                    @if (Model.RecentApplications.Any())
+                    {
+                        <div class="flex flex-col gap-4">
+                            @foreach (var app in Model.RecentApplications)
                             {
-                                foreach (var job in Model.JobPostApplicantCounts)
+                                var avatarUrl = !string.IsNullOrEmpty(app.AvatarUrl)
+                                    ? app.AvatarUrl
+                                    : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(app.CandidateName)}&background=4640DE&color=fff&size=64";
+                                var (appBadgeCss, appBadgeLabel) = app.ApplicationStatus.ToUpper() switch
                                 {
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-8 py-5">
-                                            @if ((job.Status ?? "").ToUpper() != "REJECTED")
-                                            {
-                                                <a href="/Recruiter/RecruiterApplication?jobId=@job.JobId" class="font-bold text-gray-900 text-base hover:text-blue-600 hover:underline transition-colors" title="Xem danh sách ứng viên">@job.Title</a>
-                                            }
-                                            else
-                                            {
-                                                <div class="font-bold text-gray-900 text-base">@job.Title</div>
-                                            }
-                                            <div class="text-gray-500 text-xs mt-1">@job.CreatedAt?.ToString("dd/MM/yyyy")</div>
-                                        </td>
-                                        <td class="px-8 py-5">
-                                            <div class="flex items-center gap-2">
-                                                @if (job.ApplicantAvatars.Any())
-                                                {
-                                                    <div class="flex -space-x-2">
-                                                        @foreach (var av in job.ApplicantAvatars)
-                                                        {
-                                                            <img class="w-8 h-8 rounded-full border-2 border-white object-cover bg-gray-100" src="@av" alt="">
-                                                        }
-                                                    </div>
-                                                }
-                                                <span class="font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded-md">@job.ApplicantCount</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-8 py-5">
-                                            @{
-                                                var (badgeCss, badgeLabel) = (job.Status?.ToUpper()) switch
-                                                {
-                                                    "APPROVED" => ("bg-blue-100 text-blue-800 border-blue-200", "Đang tuyển"),
-                                                    "PENDING" => ("bg-yellow-100 text-yellow-800 border-yellow-200", "Chờ duyệt"),
-                                                    "REJECTED" => ("bg-red-100 text-red-800 border-red-200", "Bị từ chối"),
-                                                    "CLOSED" => ("bg-gray-100 text-gray-800 border-gray-200", "Đã đóng"),
-                                                    _ => ("bg-gray-100 text-gray-800 border-gray-200", job.Status ?? "")
-                                                };
-                                            }
-                                            <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full border @badgeCss whitespace-nowrap">@badgeLabel</span>
-                                        </td>
-                                    </tr>
-                                }
+                                    "PENDING" => ("bg-yellow-100 text-yellow-700", "Chờ duyệt"),
+                                    "APPROVED" or "FINISHED" => ("bg-green-100 text-green-700", "Đã duyệt"),
+                                    "HIRED" => ("bg-blue-100 text-blue-700", "Trúng tuyển"),
+                                    "REJECTED" => ("bg-red-100 text-red-700", "Từ chối"),
+                                    "FAILED" => ("bg-red-100 text-red-700", "Không đạt"),
+                                    "CANCELLED" => ("bg-gray-100 text-gray-600", "Đã hủy"),
+                                    _ => ("bg-gray-100 text-gray-600", app.ApplicationStatus)
+                                };
+                                <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <img src="@avatarUrl" alt="@app.CandidateName" class="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-semibold text-gray-900 text-sm truncate">@app.CandidateName</p>
+                                        <p class="text-xs text-gray-500 truncate mt-0.5">@app.JobTitle</p>
+                                        <div class="flex items-center gap-2 mt-1.5">
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-medium @appBadgeCss">@appBadgeLabel</span>
+                                            <span class="text-xs text-gray-400">@(app.AppliedAt?.ToString("dd/MM HH:mm"))</span>
+                                        </div>
+                                    </div>
+                                </div>
                             }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="3" class="px-8 py-10 text-center text-gray-500 text-base">
-                                        Chưa có tin tuyển dụng nào.
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="py-10 text-center text-gray-400 h-full flex flex-col justify-center">
+                            <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                            <p class="text-sm">Chưa có ứng viên nào ứng tuyển.</p>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -522,170 +575,5 @@
             }
         }
 
-        // Initialize Chart
-        document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('dashboardChart')) {
-                const ctx = document.getElementById('dashboardChart').getContext('2d');
-                const gradientBlue = ctx.createLinearGradient(0, 0, 0, 380);
-                gradientBlue.addColorStop(0, 'rgba(37, 99, 235, 0.15)');
-                gradientBlue.addColorStop(1, 'rgba(37, 99, 235, 0)');
-
-                const gradientOrange = ctx.createLinearGradient(0, 0, 0, 380);
-                gradientOrange.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
-                gradientOrange.addColorStop(1, 'rgba(249, 115, 22, 0)');
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsLabels)),
-                        datasets: [
-                            {
-                                label: 'Lượt ứng tuyển',
-                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsApplications)),
-                                borderColor: '#2563EB',
-                                backgroundColor: gradientBlue,
-                                borderWidth: 3,
-                                pointBackgroundColor: '#ffffff',
-                                pointBorderColor: '#2563EB',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6,
-                                fill: true,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Lượt phỏng vấn',
-                                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatsInterviews)),
-                                borderColor: '#F97316',
-                                backgroundColor: gradientOrange,
-                                borderWidth: 3,
-                                pointBackgroundColor: '#ffffff',
-                                pointBorderColor: '#F97316',
-                                pointBorderWidth: 2,
-                                pointStyle: 'triangle',
-                                pointRadius: 6,
-                                pointHoverRadius: 8,
-                                fill: true,
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                align: 'end',
-                                labels: {
-                                    usePointStyle: true,
-                                    boxWidth: 8,
-                                    boxHeight: 8,
-                                    padding: 20,
-                                    font: {
-                                        family: "'Inter', sans-serif",
-                                        size: 13,
-                                        weight: '500'
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1F2937',
-                                padding: 12,
-                                titleFont: {
-                                    family: "'Inter', sans-serif",
-                                    size: 13
-                                },
-                                bodyFont: {
-                                    family: "'Inter', sans-serif",
-                                    size: 13
-                                },
-                                displayColors: true,
-                                usePointStyle: true
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                border: {
-                                    display: false
-                                },
-                                grid: {
-                                    color: '#F3F4F6'
-                                },
-                                ticks: {
-                                    font: {
-                                        family: "'Inter', sans-serif",
-                                        size: 12
-                                    },
-                                    color: '#6B7280',
-                                    padding: 10
-                                }
-                            },
-                            x: {
-                                border: {
-                                    display: false
-                                },
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    font: {
-                                        family: "'Inter', sans-serif",
-                                        size: 12
-                                    },
-                                    color: '#6B7280',
-                                    padding: 10
-                                }
-                            }
-                        },
-                        interaction: {
-                            intersect: false,
-                            mode: 'index',
-                        },
-                    }
-                });
-            }
-        });
-
-        // [#9] Bar chart: applicants per recent job post
-        document.addEventListener('DOMContentLoaded', () => {
-            const barCanvas = document.getElementById('jobApplicantChart');
-            if (!barCanvas) return;
-            const jobLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                Model.JobPostApplicantCounts.Select(j => (j.Title != null && j.Title.Length > 22) ? j.Title.Substring(0, 22) + "…" : (j.Title ?? "")).ToList()
-            ));
-            const jobData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                Model.JobPostApplicantCounts.Select(j => j.ApplicantCount).ToList()
-            ));
-            new Chart(barCanvas.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: jobLabels,
-                    datasets: [{
-                        label: 'Số ứng viên',
-                        data: jobData,
-                        backgroundColor: 'rgba(70, 64, 222, 0.15)',
-                        borderColor: '#4640DE',
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: '#1F2937', callbacks: { label: c => `${c.raw} ứng viên` } }
-                    },
-                    scales: {
-                        x: { beginAtZero: true, ticks: { precision: 0, color: '#6B7280' }, grid: { color: '#F3F4F6' } },
-                        y: { grid: { display: false }, ticks: { color: '#374151', font: { size: 12 } } }
-                    }
-                }
-            });
-        });
     </script>
 }

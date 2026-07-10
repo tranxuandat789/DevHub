@@ -76,39 +76,62 @@ public class RecruiterDashboardRepository : IRecruiterDashboardRepository
             })
             .ToListAsync();
 
-    // Recent applicant avatars for each job (avatar stack). Returns resolved URLs (ImageUrl or ui-avatars fallback).
-    public async Task<Dictionary<int, List<string>>> GetApplicantAvatarsByJobAsync(List<int> jobIds, int perJob = 3)
+    public async Task<(List<JobStatsRow> Items, int TotalCount)> GetJobStatsAsync(
+        int companyId, 
+        string? statusFilter, 
+        string? keyword, 
+        string? sortBy, 
+        int page, 
+        int pageSize)
     {
-        if (jobIds == null || jobIds.Count == 0)
-            return new Dictionary<int, List<string>>();
+        var query = _context.JobPosts.AsNoTracking().Where(j => j.CompanyId == companyId);
 
-        var apps = await _context.Applications
-            .AsNoTracking()
-            .Where(a => jobIds.Contains(a.JobId))
-            .OrderByDescending(a => a.AppliedAt)
-            .Select(a => new { a.JobId, a.Candidate.ImageUrl, a.Candidate.FullName })
+        if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "ALL")
+        {
+            query = query.Where(j => j.Status == statusFilter);
+        }
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var k = keyword.Trim().ToLower();
+            // Reusing title search logic: remove extra spaces if needed, but Contains is fine.
+            query = query.Where(j => j.Title != null && j.Title.ToLower().Contains(k));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        // Project with correlated subqueries for counts
+        var statsQuery = query.Select(j => new JobStatsRow
+        {
+            JobId = j.JobId,
+            Title = j.Title ?? "",
+            Status = j.Status ?? "PENDING",
+            CreatedAt = j.CreatedAt,
+            PendingCount = j.Applications.Count(a => a.Status == "PENDING"),
+            // Match RecruiterApplicationRepository tab-grouping for Approved
+            ApprovedCount = j.Applications.Count(a => a.Status == "APPROVED" || a.Status == "FINISHED"),
+            // Hired definition
+            HiredCount = j.Applications.Count(a => a.Status == "HIRED"),
+            TotalApplicationCount = j.Applications.Count()
+        });
+
+        // Sorting
+        statsQuery = sortBy switch
+        {
+            "oldest" => statsQuery.OrderBy(s => s.CreatedAt),
+            "newest" => statsQuery.OrderByDescending(s => s.CreatedAt),
+            "name_az" => statsQuery.OrderBy(s => s.Title),
+            "pending_desc" => statsQuery.OrderByDescending(s => s.PendingCount),
+            _ => statsQuery.OrderByDescending(s => s.PendingCount) // default
+        };
+
+        var items = await statsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return apps
-            .GroupBy(a => a.JobId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Take(perJob).Select(x =>
-                    !string.IsNullOrEmpty(x.ImageUrl)
-                        ? x.ImageUrl!
-                        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(x.FullName)}&background=4640DE&color=fff&size=64"
-                ).ToList());
+        return (items, totalCount);
     }
-
-    // [#1] AppliedAt timestamps for the company's jobs since fromDate (bucketed into the 30-day chart by the controller).
-    public async Task<List<DateTime>> GetApplicationDatesAsync(int companyId, DateTime fromDate)
-        => await _context.Applications
-            .AsNoTracking()
-            .Where(a => a.Job.CompanyId == companyId
-                     && a.AppliedAt != null
-                     && a.AppliedAt >= fromDate)
-            .Select(a => a.AppliedAt!.Value)
-            .ToListAsync();
 
     // Live count of all applications to the company's jobs (matches the applicant-list total).
     public async Task<int> CountApplicationsAsync(int companyId)

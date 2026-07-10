@@ -10,8 +10,7 @@ namespace DevHub.Models
         public int TotalScheduledInterviews { get; set; }
         public int TotalCompletedInterviews { get; set; }
 
-        public List<JobPostApplicantCount> JobPostApplicantCounts { get; set; } = new List<JobPostApplicantCount>();
-
+        public JobStatsTableViewModel JobStats { get; set; } = new();
         public List<Interview> ScheduledInterviews { get; set; } = new List<Interview>();
         public List<Interview> CompletedInterviews { get; set; } = new List<Interview>();
 
@@ -42,24 +41,30 @@ namespace DevHub.Models
         // [#6] Recent applicants.
         public List<RecentApplicationItem> RecentApplications { get; set; } = new();
 
-        // [#1] 30-day activity time series for the statistics line chart.
-        // Labels are day buckets; the two series are applications and interviews per day.
-        public List<string> StatsLabels { get; set; } = new();
-        public List<int> StatsApplications { get; set; } = new();
-        public List<int> StatsInterviews { get; set; } = new();
-        public string StatsRange { get; set; } = "30";   // "7" | "30" | "year"
     }
 
-    public class JobPostApplicantCount
+    public class JobStatsTableViewModel
+    {
+        public List<JobStatsRow> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+        public string? FilterStatus { get; set; }
+        public string? Keyword { get; set; }
+        public string? SortBy { get; set; }
+    }
+
+    public class JobStatsRow
     {
         public int JobId { get; set; }
-        public string? Title { get; set; }
-        public int ApplicantCount { get; set; }
-        public string? Status { get; set; }
+        public string Title { get; set; } = "";
+        public string Status { get; set; } = "";
         public DateTime? CreatedAt { get; set; }
-        public DateOnly? Deadline { get; set; }
-        // Resolved avatar URLs of recent applicants (for the avatar stack).
-        public List<string> ApplicantAvatars { get; set; } = new();
+        public int PendingCount { get; set; }
+        public int ApprovedCount { get; set; }
+        public int HiredCount { get; set; }
+        public int TotalApplicationCount { get; set; }
     }
 
     // [#5]

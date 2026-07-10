@@ -1,7 +1,7 @@
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
-using DevHub.ViewModels.Recruiter;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -29,9 +29,7 @@ namespace DevHub.Services.Implementations
 
             if (forModerator)
             {
-                // Moderators should only see Pending (3), Approved/Published (1), Rejected (4), Hidden (2)
-                // Assuming they don't see Drafts (0) from Recruiters
-                query = query.Where(b => b.Status != 0);
+                // Moderators manage blogs, they need to see their Drafts (0) too
             }
 
             if (!string.IsNullOrEmpty(keyword))
@@ -89,38 +87,6 @@ namespace DevHub.Services.Implementations
             return (blogs, totalPages, totalItems);
         }
 
-        public async Task CreatePostAsync(BlogPostCreateViewModel model, int? publisherId)
-        {
-            var blog = new BlogPost
-            {
-                Title = model.Title,
-                Content = model.Content,
-                ThumbnailUrl = model.ThumbnailUrl,
-                PublisherId = publisherId,
-                Tag = model.Tags ?? "",
-                CreatedAt = DateTime.Now,
-                Slug = Regex.Replace(model.Title.ToLower(), @"[^a-z0-9\s-]", "").Replace(" ", "-") + "-" + DateTime.Now.Ticks
-            };
-
-            if (model.actionType == "draft")
-            {
-                blog.Status = 0; // Draft
-            }
-            else
-            {
-                if (publisherId.HasValue)
-                {
-                    blog.Status = 1; // Published
-                    blog.PublishedAt = DateTime.Now;
-                }
-                else
-                {
-                    blog.Status = 3; // Pending Approval
-                }
-            }
-
-            await _blogPostRepository.AddAsync(blog);
-        }
 
         public async Task<BlogPost?> GetPostByIdAsync(int id)
         {
@@ -130,42 +96,6 @@ namespace DevHub.Services.Implementations
             return blog;
         }
 
-        public async Task<bool> EditPostAsync(int id, BlogPostEditViewModel model)
-        {
-            var blog = await _blogPostRepository.GetByIdAsync(id);
-            if (blog == null)
-                return false;
-
-            blog.Title = model.Title;
-            blog.Content = model.Content;
-            blog.ThumbnailUrl = model.ThumbnailUrl;
-            blog.Tag = model.Tags ?? "";
-            
-            blog.Slug = Regex.Replace(model.Title.ToLower(), @"[^a-z0-9\s-]", "").Replace(" ", "-") + "-" + DateTime.Now.Ticks;
-
-            if (model.actionType == "draft")
-            {
-                blog.Status = 0; // Draft
-            }
-            else
-            {
-                if (blog.PublisherId != null) 
-                {
-                    blog.Status = 1; // Published
-                    if (blog.PublishedAt == null)
-                    {
-                        blog.PublishedAt = DateTime.Now;
-                    }
-                } 
-                else 
-                {
-                    blog.Status = 3; // Pending Approval
-                }
-            }
-
-            await _blogPostRepository.UpdateAsync(blog);
-            return true;
-        }
 
         public async Task<bool> ToggleVisibilityAsync(int id)
         {
@@ -192,6 +122,62 @@ namespace DevHub.Services.Implementations
             if (blog == null) return false;
 
             await _blogPostRepository.DeleteAsync(blog);
+            return true;
+        }
+
+        public async Task<BlogPost> CreateBlogPostAsync(int publisherId, string title, string content, string? thumbnailUrl, string? tag, bool isPublished, string? authorName)
+        {
+            var slug = title.ToLower().Replace(" ", "-").Trim();
+            slug = Regex.Replace(slug, @"[^a-z0-9\s-]", ""); 
+            slug = Regex.Replace(slug, @"\s+", "-");
+            slug = $"{slug}-{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+            var newBlog = new BlogPost
+            {
+                PublisherId = publisherId,
+                Title = title,
+                Content = content,
+                ThumbnailUrl = thumbnailUrl,
+                Tag = tag ?? "Chung",
+                Slug = slug,
+                AuthorName = authorName,
+                IsPublished = isPublished,
+                Status = isPublished ? 1 : 0,
+                CreatedAt = DateTime.Now,
+                PublishedAt = isPublished ? DateTime.Now : null
+            };
+
+            await _blogPostRepository.AddAsync(newBlog);
+            return newBlog;
+        }
+
+        public async Task<bool> UpdateBlogPostAsync(int id, string title, string content, string? thumbnailUrl, string? tag, bool isPublished, string? authorName)
+        {
+            var blog = await _blogPostRepository.GetByIdAsync(id);
+            if (blog == null) return false;
+
+            blog.Title = title;
+            blog.Content = content;
+            if (thumbnailUrl != null)
+            {
+                blog.ThumbnailUrl = thumbnailUrl;
+            }
+            blog.Tag = tag ?? "Chung";
+            blog.AuthorName = authorName;
+
+            if (isPublished && blog.Status == 0)
+            {
+                blog.IsPublished = true;
+                blog.Status = 1;
+                blog.PublishedAt = DateTime.Now;
+            }
+            else if (!isPublished && blog.Status == 1)
+            {
+                blog.IsPublished = false;
+                blog.Status = 0;
+            }
+
+            await _blogPostRepository.UpdateAsync(blog);
             return true;
         }
     }

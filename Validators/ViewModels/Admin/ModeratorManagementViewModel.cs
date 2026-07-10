@@ -12,6 +12,7 @@ public class ModeratorListItemDto
     public DateTime? CreatedAt { get; set; }
     /// <summary>Loại task được assign: COMPANY_APPROVAL | JOB_POST | REVIEW | null nếu chưa set</summary>
     public string? TaskType  { get; set; }
+    public List<string> Industries { get; set; } = new();
 }
 
 // ViewModel for the Index page (list + pagination + search state)

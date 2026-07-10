@@ -1,44 +1,36 @@
 @{
-    ViewData["Title"] = "Không Thể Truy Cập";
-    Layout = "_Layout";
-    
-    var reason = Context.Request.Query["reason"].ToString();
-    var required = Context.Request.Query["required"].ToString();
-    var actual = Context.Request.Query["actual"].ToString();
+    ViewData["Title"] = "Không có quyền truy cập";
 }
 
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl text-center">
-        <div>
-            <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-red-100">
-                <svg class="h-12 w-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
-                Lỗi 403 - Truy cập bị từ chối
-            </h2>
-            <p class="mt-4 text-base text-gray-500">
-                @if (reason == "unassigned")
-                {
-                    <text>Tài khoản của bạn chưa được Admin phân công loại công việc (Task Type) nào. Vui lòng liên hệ Quản trị viên để được cấp quyền.</text>
-                }
-                else if (reason == "wrong_task_type")
-                {
-                    <text>Tài khoản của bạn được gán quyền duyệt loại <b>@actual</b>, nhưng khu vực này yêu cầu quyền duyệt loại <b>@required</b>. Bạn không thể truy cập trang này.</text>
-                }
-                else
-                {
-                    <text>Bạn không có quyền truy cập vào khu vực này.</text>
-                }
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <img src="~/images/403.png" alt="403 Forbidden" class="img-fluid mb-4" style="max-width: 300px;" onerror="this.src='https://cdn.iconscout.com/icon/free/png-256/free-403-forbidden-1144211.png'" />
+            <h1 class="display-1 font-weight-bold text-primary">403</h1>
+            <h2 class="mb-4">Không có quyền truy cập</h2>
+            
+            <p class="text-muted mb-4">
+                Tài khoản của bạn không có quyền để truy cập trang này.
             </p>
-        </div>
-        <div class="mt-8 flex justify-center gap-4">
-            <button onclick="history.back()" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                Quay lại
-            </button>
-            <a href="/" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                Về Trang chủ
+            
+            @if (ViewBag.Reason == "unassigned")
+            {
+                <div class="alert alert-warning">
+                    Tài khoản Moderator của bạn chưa được phân công loại công việc nào. Vui lòng liên hệ Admin.
+                </div>
+            }
+            else if (ViewBag.Reason == "wrong_task_type")
+            {
+                <div class="alert alert-danger">
+                    Trang này yêu cầu quyền <strong>@ViewBag.Required</strong> nhưng bạn chỉ có quyền <strong>@ViewBag.Actual</strong>.
+                </div>
+            }
+
+            <a href="/" class="btn btn-primary mt-3 px-4 py-2 rounded-pill shadow-sm">
+                <i class="fas fa-home me-2"></i> Quay lại trang chủ
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary mt-3 px-4 py-2 rounded-pill shadow-sm ms-2">
+                Quay lại trang trước
             </a>
         </div>
     </div>

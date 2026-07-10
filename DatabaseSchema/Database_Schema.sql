@@ -2,7 +2,7 @@
 -- DevHub Database Schema  SQL Server 
 -- =====================================================
 -- CREATE DATABASE DevHub
-USE DevHub;
+USE ITRecruitmentDB;
 -- =====================================================
 -- Create User Account Table (Base Table)
 -- =====================================================

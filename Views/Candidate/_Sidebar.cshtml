@@ -96,7 +96,7 @@
 
             <div class="relative">
                 <button onclick="document.getElementById('settingsDropdown').classList.toggle('hidden'); document.getElementById('settingsArrow').classList.toggle('rotate-180');" class="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] font-medium transition-colors
-                          @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
+                          @((ViewData["ActiveMenu"]?.ToString() == "ChangePassword" || ViewData["ActiveMenu"]?.ToString() == "NotificationSettings") ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                     <div class="flex items-center gap-3">
                         <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -104,10 +104,11 @@
                         </svg>
                         Cài đặt
                     </div>
-                    <svg id="settingsArrow" class="w-4 h-4 transition-transform duration-200 @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg id="settingsArrow" class="w-4 h-4 transition-transform duration-200 @((ViewData["ActiveMenu"]?.ToString() == "ChangePassword" || ViewData["ActiveMenu"]?.ToString() == "NotificationSettings") ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="settingsDropdown" class="pl-11 pr-4 py-1 space-y-1 @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "" : "hidden")">
+                <div id="settingsDropdown" class="pl-11 pr-4 py-1 space-y-1 @((ViewData["ActiveMenu"]?.ToString() == "ChangePassword" || ViewData["ActiveMenu"]?.ToString() == "NotificationSettings") ? "" : "hidden")">
                     <a href="/Candidate/ChangePassword" class="block py-2 text-[14px] font-medium transition-colors @(ViewData["ActiveMenu"]?.ToString() == "ChangePassword" ? "text-primary" : "text-muted hover:text-dark")">Đổi mật khẩu</a>
+                    <a href="/Candidate/NotificationSettings" class="block py-2 text-[14px] font-medium transition-colors @(ViewData["ActiveMenu"]?.ToString() == "NotificationSettings" ? "text-primary" : "text-muted hover:text-dark")">Cài đặt thông báo</a>
                 </div>
             </div>
         </nav>

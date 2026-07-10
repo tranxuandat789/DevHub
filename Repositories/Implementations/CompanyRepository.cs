@@ -127,5 +127,10 @@ namespace DevHub.Repositories.Implementations
             await _context.SaveChangesAsync();
             return company;
         }
+
+        public async Task<List<Company>> GetAllAsync()
+        {
+            return await _context.Companies.ToListAsync();
+        }
     }
 }

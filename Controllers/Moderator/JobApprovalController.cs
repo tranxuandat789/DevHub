@@ -11,25 +11,26 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Moderator;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevHub.Controllers.Moderator
 {
-    // Cấu hình định tuyến (Route) chung cho các Action trong Controller này: "moderator/job-approvals"
     [Route("moderator/job-approvals")]
-    // Giới hạn quyền truy cập: Chỉ những người dùng có Role là "Moderator" (Kiểm duyệt viên) mới được phép vào
     [Authorize(Roles = "Moderator")]
     [TypeFilter(typeof(DevHub.Filters.ModeratorTaskTypeAttribute), Arguments = new object[] { "JOB_POST" })]
     public class JobApprovalController : Controller
     {
-        // Khai báo dịch vụ xử lý nghiệp vụ bài đăng tuyển dụng (Service) dưới dạng chỉ đọc
         private readonly IJobPostService _jobPostService;
         private readonly DevHub.Data.ItrecruitmentDbContext _db;
+        private readonly INotificationService _notificationService;
+        private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
-        // Hàm khởi tạo (Constructor) để tiêm dependency (Dependency Injection) của Service vào Controller
-        public JobApprovalController(IJobPostService jobPostService, DevHub.Data.ItrecruitmentDbContext db)
+        public JobApprovalController(IJobPostService jobPostService, DevHub.Data.ItrecruitmentDbContext db, INotificationService notificationService, DevHub.Helpers.EmailHelper emailHelper)
         {
             _jobPostService = jobPostService;
             _db = db;
+            _notificationService = notificationService;
+            _emailHelper = emailHelper;
         }
 
         // Action xử lý yêu cầu GET đến địa chỉ "moderator/job-approvals" để hiển thị danh sách bài đăng chờ duyệt
@@ -128,6 +129,52 @@ namespace DevHub.Controllers.Moderator
 
             if (!success) return BadRequest("Cannot approve this job.");
 
+            // Lấy thông tin job và gửi thông báo cho recruiter
+            var job = await _jobPostService.GetJobPostByIdAsync(id);
+            if (job != null)
+            {
+                var recruiters = await _db.Recruiters
+                    .Include(r => r.RecruiterNavigation) // Include UserAccount to get Email
+                    .Where(r => r.CompanyId == job.CompanyId)
+                    .ToListAsync();
+
+                foreach (var recruiter in recruiters)
+                {
+                    try
+                    {
+                        // 1. Gửi thông báo In-App
+                        await _notificationService.SendNotificationAsync(
+                            userId: recruiter.RecruiterId,
+                            userType: "RECRUITER",
+                            title: "Bài đăng đã được duyệt!",
+                            message: $"Tin tuyển dụng \"{job.Title}\" của bạn đã được kiểm duyệt viên phê duyệt và hiện đang hiển thị trên hệ thống.",
+                            type: "JOB_POST",
+                            severity: "success",
+                            referenceId: id,
+                            referenceType: "JobPost"
+                        );
+
+                        // 2. Gửi Email (nếu recruiter cho phép nhận thông báo qua email)
+                        if (recruiter.RecruiterNavigation != null && !string.IsNullOrEmpty(recruiter.RecruiterNavigation.Email))
+                        {
+                            if (recruiter.RecruiterNavigation.EmailNotificationsEnabled)
+                            {
+                                var emailSubject = $"[DevHub] Bài đăng đã được duyệt: {job.Title}";
+                                var emailContent = DevHub.Helpers.EmailHelper.GetBaseTemplate(
+                                    "Bài đăng đã được duyệt",
+                                    $"<p>Xin chào <strong>{recruiter.FullName}</strong>,</p>" +
+                                    $"<p>Tin tuyển dụng <strong>\"{job.Title}\"</strong> của bạn đã được hệ thống phê duyệt và hiện đang được hiển thị trực tuyến.</p>" +
+                                    $"<p>Các ứng viên bây giờ đã có thể xem và ứng tuyển vào vị trí này.</p>" +
+                                    $"<p>Cảm ơn bạn đã đồng hành cùng DevHub!</p>"
+                                );
+                                await _emailHelper.SendEmailAsync(recruiter.RecruiterNavigation.Email, emailSubject, emailContent);
+                            }
+                        }
+                    }
+                    catch { /* best-effort */ }
+                }
+            }
+
             var auditLog = new DevHub.Models.AuditLog
             {
                 UserId = moderatorId,
@@ -162,6 +209,53 @@ namespace DevHub.Controllers.Moderator
             // 2. Gọi Service thực hiện nghiệp vụ từ chối bài đăng kèm lý do cụ thể
             var success = await _jobPostService.RejectJobAsync(id, moderatorId, reason);
             if (!success) return BadRequest("Cannot reject this job.");
+
+            // Lấy thông tin job và gửi thông báo cho recruiter
+            var job = await _jobPostService.GetJobPostByIdAsync(id);
+            if (job != null)
+            {
+                var recruiters = await _db.Recruiters
+                    .Include(r => r.RecruiterNavigation) // Include UserAccount to get Email
+                    .Where(r => r.CompanyId == job.CompanyId)
+                    .ToListAsync();
+
+                foreach (var recruiter in recruiters)
+                {
+                    try
+                    {
+                        // 1. Gửi thông báo In-App
+                        await _notificationService.SendNotificationAsync(
+                            userId: recruiter.RecruiterId,
+                            userType: "RECRUITER",
+                            title: "Bài đăng bị từ chối",
+                            message: $"Tin tuyển dụng \"{job.Title}\" của bạn đã bị từ chối. Lý do: {reason}",
+                            type: "JOB_POST",
+                            severity: "danger",
+                            referenceId: id,
+                            referenceType: "JobPost"
+                        );
+
+                        // 2. Gửi Email (nếu recruiter cho phép nhận email)
+                        if (recruiter.RecruiterNavigation != null && !string.IsNullOrEmpty(recruiter.RecruiterNavigation.Email))
+                        {
+                            if (recruiter.RecruiterNavigation.EmailNotificationsEnabled)
+                            {
+                                var emailSubject = $"[DevHub] Bài đăng bị từ chối: {job.Title}";
+                                var emailContent = DevHub.Helpers.EmailHelper.GetBaseTemplate(
+                                    "Bài đăng bị từ chối",
+                                    $"<p>Xin chào <strong>{recruiter.FullName}</strong>,</p>" +
+                                    $"<p>Rất tiếc, tin tuyển dụng <strong>\"{job.Title}\"</strong> của bạn đã bị từ chối duyệt.</p>" +
+                                    $"<p><strong>Lý do:</strong> {reason}</p>" +
+                                    $"<p>Vui lòng đăng nhập vào hệ thống để chỉnh sửa và gửi lại yêu cầu duyệt.</p>" +
+                                    $"<p>Cảm ơn bạn đã đồng hành cùng DevHub!</p>"
+                                );
+                                await _emailHelper.SendEmailAsync(recruiter.RecruiterNavigation.Email, emailSubject, emailContent);
+                            }
+                        }
+                    }
+                    catch { /* best-effort */ }
+                }
+            }
 
             var auditLog = new DevHub.Models.AuditLog
             {

@@ -1,0 +1,83 @@
+@* Partial dùng chung: nhận bool qua ViewBag.EmailNotificationsEnabled *@
+@{
+    bool emailEnabled = ViewBag.EmailNotificationsEnabled ?? true;
+    string postUrl    = ViewBag.NotifSettingsPostUrl ?? "#";
+}
+
+<div class="space-y-6">
+    <form method="post" action="@postUrl">
+        @Html.AntiForgeryToken()
+
+        <div class="bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100">
+            <!-- Toggle chính -->
+            <div class="flex items-center justify-between px-5 py-4">
+                <div>
+                    <p class="text-sm font-semibold text-gray-800">Nhận thông báo qua Email</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Bật để nhận tất cả thông báo từ hệ thống qua hòm thư của bạn.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="emailEnabled" id="emailNotifToggle"
+                           value="true"
+                           class="sr-only peer"
+                           @(emailEnabled ? "checked" : "") />
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer
+                                peer-checked:bg-[#4640DE]
+                                peer-focus:ring-2 peer-focus:ring-[#4640DE]/30
+                                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                after:bg-white after:rounded-full after:h-5 after:w-5
+                                after:transition-all
+                                peer-checked:after:translate-x-5
+                                transition-colors duration-200">
+                    </div>
+                </label>
+            </div>
+
+            <!-- Mô tả loại email sẽ nhận -->
+            <div class="px-5 py-4" id="emailSubSettings">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Bao gồm các thông báo</p>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#4640DE] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Cập nhật trạng thái đơn ứng tuyển / tuyển dụng
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#4640DE] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Lịch phỏng vấn và nhắc nhở sắp diễn ra
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#4640DE] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Thông báo hệ thống quan trọng
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-5 flex items-center gap-3">
+            <button type="submit"
+                    class="px-5 py-2 bg-[#4640DE] text-white text-sm font-medium rounded-lg hover:bg-[#3835c4] transition-colors shadow-sm">
+                Lưu thay đổi
+            </button>
+            <span class="text-xs text-gray-400">Thay đổi có hiệu lực ngay lập tức.</span>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function() {
+        const toggle = document.getElementById('emailNotifToggle');
+        const sub    = document.getElementById('emailSubSettings');
+        if (!toggle || !sub) return;
+        function syncUI() {
+            sub.style.opacity = toggle.checked ? '1' : '0.4';
+        }
+        syncUI();
+        toggle.addEventListener('change', syncUI);
+    })();
+</script>
+

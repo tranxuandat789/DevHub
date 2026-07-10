@@ -11,6 +11,7 @@ public partial class BlogPost
     public string Slug { get; set; } = null!;
     public string Tag { get; set; } = null!;
     public string? Content { get; set; }
+    public string? AuthorName { get; set; }
     public string? ThumbnailUrl { get; set; }
     public bool? IsPublished { get; set; }
     public DateTime? CreatedAt { get; set; }

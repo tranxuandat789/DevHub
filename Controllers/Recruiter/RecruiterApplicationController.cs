@@ -117,7 +117,6 @@ namespace DevHub.Controllers.Recruiter
             return RedirectToAction(nameof(Details), new { applicationId });
         }
 
-        // Rejecting an application.
         [HttpPost("Reject/{applicationId:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int applicationId)
@@ -126,6 +125,19 @@ namespace DevHub.Controllers.Recruiter
             if (recruiterId == null) return NotFound();
 
             var (success, message) = await _appService.RejectAsync(recruiterId.Value, applicationId);
+            TempData[success ? "Success" : "Error"] = message;
+            return RedirectToAction(nameof(Details), new { applicationId });
+        }
+
+        // Hire an application.
+        [HttpPost("Hire/{applicationId:int}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Hire(int applicationId)
+        {
+            var recruiterId = await GetRecruiterIdAsync();
+            if (recruiterId == null) return NotFound();
+
+            var (success, message) = await _appService.HireAsync(recruiterId.Value, applicationId);
             TempData[success ? "Success" : "Error"] = message;
             return RedirectToAction(nameof(Details), new { applicationId });
         }

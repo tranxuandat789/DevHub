@@ -14,6 +14,7 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <script>
@@ -85,57 +86,25 @@
         
         <!-- Right Section: Auth Buttons / User Profile -->
         <div class="hidden md:flex items-center space-x-6">
-
             <div class="relative group py-2">
                 <button class="text-muted hover:text-primary transition-colors relative block cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-white counter-number" data-target="3">3</span>
+                    <span id="notification-badge" class="hidden absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-white">0</span>
                 </button>
                 <div class="absolute top-full right-[-80px] sm:right-[-20px] md:right-0 pt-2 w-80 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
                     <div class="bg-white border border-[#D6DDEB] rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden">
                         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                             <h3 class="font-bold text-gray-900 text-[15px]">Thông báo</h3>
-                            <a href="/recruiter/notifications" class="text-xs font-medium text-primary hover:underline">Xem tất cả</a>
+                            <div class="flex gap-3">
+                                <a href="#" id="mark-all-read-btn" class="text-xs font-medium text-gray-500 hover:text-primary hover:underline">Đánh dấu đã đọc</a>
+                                <a href="/recruiter/notifications" class="text-xs font-medium text-primary hover:underline">Xem tất cả</a>
+                            </div>
                         </div>
-                        <div class="max-h-[320px] overflow-y-auto">
-                            <!-- Quan trọng -->
-                            <a href="/recruiter/notifications/details/1" class="block px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors bg-red-50/30">
-                                <div class="flex gap-3">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <h4 class="text-sm font-semibold text-gray-900 line-clamp-1">Tài khoản sắp hết hạn</h4>
-                                            <span class="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 line-clamp-2">Gói dịch vụ "Gói Đồng" của bạn sẽ hết hạn trong 3 ngày tới...</p>
-                                        <p class="text-[10px] text-gray-400 mt-1.5"><i class="far fa-clock mr-1"></i>2 giờ trước</p>
-                                    </div>
-                                </div>
-                            </a>
-                            <!-- Cảnh báo -->
-                            <a href="/recruiter/notifications/details/2" class="block px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors bg-yellow-50/30">
-                                <div class="flex gap-3">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <h4 class="text-sm font-semibold text-gray-900 line-clamp-1">Cần bổ sung Giấy phép kinh doanh</h4>
-                                            <span class="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 line-clamp-2">Hồ sơ công ty của bạn hiện đang thiếu bản scan Giấy phép...</p>
-                                        <p class="text-[10px] text-gray-400 mt-1.5"><i class="far fa-clock mr-1"></i>Hôm qua, 14:30</p>
-                                    </div>
-                                </div>
-                            </a>
-                            <!-- Thông tin -->
-                            <a href="/recruiter/notifications/details/3" class="block px-4 py-3 hover:bg-gray-50 transition-colors opacity-75">
-                                <div class="flex gap-3">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <h4 class="text-sm font-medium text-gray-800 line-clamp-1">Ra mắt AI Matching</h4>
-                                        </div>
-                                        <p class="text-xs text-gray-500 line-clamp-2">Khám phá tính năng AI Matching hoàn toàn mới, giúp bạn...</p>
-                                        <p class="text-[10px] text-gray-400 mt-1.5"><i class="far fa-clock mr-1"></i>20/05/2026</p>
-                                    </div>
-                                </div>
-                            </a>
+                        <div id="notification-list" class="max-h-[320px] overflow-y-auto">
+                            <!-- Notifications will be loaded here dynamically -->
+                            <div class="px-4 py-8 text-center text-sm text-gray-500">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...
+                            </div>
                         </div>
                         <a href="/recruiter/notifications" class="block w-full py-2.5 text-center text-[13px] font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 hover:text-primary transition-colors border-t border-gray-100">
                             Xem tất cả thông báo
@@ -274,21 +243,20 @@
                 </div>
             </div>
 
-            <!-- Blog -->
-            <div class="sidebar-item relative group w-full flex justify-center" data-menu="blog">
-                <a href="/RecruiterBlog" class="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-xl hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors @(ViewData["ActiveMenu"] as string == "Blogs" ? "bg-blue-500 text-white hover:text-white hover:bg-blue-600" : "")">
+            <!-- Article -->
+            <div class="sidebar-item relative group w-full flex justify-center" data-menu="article">
+                <a href="/Recruiter/Article" class="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-xl hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors @(ViewData["ActiveMenu"] as string == "Articles" ? "bg-blue-500 text-white hover:text-white hover:bg-blue-600" : "")">
                     <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-                    <span class="text-[11px] font-medium text-center leading-tight">Bài blog</span>
+                    <span class="text-[11px] font-medium text-center leading-tight">Bài báo</span>
                 </a>
                 
                 <div class="sidebar-popover enabled absolute left-[88px] top-0 ml-2 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-2 w-[260px]">
                     <div class="flex items-center gap-3 text-blue-600 font-semibold mb-2 px-3 py-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-                        Bài blog
+                        Bài báo
                     </div>
                     <ul class="flex flex-col gap-1">
-                        <li><a href="/RecruiterBlog" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg> Quản lý bài blog</a></li>
-                        <li><a href="/RecruiterBlog/Create" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Viết bài mới</a></li>
+                        <li><a href="/Recruiter/Article" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg> Quản lý bài báo</a></li>
                     </ul>
                 </div>
             </div>
@@ -510,8 +478,16 @@
     </script>
     @RenderSection("Scripts", required: false)
 
-
+    @if (isLoggedIn)
+    {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+        <script>
+            window.DevHub = window.DevHub || {};
+            window.DevHub.isEmployer = true;
+        </script>
+        <script src="~/js/notifications.js"></script>
+    }
 </body>
 </html>
-
-

@@ -49,6 +49,9 @@
                         Quản lý thành viên
                     </a>
                 }
+                <a href="/Recruiter/Settings?tab=notifications" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "notifications" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                    Cài đặt thông báo
+                </a>
             </nav>
         </div>
 
@@ -73,6 +76,10 @@
             else if (activeTab == "members" && Model.IsCompanyAdmin == true)
             {
                 @await Html.PartialAsync("_MembersTab")
+            }
+            else if (activeTab == "notifications")
+            {
+                @await Html.PartialAsync("~/Views/Shared/_NotificationSettingsSection.cshtml")
             }
         </div>
     </div>

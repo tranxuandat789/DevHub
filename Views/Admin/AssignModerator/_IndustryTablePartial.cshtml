@@ -1,0 +1,94 @@
+@using DevHub.ViewModels.Admin
+@model dynamic
+
+@{
+    var taskType = (string)ViewData["TaskType"]!;
+    var assignments = (List<IndustryAssignmentItemDto>)ViewData["Assignments"]!;
+    var moderators = (List<ModeratorSimpleDto>)ViewData["Moderators"]!;
+    int totalItems = assignments.Count;
+}
+
+<div x-data="{ 
+    page: 1, 
+    pageSize: 10, 
+    totalItems: @totalItems, 
+    get totalPages() { return Math.ceil(this.totalItems / this.pageSize); }
+}">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-y border-[#D6DDEB]">
+                    <th class="py-3 px-6 text-dark font-bold text-xs uppercase" style="width: 40%">Ngành Nghề</th>
+                    <th class="py-3 px-6 text-dark font-bold text-xs uppercase" style="width: 60%">Moderator Phụ Trách</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                @if (assignments.Count == 0)
+                {
+                    <tr>
+                        <td colspan="2" class="py-6 px-6 text-center text-muted">Không có dữ liệu ngành nghề.</td>
+                    </tr>
+                }
+                else
+                {
+                    @for (int i = 0; i < assignments.Count; i++)
+                    {
+                        var item = assignments[i];
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                            x-show="@i >= (page - 1) * pageSize && @i < page * pageSize"
+                            style="display: none;"
+                            x-transition.opacity>
+                            <td class="py-4 px-6">
+                                <span class="font-bold text-dark text-base">@item.IndustryName</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <select name="assignments[@item.IndustryName]"
+                                        class="w-full max-w-lg border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted appearance-none bg-white"
+                                        style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131523%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
+                                    
+                                    <option value="">-- Bỏ trống (Hệ thống tự động chia) --</option>
+                                    
+                                    @foreach (var mod in moderators)
+                                    {
+                                        if (item.AssignedModeratorId == mod.ModeratorId)
+                                        {
+                                            <option value="@mod.ModeratorId" selected>@mod.FullName (@mod.Email)</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@mod.ModeratorId">@mod.FullName (@mod.Email)</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div x-show="totalPages > 1" class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB] bg-white">
+        <div class="text-sm text-muted">
+            Trang <span x-text="page" class="font-bold text-dark"></span> / <span x-text="totalPages"></span>
+            (Tổng cộng <span x-text="totalItems"></span> ngành nghề)
+        </div>
+        <div class="flex space-x-2">
+            <button type="button" 
+                    @@click="if(page > 1) page--" 
+                    :disabled="page === 1"
+                    :class="{'opacity-50 cursor-not-allowed': page === 1}"
+                    class="px-4 py-2 border border-[#D6DDEB] rounded-lg text-muted hover:bg-gray-50 text-sm font-medium transition-colors">
+                Trước
+            </button>
+            <button type="button" 
+                    @@click="if(page < totalPages) page++" 
+                    :disabled="page === totalPages"
+                    :class="{'opacity-50 cursor-not-allowed': page === totalPages}"
+                    class="px-4 py-2 border border-[#D6DDEB] rounded-lg text-muted hover:bg-gray-50 text-sm font-medium transition-colors">
+                Sau
+            </button>
+        </div>
+    </div>
+</div>

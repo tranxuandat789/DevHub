@@ -7,6 +7,7 @@ namespace DevHub.ViewModels.Company
     {
         public DevHub.Models.Company Company { get; set; } = null!;
         public List<JobPost> ActiveJobs { get; set; } = new();
+        public List<DevHub.Models.Article> Articles { get; set; } = new();
         public double? AverageRating { get; set; }
         public int TotalReviews { get; set; }
         

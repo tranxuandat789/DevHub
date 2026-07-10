@@ -1,11 +1,11 @@
-﻿USE DevHub;
+USE ITRecruitmentDB;
 GO
 SET NOCOUNT ON;
 /* ============================================================
- Chèn interview mẫu cho các application APPROVED (chưa có interview),
- rải created_at về những ngày TRƯỚC (trong 30 ngày qua) để dashboard
- có dữ liệu đường "Lượt phỏng vấn".
- Idempotent: bỏ qua application đã có interview.
+ Chen interview m?u cho cac application APPROVED (ch?a co interview),
+ r?i created_at v? nh?ng ngay TR??C (trong 30 ngay qua) ?? dashboard
+ co d? li?u ???ng "L??t ph?ng v?n".
+ Idempotent: b? qua application ?a co interview.
  ============================================================ */
 ;
 WITH ApprovedApps AS (
@@ -42,25 +42,26 @@ SELECT application_id,
     recruiter_id,
     candidate_id,
     DATEADD(DAY, -(rn * 2) + 2, GETDATE()),
-    -- lịch PV (lùi theo từng mốc)
+    -- l?ch PV (lui theo t?ng m?c)
     N'https://meet.google.com/abc-defg-hij',
-    N'Phòng họp tầng 5 - Văn phòng công ty',
+    N'Phong h?p t?ng 5 - V?n phong cong ty',
     CASE
         WHEN rn % 3 = 0 THEN'FINISHED'
         ELSE 'SCHEDULED'
     END,
-    N'Phỏng vấn vòng 1: ' + ISNULL(title, N''),
+    N'Ph?ng v?n vong 1: ' + ISNULL(title, N''),
     DATEADD(DAY, -(rn * 2), GETDATE()),
-    -- created_at: rải mỗi 2 ngày lùi về quá khứ
+    -- created_at: r?i m?i 2 ngay lui v? qua kh?
     DATEADD(DAY, -(rn * 2), GETDATE())
 FROM ApprovedApps
 WHERE rn <= 14;
--- tối đa 14 mốc (~28 ngày)
-PRINT N'Đã chèN' + CAST(@@ROWCOUNT AS NVARCHAR(10)) + N' interview (rải các ngày trước).';
-GO -- Kiểm tra phân bố theo ngày
+-- t?i ?a 14 m?c (~28 ngay)
+PRINT N'?a cheN' + CAST(@@ROWCOUNT AS NVARCHAR(10)) + N' interview (r?i cac ngay tr??c).';
+GO -- Ki?m tra phan b? theo ngay
 SELECT CONVERT(varchar, created_at, 23) AS ngay_tao,
     COUNT(*) AS so_interview
 FROM dbo.interview
 GROUP BY CONVERT(varchar, created_at, 23)
 ORDER BY ngay_tao;
 GO
+

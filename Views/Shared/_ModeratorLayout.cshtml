@@ -163,8 +163,19 @@
                         </button>
                         
                         <!-- Dropdown Menu -->
-                        <div id="moderator-notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 hidden z-50">
-                            <!-- Content loaded via AJAX -->
+                        <div id="moderator-notification-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-gray-100 hidden z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-white">
+                                <span class="font-bold text-dark text-[15px]">Thông báo</span>
+                                <button id="mark-all-read-btn" class="text-xs text-primary font-medium hover:underline">Đánh dấu đã đọc</button>
+                            </div>
+                            
+                            <div id="notification-list" class="max-h-[320px] overflow-y-auto bg-white">
+                                <!-- Content loaded via AJAX -->
+                            </div>
+                            
+                            <div class="border-t border-gray-100 px-4 py-2.5 text-center bg-white">
+                                <a href="/ModeratorNotification" class="text-primary text-[13px] font-bold hover:underline">Xem tất cả thông báo</a>
+                            </div>
                         </div>
                     </div>
                     
@@ -233,17 +244,19 @@
 
             // Load notifications HTML
             function loadNotifications() {
-                notifDropdown.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Đang tải...</div>';
+                const listEl = notifDropdown.querySelector('#notification-list');
+                if (!listEl) return;
+                listEl.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Đang tải...</div>';
                 fetch('/ModeratorNotification/Recent')
                     .then(res => res.text())
                     .then(html => {
-                        notifDropdown.innerHTML = html;
+                        listEl.innerHTML = html;
                         // Re-attach events for mark-read buttons if they exist in the partial view
                         attachNotificationEvents();
                     })
                     .catch(err => {
                         console.error('Error loading notifications:', err);
-                        notifDropdown.innerHTML = '<div class="p-4 text-center text-sm text-red-500">Lỗi khi tải thông báo</div>';
+                        listEl.innerHTML = '<div class="p-4 text-center text-sm text-red-500">Lỗi khi tải thông báo</div>';
                     });
             }
 

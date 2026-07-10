@@ -124,7 +124,7 @@ public class AssignModeratorController : Controller
             }
         }
 
-        await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
         TempData["SuccessMsg"] = $"Đã lưu phân công ngành cho {TaskTypeLabel(taskType)} thành công!";
         return RedirectToAction("Index");

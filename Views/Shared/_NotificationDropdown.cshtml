@@ -43,13 +43,3 @@ else
 }
 
 <div id="unread-count-data" data-count="@ViewBag.UnreadCount" style="display:none;"></div>
-<div class="border-t border-gray-100 p-2 text-center">
-    @{
-        bool isEmp = userType == "RECRUITER";
-        bool isMod = userType == "MODERATOR";
-        string viewAllUrl = "/candidate/notifications";
-        if (isEmp) viewAllUrl = "/recruiter/notifications";
-        else if (isMod) viewAllUrl = "/ModeratorNotification";
-    }
-    <a href="@viewAllUrl" class="text-xs text-primary font-medium hover:underline">Xem tất cả thông báo</a>
-</div>

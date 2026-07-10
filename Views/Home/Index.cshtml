@@ -217,11 +217,11 @@
                 <div class="w-full lg:w-1/2 flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
                     <img src="@(string.IsNullOrEmpty(mainBlog.ThumbnailUrl) ? "https://picsum.photos/seed/blog1/800/500" : mainBlog.ThumbnailUrl)" alt="@mainBlog.Title" class="w-full aspect-[16/10] object-cover" />
                     <div class="p-8 flex flex-col flex-grow">
-                        <h3 class="text-2xl font-bold text-dark mb-4 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/Blog/@mainBlog.Slug'">@mainBlog.Title</h3>
+                        <h3 class="text-2xl font-bold text-dark mb-4 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/CareerHandbook/@mainBlog.Slug'">@mainBlog.Title</h3>
                         <p class="text-muted text-base mb-6 font-inter leading-relaxed line-clamp-3">
                             @(string.IsNullOrEmpty(mainBlog.Content) ? "" : System.Text.RegularExpressions.Regex.Replace(mainBlog.Content, "<.*?>", string.Empty))
                         </p>
-                        <a href="/Blog/@mainBlog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-base">
+                        <a href="/CareerHandbook/@mainBlog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-base">
                             Đọc ngay
                             <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </a>
@@ -242,12 +242,12 @@
                             <div class="flex flex-col border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[20px] overflow-hidden hover:shadow-lg transition-shadow bg-white">
                                 <img src="@(string.IsNullOrEmpty(blog.ThumbnailUrl) ? "https://picsum.photos/seed/blog" + blog.BlogId + "/400/200" : blog.ThumbnailUrl)" alt="@blog.Title" class="w-full h-36 object-cover" />
                                 <div class="p-5 flex flex-col flex-grow">
-                                    <h4 class="text-base font-bold text-dark mb-2 line-clamp-2 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/Blog/@blog.Slug'">@blog.Title</h4>
+                                    <h4 class="text-base font-bold text-dark mb-2 line-clamp-2 hover:text-primary transition-colors cursor-pointer" onclick="window.location='/CareerHandbook/@blog.Slug'">@blog.Title</h4>
                                     @if (!string.IsNullOrEmpty(excerpt))
                                     {
                                         <p class="text-muted text-xs font-inter leading-relaxed mb-3 line-clamp-2">@excerpt</p>
                                     }
-                                    <a href="/Blog/@blog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
+                                    <a href="/CareerHandbook/@blog.Slug" class="text-[#4640DE] font-bold mt-auto flex items-center hover:underline group text-sm">
                                         Đọc ngay
                                         <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                     </a>

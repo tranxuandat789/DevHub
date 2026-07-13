@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
     var keyword = ViewData["Keyword"] as string ?? "";
     var status = ViewData["Status"] as string ?? "";
+    var region = ViewData["Region"] as string ?? "";
 }
 
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -29,19 +30,21 @@
 
 <!-- Filters & Sort -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
-    <form method="get" action="/ModeratorProvince" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <form method="get" action="/ModeratorProvince" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
         <div class="w-full md:col-span-2">
             <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm tên</label>
             <input type="text" name="keyword" value="@keyword" placeholder="Nhập tên tỉnh/thành phố..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
         </div>
         <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Trạng thái</label>
-            <select name="status" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="" selected="@(status == "" ? "selected" : null)">Tất cả</option>
-                <option value="1" selected="@(status == "1" ? "selected" : null)">Đang hoạt động</option>
-                <option value="0" selected="@(status == "0" ? "selected" : null)">Tạm ngưng</option>
+            <label class="block text-dark font-medium mb-2 text-sm">Khu vực (Miền)</label>
+            <select name="region" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="" selected="@(region == "" ? "selected" : null)">Tất cả</option>
+                <option value="North" selected="@(region == "North" ? "selected" : null)">Miền Bắc</option>
+                <option value="Central" selected="@(region == "Central" ? "selected" : null)">Miền Trung</option>
+                <option value="South" selected="@(region == "South" ? "selected" : null)">Miền Nam</option>
             </select>
         </div>
+
         <div>
             <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
         </div>
@@ -57,7 +60,6 @@
                     <th class="py-4 px-6 text-dark font-bold text-sm w-20">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Tên Tỉnh/Thành phố</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm w-40">Trạng thái</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
                 </tr>
             </thead>
             <tbody class="text-sm">
@@ -85,18 +87,6 @@
                                     </span>
                                 }
                             </td>
-                            <td class="py-4 px-6 text-center">
-                                <button onclick="toggleStatus(@p.ProvinceId, this)" class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors @(isActive ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-600 hover:bg-green-100")" title="@(isActive ? "Ngừng hoạt động" : "Kích hoạt")">
-                                    @if (isActive)
-                                    {
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
-                                    }
-                                    else
-                                    {
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                    }
-                                </button>
-                            </td>
                         </tr>
                     }
                 }
@@ -121,17 +111,17 @@
             <div class="flex gap-2">
                 @if (ViewBag.CurrentPage > 1)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
                 }
                 
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
                 }
 
                 @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
                 }
             </div>
         </div>

@@ -19,7 +19,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> Index(string keyword = "", string status = "", int page = 1)
+        public async Task<IActionResult> Index(string keyword = "", string status = "", string region = "", int page = 1)
         {
             var provinces = await _provinceService.GetAllProvincesAsync();
 
@@ -34,6 +34,17 @@ namespace DevHub.Controllers.Moderator
                 provinces = provinces.Where(p => p.IsActive == isActive).ToList();
             }
 
+            if (!string.IsNullOrWhiteSpace(region))
+            {
+                var northProvinces = new[] { "Hà Nội", "Vĩnh Phúc", "Bắc Ninh", "Hà Nam", "Hải Dương", "Hưng Yên", "Hải Phòng", "Nam Định", "Ninh Bình", "Thái Bình", "Hà Giang", "Cao Bằng", "Bắc Kạn", "Lạng Sơn", "Tuyên Quang", "Thái Nguyên", "Phú Thọ", "Bắc Giang", "Quảng Ninh", "Lào Cai", "Yên Bái", "Điện Biên", "Hòa Bình", "Hoà Bình", "Lai Châu", "Sơn La" };
+                var centralProvinces = new[] { "Thanh Hóa", "Thanh Hoá", "Nghệ An", "Hà Tĩnh", "Quảng Bình", "Quảng Trị", "Thừa Thiên", "Huế", "Đà Nẵng", "Quảng Nam", "Quảng Ngãi", "Bình Định", "Phú Yên", "Khánh Hòa", "Khánh Hoà", "Ninh Thuận", "Bình Thuận", "Kon Tum", "Gia Lai", "Đắk Lắk", "Đăk Lăk", "Đắk Nông", "Đăk Nông", "Lâm Đồng" };
+                var southProvinces = new[] { "Bình Phước", "Bình Dương", "Đồng Nai", "Tây Ninh", "Bà Rịa", "Vũng Tàu", "Hồ Chí Minh", "HCM", "Long An", "Đồng Tháp", "Tiền Giang", "An Giang", "Bến Tre", "Vĩnh Long", "Trà Vinh", "Hậu Giang", "Kiên Giang", "Sóc Trăng", "Bạc Liêu", "Cà Mau", "Cần Thơ" };
+
+                if (region == "North") provinces = provinces.Where(p => northProvinces.Any(n => p.ProvinceName.Contains(n, StringComparison.OrdinalIgnoreCase))).ToList();
+                else if (region == "Central") provinces = provinces.Where(p => centralProvinces.Any(c => p.ProvinceName.Contains(c, StringComparison.OrdinalIgnoreCase))).ToList();
+                else if (region == "South") provinces = provinces.Where(p => southProvinces.Any(s => p.ProvinceName.Contains(s, StringComparison.OrdinalIgnoreCase))).ToList();
+            }
+
             int pageSize = 10;
             int totalItems = provinces.Count;
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
@@ -45,6 +56,7 @@ namespace DevHub.Controllers.Moderator
 
             ViewData["Keyword"] = keyword;
             ViewData["Status"] = status;
+            ViewData["Region"] = region;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
@@ -59,7 +71,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpPost("Create")]
-        public async Task<IActionResult> Create([FromForm] string provinceName, [FromForm] bool isActive = false)
+        public async Task<IActionResult> Create([FromForm] string provinceName)
         {
             if (string.IsNullOrWhiteSpace(provinceName))
             {
@@ -77,7 +89,7 @@ namespace DevHub.Controllers.Moderator
             var newProvince = new Province
             {
                 ProvinceName = provinceName.Trim(),
-                IsActive = isActive
+                IsActive = true
             };
             
             await _provinceService.AddProvinceAsync(newProvince);

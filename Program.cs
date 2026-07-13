@@ -245,6 +245,7 @@ builder.Services.AddScoped<IAssignModeratorService, AssignModeratorService>();
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IAdminPaymentService, AdminPaymentService>();
+builder.Services.AddScoped<IProvinceService, ProvinceService>();
 
 
 // Background worker: auto-close APPROVED job posts whose deadline has passed.

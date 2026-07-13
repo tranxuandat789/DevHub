@@ -43,6 +43,7 @@ namespace DevHub.Controllers.Admin
             var query = _context.UserAccounts
                 .Include(u => u.Candidate)
                 .Include(u => u.Recruiter)
+                .Where(u => u.UserType == "Candidate" || u.UserType == "Recruiter")
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))

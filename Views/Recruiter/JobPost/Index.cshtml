@@ -7,6 +7,8 @@
 
     // Check if company profile completeness is satisfied.
     bool profileIncomplete = ViewBag.ProfileIncomplete == true;
+    int postsRemaining = ViewBag.PostsRemaining != null ? (int)ViewBag.PostsRemaining : 0;
+    bool hasPosts = ViewBag.PostsRemaining == null || postsRemaining > 0;
 
     //Filter label by status with different color
     (string Cls, string Label) StatusBadge(string? status)
@@ -48,7 +50,6 @@
         </div>
     </div>
 }
-}
     <div class="space-y-6">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -62,7 +63,7 @@
                 {
                     <span class="text-sm text-muted whitespace-nowrap">Còn <span class="font-bold text-primary">@ViewBag.PostsRemaining</span> bài đăng</span>
                 }
-                <a href="@Url.Action("Create", new { q = Model.Keyword, status = Model.Status, page = Model.Page })" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
+                <a href="@(hasPosts ? Url.Action("Create", new { q = Model.Keyword, status = Model.Status, page = Model.Page }) : "javascript:void(0)")" class="@(!hasPosts ? "btn-no-posts " : "")inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark shadow-md shadow-primary/20 transition-all">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Tạo tin tuyển dụng mới
                 </a>
@@ -159,7 +160,7 @@
                                             }
                                             @if ((j.Status ?? "").ToLower() == "closed")
                                             {
-                                                <a href="@Url.Action("Repost", new { id = j.JobId, q = Model.Keyword, status = Model.Status, page = Model.Page })" class="p-1.5 text-gray-400 hover:text-green-500 transition-colors" title="Đăng lại (Trừ 1 lượt đăng)">
+                                                <a href="@(hasPosts ? Url.Action("Repost", new { id = j.JobId, q = Model.Keyword, status = Model.Status, page = Model.Page }) : "javascript:void(0)")" class="@(!hasPosts ? "btn-no-posts " : "")p-1.5 text-gray-400 hover:text-green-500 transition-colors" title="Đăng lại (Trừ 1 lượt đăng)">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                                 </a>
                                             }
@@ -262,6 +263,18 @@
         </div>
     </div>
 
+    <!-- Modal no posts -->
+    <div id="noPostsModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] max-w-md w-full mx-4 p-8 text-center" style="font-family:Inter,sans-serif">
+            <div class="w-14 h-14 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#25324B] mb-2">Hết lượt đăng bài</h3>
+            <p class="text-[#515B6F] text-sm mb-6">Bạn không còn đủ lượt đăng bài để thực hiện thao tác này. Vui lòng mua thêm lượt để tiếp tục.</p>
+            <button type="button" id="noPostsClose" class="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white text-[15px] font-bold rounded-lg hover:bg-primary-dark transition-all w-full">Đã hiểu</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var modal = document.getElementById('deleteModal');
@@ -291,5 +304,27 @@
             modal.addEventListener('click', function (e) {
                 if (e.target === modal) { modal.classList.add('hidden'); currentId = null; }
             });
+
+            // No posts modal logic
+            var noPostsModal = document.getElementById('noPostsModal');
+            document.querySelectorAll('.btn-no-posts').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    noPostsModal.classList.remove('hidden');
+                });
+            });
+
+            var noPostsClose = document.getElementById('noPostsClose');
+            if (noPostsClose) {
+                noPostsClose.addEventListener('click', function () {
+                    noPostsModal.classList.add('hidden');
+                });
+            }
+
+            if (noPostsModal) {
+                noPostsModal.addEventListener('click', function (e) {
+                    if (e.target === noPostsModal) { noPostsModal.classList.add('hidden'); }
+                });
+            }
         });
     </script>

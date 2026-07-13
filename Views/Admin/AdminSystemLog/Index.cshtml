@@ -4,10 +4,23 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@functions {
+    public string FormatLogValue(string entityType, string value)
+    {
+        if (string.IsNullOrEmpty(value)) return value;
+        if (entityType == "BlogPost")
+        {
+            if (value == "1") return "Hoạt động";
+            if (value == "2") return "Chờ duyệt";
+            if (value == "5") return "Bị ẩn";
+        }
+        return value;
+    }
+}
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
-        <h1 class="text-[32px] font-bold text-dark mb-2">System Logs</h1>
-        <p class="text-muted">Track all changes in the system, particularly those made by moderators.</p>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Nhật ký hệ thống</h1>
+        <p class="text-muted">Theo dõi mọi thay đổi trong hệ thống, đặc biệt là các thao tác của Moderator.</p>
     </div>
 </div>
 
@@ -15,17 +28,17 @@
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
     <form method="GET" action="/AdminSystemLog" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end" onsubmit="return validateDateFilter()">
         <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">User Type</label>
+            <label class="block text-dark font-medium mb-2 text-sm">Loại người dùng</label>
             <select name="userType" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="">All Users</option>
+                <option value="">Tất cả người dùng</option>
                 <option value="Moderator" selected="@(ViewBag.SelectedUserType == "Moderator" ? "selected" : null)">Moderator</option>
                 <option value="Admin" selected="@(ViewBag.SelectedUserType == "Admin" ? "selected" : null)">Admin</option>
             </select>
         </div>
         <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Entity Type</label>
+            <label class="block text-dark font-medium mb-2 text-sm">Loại đối tượng</label>
             <select name="entityType" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
-                <option value="">All Entities</option>
+                <option value="">Tất cả đối tượng</option>
                 @if (ViewBag.EntityTypes != null)
                 {
                     foreach (string et in ViewBag.EntityTypes)
@@ -36,15 +49,15 @@
             </select>
         </div>
         <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">Start Date</label>
+            <label class="block text-dark font-medium mb-2 text-sm">Từ ngày</label>
             <input type="date" name="startDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" value="@ViewBag.SelectedStartDate" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted" />
         </div>
         <div class="w-full">
-            <label class="block text-dark font-medium mb-2 text-sm">End Date</label>
+            <label class="block text-dark font-medium mb-2 text-sm">Đến ngày</label>
             <input type="date" name="endDate" max="@DateTime.Now.ToString("yyyy-MM-dd")" value="@ViewBag.SelectedEndDate" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted" />
         </div>
         <div>
-            <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Filter</button>
+            <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc</button>
         </div>
     </form>
 </div>
@@ -55,26 +68,54 @@
         <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
                 <tr class="bg-gray-50 border-b border-[#D6DDEB]">
-                    <th class="py-4 px-6 text-dark font-bold text-sm">Date</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">User Type</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">User ID</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">Action</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">Entity Type</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">Entity ID</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">Old Value</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm">New Value</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Ngày giờ</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Loại người dùng</th>
+                 
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Thao tác</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Loại đối tượng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">ID Đối tượng</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Trạng thái cũ</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm">Trạng thái mới</th>
                 </tr>
             </thead>
             <tbody class="text-sm">
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="8" class="py-8 text-center text-muted">No system logs found.</td>
+                        <td colspan="8" class="py-8 text-center text-muted">Không tìm thấy nhật ký hệ thống nào.</td>
                     </tr>
                 }
                 @foreach (var log in Model)
                 {
-                    <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
+                    string extraInfo = "";
+                    if (log.EntityId.HasValue && ViewBag.EntityInfos != null)
+                    {
+                        var dict = ViewBag.EntityInfos as Dictionary<string, string>;
+                        string key = $"{log.EntityType}_{log.EntityId.Value}";
+                        if (dict != null && dict.ContainsKey(key))
+                        {
+                            extraInfo = dict[key];
+                        }
+                    }
+                    string performerName = log.UserType ?? "Unknown";
+                    if (log.UserId.HasValue && ViewBag.PerformerNames != null)
+                    {
+                        var pDict = ViewBag.PerformerNames as Dictionary<int, string>;
+                        if (pDict != null && pDict.ContainsKey(log.UserId.Value))
+                        {
+                            performerName = pDict[log.UserId.Value];
+                        }
+                    }
+                    <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors cursor-pointer"
+                        onclick="showLogDetails(this)"
+                        data-action="@log.Action"
+                        data-entity="@log.EntityType"
+                        data-entityid="@log.EntityId"
+                        data-old="@FormatLogValue(log.EntityType, log.OldValue)"
+                        data-new="@FormatLogValue(log.EntityType, log.NewValue)"
+                        data-extrainfo="@extraInfo"
+                        data-time="@(log.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss"))"
+                        data-performer="@performerName">
                         <td class="py-4 px-6 text-muted font-medium whitespace-nowrap">@(log.CreatedAt?.ToString("yyyy-MM-dd HH:mm"))</td>
                         <td class="py-4 px-6">
                             @if (log.UserType == "Moderator")
@@ -90,12 +131,12 @@
                                 <span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md text-xs font-semibold">@log.UserType</span>
                             }
                         </td>
-                        <td class="py-4 px-6 text-dark font-medium">@log.UserId</td>
+                        
                         <td class="py-4 px-6 text-dark">@log.Action</td>
                         <td class="py-4 px-6 text-muted">@log.EntityType</td>
                         <td class="py-4 px-6 text-dark font-medium">@log.EntityId</td>
-                        <td class="py-4 px-6 text-muted max-w-[150px] truncate" title="@log.OldValue">@log.OldValue</td>
-                        <td class="py-4 px-6 text-muted max-w-[150px] truncate" title="@log.NewValue">@log.NewValue</td>
+                        <td class="py-4 px-6 text-muted max-w-[150px] truncate" title="@FormatLogValue(log.EntityType, log.OldValue)">@FormatLogValue(log.EntityType, log.OldValue)</td>
+                        <td class="py-4 px-6 text-muted max-w-[150px] truncate" title="@FormatLogValue(log.EntityType, log.NewValue)">@FormatLogValue(log.EntityType, log.NewValue)</td>
                     </tr>
                 }
             </tbody>
@@ -130,7 +171,71 @@
     }
 </div>
 
+<!-- Modal Detail Log -->
+<div id="logDetailsModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-11/12 max-w-2xl shadow-xl">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <h2 class="text-xl font-bold text-dark">Chi tiết Log</h2>
+            <button type="button" onclick="closeLogDetails()" class="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
+            <div>
+                <p class="text-sm text-muted font-bold">Người thực hiện</p>
+                <p id="modalPerformer" class="text-dark font-medium"></p>
+            </div>
+            <div>
+                <p class="text-sm text-muted font-bold">Thời gian</p>
+                <p id="modalTime" class="text-dark font-medium"></p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <p class="text-sm text-muted font-bold">Thao tác</p>
+                <p id="modalAction" class="text-dark font-medium"></p>
+            </div>
+            <div>
+                <p class="text-sm text-muted font-bold">Dữ liệu liên quan</p>
+                <p id="modalEntity" class="text-dark font-medium"></p>
+            </div>
+        </div>
+        <div class="mb-4">
+            <p class="text-sm text-muted font-bold">Trạng thái cũ</p>
+            <div id="modalOldValue" class="bg-gray-50 p-3 rounded border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto"></div>
+        </div>
+        <div>
+            <p class="text-sm text-muted font-bold">Trạng thái mới</p>
+            <div id="modalNewValue" class="bg-gray-50 p-3 rounded border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto"></div>
+        </div>
+        <div class="mt-6 text-right">
+            <button type="button" onclick="closeLogDetails()" class="px-4 py-2 bg-gray-200 text-dark rounded hover:bg-gray-300 font-medium transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    function showLogDetails(row) {
+        document.getElementById('modalAction').innerText = row.getAttribute('data-action');
+        let entity = row.getAttribute('data-entity') || 'N/A';
+        let entityId = row.getAttribute('data-entityid') || 'N/A';
+        let extraInfo = row.getAttribute('data-extrainfo');
+        if (extraInfo) {
+            document.getElementById('modalEntity').innerText = extraInfo;
+        } else {
+            document.getElementById('modalEntity').innerText = entity + ' (ID: ' + entityId + ')';
+        }
+        document.getElementById('modalOldValue').innerText = row.getAttribute('data-old') || 'N/A';
+        document.getElementById('modalNewValue').innerText = row.getAttribute('data-new') || 'N/A';
+        document.getElementById('modalPerformer').innerText = row.getAttribute('data-performer') || 'N/A';
+        document.getElementById('modalTime').innerText = row.getAttribute('data-time') || 'N/A';
+        
+        
+        document.getElementById('logDetailsModal').classList.remove('hidden');
+    }
+
+    function closeLogDetails() {
+        document.getElementById('logDetailsModal').classList.add('hidden');
+    }
+
     function validateDateFilter() {
         var startDate = document.querySelector('input[name="startDate"]').value;
         var endDate = document.querySelector('input[name="endDate"]').value;

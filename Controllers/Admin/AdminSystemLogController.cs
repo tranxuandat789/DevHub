@@ -1,6 +1,8 @@
+using DevHub.Data;
 using DevHub.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevHub.Controllers.Admin
 {
@@ -9,10 +11,12 @@ namespace DevHub.Controllers.Admin
     public class AdminSystemLogController : Controller
     {
         private readonly IAuditLogService _auditLogService;
+        private readonly ItrecruitmentDbContext _context;
 
-        public AdminSystemLogController(IAuditLogService auditLogService)
+        public AdminSystemLogController(IAuditLogService auditLogService, ItrecruitmentDbContext context)
         {
             _auditLogService = auditLogService;
+            _context = context;
         }
 
         [HttpGet("")]
@@ -47,6 +51,82 @@ namespace DevHub.Controllers.Admin
             int totalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize);
             
             var paginatedLogs = logs.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            var entityInfos = new Dictionary<string, string>();
+
+            var userAccountLogs = paginatedLogs.Where(l => l.EntityType == "UserAccount" && l.EntityId.HasValue).Select(l => l.EntityId.Value).ToList();
+            if (userAccountLogs.Any())
+            {
+                var users = await _context.UserAccounts
+                    .Include(u => u.Candidate)
+                    .Include(u => u.Recruiter)
+                    .Include(u => u.Admin)
+                    .Where(u => userAccountLogs.Contains(u.UserId))
+                    .ToListAsync();
+                
+                foreach (var u in users)
+                {
+                    string name = u.Candidate?.FullName ?? u.Recruiter?.FullName ?? u.Admin?.FullName ?? "Không có tên";
+                    entityInfos[$"UserAccount_{u.UserId}"] = $"{name} ({u.Email})";
+                }
+            }
+
+            var techLogs = paginatedLogs.Where(l => l.EntityType == "CommonTechnology" && l.EntityId.HasValue).Select(l => l.EntityId.Value).ToList();
+            if (techLogs.Any())
+            {
+                var techs = await _context.CommonTechnologies
+                    .Where(t => techLogs.Contains(t.TechId))
+                    .ToListAsync();
+                
+                foreach (var t in techs)
+                {
+                    entityInfos[$"CommonTechnology_{t.TechId}"] = t.TechName;
+                }
+            }
+
+            var blogLogs = paginatedLogs.Where(l => l.EntityType == "BlogPost" && l.EntityId.HasValue).Select(l => l.EntityId.Value).ToList();
+            if (blogLogs.Any())
+            {
+                var blogs = await _context.BlogPosts
+                    .Where(b => blogLogs.Contains(b.BlogId))
+                    .ToListAsync();
+                
+                foreach (var b in blogs)
+                {
+                    entityInfos[$"BlogPost_{b.BlogId}"] = string.IsNullOrEmpty(b.Title) ? "Không có tiêu đề" : b.Title;
+                }
+            }
+
+            // Fallback cho các entity đã bị xóa khỏi database
+            foreach (var log in paginatedLogs.Where(l => l.EntityId.HasValue))
+            {
+                string key = $"{log.EntityType}_{log.EntityId.Value}";
+                if (!entityInfos.ContainsKey(key))
+                {
+                    entityInfos[key] = $"{log.EntityType} đã bị xóa (ID: {log.EntityId.Value})";
+                }
+            }
+
+            ViewBag.EntityInfos = entityInfos;
+
+            var performerIds = paginatedLogs.Where(l => l.UserId.HasValue).Select(l => l.UserId.Value).Distinct().ToList();
+            var performerNames = new Dictionary<int, string>();
+            if (performerIds.Any())
+            {
+                var performers = await _context.UserAccounts
+                    .Include(u => u.Admin)
+                    .Include(u => u.Candidate)
+                    .Include(u => u.Recruiter)
+                    .Where(u => performerIds.Contains(u.UserId))
+                    .ToListAsync();
+                
+                foreach (var p in performers)
+                {
+                    string pName = p.Admin?.FullName ?? p.Candidate?.FullName ?? p.Recruiter?.FullName ?? p.Email ?? "Unknown";
+                    performerNames[p.UserId] = pName;
+                }
+            }
+            ViewBag.PerformerNames = performerNames;
 
             ViewBag.SelectedUserType = userType;
             ViewBag.SelectedEntityType = entityType;

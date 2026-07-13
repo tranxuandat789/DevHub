@@ -54,13 +54,32 @@ namespace DevHub.Services.BackgroundServices
                                 && j.Status.ToUpper() == "APPROVED")
                     .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, "CLOSED"), token);
 
-                if (affected > 0)
+                // Update active(approved) posts that have reached their hiring quota
+                var affectedQuota = await db.JobPosts
+                    .Where(j => j.Status != null
+                                && j.Status.ToUpper() == "APPROVED"
+                                && j.HiringQuota != null
+                                && j.Applications.Count(a => a.Status == "HIRED") >= j.HiringQuota)
+                    .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, "CLOSED"), token);
+
+                if (affectedQuota > 0 && !token.IsCancellationRequested)
+                    _logger.LogInformation("JobPostAutoClose: closed {Count} job post(s) reaching hiring quota.", affectedQuota);
+
+                if (affected > 0 && !token.IsCancellationRequested)
                     _logger.LogInformation("JobPostAutoClose: closed {Count} expired job post(s).", affected);
             }
             catch (Exception ex)
             {
+                if (token.IsCancellationRequested) return; // Ignore errors (and logging) during shutdown.
                 // Never let a failed run crash the background loop.
-                _logger.LogError(ex, "JobPostAutoClose: error while closing expired job posts.");
+                try
+                {
+                    _logger.LogError(ex, "JobPostAutoClose: error while closing expired job posts.");
+                }
+                catch
+                {
+                    // Ignore if logger is already disposed
+                }
             }
         }
     }

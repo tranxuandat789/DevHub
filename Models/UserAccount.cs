@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -22,6 +22,8 @@ public partial class UserAccount
     public string UserType { get; set; } = null!;
 
     public bool? IsActive { get; set; }
+
+    public bool EmailNotificationsEnabled { get; set; } = true;
 
     public DateTime? CreatedAt { get; set; }
 

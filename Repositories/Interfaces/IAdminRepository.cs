@@ -19,4 +19,7 @@ public interface IAdminRepository
 
     // Check if username already exists (exclude current admin to allow self-update)
     Task<bool> IsUsernameExistsAsync(string username, int excludeAdminId);
+
+    // Get all admins with role MODERATOR
+    Task<List<Admin>> GetAllModeratorsAsync();
 }

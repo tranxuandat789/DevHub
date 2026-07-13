@@ -109,4 +109,12 @@ public class RecruiterRepository : IRecruiterRepository
             a.EntityId == recruiterId && 
             a.OldValue == null);
     }
+
+    public async Task<List<Recruiter>> GetRecruitersByCompanyIdAsync(int companyId)
+    {
+        return await _db.Recruiters
+            .Include(r => r.RecruiterNavigation)
+            .Where(r => r.CompanyId == companyId)
+            .ToListAsync();
+    }
 }          

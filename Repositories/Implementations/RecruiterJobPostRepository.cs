@@ -135,15 +135,17 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
         }
     }
 
-//create notification for moderators when job post is created or updated.
-    public async Task NotifyModeratorsAsync(string title, string message, string referenceType, int referenceId)
+//create notification for a specific moderator when a job post is created or updated.
+    public async Task NotifyModeratorAsync(int moderatorId, string title, string message, string referenceType, int referenceId)
     {
-        var moderators = await _context.UserAccounts.Where(u => u.UserType == "MODERATOR" && u.IsActive == true).ToListAsync();
-        foreach (var mod in moderators)
+        var modAccount = await _context.UserAccounts
+            .FirstOrDefaultAsync(u => u.UserType == "MODERATOR" && u.UserId == moderatorId);
+            
+        if (modAccount != null)
         {
             var n = new Notification
             {
-                UserId = mod.UserId,
+                UserId = modAccount.UserId,
                 UserType = "MODERATOR",
                 Type = "JobPostPending",
                 Title = title,
@@ -155,8 +157,8 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
                 CreatedAt = DateTime.UtcNow
             };
             _context.Notifications.Add(n);
+            await _context.SaveChangesAsync();
         }
-        await _context.SaveChangesAsync();
     }
 
     // Notify every candidate whose application on this job is still active (PENDING/APPROVED) that the

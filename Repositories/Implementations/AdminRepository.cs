@@ -72,4 +72,10 @@ public class AdminRepository : IAdminRepository
     public Task<bool> IsUsernameExistsAsync(string username, int excludeAdminId)
         => _db.Admins
               .AnyAsync(a => a.Username == username && a.AdminId != excludeAdminId);
+
+    // Get all admins with role MODERATOR
+    public Task<List<Admin>> GetAllModeratorsAsync()
+        => _db.Admins
+              .Where(a => a.Role == "MODERATOR" && a.AdminNavigation.IsActive == true)
+              .ToListAsync();
 }

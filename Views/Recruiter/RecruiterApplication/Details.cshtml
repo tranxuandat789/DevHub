@@ -110,6 +110,16 @@
                     Lên lịch phỏng vấn
                 </a>
             }
+            @if (Model.CanHire)
+            {
+                <form id="hireForm" method="post" action="/Recruiter/RecruiterApplication/Hire/@Model.ApplicationId">
+                    @Html.AntiForgeryToken()
+                    <button type="button" data-decision="hire" class="js-decision-btn px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Trúng tuyển
+                    </button>
+                </form>
+            }
         </div>
     </div>
 
@@ -295,6 +305,13 @@
                     msgEl.innerHTML = 'Bạn sắp <b>phê duyệt</b> hồ sơ của <b>' + candidateName + '</b>. Ứng viên sẽ nhận thông báo và bạn có thể lên lịch phỏng vấn.';
                     confirmBtn.className = 'flex-1 px-6 py-2.5 text-white text-[15px] font-bold rounded-lg transition-colors bg-green-600 hover:bg-green-700';
                     confirmBtn.textContent = 'Phê duyệt';
+                } else if (decision === 'hire') {
+                    targetForm = document.getElementById('hireForm');
+                    iconBox.className = 'w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4 bg-blue-100 text-blue-600';
+                    titleEl.textContent = 'Xác nhận trúng tuyển';
+                    msgEl.innerHTML = 'Bạn sắp chuyển hồ sơ của <b>' + candidateName + '</b> sang trạng thái <b>Trúng tuyển</b>. Ứng viên sẽ nhận thông báo chúc mừng.';
+                    confirmBtn.className = 'flex-1 px-6 py-2.5 text-white text-[15px] font-bold rounded-lg transition-colors bg-blue-600 hover:bg-blue-700';
+                    confirmBtn.textContent = 'Trúng tuyển';
                 } else {
                     targetForm = document.getElementById('rejectForm');
                     iconBox.className = 'w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4 bg-red-100 text-red-600';
@@ -344,15 +361,33 @@
                                 return;
                             }
 
+                            function renderValue(val) {
+                                if (Array.isArray(val)) {
+                                    if (val.length === 0) return '<span class="text-gray-500 italic">Không có dữ liệu</span>';
+                                    let res = '<ul class="list-disc pl-5 space-y-1 mt-1">';
+                                    val.forEach(item => { res += '<li>' + renderValue(item) + '</li>'; });
+                                    res += '</ul>';
+                                    return res;
+                                } else if (typeof val === 'object' && val !== null) {
+                                    let res = '<div class="space-y-1 mt-1">';
+                                    for (const [k, v] of Object.entries(val)) {
+                                        if (v !== null && v !== '') {
+                                            let displayKey = k.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                            res += '<div><span class="font-medium text-gray-800">' + displayKey + ': </span>' + renderValue(v) + '</div>';
+                                        }
+                                    }
+                                    res += '</div>';
+                                    return res;
+                                }
+                                return '<span class="text-gray-700">' + (val || '<span class="text-gray-400 italic">N/A</span>') + '</span>';
+                            }
+
                             var html = '<div class="space-y-6">';
                             for (const [key, value] of Object.entries(data)) {
-                                if (value) {
-                                    html += '<div><h4 class="text-sm font-bold text-gray-900 uppercase mb-2 border-b pb-1">' + key + '</h4>';
-                                    if (typeof value === 'object') {
-                                        html += '<pre class="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 p-3 rounded">' + JSON.stringify(value, null, 2).replace(/"/g, '').replace(/\{|\}/g, '').trim() + '</pre>';
-                                    } else {
-                                        html += '<p class="text-sm text-gray-700 whitespace-pre-line">' + value + '</p>';
-                                    }
+                                if (value && (!Array.isArray(value) || value.length > 0)) {
+                                    let displayTitle = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                    html += '<div><h4 class="text-sm font-bold text-[#4640DE] uppercase mb-2 border-b border-gray-200 pb-1">' + displayTitle + '</h4>';
+                                    html += '<div class="text-[15px] leading-relaxed">' + renderValue(value) + '</div>';
                                     html += '</div>';
                                 }
                             }

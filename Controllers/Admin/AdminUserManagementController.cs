@@ -43,7 +43,7 @@ namespace DevHub.Controllers.Admin
             var query = _context.UserAccounts
                 .Include(u => u.Candidate)
                 .Include(u => u.Recruiter)
-                .Where(u => u.UserType == "Candidate" || u.UserType == "Recruiter")
+                .Where(u => u.UserType != "Admin" && u.UserType != "Moderator")
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
@@ -134,9 +134,9 @@ namespace DevHub.Controllers.Admin
                 return NotFound(new { success = false, message = "Người dùng không tồn tại." });
             }
 
-            if (user.UserType == "Admin")
+            if (user.UserType == "Admin" || user.UserType == "Moderator")
             {
-                return BadRequest(new { success = false, message = "Không thể thay đổi trạng thái của Admin." });
+                return BadRequest(new { success = false, message = "Không thể thay đổi trạng thái của Admin hoặc Moderator." });
             }
 
             bool oldStatus = user.IsActive ?? true;

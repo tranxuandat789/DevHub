@@ -1,25 +1,28 @@
 @model IEnumerable<DevHub.Models.BlogPost>
 
 @{
-    ViewData["Title"] = "Quan Ly Blog";
+    ViewData["Title"] = "Quản lý Blog";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
     
-    int currentPage = ViewBag.CurrentPage ?? 1;
-    int totalPages = ViewBag.TotalPages ?? 1;
-    int totalItems = ViewBag.TotalItems ?? 0;
+    int currentPage = (ViewBag.CurrentPage as int?) ?? 1;
+    int totalPages = (ViewBag.TotalPages as int?) ?? 1;
+    int totalItems = (ViewBag.TotalItems as int?) ?? 0;
 }
 
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
-        <h1 class="text-[32px] font-bold text-dark mb-2">Duyệt bài viết</h1>
-        <p class="text-muted">Quản lý và phê duyệt các bài viết từ nhà tuyển dụng.</p>
+        <h1 class="text-[32px] font-bold text-dark mb-2">Quản lý Blog</h1>
+        <p class="text-muted">Quản lý các bài blog của bạn trên hệ thống.</p>
     </div>
+    <a href="/ModeratorBlog/Create" class="inline-flex items-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-[0_4px_14px_rgba(37,99,235,0.39)]">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Tạo blog mới
+    </a>
 </div>
 
 <!-- Filters & Sort -->
 <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 mb-8 border border-[#D6DDEB]">
     <form class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end" method="get" action="/ModeratorBlog">
-
         <div class="w-full">
             <label class="block text-dark font-medium mb-2 text-sm">Tìm kiếm</label>
             <input type="text" name="keyword" value="@ViewBag.Keyword" placeholder="Nhập tiêu đề..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
@@ -33,8 +36,7 @@
             <select name="status" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
                 <option value="" selected="@(string.IsNullOrEmpty(ViewBag.Status))">Tất cả</option>
                 <option value="1" selected="@(ViewBag.Status == "1")">Đã xuất bản</option>
-                <option value="3" selected="@(ViewBag.Status == "3")">Chờ duyệt</option>
-                <option value="4" selected="@(ViewBag.Status == "4")">Từ chối</option>
+                <option value="0" selected="@(ViewBag.Status == "0")">Bản nháp</option>
                 <option value="2" selected="@(ViewBag.Status == "2")">Ẩn</option>
             </select>
         </div>
@@ -60,7 +62,6 @@
                     <th class="py-4 px-6 text-dark font-bold text-sm w-16">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Bài viết</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm w-32">Ngày tạo</th>
-
                     <th class="py-4 px-6 text-dark font-bold text-sm w-56">Trạng thái</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center w-48">Thao tác</th>
                 </tr>
@@ -86,9 +87,9 @@
                                     </div>
                                 }
                                 <div>
-                                    <a href="/ModeratorBlog/Preview/@item.BlogId" target="_blank" class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1 block">@item.Title</a>
+                                    <a href="/CareerHandbook/@item.Slug" target="_blank" class="font-bold text-dark hover:text-primary cursor-pointer line-clamp-1 block">@item.Title</a>
                                     <div class="text-xs text-muted mt-1 flex gap-2">
-                                        <span>Bởi: @(item.Publisher?.FullName ?? "Unknown")</span>
+                                        <span>Bởi: @(item.Publisher?.FullName ?? "Bạn")</span>
                                     </div>
                                 </div>
                             </td>
@@ -106,44 +107,32 @@
                                         Ẩn
                                     </span>
                                 }
-                                else if (item.Status == 3)
+                                else if (item.Status == 0)
                                 {
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-yellow-100 text-yellow-800">
-                                        Chờ duyệt
-                                    </span>
-                                }
-                                else if (item.Status == 4)
-                                {
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-red-100 text-red-800">
-                                        Từ chối
+                                        Bản nháp
                                     </span>
                                 }
                             <td class="py-4 px-3 text-center whitespace-nowrap">
-                                <a href="/ModeratorBlog/Preview/@item.BlogId" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem chi tiết">
+                                <a href="/CareerHandbook/@item.Slug" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem trước">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </a>
-                                @if (item.Status == 3)
+                                <a href="/ModeratorBlog/Edit/@item.BlogId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </a>
+                                @if (item.Status == 1)
                                 {
-                                    <button onclick="approvePost(@item.BlogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Duyệt">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    </button>
-                                    <button onclick="openRejectModal(@item.BlogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Từ chối">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                }
-                                else if (item.Status == 1)
-                                {
-                                    <button onclick="openHideModal(@item.BlogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors" title="Ẩn bài viết">
+                                    <button onclick="toggleVisibility(@item.BlogId, 'hide')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors" title="Ẩn bài viết">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
                                     </button>
                                 }
-                                else if (item.Status == 2 || item.Status == 5)
+                                else
                                 {
-                                    <button onclick="toggleVisibility(@item.BlogId, 'show')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Hiển thị bài viết">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    <button onclick="toggleVisibility(@item.BlogId, 'show')" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Xuất bản">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </button>
                                 }
-                                <button onclick="openDeleteModal(@item.BlogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="X&#243;a b&#224;i vi&#7871;t">
+                                <button onclick="openDeleteModal(@item.BlogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Xóa bài viết">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </td>
@@ -189,46 +178,13 @@
     </div>
 </div>
 
-<!-- Approve Confirm Modal -->
-<div id="approveModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-        <h3 class="text-xl font-bold text-dark mb-3">Xác nhận duyệt bài viết</h3>
-        <p class="text-sm text-muted mb-6">Bạn có chắc chắn muốn duyệt bài viết này? Bài viết sẽ được xuất bản và tác giả sẽ nhận được thông báo.</p>
-        <div class="flex justify-end gap-3">
-            <button type="button" onclick="closeApproveModal()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">Hủy</button>
-            <button type="button" onclick="confirmApprove()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-colors">Duyệt bài</button>
-        </div>
-    </div>
-</div>
-
-<!-- Hide Modal -->
-<div id="hideModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-        <h3 class="text-xl font-bold text-dark mb-2">Ẩn bài viết</h3>
-        <p class="text-sm text-muted mb-4">Bài viết sẽ bị ẩn khỏi trang cẩm nang nghề nghiệp. Vui lòng nhập lý do để thông báo cho tác giả qua email.</p>
-        <form id="hideForm" onsubmit="submitHide(event)">
-            <input type="hidden" id="hideBlogId" />
-            <div class="mb-4">
-                <textarea id="hideReason" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Lý do ẩn bài viết..." required></textarea>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeHideModal()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">Hủy</button>
-                <button type="submit" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-bold transition-colors">Xác nhận ẩn</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- Delete Modal -->
 <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
         <h3 class="text-xl font-bold text-dark mb-2">Xóa bài viết</h3>
-        <p class="text-sm text-muted mb-4">Hành động này sẽ xóa bài viết vĩnh viễn. Vui lòng nhập lý do để thông báo cho tác giả qua email.</p>
+        <p class="text-sm text-muted mb-4">Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác.</p>
         <form id="deleteForm" onsubmit="submitDelete(event)">
             <input type="hidden" id="deleteBlogId" />
-            <div class="mb-4">
-                <textarea id="deleteReason" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400" placeholder="Lý do xóa bài viết..." required></textarea>
-            </div>
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">Hủy</button>
                 <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors">Xác nhận xóa</button>
@@ -237,28 +193,8 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div id="rejectModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-        <h3 class="text-xl font-bold text-dark mb-4">Từ chối bài viết</h3>
-        <p class="text-sm text-muted mb-4">Vui lòng nhập lý do từ chối để thông báo cho người đăng.</p>
-        <form id="rejectForm" onsubmit="submitReject(event)">
-            <input type="hidden" id="rejectBlogId" name="id" />
-            <div class="mb-4">
-                <textarea id="rejectReason" name="reason" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Lý do từ chối..." required></textarea>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeRejectModal()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">Hủy</button>
-                <button type="submit" id="rejectSubmitBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors">Xác nhận từ chối</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 @section Scripts {
     <script>
-        let _pendingApproveId = null;
-
         function showLoading(text) {
             document.getElementById('loadingText').textContent = text || 'Đang xử lý...';
             document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -268,111 +204,11 @@
             document.getElementById('loadingOverlay').classList.add('hidden');
         }
 
-        // Approve: mở confirm modal
-        function approvePost(id) {
-            _pendingApproveId = id;
-            document.getElementById('approveModal').classList.remove('hidden');
-        }
-
-        function closeApproveModal() {
-            document.getElementById('approveModal').classList.add('hidden');
-            _pendingApproveId = null;
-        }
-
-        async function confirmApprove() {
-            if (!_pendingApproveId) return;
-            const id = _pendingApproveId;
-            closeApproveModal();
-            showLoading('Đang duyệt bài viết...');
-            try {
-                const response = await fetch(`/ModeratorBlog/Approve/${id}`, { method: 'POST' });
-                hideLoading();
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Đã xảy ra lỗi, vui lòng thử lại.');
-                }
-            } catch (error) {
-                hideLoading();
-                alert('Đã xảy ra lỗi, vui lòng thử lại.');
-            }
-        }
-
         async function toggleVisibility(id, action) {
-            // Chỉ dùng cho action 'show' (hiện lại bài)
-            showLoading('Đang hiện bài viết...');
-            try {
-                const response = await fetch(`/ModeratorBlog/ToggleVisibility/${id}`, {
-                    method: 'POST',
-                    body: new FormData()
-                });
-                hideLoading();
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Đã xảy ra lỗi, vui lòng thử lại.');
-                }
-            } catch (error) {
-                hideLoading();
-                alert('Đã xảy ra lỗi, vui lòng thử lại.');
-            }
-        }
-
-        function openHideModal(id) {
-            document.getElementById('hideBlogId').value = id;
-            document.getElementById('hideReason').value = '';
-            document.getElementById('hideModal').classList.remove('hidden');
-        }
-
-        function closeHideModal() {
-            document.getElementById('hideModal').classList.add('hidden');
-        }
-
-        async function submitHide(e) {
-            e.preventDefault();
-            const id = document.getElementById('hideBlogId').value;
-            const reason = document.getElementById('hideReason').value;
-            closeHideModal();
-            showLoading('Đang ẩn bài viết...');
+            showLoading(action === 'show' ? 'Đang xuất bản...' : 'Đang ẩn...');
             try {
                 const formData = new FormData();
-                formData.append('reason', reason);
                 const response = await fetch(`/ModeratorBlog/ToggleVisibility/${id}`, {
-                    method: 'POST',
-                    body: formData
-                });
-                hideLoading();
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Đã xảy ra lỗi, vui lòng thử lại.');
-                }
-            } catch (error) {
-                hideLoading();
-                alert('Đã xảy ra lỗi, vui lòng thử lại.');
-            }
-        }
-
-        function openRejectModal(id) {
-            document.getElementById('rejectBlogId').value = id;
-            document.getElementById('rejectReason').value = '';
-            document.getElementById('rejectModal').classList.remove('hidden');
-        }
-
-        function closeRejectModal() {
-            document.getElementById('rejectModal').classList.add('hidden');
-        }
-
-        async function submitReject(e) {
-            e.preventDefault();
-            const id = document.getElementById('rejectBlogId').value;
-            const reason = document.getElementById('rejectReason').value;
-            closeRejectModal();
-            showLoading('Đang từ chối bài viết...');
-            try {
-                const formData = new FormData();
-                formData.append('reason', reason);
-                const response = await fetch(`/ModeratorBlog/Reject/${id}`, {
                     method: 'POST',
                     body: formData
                 });
@@ -390,7 +226,6 @@
 
         function openDeleteModal(id) {
             document.getElementById('deleteBlogId').value = id;
-            document.getElementById('deleteReason').value = '';
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
@@ -401,12 +236,10 @@
         async function submitDelete(e) {
             e.preventDefault();
             const id = document.getElementById('deleteBlogId').value;
-            const reason = document.getElementById('deleteReason').value;
             closeDeleteModal();
-            showLoading('Đang xóa bài viết...');
+            showLoading('Đang xóa...');
             try {
                 const formData = new FormData();
-                formData.append('reason', reason);
                 const response = await fetch(`/ModeratorBlog/Delete/${id}`, {
                     method: 'POST',
                     body: formData

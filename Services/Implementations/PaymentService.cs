@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using DevHub.Helpers;
 using DevHub.Models;
 using DevHub.Repositories.Interfaces;
@@ -143,13 +143,20 @@ public class PaymentService : IPaymentService
         decimal finalAmount = originalPrice - discountAmount - deductionAmount;
         if (finalAmount < 0) finalAmount = 0;
 
+        decimal vatRate = _configuration.GetValue<decimal>("Tax:VatRatePercent", 8m);
+        decimal vatAmount = Math.Round(finalAmount * vatRate / 100m, 0, MidpointRounding.AwayFromZero);
+        decimal totalAmount = finalAmount + vatAmount;
+
         return new VoucherCheckResultVm
         {
             IsValid = true,
             Message = "Áp dụng thành công.",
             DiscountAmount = discountAmount,
             DeductionAmount = deductionAmount,
-            FinalAmount = finalAmount
+            FinalAmount = finalAmount,
+            VatRate = vatRate,
+            VatAmount = vatAmount,
+            TotalAmount = totalAmount
         };
     }
 
@@ -172,6 +179,8 @@ public class PaymentService : IPaymentService
 
         string txnRef = DateTime.UtcNow.ToString("yyyyMMddHHmmss") + "_" + companyId;
         
+        string? buyerTaxCode = await _paymentRepo.GetBuyerTaxCodeAsync(companyId);
+
         var tx = new PackageTransaction
         {
             CompanyId = companyId,
@@ -179,6 +188,10 @@ public class PaymentService : IPaymentService
             AmountVnd = service.Price,
             DiscountAmount = voucherCheck.DiscountAmount,
             FinalAmount = voucherCheck.FinalAmount,
+            VatRate = voucherCheck.VatRate,
+            VatAmount = voucherCheck.VatAmount,
+            TotalAmount = voucherCheck.TotalAmount,
+            BuyerTaxCode = buyerTaxCode,
             PaymentMethod = "VNPAY",
             VnpayTxnRef = txnRef,
             Status = "PENDING",
@@ -214,7 +227,7 @@ public class PaymentService : IPaymentService
         vnpay.AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"]!);
         
         // Amount must be multiplied by 100
-        var amount = (long)(voucherCheck.FinalAmount * 100);
+        var amount = (long)(voucherCheck.TotalAmount * 100);
         vnpay.AddRequestData("vnp_Amount", amount.ToString());
         vnpay.AddRequestData("vnp_CreateDate", DateTime.UtcNow.AddHours(7).ToString("yyyyMMddHHmmss")); // VNPay requires GMT+7
         vnpay.AddRequestData("vnp_CurrCode", _configuration["Vnpay:CurrCode"] ?? "VND");
@@ -264,7 +277,8 @@ public class PaymentService : IPaymentService
         long vnpAmount = 0;
         long.TryParse(vnpay.GetResponseData("vnp_Amount"), out vnpAmount);
         
-        if (vnpAmount != (long)(tx.FinalAmount * 100))
+        long expectedAmount = tx.TotalAmount > 0 ? (long)(tx.TotalAmount * 100) : (long)(tx.FinalAmount * 100);
+        if (vnpAmount != expectedAmount)
         {
             return (false, "04", "Số tiền không hợp lệ");
         }
@@ -297,6 +311,7 @@ public class PaymentService : IPaymentService
             PackageName = t.Service?.PackageName ?? "Unknown",
             Status = t.Status,
             FinalAmount = t.FinalAmount,
+            TotalAmount = t.TotalAmount,
             TransactionType = t.TransactionType
         }).ToList();
 
@@ -326,7 +341,11 @@ public class PaymentService : IPaymentService
             VnpayTxnRef = tx.VnpayTxnRef,
             VnpayTransactionNo = tx.VnpayTransactionNo,
             VnpayBankCode = tx.VnpayBankCode,
-            PromoCode = tx.Promotion?.PromoCode
+            PromoCode = tx.Promotion?.PromoCode,
+            VatRate = tx.VatRate,
+            VatAmount = tx.VatAmount,
+            TotalAmount = tx.TotalAmount,
+            BuyerTaxCode = tx.BuyerTaxCode
         };
     }
 

@@ -24,8 +24,6 @@
                 <option value="">Tất cả vai trò</option>
                 <option value="Candidate" selected="@(ViewBag.Role == "Candidate" ? "selected" : null)">Ứng viên</option>
                 <option value="Recruiter" selected="@(ViewBag.Role == "Recruiter" ? "selected" : null)">Nhà tuyển dụng</option>
-                <option value="moderator" selected="@(ViewBag.Role == "moderator" ? "selected" : null)">Kiểm duyệt viên</option>
-                <option value="admin" selected="@(ViewBag.Role == "admin" ? "selected" : null)">Quản trị viên</option>
             </select>
         </div>
         <div class="w-full">
@@ -143,21 +141,6 @@
                             <a href="/moderator/users/details/@user.UserId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Xem chi tiết">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                             </a>
-                            @if (userType != "admin" && userType != "moderator")
-                            {
-                                if (isActive)
-                                {
-                                    <button onclick="toggleLock(@user.UserId, true)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Khóa tài khoản">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button onclick="toggleLock(@user.UserId, false)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Mở khóa tài khoản">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
-                                    </button>
-                                }
-                            }
                         </td>
                     </tr>
                     rowIndex++;
@@ -221,36 +204,6 @@
     </div>
 </div>
 
-<!-- Modal Xác nhận -->
-<div id="confirmModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4 transition-opacity duration-300">
-    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-md p-6 relative transform transition-all scale-100">
-        <div class="flex items-center gap-3 mb-4 text-orange-500">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            <h3 class="text-xl font-bold text-dark">Xác nhận thao tác</h3>
-        </div>
-        <p id="confirmMessage" class="text-muted text-sm mb-4">Bạn có chắc chắn muốn thực hiện hành động này?</p>
-        <div id="reasonContainer" class="mb-6 hidden">
-            <label class="block text-dark font-medium mb-2 text-sm">Lý do khóa tài khoản <span class="text-red-500">*</span></label>
-            <textarea id="lockReason" rows="3" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted" placeholder="Nhập lý do chi tiết để gửi cho người dùng..."></textarea>
-        </div>
-        <div class="flex justify-end gap-3">
-            <button onclick="closeConfirmModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy</button>
-            <button id="confirmBtn" class="px-5 py-2.5 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors">Đồng ý</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Thông báo -->
-<div id="alertModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4 transition-opacity duration-300">
-    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-sm p-6 relative text-center transform transition-all scale-100">
-        <div id="alertIcon" class="mx-auto w-12 h-12 mb-4 flex items-center justify-center rounded-full bg-green-100 text-green-500">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-        </div>
-        <h3 class="text-xl font-bold text-dark mb-2" id="alertTitle">Thông báo</h3>
-        <p id="alertMessage" class="text-muted text-sm mb-6"></p>
-        <button onclick="closeAlertModal()" class="w-full px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-opacity-90 transition-colors">Đóng</button>
-    </div>
-</div>
 
 @section Scripts {
     <script>
@@ -261,88 +214,6 @@
         
         function closeReportModal() {
             document.getElementById('reportModal').classList.add('hidden');
-        }
-
-        let pendingLockId = null;
-        let isLockingAction = false;
-
-        function toggleLock(id, currentStatus) {
-            pendingLockId = id;
-            isLockingAction = currentStatus; // true if currently active (so action is to LOCK)
-            
-            const actionText = currentStatus ? 'KHÓA' : 'MỞ KHÓA';
-            document.getElementById('confirmMessage').innerHTML = `Cảnh báo: Bạn có chắc chắn muốn <b class="${currentStatus ? 'text-red-500' : 'text-green-500'}">${actionText}</b> tài khoản <b>#${id}</b> không? Hành động này sẽ được ghi vào lịch sử.`;
-            
-            if (isLockingAction) {
-                document.getElementById('reasonContainer').classList.remove('hidden');
-                document.getElementById('lockReason').value = '';
-            } else {
-                document.getElementById('reasonContainer').classList.add('hidden');
-            }
-
-            document.getElementById('confirmModal').classList.remove('hidden');
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.add('hidden');
-            pendingLockId = null;
-        }
-
-        document.getElementById('confirmBtn').addEventListener('click', async function() {
-            if (pendingLockId === null) return;
-            
-            const id = pendingLockId;
-            const reason = document.getElementById('lockReason').value.trim();
-
-            if (isLockingAction && !reason) {
-                alert("Vui lòng nhập lý do khóa tài khoản!");
-                return;
-            }
-
-            closeConfirmModal();
-
-            try {
-                const response = await fetch(`/moderator/users/${id}/toggle-status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reason: reason })
-                });
-                
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    showAlert("Thành công!", result.message, true, true);
-                } else {
-                    showAlert("Lỗi", result.message || 'Có lỗi xảy ra.', false, false);
-                }
-            } catch (err) {
-                showAlert("Lỗi", "Lỗi kết nối máy chủ.", false, false);
-            }
-        });
-
-        function showAlert(title, message, isSuccess, reloadOnClose) {
-            document.getElementById('alertTitle').innerText = title;
-            document.getElementById('alertMessage').innerText = message;
-            
-            const iconDiv = document.getElementById('alertIcon');
-            if (isSuccess) {
-                iconDiv.className = 'mx-auto w-14 h-14 mb-4 flex items-center justify-center rounded-full bg-green-100 text-green-500';
-                iconDiv.innerHTML = '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
-            } else {
-                iconDiv.className = 'mx-auto w-14 h-14 mb-4 flex items-center justify-center rounded-full bg-red-100 text-red-500';
-                iconDiv.innerHTML = '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>';
-            }
-
-            document.getElementById('alertModal').classList.remove('hidden');
-            document.getElementById('alertModal').dataset.reload = reloadOnClose;
-        }
-
-        function closeAlertModal() {
-            document.getElementById('alertModal').classList.add('hidden');
-            if (document.getElementById('alertModal').dataset.reload === 'true') {
-                window.location.reload();
-            }
         }
     </script>
 }

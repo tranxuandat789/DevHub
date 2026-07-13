@@ -170,16 +170,20 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         var createdJob = await _jobPostRepo.CreateJobPostAndDecrementQuotaAsync(job, package.Id);
 
         // Auto assign to moderator
-        await _assignModeratorService.AutoAssignNewRecordAsync("JOB_POST", createdJob.JobId);
+        var assignedModId = await _assignModeratorService.AutoAssignNewRecordAsync("JOB_POST", createdJob.JobId);
 
-        //send notification to moderators about new pending job post.
+        //send notification to moderator about new pending job post.
         try
         {
-            await _jobPostRepo.NotifyModeratorsAsync(
-                "Bài đăng tuyển dụng mới chờ duyệt",
-                $"Nhà tuyển dụng {recruiter.Company.CompanyName} đã đăng bài '{job.Title}' và đang chờ kiểm duyệt.",
-                "JobPost",
-                createdJob.JobId);
+            if (assignedModId.HasValue)
+            {
+                await _jobPostRepo.NotifyModeratorAsync(
+                    assignedModId.Value,
+                    "Bài đăng tuyển dụng mới chờ duyệt",
+                    $"Nhà tuyển dụng {recruiter.Company.CompanyName} đã đăng bài '{job.Title}' và đang chờ kiểm duyệt.",
+                    "JobPost",
+                    createdJob.JobId);
+            }
         }
         catch
         {
@@ -345,17 +349,21 @@ public class RecruiterJobPostService : IRecruiterJobPostService
             }
         }
 
-        try
+        if (existing.ModeratorId.HasValue)
         {
-            await _jobPostRepo.NotifyModeratorsAsync(
-                "Bài đăng tuyển dụng được chỉnh sửa, chờ duyệt lại",
-                $"Tin '{updatedJP.Title}' vừa được cập nhật và đang chờ kiểm duyệt lại.",
-                "JobPost",
-                jobId);
-        }
-        catch
-        {
-            // Notification failure must not roll back the update.
+            try
+            {
+                await _jobPostRepo.NotifyModeratorAsync(
+                    existing.ModeratorId.Value,
+                    "Bài đăng tuyển dụng được chỉnh sửa, chờ duyệt lại",
+                    $"Tin '{updatedJP.Title}' vừa được cập nhật và đang chờ kiểm duyệt lại.",
+                    "JobPost",
+                    jobId);
+            }
+            catch
+            {
+                // Notification failure must not roll back the update.
+            }
         }
     }
 

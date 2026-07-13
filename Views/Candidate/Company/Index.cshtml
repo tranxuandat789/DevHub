@@ -180,7 +180,7 @@
 
 <!-- Search Hero Section -->
 <section class="search-hero py-16 px-4 md:px-8 relative overflow-hidden">
-    <div class="w-full px-4 sm:px-8 md:px-12 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Breadcrumb -->
         <div class="text-xs md:text-sm text-slate-500 mb-4 flex items-center space-x-2 font-medium">
             <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -228,13 +228,14 @@
 </section>
 
 <!-- Main Layout Grid -->
-<section class="w-full px-4 sm:px-8 md:px-12 py-12">
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Main Search filter form -->
     <form method="GET" action="/Company/Search" id="filterForm" class="w-full">
         <!-- Preserve text search input -->
         <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
 
-        <div class="flex flex-col lg:flex-row gap-8 w-full items-start">
+            <div class="flex flex-col lg:flex-row gap-8 w-full items-start">
             
             <!-- Sidebar Filter Left (1/4 Layout width, sticky on desktop) -->
             <div class="w-full lg:w-1/4 lg:sticky lg:top-6 flex-shrink-0">
@@ -349,7 +350,7 @@
                 <div class="flex flex-col gap-5 w-full" id="companyGrid">
                     @foreach (var company in Model.Companies)
                     {
-                        <div class="company-card w-full p-5 lg:h-[180px] flex flex-col md:flex-row justify-between gap-5 relative overflow-hidden">
+                        <div class="company-card w-full p-5 lg:h-[180px] flex flex-col md:flex-row justify-between gap-5 relative overflow-hidden" onclick="window.location.href='/Company/Detail/@company.CompanyId'">
                             
                             <!-- Logo and Details Block -->
                             <div class="flex items-center gap-4 flex-1 min-w-0">
@@ -400,8 +401,8 @@
                                         }
                                         else
                                         {
-                                            <span class="flex items-center gap-0.5 text-slate-350 font-medium text-xs italic" title="Chưa có đánh giá">
-                                                <span class="text-sm leading-none">☆</span>
+                                            <span class="flex items-center gap-0.5 text-amber-400 font-bold text-sm" title="Chưa có đánh giá">
+                                                <span class="text-base leading-none">☆</span>
                                                 <span>0.0</span>
                                             </span>
                                         }
@@ -413,7 +414,7 @@
                                         <span class="text-slate-300">•</span>
                                         <span>@(company.SystemRank == 1 ? "1000+ nhân viên" : (company.SystemRank == 2 ? "150 - 500 nhân viên" : "50 - 150 nhân viên"))</span>
                                         <span class="text-slate-300">•</span>
-                                        <span class="truncate">📍 @(company.CompanyAddress ?? "Địa chỉ đang cập nhật")</span>
+                                        <span class="flex items-center gap-1 truncate"><svg class="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> @(company.CompanyAddress ?? "Địa chỉ đang cập nhật")</span>
                                     </p>
 
                                     <!-- Tech Stack Badges / Chips -->
@@ -431,6 +432,28 @@
                                                 <span class="bg-slate-100 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200/60 shadow-3xs">
                                                     +@(company.TechStacks.Count - 5)
                                                 </span>
+                                            }
+                                        </div>
+                                    }
+
+                                    <!-- Articles Preview Section -->
+                                    @if (company.ArticlesPreviews != null && company.ArticlesPreviews.Any())
+                                    {
+                                        <div class="mt-2.5 pt-2.5 border-t border-slate-100 space-y-1.5">
+                                            @foreach (var art in company.ArticlesPreviews)
+                                            {
+                                                <div class="flex items-start gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    <span class="text-xs text-slate-600 leading-snug line-clamp-1">@art.Title</span>
+                                                </div>
+                                            }
+                                            @if (company.TotalArticleCount > 2)
+                                            {
+                                                <a href="/Company/Detail/@company.CompanyId#articles" class="text-[11px] text-[#4640DE] font-semibold hover:underline inline-block pt-0.5">
+                                                    Đọc thêm bài viết &rsaquo;
+                                                </a>
                                             }
                                         </div>
                                     }
@@ -484,8 +507,9 @@
 
             </div>
 
-        </div>
-    </form>
+            </div>
+        </form>
+    </div>
 </section>
 
 <!-- Mobile Filter Drawer overlay (Dimmer) -->

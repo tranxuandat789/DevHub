@@ -11,10 +11,12 @@ namespace DevHub.Services.Implementations
     public class CompanyService : ICompanyService
     {
         private readonly ICompanyRepository _companyRepo;
+        private readonly IArticleRepository _articleRepo;
 
-        public CompanyService(ICompanyRepository companyRepo)
+        public CompanyService(ICompanyRepository companyRepo, IArticleRepository articleRepo)
         {
             _companyRepo = companyRepo;
+            _articleRepo = articleRepo;
         }
 
         public async Task<CompanySearchPageViewModel> SearchCompaniesAsync(CompanySearchInputViewModel input)
@@ -78,12 +80,19 @@ namespace DevHub.Services.Implementations
                 };
             }).ToList();
 
-            // Populate JobCount and TechStacks badges for each company
+            // Populate JobCount, TechStacks and ArticlePreviews for each company
             foreach (var company in list)
             {
                 var jobs = await _companyRepo.GetCompanyJobsAsync(company.CompanyId);
                 company.JobCount = jobs.Count;
                 company.TechStacks = jobs.SelectMany(j => j.Teches.Select(t => t.TechName)).Distinct().ToList();
+
+                var articles = await _articleRepo.GetArticlesByCompanyAsync(company.CompanyId);
+                var published = articles.Where(a => a.Status == "APPROVED").ToList();
+                company.TotalArticleCount = published.Count;
+                company.ArticlesPreviews = published.Take(2)
+                    .Select(a => (a.ArticleId, a.Title ?? "(Không có tiêu đề)", a.Slug))
+                    .ToList();
             }
 
             // Fetch filter list options (Tech stacks and ALL positions from DB)
@@ -124,10 +133,14 @@ namespace DevHub.Services.Implementations
                 avgRating = (double)company.ReviewCompanies.Sum(rev => rev.Rating) / totalReviews;
             }
 
+            var articles = await _articleRepo.GetArticlesByCompanyAsync(id);
+            var publishedArticles = articles.Where(a => a.Status == "APPROVED").ToList();
+
             var vm = new CompanyDetailsViewModel
             {
                 Company = company,
                 ActiveJobs = jobs,
+                Articles = publishedArticles,
                 AverageRating = avgRating,
                 TotalReviews = totalReviews
             };

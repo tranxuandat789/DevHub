@@ -26,7 +26,7 @@ public class AdminService : IAdminService
         => _adminRepo.GetModeratorByIdAsync(adminId);
 
     // Create or reactivate a moderator account
-    public async Task<(bool Success, string Message)> CreateModeratorAsync(
+    public async Task<(bool Success, string Message, int AdminId)> CreateModeratorAsync(
         string email, string password, string username, string fullName)
     {
         var existingUser = await _userRepo.GetByEmailAsync(email);
@@ -37,11 +37,11 @@ public class AdminService : IAdminService
             if (existingUser.IsActive == false)
             {
                 await _userRepo.SetActiveStatusAsync(existingUser.UserId, true);
-                return (true, "Tài khoản đã được kích hoạt lại thành công.");
+                return (true, "Tài khoản đã được kích hoạt lại thành công.", existingUser.UserId);
             }
 
             // Active account with same email already exists
-            return (false, "Email này đã được sử dụng bởi một tài khoản đang hoạt động.");
+            return (false, "Email này đã được sử dụng bởi một tài khoản đang hoạt động.", 0);
         }
 
         // Hash password before saving (same as AuthController line 614)
@@ -67,7 +67,7 @@ public class AdminService : IAdminService
             Role     = "MODERATOR"
         });
 
-        return (true, "Tạo tài khoản moderator thành công.");
+        return (true, "Tạo tài khoản moderator thành công.", user.UserId);
     }
 
     // Update moderator profile (username and full name only)

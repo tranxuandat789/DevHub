@@ -79,7 +79,7 @@
                                     else if (item.TransactionType?.ToUpper() == "UPGRADE") { <span class="text-orange-600">Nâng cấp gói</span> }
                                     else { @item.TransactionType }
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">@item.FinalAmount.ToString("N0") đ</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">@(item.TotalAmount > 0 ? item.TotalAmount.ToString("N0") : item.FinalAmount.ToString("N0")) đ</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if (item.Status == "SUCCESS" || item.Status == "COMPLETED")
                                     {

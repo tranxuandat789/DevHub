@@ -1,0 +1,115 @@
+@model DevHub.Models.Article
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string TimeAgo(DateTime? dt) {
+        if (!dt.HasValue) return "";
+        var diff = (int)(DateTime.UtcNow - dt.Value.ToUniversalTime()).TotalMinutes;
+        if (diff < 60)   return diff + " phút trước";
+        if (diff < 1440) return (diff / 60) + " giờ trước";
+        return (diff / 1440) + " ngày trước";
+    }
+}
+
+<div class="max-w-4xl mx-auto px-4 md:px-8 py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-muted mb-5 flex items-center gap-1.5">
+        <a href="/" class="hover:text-primary">Trang chủ</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <a href="/articles" class="hover:text-primary">Bài viết</a>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="line-clamp-1">@Model.Title</span>
+    </nav>
+
+    <!-- Hidden Alert -->
+    @if (Model.Status == "HIDDEN")
+    {
+        <div class="mb-5 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 flex gap-3 items-start">
+            <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+                <h3 class="text-sm font-semibold mb-1">Bài viết này đang bị ẩn</h3>
+                @if (!string.IsNullOrEmpty(Model.RejectReason))
+                {
+                    <p class="text-sm"><strong>Lý do từ Quản trị viên:</strong> @Model.RejectReason</p>
+                    <p class="text-sm mt-1 text-red-600">Vui lòng chỉnh sửa bài viết để gỡ bỏ trạng thái ẩn.</p>
+                }
+                else
+                {
+                    <p class="text-sm">Bài viết đã được ẩn bởi nhà tuyển dụng.</p>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Article card -->
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+
+        <!-- Thumbnail -->
+        @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+        {
+            <img src="@Model.ThumbnailUrl" alt="@Model.Title"
+                 class="w-full h-64 md:h-80 object-cover" />
+        }
+
+        <div class="p-6 md:p-8">
+            <!-- Company info -->
+            <div class="flex items-center gap-3 mb-4">
+                @if (!string.IsNullOrEmpty(Model.Company?.CompanyLogoUrl))
+                {
+                    <img src="@Model.Company.CompanyLogoUrl" alt="@Model.Company.CompanyName"
+                         class="w-10 h-10 rounded-lg object-contain border border-gray-100" />
+                }
+                else
+                {
+                    <span class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-[15px]">
+                        @(Model.Company?.CompanyName?.FirstOrDefault())
+                    </span>
+                }
+                <div>
+                    <a href="/Company/Detail/@Model.CompanyId"
+                       class="block text-[14px] font-bold text-dark hover:text-primary transition-colors">
+                        @Model.Company?.CompanyName
+                    </a>
+                    <p class="text-[12px] text-muted">
+                        @(Model.ApprovedAt?.ToString("dd/MM/yyyy") ?? Model.CreatedAt?.ToString("dd/MM/yyyy"))
+                        &nbsp;•&nbsp;
+                        @TimeAgo(Model.ApprovedAt)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-[22px] md:text-[26px] font-extrabold text-dark leading-snug mb-5">
+                @Model.Title
+            </h1>
+
+            <!-- Divider -->
+            <hr class="border-gray-100 mb-6" />
+
+            <!-- Content -->
+            <div class="prose prose-slate max-w-none text-[15px] text-dark leading-relaxed">
+                @Html.Raw(Model.Content)
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-5 border-t border-gray-100 flex items-center justify-between">
+                <a href="/articles"
+                   class="flex items-center gap-1.5 text-[13px] text-muted hover:text-primary transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Quay lại danh sách bài viết
+                </a>
+                <a href="/Company/Detail/@Model.CompanyId"
+                   class="flex items-center gap-1.5 text-[13px] text-primary font-semibold hover:underline">
+                    Xem trang công ty →
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>

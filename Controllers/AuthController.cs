@@ -458,8 +458,21 @@ public class AuthController : Controller
         if (from is "candidate" or "register-candidate")
         {
             var newUser = await _auth.CreateCandidateGoogleAccountAsync(email, googleId, name, avatar);
+            // Tạo thông báo chào mừng cho ứng viên đăng ký qua Google
+            _context.Notifications.Add(new DevHub.Models.Notification
+            {
+                UserId = newUser.UserId,
+                UserType = "CANDIDATE",
+                Title = "Chào mừng bạn đến với DevHub!",
+                Message = "Tài khoản ứng viên của bạn đã được tạo thành công. Hãy cập nhật hồ sơ để tăng cơ hội tìm được việc làm phù hợp nhé!",
+                ReferenceType = "System",
+                IsRead = false,
+                CreatedAt = DateTime.Now,
+                Type = "Welcome"
+            });
+            await _context.SaveChangesAsync();
             await SignInAsync(newUser, false, avatar);
-            TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
+            TempData["SuccessMsg"] = "Đăng ký tài khoản thành công! Chào mừng bạn đến với DevHub.";
             return RedirectToDashboard("Candidate");
         }
 
@@ -518,6 +531,20 @@ public class AuthController : Controller
         HttpContext.Session.Remove(KeyGoogleId);
         HttpContext.Session.Remove(KeyGoogleName);
         HttpContext.Session.Remove(KeyGoogleAvatar);
+
+        // Tạo thông báo chào mừng cho nhà tuyển dụng đăng ký qua Google
+        _context.Notifications.Add(new DevHub.Models.Notification
+        {
+            UserId = user.UserId,
+            UserType = "RECRUITER",
+            Title = "Chào mừng bạn đến với DevHub!",
+            Message = "Tài khoản nhà tuyển dụng của bạn đã được tạo thành công. Hãy thiết lập hồ sơ công ty và bắt đầu đăng tin tuyển dụng để tìm kiếm ứng viên tài năng!",
+            ReferenceType = "System",
+            IsRead = false,
+            CreatedAt = DateTime.Now,
+            Type = "Welcome"
+        });
+        await _context.SaveChangesAsync();
 
         await SignInAsync(user, false, avatar);
         TempData["SuccessMsg"] = "Đăng ký tài khoản nhà tuyển dụng thành công!";
@@ -603,7 +630,7 @@ public class AuthController : Controller
             if (!string.IsNullOrEmpty(inviteToken))
             {
                 var invitation = await _invitationService.ValidateTokenAsync(inviteToken);
-                if (invitation != null && user.Recruiter != null)
+                if (invitation != null && user.Recruiter != null && user.Email.Equals(invitation.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     // Cập nhật Recruiter
                     user.Recruiter.CompanyId = invitation.CompanyId;
@@ -848,9 +875,7 @@ public class AuthController : Controller
 
         if (userType?.Trim().ToUpper() == "MODERATOR")
         {
-            if (tType == "COMPANY_APPROVAL") return Redirect("/moderator/company-approvals");
-            if (tType == "REVIEW") return Redirect("/moderator/review-approvals");
-            return Redirect("/moderator/job-approvals");
+            return Redirect("/ModeratorDashboard");
         }
 
         return (userType?.Trim().ToUpper()) switch
@@ -1007,7 +1032,7 @@ public class AuthController : Controller
                 int? assignedCompanyId = null;
                 bool isCompanyAdmin = false; // Default to false if not creating a company
 
-                if (invitation != null)
+                if (invitation != null && user.Email.Equals(invitation.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     // Người dùng được mời, dùng CompanyId của công ty đã mời
                     assignedCompanyId = invitation.CompanyId;
@@ -1036,6 +1061,20 @@ public class AuthController : Controller
                 HttpContext.Session.Remove("EmployerRegisterData");
                 HttpContext.Session.Remove("EmployerRegisterOTP");
                 HttpContext.Session.Remove("EmployerRegisterExpiry");
+
+                // Tạo thông báo chào mừng vào DB
+                _context.Notifications.Add(new DevHub.Models.Notification
+                {
+                    UserId = user.UserId,
+                    UserType = "RECRUITER",
+                    Title = "Chào mừng bạn đến với DevHub!",
+                    Message = "Tài khoản nhà tuyển dụng của bạn đã được tạo thành công. Hãy thiết lập hồ sơ công ty và bắt đầu đăng tin tuyển dụng để tìm kiếm ứng viên tài năng!",
+                    ReferenceType = "System",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now,
+                    Type = "Welcome"
+                });
+                await _context.SaveChangesAsync();
 
                 // Sign in the user automatically
                 await SignInAsync(user, false);
@@ -1241,6 +1280,20 @@ public class AuthController : Controller
             HttpContext.Session.Remove("CandidateRegisterData");
             HttpContext.Session.Remove("CandidateRegisterOTP");
             HttpContext.Session.Remove("CandidateRegisterExpiry");
+
+            // Tạo thông báo chào mừng vào DB
+            _context.Notifications.Add(new DevHub.Models.Notification
+            {
+                UserId = user.UserId,
+                UserType = "CANDIDATE",
+                Title = "Chào mừng bạn đến với DevHub!",
+                Message = "Tài khoản ứng viên của bạn đã được tạo thành công. Hãy cập nhật hồ sơ để tăng cơ hội tìm được việc làm phù hợp nhé!",
+                ReferenceType = "System",
+                IsRead = false,
+                CreatedAt = DateTime.Now,
+                Type = "Welcome"
+            });
+            await _context.SaveChangesAsync();
 
             // Đăng nhập luôn sau khi đăng ký thành công
             await SignInAsync(user, false);

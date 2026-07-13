@@ -1,17 +1,17 @@
-﻿USE DevHub;
+USE ITRecruitmentDB;
 GO
 
 /* ============================================================
    Migrate: candidate.preferred_working_model (from friend's branch)
-   - DB hiện tại tạo từ SQL script => migration "AddPreferredWorkingModel"
-     là initial create-all, KHÔNG chạy `dotnet ef database update` được
-     (sẽ lỗi vì các bảng đã tồn tại).
-   - Script này: (1) thêm đúng cột mới, (2) baseline migration vào
-     __EFMigrationsHistory để EF coi như đã áp dụng.
-   - Idempotent: chạy lại an toàn.
+   - DB hi?n t?i t?o t? SQL script => migration "AddPreferredWorkingModel"
+     la initial create-all, KHONG ch?y `dotnet ef database update` ???c
+     (s? l?i vi cac b?ng ?a t?n t?i).
+   - Script nay: (1) them ?ung c?t m?i, (2) baseline migration vao
+     __EFMigrationsHistory ?? EF coi nh? ?a ap d?ng.
+   - Idempotent: ch?y l?i an toan.
    ============================================================ */
 
--- 1) Thêm cột mới cho bảng candidate
+-- 1) Them c?t m?i cho b?ng candidate
 IF NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_NAME = 'candidate' AND COLUMN_NAME = 'preferred_working_model')
@@ -23,8 +23,8 @@ ELSE
     PRINT N'Column candidate.preferred_working_model already exists';
 GO
 
--- 2) Baseline migration: đánh dấu migration đã áp dụng để các lần
---    `dotnet ef database update` sau KHÔNG cố tạo lại bảng đã tồn tại.
+-- 2) Baseline migration: ?anh d?u migration ?a ap d?ng ?? cac l?n
+--    `dotnet ef database update` sau KHONG c? t?o l?i b?ng ?a t?n t?i.
 IF OBJECT_ID(N'__EFMigrationsHistory') IS NULL
 BEGIN
     CREATE TABLE __EFMigrationsHistory (
@@ -43,3 +43,4 @@ END
 ELSE
     PRINT N'Migration already baselined';
 GO
+

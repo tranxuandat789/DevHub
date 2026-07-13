@@ -43,7 +43,7 @@ namespace DevHub.Controllers.Moderator
             var query = _context.UserAccounts
                 .Include(u => u.Candidate)
                 .Include(u => u.Recruiter)
-                .Where(u => u.UserType == "Candidate" || u.UserType == "Recruiter")
+                .Where(u => u.UserType != "Admin" && u.UserType != "Moderator")
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
@@ -121,75 +121,5 @@ namespace DevHub.Controllers.Moderator
             return View("~/Views/Moderator/ModeratorUserManagement/Details.cshtml", user);
         }
 
-        public class ToggleStatusRequest
-        {
-            public string? Reason { get; set; }
-        }
-
-        [HttpPost("{id}/toggle-status")]
-        public async Task<IActionResult> ToggleStatus(int id, [FromBody] ToggleStatusRequest request)
-        {
-            var user = await _context.UserAccounts.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound(new { success = false, message = "Người dùng không tồn tại." });
-            }
-
-            if (user.UserType == "Admin" || user.UserType == "Moderator")
-            {
-                return BadRequest(new { success = false, message = "Không thể thay đổi trạng thái của Admin/Moderator." });
-            }
-
-            bool oldStatus = user.IsActive ?? true;
-            user.IsActive = !oldStatus;
-            
-            // Log to AuditLog
-            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            int moderatorId = 0;
-            int.TryParse(userIdStr, out moderatorId);
-
-            string oldStatusVi = oldStatus ? "Hoạt động" : "Khóa";
-            string newStatusVi = (user.IsActive == true) ? "Hoạt động" : "Khóa";
-            string newValueStr = newStatusVi + (string.IsNullOrEmpty(request?.Reason) ? "" : $" (Lý do: {request.Reason})");
-
-            var auditLog = new AuditLog
-            {
-                Action = user.IsActive == true ? "Mở khóa tài khoản" : "Khóa tài khoản",
-                EntityId = user.UserId,
-                EntityType = "UserAccount",
-                OldValue = oldStatusVi,
-                NewValue = newValueStr,
-                UserId = moderatorId,
-                UserType = "Moderator",
-                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
-            };
-            
-            _context.AuditLogs.Add(auditLog);
-            await _context.SaveChangesAsync();
-
-            if (user.IsActive == false && !string.IsNullOrEmpty(request?.Reason) && !string.IsNullOrEmpty(user.Email))
-            {
-                try 
-                {
-                    var emailHelper = new DevHub.Helpers.EmailHelper(_config);
-                    string subject = "Thông báo: Tài khoản của bạn đã bị khóa";
-                    string content = $@"
-                        <p>Chào bạn,</p>
-                        <p>Tài khoản của bạn trên DevHub đã bị khóa bởi quản trị viên.</p>
-                        <div style='background:#fff3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin:16px 0;'>
-                            <p style='margin:0;color:#856404;'><strong>Lý do:</strong> {request.Reason}</p>
-                        </div>
-                        <p>Vui lòng liên hệ với ban quản trị nếu bạn có thắc mắc.</p>";
-                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Tài khoản bị khóa", content);
-                    await emailHelper.SendEmailAsync(user.Email, subject, body);
-                } 
-                catch (System.Exception ex) 
-                {
-                    System.Diagnostics.Debug.WriteLine($"Lỗi gửi email: {ex.Message}");
-                }
-            }
-
-            return Ok(new { success = true, isActive = user.IsActive, message = user.IsActive == true ? "Đã mở khóa tài khoản thành công!" : "Đã khóa tài khoản thành công!" });
-        }
     }
 }

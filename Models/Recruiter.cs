@@ -17,8 +17,6 @@ public partial class Recruiter
 
     public bool? IsCompanyAdmin { get; set; }
 
-    public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
-
     public virtual UserAccount RecruiterNavigation { get; set; } = null!;
 
     public virtual Company? Company { get; set; }

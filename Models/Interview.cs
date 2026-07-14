@@ -9,8 +9,6 @@ public partial class Interview
 
     public int ApplicationId { get; set; }
 
-    public int RecruiterId { get; set; }
-
     public int CandidateId { get; set; }
 
     public DateTime ScheduledTime { get; set; }
@@ -32,6 +30,4 @@ public partial class Interview
     public virtual Application Application { get; set; } = null!;
 
     public virtual Candidate Candidate { get; set; } = null!;
-
-    public virtual Recruiter Recruiter { get; set; } = null!;
 }

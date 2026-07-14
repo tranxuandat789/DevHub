@@ -36,7 +36,6 @@ public class InterviewService : IInterviewService
         var interview = new Interview
         {
             ApplicationId = applicationId,
-            RecruiterId = recruiterId,
             CandidateId = application.CandidateId,
             ScheduledTime = scheduledTime,
             InterviewType = interviewType,
@@ -105,7 +104,7 @@ public class InterviewService : IInterviewService
         var interview = await _context.Interviews
             .Include(i => i.Application).ThenInclude(a => a.Job)
             .Include(i => i.Candidate).ThenInclude(c => c.CandidateNavigation)
-            .FirstOrDefaultAsync(i => i.InterviewId == interviewId && i.RecruiterId == recruiterId);
+            .FirstOrDefaultAsync(i => i.InterviewId == interviewId && i.Application.Job.CompanyId == _context.Recruiters.Where(r => r.RecruiterId == recruiterId).Select(r => r.CompanyId).FirstOrDefault());
         if (interview == null)
             throw new Exception("Interview not found");
 

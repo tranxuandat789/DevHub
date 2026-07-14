@@ -20,7 +20,7 @@ namespace DevHub.Repositories.Implementations
             => await _context.JobPosts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(j => j.JobId == jobId
-                                       && j.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId)
+                                       && j.CompanyId == _context.Recruiters.Where(r => r.RecruiterId == recruiterId).Select(r => r.CompanyId).FirstOrDefault()
                                        // The recruiter may VIEW the applicant list for any non-rejected job, including a
                                        // job that just went back to PENDING (re-review). The list is read-only while
                                        // PENDING — approve/reject is gated separately. Only REJECTED jobs are blocked.
@@ -34,7 +34,7 @@ namespace DevHub.Repositories.Implementations
         {
             var q = _context.Applications
                 .AsNoTracking()
-                .Where(a => a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
+                .Where(a => a.Job.CompanyId == _context.Recruiters.Where(r => r.RecruiterId == recruiterId).Select(r => r.CompanyId).FirstOrDefault());
 
             if (jobId.HasValue)
                 q = q.Where(a => a.JobId == jobId.Value);

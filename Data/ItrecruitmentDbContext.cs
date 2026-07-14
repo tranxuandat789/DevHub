@@ -425,7 +425,6 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("interview_type");
             entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
             entity.Property(e => e.ScheduledTime)
                 .HasColumnType("datetime")
                 .HasColumnName("scheduled_time");
@@ -447,11 +446,6 @@ public partial class ItrecruitmentDbContext : DbContext
                 .HasForeignKey(d => d.CandidateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__interview__candi__7E37BEF6");
-
-            entity.HasOne(d => d.Recruiter).WithMany(p => p.Interviews)
-                .HasForeignKey(d => d.RecruiterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__interview__recru__7D439ABD");
         });
 
         modelBuilder.Entity<JobPost>(entity =>

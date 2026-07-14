@@ -358,7 +358,6 @@ CREATE TABLE [interview] (
     [interview_id] INT PRIMARY KEY IDENTITY(1, 1),
     [application_id] INT NOT NULL,
     [candidate_id] INT NOT NULL,
-    [recruiter_id] INT NOT NULL,
     [location] NVARCHAR(255) NULL,
     [meeting_link] NVARCHAR(500) NULL,
     [interview_type] NVARCHAR(50) NULL,
@@ -376,8 +375,7 @@ CREATE TABLE [interview] (
     [created_at] DATETIME DEFAULT GETDATE(),
     [updated_at] DATETIME DEFAULT GETDATE(),
     CONSTRAINT [FK__interview__application] FOREIGN KEY ([application_id]) REFERENCES [application]([application_id]) ON DELETE CASCADE,
-    CONSTRAINT [FK__interview__candidate] FOREIGN KEY ([candidate_id]) REFERENCES [candidate]([candidate_id]) ON DELETE NO ACTION,
-    CONSTRAINT [FK__interview__recruiter] FOREIGN KEY ([recruiter_id]) REFERENCES [recruiter]([recruiter_id]) ON DELETE NO ACTION
+    CONSTRAINT [FK__interview__candidate] FOREIGN KEY ([candidate_id]) REFERENCES [candidate]([candidate_id]) ON DELETE NO ACTION
 );
 -- =====================================================
 -- Create Bookmark Table

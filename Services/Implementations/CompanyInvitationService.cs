@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DevHub.Helpers;
 using DevHub.Models;
@@ -74,6 +75,11 @@ namespace DevHub.Services.Implementations
             if (company == null) throw new Exception("Company not found");
 
             // Check if user is already a recruiter in the system 
+            var pendingInvs = await _invitationRepo.GetPendingByCompanyIdAsync(companyId);
+            if (pendingInvs.Any(i => i.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new Exception("Email này đã được gửi lời mời và đang chờ xác nhận.");
+            }
 
             var token = Guid.NewGuid().ToString("N");
             var invitation = new CompanyInvitation

@@ -511,6 +511,13 @@ namespace DevHub.Controllers.Recruiter
                     return RedirectToAction("Index", new { tab = "members" });
                 }
 
+                var targetUser = await _authService.FindUserByEmailAsync(email);
+                if (targetUser?.Recruiter != null && targetUser.Recruiter.CompanyId == dbUser.Recruiter.CompanyId)
+                {
+                    TempData["Error"] = "Thành viên này đã nằm trong công ty của bạn.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
                 await _invitationService.InviteMemberAsync(dbUser.Recruiter.CompanyId.Value, email, dbUser.Recruiter.RecruiterId);
                 TempData["SuccessMessage"] = $"Đã gửi lời mời tham gia thành công tới {email}!";
             }

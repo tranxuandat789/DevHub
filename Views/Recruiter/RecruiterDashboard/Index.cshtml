@@ -379,9 +379,7 @@
                         <div class="flex flex-col gap-4">
                             @foreach (var app in Model.RecentApplications)
                             {
-                                var avatarUrl = !string.IsNullOrEmpty(app.AvatarUrl)
-                                    ? app.AvatarUrl
-                                    : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(app.CandidateName)}&background=4640DE&color=fff&size=64";
+
                                 var (appBadgeCss, appBadgeLabel) = app.ApplicationStatus.ToUpper() switch
                                 {
                                     "PENDING" => ("bg-yellow-100 text-yellow-700", "Chờ duyệt"),
@@ -393,7 +391,16 @@
                                     _ => ("bg-gray-100 text-gray-600", app.ApplicationStatus)
                                 };
                                 <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                                    <img src="@avatarUrl" alt="@app.CandidateName" class="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm">
+                                    @if (!string.IsNullOrEmpty(app.AvatarUrl))
+                                    {
+                                        <img src="@app.AvatarUrl" alt="@app.CandidateName" class="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm">
+                                    }
+                                    else
+                                    {
+                                        <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm flex-shrink-0">
+                                            @(string.IsNullOrEmpty(app.CandidateName) ? "?" : app.CandidateName.Substring(0, 1).ToUpper())
+                                        </div>
+                                    }
                                     <div class="min-w-0 flex-1">
                                         <p class="font-semibold text-gray-900 text-sm truncate">@app.CandidateName</p>
                                         <p class="text-xs text-gray-500 truncate mt-0.5">@app.JobTitle</p>
@@ -423,97 +430,78 @@
                         <h3 class="text-xl font-bold text-gray-900">Lịch phỏng vấn</h3>
                         <p class="text-sm text-gray-500 mt-1">Danh sách phỏng vấn ứng viên</p>
                     </div>
-                    <div class="flex bg-gray-100 p-1 rounded-lg">
-                        <button onclick="filterInterviews('scheduled')" id="btn-scheduled" class="px-5 py-2 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm transition-all focus:outline-none">Sắp tới</button>
-                        <button onclick="filterInterviews('completed')" id="btn-completed" class="px-5 py-2 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition-all focus:outline-none">Đã xong</button>
+                    <div class="flex bg-gray-100 p-1 rounded-lg flex-wrap gap-1" id="interview-tabs">
+                        <button onclick="filterInterviews('scheduled')" class="tab-btn active px-3 py-1.5 text-sm font-medium rounded-md bg-white text-gray-900 shadow-sm transition-all focus:outline-none" data-target="scheduled">Sắp tới</button>
+                        <button onclick="filterInterviews('completed_pending')" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition-all focus:outline-none" data-target="completed_pending">Chờ kết quả</button>
+                        <button onclick="filterInterviews('passed')" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition-all focus:outline-none" data-target="passed">Trúng tuyển</button>
+                        <button onclick="filterInterviews('rejected')" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition-all focus:outline-none" data-target="rejected">Trượt</button>
+                        <button onclick="filterInterviews('cancelled')" class="tab-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition-all focus:outline-none" data-target="cancelled">Đã hủy</button>
                     </div>
                 </div>
 
                 <div class="p-0 flex-1 overflow-y-auto max-h-[500px]">
-                    <!-- Scheduled List -->
-                    <div id="scheduled-interviews" class="divide-y divide-gray-100">
-                        @if (Model.ScheduledInterviews.Any())
+                    @{
+                        var interviewDict = new Dictionary<string, (string BadgeClass, string BadgeText, string EmptyText, List<DevHub.Models.Interview> List)>
                         {
-                            foreach (var interview in Model.ScheduledInterviews)
-                            {
-                                <div class="p-8 hover:bg-gray-50 transition-colors">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex gap-4">
-                                            <div class="flex flex-col items-center justify-center bg-[#FEF3C7] text-[#F59E0B] rounded-lg w-16 h-16 flex-shrink-0">
-                                                <span class="text-base font-bold uppercase">@interview.ScheduledTime.ToString("MMM")</span>
-                                                <span class="text-2xl font-bold leading-none mt-0.5">@interview.ScheduledTime.ToString("dd")</span>
-                                            </div>
-                                            <div>
-                                                <h4 class="text-base font-bold text-gray-900">@interview.Candidate?.FullName</h4>
-                                                <p class="text-sm text-gray-500 mt-1">@interview.Application?.Job?.Title</p>
-                                                <div class="flex items-center gap-4 mt-2.5 text-sm text-gray-500">
-                                                    <span class="flex items-center gap-1.5">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                        @interview.ScheduledTime.ToString("HH:mm")
-                                                    </span>
-                                                    @if (!string.IsNullOrEmpty(interview.MeetingLink))
-                                                    {
-                                                        <span class="flex items-center gap-1.5 text-[#4640DE]">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                                            Online
-                                                        </span>
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Sắp tới</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="p-10 text-center text-gray-500 text-base">
-                                Không có lịch phỏng vấn sắp tới.
-                            </div>
-                        }
-                    </div>
+                            { "scheduled", ("bg-blue-100 text-blue-800", "Sắp tới", "Không có lịch phỏng vấn sắp tới.", Model.ScheduledInterviews) },
+                            { "completed_pending", ("bg-yellow-100 text-yellow-800", "Chờ kết quả", "Chưa có lịch phỏng vấn nào chờ kết quả.", Model.CompletedInterviews) },
+                            { "passed", ("bg-green-100 text-green-800", "Trúng tuyển", "Chưa có ứng viên nào trúng tuyển.", Model.PassedInterviews) },
+                            { "rejected", ("bg-red-100 text-red-800", "Trượt", "Chưa có ứng viên nào trượt.", Model.RejectedInterviews) },
+                            { "cancelled", ("bg-gray-100 text-gray-800", "Đã hủy", "Không có lịch phỏng vấn nào bị hủy.", Model.CancelledInterviews) }
+                        };
+                    }
 
-                    <!-- Completed List -->
-                    <div id="completed-interviews" class="divide-y divide-gray-100 hidden">
-                        @if (Model.CompletedInterviews.Any())
-                        {
-                            foreach (var interview in Model.CompletedInterviews)
+                    @foreach(var kvp in interviewDict)
+                    {
+                        <div id="list-@kvp.Key" class="interview-list divide-y divide-gray-100 @(kvp.Key == "scheduled" ? "" : "hidden")">
+                            @if (kvp.Value.List.Any())
                             {
-                                <div class="p-8 bg-gray-50">
-                                    <div class="flex items-start justify-between opacity-75">
-                                        <div class="flex gap-4">
-                                            <div class="flex flex-col items-center justify-center bg-gray-200 text-gray-600 rounded-lg w-16 h-16 flex-shrink-0">
-                                                <span class="text-base font-bold uppercase">@interview.ScheduledTime.ToString("MMM")</span>
-                                                <span class="text-2xl font-bold leading-none mt-0.5">@interview.ScheduledTime.ToString("dd")</span>
-                                            </div>
-                                            <div>
-                                                <h4 class="text-base font-bold text-gray-900">@interview.Candidate?.FullName</h4>
-                                                <p class="text-sm text-gray-500 mt-1">@interview.Application?.Job?.Title</p>
-                                                <div class="flex items-center gap-4 mt-2.5 text-sm text-gray-500">
-                                                    <span class="flex items-center gap-1.5">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                        @interview.ScheduledTime.ToString("HH:mm")
-                                                    </span>
+                                int idx = 0;
+                                foreach (var interview in kvp.Value.List)
+                                {
+                                    <div class="interview-item p-8 hover:bg-gray-50 transition-colors" data-index="@idx">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex gap-4">
+                                                <div class="flex flex-col items-center justify-center bg-gray-100 text-gray-600 rounded-lg w-16 h-16 flex-shrink-0">
+                                                    <span class="text-base font-bold uppercase">@interview.ScheduledTime.ToString("MMM")</span>
+                                                    <span class="text-2xl font-bold leading-none mt-0.5">@interview.ScheduledTime.ToString("dd")</span>
+                                                </div>
+                                                <div>
+                                                    <h4 class="text-base font-bold text-gray-900">@interview.Candidate?.FullName</h4>
+                                                    <p class="text-sm text-gray-500 mt-1">@interview.Application?.Job?.Title</p>
+                                                    <div class="flex items-center gap-4 mt-2.5 text-sm text-gray-500">
+                                                        <span class="flex items-center gap-1.5">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                            @interview.ScheduledTime.ToString("HH:mm")
+                                                        </span>
+                                                        @if (!string.IsNullOrEmpty(interview.MeetingLink))
+                                                        {
+                                                            <span class="flex items-center gap-1.5 text-[#4640DE]">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                                Online
+                                                            </span>
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hoàn thành</span>
+                                            <div class="text-right">
+                                                <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full @kvp.Value.BadgeClass">@kvp.Value.BadgeText</span>
+                                            </div>
                                         </div>
                                     </div>
+                                    idx++;
+                                }
+                                <div class="pagination-controls flex justify-center p-4 gap-2 border-t border-gray-100" id="pagination-@kvp.Key">
                                 </div>
                             }
-                        }
-                        else
-                        {
-                            <div class="p-10 text-center text-gray-500 text-base">
-                                Chưa có buổi phỏng vấn nào hoàn thành.
-                            </div>
-                        }
-                    </div>
+                            else
+                            {
+                                <div class="p-10 text-center text-gray-500 text-base">
+                                    @kvp.Value.EmptyText
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -545,34 +533,90 @@
                 };
                 animate();
             });
+
+            // Initialize pagination for all tabs
+            const tabs = ['scheduled', 'completed_pending', 'passed', 'rejected', 'cancelled'];
+            tabs.forEach(tab => renderPagination(tab));
         });
+
+        const ITEMS_PER_PAGE = 6;
+        const currentPage = {};
+
+        function renderPagination(listId) {
+            const listDiv = document.getElementById('list-' + listId);
+            if (!listDiv) return;
+            
+            const items = listDiv.querySelectorAll('.interview-item');
+            if (items.length === 0) return;
+            
+            if (currentPage[listId] === undefined) {
+                currentPage[listId] = 1;
+            }
+            
+            const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+            let cp = currentPage[listId];
+            if (cp > totalPages) cp = totalPages;
+            if (cp < 1) cp = 1;
+            currentPage[listId] = cp;
+            
+            items.forEach((item, index) => {
+                if (index >= (cp - 1) * ITEMS_PER_PAGE && index < cp * ITEMS_PER_PAGE) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+            
+            const paginationContainer = document.getElementById('pagination-' + listId);
+            if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+                if (totalPages > 1) {
+                    // Prev button
+                    const prevBtn = document.createElement('button');
+                    prevBtn.className = 'px-3 py-1 text-sm border rounded-md ' + (cp === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50');
+                    prevBtn.innerText = 'Trang trước';
+                    prevBtn.onclick = () => { if (cp > 1) { currentPage[listId]--; renderPagination(listId); } };
+                    paginationContainer.appendChild(prevBtn);
+                    
+                    // Page numbers
+                    for (let i = 1; i <= totalPages; i++) {
+                        const btn = document.createElement('button');
+                        btn.className = 'px-3 py-1 text-sm border rounded-md ' + (cp === i ? 'bg-[#4640DE] text-white' : 'text-gray-700 hover:bg-gray-50');
+                        btn.innerText = i;
+                        btn.onclick = () => { currentPage[listId] = i; renderPagination(listId); };
+                        paginationContainer.appendChild(btn);
+                    }
+                    
+                    // Next button
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'px-3 py-1 text-sm border rounded-md ' + (cp === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50');
+                    nextBtn.innerText = 'Trang sau';
+                    nextBtn.onclick = () => { if (cp < totalPages) { currentPage[listId]++; renderPagination(listId); } };
+                    paginationContainer.appendChild(nextBtn);
+                }
+            }
+        }
 
         // Filter interviews
         function filterInterviews(status) {
-            const scheduledList = document.getElementById('scheduled-interviews');
-            const completedList = document.getElementById('completed-interviews');
-            const btnScheduled = document.getElementById('btn-scheduled');
-            const btnCompleted = document.getElementById('btn-completed');
-
-            if (status === 'scheduled') {
-                scheduledList.classList.remove('hidden');
-                completedList.classList.add('hidden');
-                
-                btnScheduled.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
-                btnScheduled.classList.remove('text-gray-500', 'hover:text-gray-900');
-                
-                btnCompleted.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
-                btnCompleted.classList.add('text-gray-500', 'hover:text-gray-900');
-            } else {
-                scheduledList.classList.add('hidden');
-                completedList.classList.remove('hidden');
-                
-                btnCompleted.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
-                btnCompleted.classList.remove('text-gray-500', 'hover:text-gray-900');
-                
-                btnScheduled.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
-                btnScheduled.classList.add('text-gray-500', 'hover:text-gray-900');
-            }
+            const lists = document.querySelectorAll('.interview-list');
+            lists.forEach(list => list.classList.add('hidden'));
+            
+            const targetList = document.getElementById('list-' + status);
+            if (targetList) targetList.classList.remove('hidden');
+            
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-target') === status) {
+                    btn.classList.add('active', 'bg-white', 'text-gray-900', 'shadow-sm');
+                    btn.classList.remove('text-gray-500', 'hover:text-gray-900');
+                } else {
+                    btn.classList.remove('active', 'bg-white', 'text-gray-900', 'shadow-sm');
+                    btn.classList.add('text-gray-500', 'hover:text-gray-900');
+                }
+            });
+            
+            renderPagination(status);
         }
 
     </script>

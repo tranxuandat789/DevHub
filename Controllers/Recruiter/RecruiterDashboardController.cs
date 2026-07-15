@@ -13,15 +13,18 @@ namespace DevHub.Controllers.Recruiter
     {
         private readonly IAuthService _authService;
         private readonly IRecruiterDashboardService _dashboardService;
+        private readonly IInterviewService _interviewService;
         private readonly ILogger<RecruiterDashboardController> _logger;
 
         public RecruiterDashboardController(
             IAuthService authService,
             IRecruiterDashboardService dashboardService,
+            IInterviewService interviewService,
             ILogger<RecruiterDashboardController> logger)
         {
             _authService = authService;
             _dashboardService = dashboardService;
+            _interviewService = interviewService;
             _logger = logger;
         }
 
@@ -39,6 +42,8 @@ namespace DevHub.Controllers.Recruiter
 
             int recruiterId = dbUser.Recruiter.RecruiterId;
             int companyId = dbUser.Recruiter.CompanyId ?? 0;
+
+            await _interviewService.SyncInterviewStatusesAsync();
 
             try
             {

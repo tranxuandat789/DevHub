@@ -20,9 +20,6 @@
         }
     }
     var badge = StatusBadge(Model.Status);
-    string avatar = !string.IsNullOrEmpty(Model.AvatarUrl)
-        ? Model.AvatarUrl!
-        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&background=4640DE&color=fff&size=128";
 
     string? Salary(decimal? v) => v.HasValue ? v.Value.ToString("#,##0").Replace(",", ".") : null;
     string salaryRange = (Model.ExpectedSalaryMin.HasValue || Model.ExpectedSalaryMax.HasValue)
@@ -103,23 +100,6 @@
                     </button>
                 </form>
             }
-            @if (Model.CanScheduleInterview)
-            {
-                <a href="/Recruiter/RecruiterInterview/Create?applicationId=@Model.ApplicationId" class="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Lên lịch phỏng vấn
-                </a>
-            }
-            @if (Model.CanHire)
-            {
-                <form id="hireForm" method="post" action="/Recruiter/RecruiterApplication/Hire/@Model.ApplicationId">
-                    @Html.AntiForgeryToken()
-                    <button type="button" data-decision="hire" class="js-decision-btn px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        Trúng tuyển
-                    </button>
-                </form>
-            }
         </div>
     </div>
 
@@ -129,7 +109,16 @@
         <div class="space-y-6">
             <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 shadow-sm">
                 <div class="flex items-center gap-4 mb-6">
-                    <img src="@avatar" alt="Avatar" class="w-16 h-16 rounded-full object-cover border border-gray-200">
+                    @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                    {
+                        <img src="@Model.AvatarUrl" alt="Avatar" class="w-16 h-16 rounded-full object-cover border border-gray-200">
+                    }
+                    else
+                    {
+                        <div class="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl border border-gray-200">
+                            @(string.IsNullOrEmpty(Model.FullName) ? "?" : Model.FullName.Substring(0, 1).ToUpper())
+                        </div>
+                    }
                     <div>
                         <h2 class="text-xl font-bold text-dark">@Model.FullName</h2>
                         <div class="flex items-center gap-2 mt-1">

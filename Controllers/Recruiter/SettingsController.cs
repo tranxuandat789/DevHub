@@ -601,6 +601,49 @@ namespace DevHub.Controllers.Recruiter
 
             return RedirectToAction("Index", new { tab = "members" });
         }
+
+        [HttpPost("remove-member")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveMember(int targetRecruiterId)
+        {
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+                var dbUser = await _authService.FindUserByEmailAsync(email);
+
+                if (dbUser?.Recruiter == null || dbUser.Recruiter.CompanyId == null || dbUser.Recruiter.IsCompanyAdmin != true)
+                {
+                    TempData["Error"] = "Bạn không có quyền thực hiện thao tác này.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                if (dbUser.Recruiter.RecruiterId == targetRecruiterId)
+                {
+                    TempData["Error"] = "Bạn không thể tự xóa chính mình.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                var targetRecruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.RecruiterId == targetRecruiterId && r.CompanyId == dbUser.Recruiter.CompanyId);
+                if (targetRecruiter == null)
+                {
+                    TempData["Error"] = "Không tìm thấy thành viên này trong công ty.";
+                    return RedirectToAction("Index", new { tab = "members" });
+                }
+
+                targetRecruiter.CompanyId = null;
+                targetRecruiter.IsCompanyAdmin = false;
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Đã xóa thành viên {targetRecruiter.FullName} khỏi công ty.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+
+            return RedirectToAction("Index", new { tab = "members" });
+        }
+
         // Load notification settings into ViewBag when tab=notifications
         private async Task LoadNotificationSettingsAsync()
         {

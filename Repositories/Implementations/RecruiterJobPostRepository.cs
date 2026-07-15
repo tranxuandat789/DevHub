@@ -26,6 +26,10 @@ public class RecruiterJobPostRepository : IRecruiterJobPostRepository
                 throw new InvalidOperationException("Tài khoản đã hết lượt đăng bài hoặc gói dịch vụ hết hạn.");
 
             package.PostsRemaining = Math.Max(0, package.PostsRemaining - 1);
+            if (package.PostsRemaining == 0)
+            {
+                package.IsActive = false;
+            }
 
             jobPost.CreatedAt = DateTime.UtcNow;
             _context.JobPosts.Add(jobPost);

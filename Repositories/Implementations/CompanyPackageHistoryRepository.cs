@@ -28,6 +28,10 @@ public class CompanyPackageHistoryRepository : ICompanyPackageHistoryRepository
         var p = await _context.CompanyPackageHistories.FindAsync(packageHistoryId);
         if (p == null) return;
         p.PostsRemaining = Math.Max(0, p.PostsRemaining - 1);
+        if (p.PostsRemaining == 0)
+        {
+            p.IsActive = false;
+        }
         _context.CompanyPackageHistories.Update(p);
         await _context.SaveChangesAsync();
     }

@@ -38,71 +38,97 @@
             <!-- Main Content -->
             <div class="flex-1 flex flex-col gap-6">
                 
-                <!-- Profile Card -->
-                <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-                    <div class="flex items-center gap-6">
-                        <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
-                            <img src="@finalAvatar" alt="Avatar" class="w-full h-full object-cover" 
-                                 onerror="this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(displayName)&background=4640DE&color=fff&size=128'" />
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Hồ Sơ Cá Nhân</h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- Applied Jobs -->
+                    <a href="/candidate/applications" class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         </div>
-                        <div class="flex flex-col gap-1">
-                            <h2 class="text-2xl font-bold text-gray-900 mb-1">@displayName</h2>
-                            <div class="flex items-center gap-2 text-gray-500 mb-1">
-                                <svg class="w-4 h-4 text-center" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                <span class="text-[15px]">Ứng viên</span>
-                            </div>
-                            <div class="flex items-center gap-2 text-gray-500">
-                                <svg class="w-4 h-4 text-center" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                <span class="text-[15px]">@displayEmail</span>
-                            </div>
-                            <a href="/Candidate/Profile" class="text-[#4F46E5] font-semibold hover:underline flex items-center gap-1 mt-2 text-sm">
-                                Cập nhật hồ sơ <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
-                            </a>
+                        <p class="text-[32px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.AppliedJobsCount">@Model.AppliedJobsCount</p>
+                        <h4 class="text-gray-500 font-medium text-[14px]">Công việc đã ứng tuyển</h4>
+                    </a>
+
+                    <!-- Saved Jobs -->
+                    <a href="/candidate/bookmarks" class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         </div>
+                        <p class="text-[32px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.SavedJobsCount">@Model.SavedJobsCount</p>
+                        <h4 class="text-gray-500 font-medium text-[14px]">Công việc đã lưu</h4>
+                    </a>
+
+                    <!-- Approved Jobs (No Link) -->
+                    <div class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p class="text-[32px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.ApprovedJobsCount">@Model.ApprovedJobsCount</p>
+                        <h4 class="text-gray-500 font-medium text-[14px] text-center">Hồ sơ được chấp nhận</h4>
+                    </div>
+
+                    <!-- Rejected Jobs (No Link) -->
+                    <div class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p class="text-[32px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.RejectedJobsCount">@Model.RejectedJobsCount</p>
+                        <h4 class="text-gray-500 font-medium text-[14px] text-center">Hồ sơ bị loại</h4>
+                    </div>
+
+                    <!-- Hired Jobs -->
+                    <a href="/candidate/applications?status=HIRED" class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <p class="text-[32px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.HiredJobsCount">@Model.HiredJobsCount</p>
+                        <h4 class="text-gray-500 font-medium text-[14px] text-center">Công việc được nhận</h4>
+                    </a>
+
+                    <!-- Failed Jobs -->
+                    <a href="/candidate/applications?status=FAILED" class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-red-100 text-red-700 flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <p class="text-[32px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.FailedJobsCount">@Model.FailedJobsCount</p>
+                        <h4 class="text-gray-500 font-medium text-[14px] text-center">Công việc bị loại</h4>
+                    </a>
+                </div>
+
+                <!-- Line Graph 1: Trạng thái ứng tuyển -->
+                <div class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 mt-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-[16px] font-bold text-gray-800 uppercase flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Trạng thái ứng tuyển
+                        </h3>
+                        <div class="flex gap-2">
+                            <button id="chart1_btn1Month" class="px-4 py-1.5 text-sm font-medium rounded-full border border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors">1 tháng gần đây</button>
+                            <button id="chart1_btn6Months" class="px-4 py-1.5 text-sm font-medium rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">6 tháng gần nhất</button>
+                        </div>
+                    </div>
+                    
+                    <div class="relative h-[300px] w-full">
+                        <canvas id="applicationChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Resumes Card -->
-                <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-                    <h3 class="text-[18px] font-bold text-dark mb-5">Hồ sơ đính kèm của bạn</h3>
-                    <div class="bg-[#F8F9FA] rounded-[8px] p-8 border border-[#D6DDEB] flex flex-col items-center justify-center text-center">
-                        <div class="w-12 h-12 mb-4 text-gray-300">
-                            <svg fill="currentColor" viewBox="0 0 24 24" class="w-full h-full">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2.5L17.5 9H13V4.5zM6 20V4h5v6h6v10H6z"/>
-                            </svg>
+                <!-- Line Graph 2: Công việc được nhận / bị loại -->
+                <div class="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 mt-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-[16px] font-bold text-gray-800 uppercase flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Trạng thái công việc
+                        </h3>
+                        <div class="flex gap-2">
+                            <button id="chart2_btn1Month" class="px-4 py-1.5 text-sm font-medium rounded-full border border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors">1 tháng gần đây</button>
+                            <button id="chart2_btn6Months" class="px-4 py-1.5 text-sm font-medium rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">6 tháng gần nhất</button>
                         </div>
-                        <p class="text-[14.5px] text-dark font-medium max-w-md mb-5 leading-relaxed">
-                            Tải lên CV của bạn để ứng tuyển nhanh chóng và thu hút sự chú ý của nhà tuyển dụng.
-                        </p>
-                        <button class="bg-[#4640DE] text-white px-8 py-2.5 rounded-[5px] text-[15px] font-semibold hover:bg-opacity-90 transition-all">
-                            Tải lên ngay
-                        </button>
                     </div>
-                </div>
-
-                <!-- Activities Card -->
-                <div class="bg-white rounded-[20px] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-                    <h3 class="text-[18px] font-bold text-dark mb-5">Hoạt động của bạn</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-                        <!-- Applied Jobs -->
-                        <div class="bg-[#EEF4FF] rounded-md p-6 relative overflow-hidden h-[130px] transition-transform hover:-translate-y-1">
-                            <div class="relative z-10 flex flex-col h-full justify-center gap-2">
-                                <h4 class="text-gray-800 font-medium text-[16px]">Việc làm đã ứng tuyển</h4>
-                                <p class="text-[48px] font-bold text-[#2563EB] counter-number leading-none" data-target="@Model.AppliedJobsCount">@Model.AppliedJobsCount</p>
-                            </div>
-                            <img src="/images/plane.png" class="absolute bottom-0 right-2 w-[100px] h-[100px] object-contain" alt="Việc làm đã ứng tuyển" />
-                        </div>
-
-                        <!-- Saved Jobs -->
-                        <div class="bg-[#FFF0F2] rounded-md p-6 relative overflow-hidden h-[130px] transition-transform hover:-translate-y-1">
-                            <div class="relative z-10 flex flex-col h-full justify-center gap-2">
-                                <h4 class="text-gray-800 font-medium text-[16px]">Việc làm đã lưu</h4>
-                                <p class="text-[48px] font-bold text-[#E11D48] counter-number leading-none" data-target="@Model.SavedJobsCount">@Model.SavedJobsCount</p>
-                            </div>
-                            <img src="/images/heart.png" class="absolute bottom-0 right-2 w-[100px] h-[100px] object-contain" alt="Việc làm đã lưu" />
-                        </div>
-                        
+                    
+                    <div class="relative h-[300px] w-full">
+                        <canvas id="hiredFailedChart"></canvas>
                     </div>
                 </div>
 
@@ -111,9 +137,11 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Counters animation
             const counters = document.querySelectorAll('.counter-number');
             const speed = 200;
 
@@ -131,6 +159,176 @@
                     }
                 };
                 animate();
+            });
+
+            // Chart data
+            const data1Month = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GraphData1Month));
+            const data6Months = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GraphData6Months));
+            
+            const ctx1 = document.getElementById('applicationChart').getContext('2d');
+            const ctx2 = document.getElementById('hiredFailedChart').getContext('2d');
+            
+            // Function to calculate max and stepSize
+            function calculateChartScale(data1, data2) {
+                const max1 = Math.max(...data1, 0);
+                const max2 = Math.max(...data2, 0);
+                const overallMax = Math.max(max1, max2);
+                
+                let stepSize = 1;
+                
+                if (overallMax <= 10) {
+                    stepSize = 1; // default or 2, chartjs handles small numbers well with 1
+                } else if (overallMax <= 50) {
+                    stepSize = 10;
+                } else if (overallMax <= 100) {
+                    stepSize = 10;
+                } else {
+                    stepSize = 100;
+                }
+                
+                const suggestedMax = Math.ceil(overallMax / stepSize) * stepSize;
+                
+                return { suggestedMax: Math.max(suggestedMax, stepSize), stepSize };
+            }
+
+            const scaleOptions1 = calculateChartScale(data1Month.ApprovedData, data1Month.RejectedData);
+            const scaleOptions2 = calculateChartScale(data1Month.HiredData, data1Month.FailedData);
+
+            let chart1 = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: data1Month.Labels,
+                    datasets: [
+                        {
+                            label: 'Chấp nhận',
+                            data: data1Month.ApprovedData,
+                            borderColor: '#10B981', // Green
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Từ chối',
+                            data: data1Month.RejectedData,
+                            borderColor: '#EF4444', // Red
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: getChartOptions(scaleOptions1)
+            });
+
+            let chart2 = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: data1Month.Labels,
+                    datasets: [
+                        {
+                            label: 'Được nhận (Hired)',
+                            data: data1Month.HiredData,
+                            borderColor: '#3B82F6', // Blue
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Bị loại (Failed)',
+                            data: data1Month.FailedData,
+                            borderColor: '#991B1B', // Dark Red
+                            backgroundColor: 'rgba(153, 27, 27, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: getChartOptions(scaleOptions2)
+            });
+
+            function getChartOptions(scaleOptions) {
+                return {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: scaleOptions.suggestedMax,
+                            ticks: { stepSize: scaleOptions.stepSize },
+                            grid: { borderDash: [5, 5], color: '#E5E7EB' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                };
+            }
+
+            // Buttons
+            const chart1_btn1Month = document.getElementById('chart1_btn1Month');
+            const chart1_btn6Months = document.getElementById('chart1_btn6Months');
+            
+            const chart2_btn1Month = document.getElementById('chart2_btn1Month');
+            const chart2_btn6Months = document.getElementById('chart2_btn6Months');
+
+            function setActiveButton(activeBtn, inactiveBtn) {
+                activeBtn.classList.remove('border-gray-300', 'text-gray-600', 'hover:bg-gray-50');
+                activeBtn.classList.add('border-blue-600', 'text-blue-600', 'hover:bg-blue-50');
+                
+                inactiveBtn.classList.remove('border-blue-600', 'text-blue-600', 'hover:bg-blue-50');
+                inactiveBtn.classList.add('border-gray-300', 'text-gray-600', 'hover:bg-gray-50');
+            }
+
+            // Chart 1 Events
+            chart1_btn1Month.addEventListener('click', () => {
+                setActiveButton(chart1_btn1Month, chart1_btn6Months);
+                const scale = calculateChartScale(data1Month.ApprovedData, data1Month.RejectedData);
+                chart1.data.labels = data1Month.Labels;
+                chart1.data.datasets[0].data = data1Month.ApprovedData;
+                chart1.data.datasets[1].data = data1Month.RejectedData;
+                chart1.options.scales.y.suggestedMax = scale.suggestedMax;
+                chart1.options.scales.y.ticks.stepSize = scale.stepSize;
+                chart1.update();
+            });
+
+            chart1_btn6Months.addEventListener('click', () => {
+                setActiveButton(chart1_btn6Months, chart1_btn1Month);
+                const scale = calculateChartScale(data6Months.ApprovedData, data6Months.RejectedData);
+                chart1.data.labels = data6Months.Labels;
+                chart1.data.datasets[0].data = data6Months.ApprovedData;
+                chart1.data.datasets[1].data = data6Months.RejectedData;
+                chart1.options.scales.y.suggestedMax = scale.suggestedMax;
+                chart1.options.scales.y.ticks.stepSize = scale.stepSize;
+                chart1.update();
+            });
+
+            // Chart 2 Events
+            chart2_btn1Month.addEventListener('click', () => {
+                setActiveButton(chart2_btn1Month, chart2_btn6Months);
+                const scale = calculateChartScale(data1Month.HiredData, data1Month.FailedData);
+                chart2.data.labels = data1Month.Labels;
+                chart2.data.datasets[0].data = data1Month.HiredData;
+                chart2.data.datasets[1].data = data1Month.FailedData;
+                chart2.options.scales.y.suggestedMax = scale.suggestedMax;
+                chart2.options.scales.y.ticks.stepSize = scale.stepSize;
+                chart2.update();
+            });
+
+            chart2_btn6Months.addEventListener('click', () => {
+                setActiveButton(chart2_btn6Months, chart2_btn1Month);
+                const scale = calculateChartScale(data6Months.HiredData, data6Months.FailedData);
+                chart2.data.labels = data6Months.Labels;
+                chart2.data.datasets[0].data = data6Months.HiredData;
+                chart2.data.datasets[1].data = data6Months.FailedData;
+                chart2.options.scales.y.suggestedMax = scale.suggestedMax;
+                chart2.options.scales.y.ticks.stepSize = scale.stepSize;
+                chart2.update();
             });
         });
     </script>

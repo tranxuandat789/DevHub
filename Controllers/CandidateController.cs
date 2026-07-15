@@ -44,13 +44,82 @@ namespace DevHub.Controllers
         }
 
         [Authorize(Roles = "CANDIDATE,Candidate")]
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId)) return RedirectToAction("Login", "Auth");
+
+            var candidateId = userId; 
+
+            // Basic Counts
+            var appliedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId);
+            var savedJobsCount = await _context.Bookmarks.CountAsync(b => b.CandidateId == candidateId);
+            var approvedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && (a.Status == "APPROVED" || a.Status == "FINISHED" || a.Status == "HIRED" || a.Status == "FAILED"));
+            var rejectedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && a.Status == "REJECTED");
+            var hiredJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && a.Status == "HIRED");
+            var failedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && a.Status == "FAILED");
+
+            // Graph Data - 6 Months
+            var sixMonthsAgo = DateTime.Now.AddMonths(-5);
+            var startOfSixMonthsAgo = new DateTime(sixMonthsAgo.Year, sixMonthsAgo.Month, 1);
+            
+            var apps6Months = await _context.Applications
+                .Where(a => a.CandidateId == candidateId && a.AppliedAt >= startOfSixMonthsAgo && (a.Status == "APPROVED" || a.Status == "FINISHED" || a.Status == "HIRED" || a.Status == "FAILED" || a.Status == "REJECTED"))
+                .ToListAsync();
+
+            var graph6Months = new DevHub.Models.GraphDataDto();
+            for (int i = 5; i >= 0; i--)
+            {
+                var monthDate = DateTime.Now.AddMonths(-i);
+                var monthName = monthDate.ToString("MM/yyyy");
+                graph6Months.Labels.Add(monthName);
+                
+                var approvedCount = apps6Months.Count(a => a.AppliedAt?.Year == monthDate.Year && a.AppliedAt?.Month == monthDate.Month && (a.Status == "APPROVED" || a.Status == "FINISHED" || a.Status == "HIRED" || a.Status == "FAILED"));
+                var rejectedCount = apps6Months.Count(a => a.AppliedAt?.Year == monthDate.Year && a.AppliedAt?.Month == monthDate.Month && a.Status == "REJECTED");
+                var hiredCount = apps6Months.Count(a => a.AppliedAt?.Year == monthDate.Year && a.AppliedAt?.Month == monthDate.Month && a.Status == "HIRED");
+                var failedCount = apps6Months.Count(a => a.AppliedAt?.Year == monthDate.Year && a.AppliedAt?.Month == monthDate.Month && a.Status == "FAILED");
+                
+                graph6Months.ApprovedData.Add(approvedCount);
+                graph6Months.RejectedData.Add(rejectedCount);
+                graph6Months.HiredData.Add(hiredCount);
+                graph6Months.FailedData.Add(failedCount);
+            }
+
+            // Graph Data - 1 Month (Option B: Current Month)
+            var now = DateTime.Now;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            var daysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+
+            var apps1Month = await _context.Applications
+                .Where(a => a.CandidateId == candidateId && a.AppliedAt >= startOfMonth && (a.Status == "APPROVED" || a.Status == "FINISHED" || a.Status == "HIRED" || a.Status == "FAILED" || a.Status == "REJECTED"))
+                .ToListAsync();
+
+            var graph1Month = new DevHub.Models.GraphDataDto();
+            for (int i = 1; i <= daysInMonth; i++)
+            {
+                graph1Month.Labels.Add($"{i}/{now.Month}");
+                var approvedCount = apps1Month.Count(a => a.AppliedAt?.Day == i && (a.Status == "APPROVED" || a.Status == "FINISHED" || a.Status == "HIRED" || a.Status == "FAILED"));
+                var rejectedCount = apps1Month.Count(a => a.AppliedAt?.Day == i && a.Status == "REJECTED");
+                var hiredCount = apps1Month.Count(a => a.AppliedAt?.Day == i && a.Status == "HIRED");
+                var failedCount = apps1Month.Count(a => a.AppliedAt?.Day == i && a.Status == "FAILED");
+                
+                graph1Month.ApprovedData.Add(approvedCount);
+                graph1Month.RejectedData.Add(rejectedCount);
+                graph1Month.HiredData.Add(hiredCount);
+                graph1Month.FailedData.Add(failedCount);
+            }
+
             var model = new DevHub.Models.DashboardViewModel
             {
-                AppliedJobsCount = 24,
-                SavedJobsCount = 15,
-                InterviewsCount = 3
+                AppliedJobsCount = appliedJobsCount,
+                SavedJobsCount = savedJobsCount,
+                InterviewsCount = 0,
+                ApprovedJobsCount = approvedJobsCount,
+                RejectedJobsCount = rejectedJobsCount,
+                HiredJobsCount = hiredJobsCount,
+                FailedJobsCount = failedJobsCount,
+                GraphData6Months = graph6Months,
+                GraphData1Month = graph1Month
             };
             return View("~/Views/Candidate/CandidateDashboard/Index.cshtml", model);
         }

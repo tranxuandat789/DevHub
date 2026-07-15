@@ -5,6 +5,21 @@ namespace DevHub.Models
         public int AppliedJobsCount { get; set; }
         public int SavedJobsCount { get; set; }
         public int InterviewsCount { get; set; }
+        public int ApprovedJobsCount { get; set; }
+        public int RejectedJobsCount { get; set; }
+        public int HiredJobsCount { get; set; }
+        public int FailedJobsCount { get; set; }
+        public GraphDataDto GraphData1Month { get; set; } = new GraphDataDto();
+        public GraphDataDto GraphData6Months { get; set; } = new GraphDataDto();
+    }
+
+    public class GraphDataDto
+    {
+        public List<string> Labels { get; set; } = new List<string>();
+        public List<int> ApprovedData { get; set; } = new List<int>();
+        public List<int> RejectedData { get; set; } = new List<int>();
+        public List<int> HiredData { get; set; } = new List<int>();
+        public List<int> FailedData { get; set; } = new List<int>();
     }
 
     public class AdminDashboardViewModel

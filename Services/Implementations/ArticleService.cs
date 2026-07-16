@@ -60,7 +60,7 @@ public class ArticleService : IArticleService
             Slug = GenerateSlug(title),
             Content = content,
             ThumbnailUrl = thumbnailUrl,
-            Status = string.Equals(actionType, "draft", StringComparison.OrdinalIgnoreCase) ? "DRAFT" : "PENDING",
+            Status = string.Equals(actionType, "draft", StringComparison.OrdinalIgnoreCase) ? "DRAFT" : "PUBLISHED",
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
@@ -92,12 +92,17 @@ public class ArticleService : IArticleService
         }
         else
         {
-            // Nếu lưu và xuất bản, đưa về PENDING
-            article.Status = "PENDING";
             if (!string.IsNullOrEmpty(article.RejectReason))
             {
+                // Nếu bài từng bị từ chối, đưa về PENDING chờ duyệt lại
+                article.Status = "PENDING";
                 article.RejectReason = null;
                 notifyMods = true; // Báo cho mod duyệt lại
+            }
+            else
+            {
+                // Trạng thái bình thường thì tự động PUBLISHED
+                article.Status = "PUBLISHED";
             }
         }
 

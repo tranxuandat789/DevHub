@@ -189,6 +189,11 @@ namespace DevHub.Controllers.Recruiter
             if (article == null)
                 return NotFound();
             
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (article.CompanyId != dbUser?.Recruiter?.CompanyId)
+                return Forbid();
+
             return View("~/Views/Recruiter/Article/Edit.cshtml", article);
         }
 

@@ -12,6 +12,8 @@ namespace DevHub.Validators.ViewModels.Recruiter
         public string Content { get; set; } = null!;
 
         public string? ThumbnailUrl { get; set; }
+
+        public string? ActionType { get; set; }
     }
 
     public class ArticleEditViewModel
@@ -24,5 +26,7 @@ namespace DevHub.Validators.ViewModels.Recruiter
         public string Content { get; set; } = null!;
 
         public string? ThumbnailUrl { get; set; }
+
+        public string? ActionType { get; set; }
     }
 }

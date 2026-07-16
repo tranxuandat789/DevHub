@@ -7,8 +7,8 @@ namespace DevHub.Services.Interfaces;
 public interface IArticleService
 {
     Task<Article?> GetArticleByIdAsync(int id);
-    Task<Article> CreateArticleAsync(int recruiterId, string title, string content, string thumbnailUrl);
-    Task UpdateArticleAsync(int recruiterId, int articleId, string title, string content, string thumbnailUrl);
+    Task<Article> CreateArticleAsync(int recruiterId, string title, string content, string thumbnailUrl, string actionType = "publish");
+    Task UpdateArticleAsync(int recruiterId, int articleId, string title, string content, string thumbnailUrl, string actionType = "publish");
     Task<List<Article>> GetArticlesForRecruiterAsync(int recruiterId);
     Task DeleteArticleAsync(int recruiterId, int articleId);
     Task ToggleArticleVisibilityAsync(int recruiterId, int articleId);

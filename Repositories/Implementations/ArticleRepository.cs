@@ -80,6 +80,7 @@ public class ArticleRepository : IArticleRepository
     {
         var query = _context.Articles
             .Include(a => a.Company)
+            .Where(a => a.Status != "DRAFT")
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(keyword))

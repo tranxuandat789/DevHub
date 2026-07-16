@@ -102,7 +102,7 @@ namespace DevHub.Controllers.Recruiter
 
             try
             {
-                await _articleService.CreateArticleAsync(recruiterId, model.Title, model.Content, model.ThumbnailUrl ?? "");
+                await _articleService.CreateArticleAsync(recruiterId, model.Title, model.Content, model.ThumbnailUrl ?? "", model.ActionType ?? "publish");
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -209,7 +209,7 @@ namespace DevHub.Controllers.Recruiter
 
             try
             {
-                await _articleService.UpdateArticleAsync(recruiterId, id, model.Title, model.Content, model.ThumbnailUrl ?? "");
+                await _articleService.UpdateArticleAsync(recruiterId, id, model.Title, model.Content, model.ThumbnailUrl ?? "", model.ActionType ?? "publish");
                 return Json(new { success = true });
             }
             catch (Exception ex)

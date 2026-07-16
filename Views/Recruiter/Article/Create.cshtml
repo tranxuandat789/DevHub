@@ -47,7 +47,7 @@
         <!-- Đăng bài -->
         <div class="bg-white rounded-xl shadow-sm border border-[#D6DDEB] p-6">
             <div class="flex flex-col gap-2.5">
-                <button type="button" id="btnDraft" onclick="saveDraft()"
+                <button type="button" id="btnDraft" onclick="showDraftModal()"
                     class="w-full bg-white text-dark font-medium text-sm px-4 py-2.5 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 flex justify-center items-center gap-2 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                     <span>Lưu bản nháp</span>
@@ -125,6 +125,39 @@
         <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
             <button type="button" onclick="closePublishModal()" class="bg-white text-dark font-medium px-4 py-2 rounded-lg border border-[#D6DDEB] hover:bg-gray-100 transition-colors">Hủy</button>
             <button type="button" onclick="confirmPublish()" class="bg-primary text-white font-medium px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận lưu nháp -->
+<div id="draftConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+        <div class="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-dark">Xác nhận lưu bản nháp</h3>
+            <button type="button" onclick="closeDraftModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6">
+            <p class="text-dark">Bạn có chắc chắn muốn lưu bài viết này thành bản nháp?</p>
+        </div>
+        <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+            <button type="button" onclick="closeDraftModal()" class="bg-white text-dark font-medium px-4 py-2 rounded-lg border border-[#D6DDEB] hover:bg-gray-100 transition-colors">Hủy</button>
+            <button type="button" onclick="confirmDraft()" class="bg-primary text-white font-medium px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">Lưu nháp</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlertModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col text-center">
+        <div class="p-6">
+            <div id="alertIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <!-- Icon will be injected via JS -->
+            </div>
+            <h3 id="alertTitle" class="font-bold text-xl text-dark mb-2"></h3>
+            <p id="alertMessage" class="text-gray-600 text-sm mb-6"></p>
+            <button type="button" id="alertBtn" onclick="closeCustomAlert()" class="w-full bg-primary text-white font-medium px-4 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Đóng</button>
         </div>
     </div>
 </div>
@@ -390,10 +423,10 @@
                             document.getElementById('ThumbnailUrl').value = data.url;
                             updateThumbnailPreview(data.url);
                         } else {
-                            alert(data.message || 'Có lỗi xảy ra khi tải ảnh lên.');
+                            showCustomAlert('Lỗi tải ảnh', data.message || 'Có lỗi xảy ra khi tải ảnh lên.', 'error');
                         }
                     })
-                    .catch(() => alert('Đã xảy ra lỗi khi tải ảnh lên.'));
+                    .catch(() => showCustomAlert('Lỗi hệ thống', 'Đã xảy ra lỗi khi tải ảnh lên.', 'error'));
             }
         });
 
@@ -468,16 +501,63 @@
             closePublishModal();
             submitPost();
         }
+        
+        function showDraftModal() {
+            if (validateForm()) {
+                document.getElementById('draftConfirmModal').classList.remove('hidden');
+            }
+        }
+
+        function closeDraftModal() {
+            document.getElementById('draftConfirmModal').classList.add('hidden');
+        }
+
+        function confirmDraft() {
+            closeDraftModal();
+            saveDraft();
+        }
 
         function saveDraft() { submitForm('draft'); }
         function submitPost() { submitForm('publish'); }
+
+        let alertRedirectUrl = '';
+        function showCustomAlert(title, message, type, redirectUrl = '') {
+            const modal = document.getElementById('customAlertModal');
+            const titleEl = document.getElementById('alertTitle');
+            const messageEl = document.getElementById('alertMessage');
+            const iconEl = document.getElementById('alertIcon');
+            const btnEl = document.getElementById('alertBtn');
+            
+            titleEl.innerText = title;
+            messageEl.innerText = message;
+            alertRedirectUrl = redirectUrl;
+            
+            if (type === 'success') {
+                iconEl.className = 'w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100 text-green-500';
+                iconEl.innerHTML = '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                btnEl.className = 'w-full bg-green-500 text-white font-medium px-4 py-2.5 rounded-lg hover:bg-green-600 transition-all';
+            } else {
+                iconEl.className = 'w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-red-100 text-red-500';
+                iconEl.innerHTML = '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                btnEl.className = 'w-full bg-red-500 text-white font-medium px-4 py-2.5 rounded-lg hover:bg-red-600 transition-all';
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlertModal').classList.add('hidden');
+            if (alertRedirectUrl) {
+                window.location.href = alertRedirectUrl;
+            }
+        }
 
         function submitForm(actionType) {
             if (!validateForm()) return;
 
             const form = document.getElementById('blogForm');
             const formData = new FormData(form);
-            formData.set('actionType', actionType === 'draft' ? 'draft' : 'publish');
+            formData.set('ActionType', actionType === 'draft' ? 'draft' : 'publish');
 
             const btnDraft = document.getElementById('btnDraft');
             const btnPublish = document.getElementById('btnPublish');
@@ -491,18 +571,17 @@
             fetch('/Recruiter/Article/CreatePost', { method: 'POST', body: formData })
                 .then(async response => {
                     if (response.ok) {
-                        alert(actionType === 'draft' ? 'Đã lưu bản nháp thành công!' : 'Đăng bài viết thành công!');
-                        window.location.href = '/Recruiter/Article';
+                        showCustomAlert('Thành công', actionType === 'draft' ? 'Đã lưu bản nháp thành công!' : 'Đăng bài viết thành công!', 'success', '/Recruiter/Article');
                     } else {
                         const errText = await response.text();
-                        alert('Có lỗi xảy ra: ' + errText);
+                        showCustomAlert('Lỗi', 'Có lỗi xảy ra: ' + errText, 'error');
                         targetBtn.disabled = false;
                         targetBtn.classList.remove('opacity-70', 'cursor-not-allowed');
                         targetBtn.innerHTML = originalHtml;
                     }
                 })
                 .catch((err) => {
-                    alert('Có lỗi xảy ra: ' + err);
+                    showCustomAlert('Lỗi hệ thống', 'Có lỗi xảy ra: ' + err, 'error');
                     targetBtn.disabled = false;
                     targetBtn.classList.remove('opacity-70', 'cursor-not-allowed');
                     targetBtn.innerHTML = originalHtml;

@@ -369,7 +369,15 @@ CREATE TABLE [interview] (
             'PENDING',
             'FINISHED',
             'EXPIRED',
-            'CANCELLED'
+            'CANCELLED',
+            'PASSED',
+            'REJECTED',
+            'COMPLETED_PENDING',
+            'passed',
+            'rejected',
+            'cancelled',
+            'scheduled',
+            'completed_pending'
         )
     ),
     [created_at] DATETIME DEFAULT GETDATE(),

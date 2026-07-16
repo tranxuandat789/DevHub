@@ -44,7 +44,7 @@ public class ArticleService : IArticleService
         return await _articleRepo.GetByIdAsync(id);
     }
 
-    public async Task<Article> CreateArticleAsync(int recruiterId, string title, string content, string thumbnailUrl)
+    public async Task<Article> CreateArticleAsync(int recruiterId, string title, string content, string thumbnailUrl, string actionType = "publish")
     {
         var recruiter = await _recruiterRepo.GetProfileAsync(recruiterId);
         
@@ -60,7 +60,7 @@ public class ArticleService : IArticleService
             Slug = GenerateSlug(title),
             Content = content,
             ThumbnailUrl = thumbnailUrl,
-            Status = "PUBLISHED",
+            Status = string.Equals(actionType, "draft", StringComparison.OrdinalIgnoreCase) ? "DRAFT" : "PENDING",
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
@@ -70,7 +70,7 @@ public class ArticleService : IArticleService
         return await _articleRepo.CreateAsync(article);
     }
 
-    public async Task UpdateArticleAsync(int recruiterId, int articleId, string title, string content, string thumbnailUrl)
+    public async Task UpdateArticleAsync(int recruiterId, int articleId, string title, string content, string thumbnailUrl, string actionType = "publish")
     {
         var recruiter = await _recruiterRepo.GetProfileAsync(recruiterId);
         
@@ -83,13 +83,22 @@ public class ArticleService : IArticleService
         if (article == null || article.CompanyId != recruiter.CompanyId)
             throw new InvalidOperationException("Article not found or unauthorized.");
 
-        // Chỉ khi bài bị ẩn bởi Moderator (có RejectReason) → chuyển về PENDING để duyệt lại
         bool notifyMods = false;
-        if (article.Status == "HIDDEN" && !string.IsNullOrEmpty(article.RejectReason))
+        
+        if (string.Equals(actionType, "draft", StringComparison.OrdinalIgnoreCase))
         {
-            article.Status = "PENDING";
+            article.Status = "DRAFT";
             article.RejectReason = null;
-            notifyMods = true;
+        }
+        else
+        {
+            // Nếu lưu và xuất bản, đưa về PENDING
+            article.Status = "PENDING";
+            if (!string.IsNullOrEmpty(article.RejectReason))
+            {
+                article.RejectReason = null;
+                notifyMods = true; // Báo cho mod duyệt lại
+            }
         }
 
         article.Title = title;
@@ -143,7 +152,7 @@ public class ArticleService : IArticleService
         if (article == null || article.CompanyId != recruiter.CompanyId)
             throw new InvalidOperationException("Article not found or unauthorized.");
 
-        article.Status = "PUBLISHED";
+        article.Status = "PENDING";
         
         // Not auto-assigning moderator because any moderator can handle articles
 

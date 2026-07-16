@@ -116,6 +116,14 @@ else if (Model.Status == "PENDING")
                     {
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Bị ẩn (Bởi Admin)</span>
                     }
+                    else if (Model.Status == "DRAFT")
+                    {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">Bản nháp</span>
+                    }
+                    else if (Model.Status == "HIDDEN")
+                    {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">Ẩn</span>
+                    }
                     else 
                     {
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">@Model.Status</span>

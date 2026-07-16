@@ -47,9 +47,10 @@ namespace DevHub.Controllers
         public async Task<IActionResult> Dashboard()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdStr, out int userId)) return RedirectToAction("Login", "Auth");
+            if (!int.TryParse(userIdStr, out int candidateId)) return RedirectToAction("Login", "Auth");
 
-            var candidateId = userId; 
+            var interviewService = HttpContext.RequestServices.GetService(typeof(DevHub.Services.Interfaces.IInterviewService)) as DevHub.Services.Interfaces.IInterviewService;
+            if (interviewService != null) await interviewService.SyncInterviewStatusesAsync();
 
             // Basic Counts
             var appliedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId);

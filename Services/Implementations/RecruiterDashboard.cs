@@ -38,10 +38,19 @@ namespace DevHub.Services.Implementations
             var interviews = await _dashboardRepo.GetInterviewsAsync(companyId);
 
             var scheduled = interviews
-                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED" || s == "PENDING"; })
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED"; })
                 .ToList();
             var completed = interviews
-                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "FINISHED" || s == "COMPLETED" || s == "CLOSED"; })
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "COMPLETED_PENDING"; })
+                .ToList();
+            var passed = interviews
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "PASSED"; })
+                .ToList();
+            var rejected = interviews
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "REJECTED"; })
+                .ToList();
+            var cancelled = interviews
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "CANCELLED"; })
                 .ToList();
 
             var jobStatsResult = await _dashboardRepo.GetJobStatsAsync(
@@ -88,6 +97,9 @@ namespace DevHub.Services.Implementations
                 JobStats = jobStatsViewModel,
                 ScheduledInterviews = scheduled,
                 CompletedInterviews = completed,
+                PassedInterviews = passed,
+                RejectedInterviews = rejected,
+                CancelledInterviews = cancelled,
 
                 IsVerified             = recruiter.Company?.IsVerified ?? false,
                 HasPendingVerification = hasPending,

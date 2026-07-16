@@ -12,6 +12,7 @@ public class AdminTransactionItemVm
     public string PackageName { get; set; } = null!;
     public string Status { get; set; } = null!;
     public decimal FinalAmount { get; set; }
+    public decimal TotalAmount { get; set; }
     public string TransactionType { get; set; } = null!;
 }
 
@@ -38,4 +39,7 @@ public class AdminTransactionDetailVm
     public string? VnpayTransactionNo { get; set; }
     public string? VnpayBankCode { get; set; }
     public string? PromoCode { get; set; }
+    public decimal VatRate { get; set; }
+    public decimal VatAmount { get; set; }
+    public decimal TotalAmount { get; set; }
 }

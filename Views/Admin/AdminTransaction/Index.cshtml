@@ -94,7 +94,7 @@
                                     })
                                 </td>
                                 <td class="py-4 px-4 font-bold text-green-600 text-right">
-                                    @item.FinalAmount.ToString("N0") VNĐ
+                                    @(item.TotalAmount > 0 ? item.TotalAmount.ToString("N0") : item.FinalAmount.ToString("N0")) VNĐ
                                 </td>
                                 <td class="py-4 px-4 text-center">
                                     @if (item.Status == "COMPLETED" || item.Status == "SUCCESS")

@@ -36,6 +36,7 @@ public class AdminPaymentService : IAdminPaymentService
             PackageName = t.Service?.PackageName ?? "Unknown",
             Status = t.Status,
             FinalAmount = t.FinalAmount,
+            TotalAmount = t.TotalAmount,
             TransactionType = t.TransactionType
         }).ToList();
 
@@ -70,6 +71,9 @@ public class AdminPaymentService : IAdminPaymentService
             AmountVnd = tx.AmountVnd,
             DiscountAmount = tx.DiscountAmount,
             FinalAmount = tx.FinalAmount,
+            TotalAmount = tx.TotalAmount,
+            VatRate = tx.VatRate,
+            VatAmount = tx.VatAmount,
             Status = tx.Status,
             PaymentMethod = tx.PaymentMethod,
             VnpayTxnRef = tx.VnpayTxnRef,

@@ -282,7 +282,16 @@
                             <tr class="hover:bg-gray-50/50 transition-colors group">
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
-                                        <img src="@Avatar(a.AvatarUrl, a.FullName)" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                                        @if (!string.IsNullOrEmpty(a.AvatarUrl))
+                                        {
+                                            <img src="@a.AvatarUrl" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg border border-gray-200">
+                                                @(string.IsNullOrEmpty(a.FullName) ? "?" : a.FullName.Substring(0, 1).ToUpper())
+                                            </div>
+                                        }
                                         <div>
                                             @if (Model.IsCrossJob)
                                             {

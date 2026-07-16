@@ -42,7 +42,7 @@ public class InterviewService : IInterviewService
             MeetingLink = meetingLink,
             Location = location,
             Notes = notes,
-            Status = "SCHEDULED",
+            Status = "scheduled",
             CreatedAt = DateTime.Now
         };
 
@@ -71,7 +71,7 @@ public class InterviewService : IInterviewService
             _context.Notifications.Add(n);
             await _context.SaveChangesAsync();
 
-            var emailEnabled = application?.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? false;
+            var emailEnabled = application?.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? true;
             var candidateEmail = application?.Candidate?.CandidateNavigation?.Email;
             if (emailEnabled && !string.IsNullOrWhiteSpace(candidateEmail))
             {
@@ -171,5 +171,93 @@ public class InterviewService : IInterviewService
         }
 
         return interview;
+    }
+
+    public async Task<bool> UpdateStatusAsync(int recruiterId, int interviewId, string status)
+    {
+        var interview = await _context.Interviews
+            .Include(i => i.Application).ThenInclude(a => a.Job)
+            .Include(i => i.Candidate).ThenInclude(c => c.CandidateNavigation)
+            .FirstOrDefaultAsync(i => i.InterviewId == interviewId && i.Application.Job.CompanyId == _context.Recruiters.Where(r => r.RecruiterId == recruiterId).Select(r => r.CompanyId).FirstOrDefault());
+            
+        if (interview == null)
+            return false;
+
+        interview.Status = status;
+        if (status == "passed" && interview.Application != null)
+        {
+            interview.Application.Status = "HIRED";
+        }
+        else if (status == "rejected" && interview.Application != null)
+        {
+            interview.Application.Status = "FAILED";
+        }
+
+        interview.UpdatedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
+
+        if (status == "cancelled")
+        {
+            try
+            {
+                var n = new Notification
+                {
+                    UserId = interview.CandidateId,
+                    UserType = "CANDIDATE",
+                    Type = "INTERVIEW",
+                    Title = "Lịch phỏng vấn đã bị hủy",
+                    Message = $"Lịch phỏng vấn của bạn cho vị trí {interview.Application?.Job?.Title} đã bị nhà tuyển dụng hủy bỏ.",
+                    ReferenceType = "Interview",
+                    ReferenceId = interview.InterviewId,
+                    SeverityLevel = "error",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                };
+                _context.Notifications.Add(n);
+                await _context.SaveChangesAsync();
+
+                var emailEnabled = interview.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? true;
+                var candidateEmail = interview.Candidate?.CandidateNavigation?.Email;
+                if (emailEnabled && !string.IsNullOrWhiteSpace(candidateEmail))
+                {
+                    var title = interview.Application?.Job?.Title ?? "công việc";
+                    var candidateName = interview.Candidate?.FullName ?? "Bạn";
+                    var subject = "Lịch phỏng vấn bị hủy - DevHub";
+                    var body = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #D6DDEB; border-radius: 8px;'>
+                        <h2 style='color: #EF4444;'>Lịch phỏng vấn bị hủy</h2>
+                        <p>Chào <b>{candidateName}</b>,</p>
+                        <p>Lịch phỏng vấn của bạn cho vị trí <b>{title}</b> đã bị nhà tuyển dụng hủy bỏ.</p>
+                        <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                        <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                    </div>";
+                    
+                    await _emailHelper.SendEmailAsync(candidateEmail, subject, body);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send cancellation notification for interview {InterviewId}", interview.InterviewId);
+            }
+        }
+
+        return true;
+    }
+
+    public async Task SyncInterviewStatusesAsync()
+    {
+        var pastScheduledInterviews = await _context.Interviews
+            .Where(i => i.Status == "scheduled" && i.ScheduledTime < DateTime.Now)
+            .ToListAsync();
+
+        if (pastScheduledInterviews.Any())
+        {
+            foreach (var interview in pastScheduledInterviews)
+            {
+                interview.Status = "completed_pending";
+                interview.UpdatedAt = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }

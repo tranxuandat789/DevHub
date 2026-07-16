@@ -1,4 +1,5 @@
-<meta charset="utf-8" />
+@using DevHub.ViewModels.Candidate
+@model CandidateInterviewViewModel
 @{
     ViewData["Title"] = "Lịch phỏng vấn";
     ViewData["IsCandidate"] = "true";
@@ -17,77 +18,176 @@
             <!-- Main Content -->
             <div class="flex-1">
                 <div class="bg-white rounded-[10px] p-6 shadow-sm border border-[#D6DDEB]">
-                    <div class="flex justify-between items-center mb-6 border-b border-[#D6DDEB] pb-4">
-                        <h2 class="text-[20px] font-bold text-dark">Lịch phỏng vấn</h2>
-                        <div class="flex gap-2">
-                            <span class="bg-primary/10 text-primary text-sm font-semibold px-3 py-1 rounded-full">2 Lịch sắp tới</span>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b border-[#D6DDEB] pb-4 gap-4">
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-[20px] font-bold text-dark">Lịch phỏng vấn</h2>
+                            <span class="bg-primary/10 text-primary text-sm font-semibold px-3 py-1 rounded-full">@Model.ScheduledCount Lịch sắp tới</span>
                         </div>
+                        
+                        <!-- Job Filter -->
+                        <form method="get" class="relative min-w-[250px]" onchange="this.submit()">
+                            <input type="hidden" name="tab" value="@Model.ActiveTab" />
+                            <select name="jobId" class="w-full appearance-none pl-4 pr-10 py-2 bg-gray-50 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-primary text-sm font-medium text-dark cursor-pointer">
+                                <option value="">Tất cả công việc</option>
+                                @foreach (var job in Model.JobPosts)
+                                {
+                                    if (Model.SelectedJobId == job.JobId)
+                                    {
+                                        <option value="@job.JobId" selected>@job.Title</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@job.JobId">@job.Title</option>
+                                    }
+                                }
+                            </select>
+                            <svg class="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </form>
                     </div>
 
                     <!-- Filter Options -->
                     <div class="flex flex-wrap gap-3 mb-6">
-                        <button class="px-4 py-2 text-sm font-medium rounded-full bg-primary text-white transition-colors">Sắp tới</button>
-                        <button class="px-4 py-2 text-sm font-medium rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-dark border border-[#D6DDEB] transition-colors">Đã qua</button>
-                        <button class="px-4 py-2 text-sm font-medium rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-dark border border-[#D6DDEB] transition-colors">Đã hủy</button>
+                        @{
+                            string BaseUrl = $"?jobId={Model.SelectedJobId}";
+                            string GetTabClass(string tab) => Model.ActiveTab == tab 
+                                ? "px-4 py-2 text-sm font-medium rounded-full bg-primary text-white transition-colors" 
+                                : "px-4 py-2 text-sm font-medium rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-dark border border-[#D6DDEB] transition-colors";
+                        }
+                        <a href="@(BaseUrl)&tab=scheduled" class="@GetTabClass("scheduled")">Sắp tới (@Model.ScheduledCount)</a>
+                        <a href="@(BaseUrl)&tab=completed_pending" class="@GetTabClass("completed_pending")">Đã qua (@Model.CompletedCount)</a>
+                        <a href="@(BaseUrl)&tab=passed" class="@GetTabClass("passed")">Trúng tuyển (@Model.PassedCount)</a>
+                        <a href="@(BaseUrl)&tab=rejected" class="@GetTabClass("rejected")">Trượt (@Model.RejectedCount)</a>
+                        <a href="@(BaseUrl)&tab=cancelled" class="@GetTabClass("cancelled")">Đã hủy (@Model.CancelledCount)</a>
                     </div>
 
                     <!-- Interview List -->
                     <div class="space-y-4">
-                        @for (int i = 0; i < 2; i++)
+                        @if (Model.Interviews.Any())
                         {
-                            <div class="block border border-[#D6DDEB] hover:border-primary/50 hover:shadow-sm transition-all rounded-xl p-5 group relative overflow-hidden">
-                                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pl-2">
-                                    
-                                    <div class="flex items-start gap-4">
-                                        <!-- Date Box -->
-                                        <div class="w-16 h-16 rounded-xl flex flex-col items-center justify-center border border-[#D6DDEB] bg-gray-50 shadow-sm flex-shrink-0">
-                                            <span class="text-xs font-bold text-primary uppercase">Th�ng 10</span>
-                                            <span class="text-xl font-bold text-dark">25</span>
-                                        </div>
+                            @foreach (var item in Model.Interviews)
+                            {
+                                <div class="block border border-[#D6DDEB] hover:border-primary/50 hover:shadow-sm transition-all rounded-xl p-5 group relative overflow-hidden">
+                                    <div class="absolute top-0 left-0 w-1 h-full @(item.Status == "cancelled" ? "bg-gray-400" : item.Status == "passed" ? "bg-green-500" : item.Status == "rejected" ? "bg-red-500" : "bg-primary")"></div>
+                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pl-2">
                                         
-                                        <!-- Interview Details -->
-                                        <div>
-                                            <h3 class="text-[17px] font-bold text-dark">Phỏng vấn Vòng 1 - UI/UX Designer</h3>
-                                            <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                                <span class="font-medium text-dark flex items-center">
-                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg" alt="Company" class="w-4 h-4 object-contain mr-1.5">
-                                                    BMW
-                                                </span>
+                                        <div class="flex items-start gap-4">
+                                            <!-- Date Box -->
+                                            <div class="w-16 h-16 rounded-xl flex flex-col items-center justify-center border border-[#D6DDEB] bg-gray-50 shadow-sm flex-shrink-0">
+                                                <span class="text-xs font-bold text-primary uppercase">Thg @item.ScheduledTime.Month</span>
+                                                <span class="text-xl font-bold text-dark">@item.ScheduledTime.Day</span>
                                             </div>
                                             
-                                            <!-- Info items -->
-                                            <div class="flex flex-wrap gap-y-2 gap-x-4 mt-3">
-                                                <span class="text-[13px] font-medium text-gray-500 flex items-center">
-                                                    <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    09:00 AM - 10:00 AM
-                                                </span>
-                                                <span class="text-[13px] font-medium text-gray-500 flex items-center">
-                                                    <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                    </svg>
-                                                    Google Meet
-                                                </span>
+                                            <!-- Interview Details -->
+                                            <div>
+                                                <h3 class="text-[17px] font-bold text-dark">Phỏng vấn - @item.Application?.Job?.Title</h3>
+                                                <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                                    <span class="font-medium text-dark flex items-center">
+                                                        <img src="@(item.Application?.Job?.Company?.CompanyLogoUrl ?? "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg")" alt="Company" class="w-4 h-4 object-contain mr-1.5">
+                                                        @item.Application?.Job?.Company?.CompanyName
+                                                    </span>
+                                                </div>
+                                                
+                                                <!-- Info items -->
+                                                <div class="flex flex-wrap gap-y-2 gap-x-4 mt-3">
+                                                    <span class="text-[13px] font-medium text-gray-500 flex items-center">
+                                                        <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        @item.ScheduledTime.ToString("HH:mm")
+                                                    </span>
+                                                    <span class="text-[13px] font-medium text-gray-500 flex items-center">
+                                                        @if (item.InterviewType == "ONLINE")
+                                                        {
+                                                            <svg class="w-4 h-4 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                            </svg>
+                                                            <span>Online Meeting</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                                            </svg>
+                                                            <span>Trực tiếp</span>
+                                                        }
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Actions -->
-                                    <div class="flex flex-col items-end gap-3 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#D6DDEB]">
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-blue-50 text-blue-600 border border-blue-100">Chờ phỏng vấn</span>
-                                        </div>
-                                        <div class="flex items-center justify-between w-full md:w-auto gap-3">
-                                            <a href="#" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-white hover:bg-opacity-90 w-full text-center transition-colors shadow-sm">Tham gia ngay</a>
+                                        
+                                        <!-- Actions -->
+                                        <div class="flex flex-col items-end gap-3 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#D6DDEB]">
+                                            <div class="flex items-center gap-2">
+                                                @if (item.Status == "scheduled")
+                                                {
+                                                    <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-blue-50 text-blue-600 border border-blue-100">Chờ phỏng vấn</span>
+                                                }
+                                                else if (item.Status == "completed_pending")
+                                                {
+                                                    <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-yellow-50 text-yellow-600 border border-yellow-100">Chờ kết quả</span>
+                                                }
+                                                else if (item.Status == "passed")
+                                                {
+                                                    <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-green-50 text-green-600 border border-green-100">Đã đậu</span>
+                                                }
+                                                else if (item.Status == "rejected")
+                                                {
+                                                    <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-red-50 text-red-600 border border-red-100">Rớt</span>
+                                                }
+                                                else if (item.Status == "cancelled")
+                                                {
+                                                    <span class="px-2.5 py-1 rounded-md text-[12px] font-medium bg-gray-50 text-gray-600 border border-gray-200">Đã hủy</span>
+                                                }
+                                            </div>
+                                            @if (item.Status == "scheduled" && item.InterviewType == "ONLINE" && !string.IsNullOrEmpty(item.MeetingLink))
+                                            {
+                                                <div class="flex items-center justify-between w-full md:w-auto gap-3">
+                                                    <a href="@item.MeetingLink" target="_blank" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-white hover:bg-opacity-90 w-full text-center transition-colors shadow-sm">Tham gia ngay</a>
+                                                </div>
+                                            }
+                                            else if (item.Status == "scheduled" && item.InterviewType == "OFFLINE")
+                                            {
+                                                <div class="flex items-center justify-between w-full md:w-auto gap-3">
+                                                    <span class="px-4 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-dark border border-gray-200 w-full text-center shadow-sm">@item.Location</span>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="bg-white rounded-xl border border-dashed border-[#D6DDEB] p-10 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <h3 class="mt-2 text-sm font-semibold text-gray-900">Không có dữ liệu</h3>
+                                <p class="mt-1 text-sm text-gray-500">Hiện chưa có lịch phỏng vấn nào phù hợp với bộ lọc.</p>
                             </div>
                         }
                     </div>
                     
+                    <!-- Pagination -->
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="mt-6 flex justify-center">
+                            <div class="flex items-center gap-1">
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    if (i == Model.CurrentPage)
+                                    {
+                                        <span class="w-8 h-8 rounded-lg bg-primary text-white font-medium text-sm flex items-center justify-center">@i</span>
+                                    }
+                                    else
+                                    {
+                                        <a href="@(BaseUrl)&tab=@Model.ActiveTab&page=@i" class="w-8 h-8 rounded-lg text-dark hover:bg-gray-100 font-medium text-sm flex items-center justify-center border border-gray-200 transition-colors">@i</a>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+
                 </div>
             </div>
 

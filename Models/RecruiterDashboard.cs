@@ -13,6 +13,9 @@ namespace DevHub.Models
         public JobStatsTableViewModel JobStats { get; set; } = new();
         public List<Interview> ScheduledInterviews { get; set; } = new List<Interview>();
         public List<Interview> CompletedInterviews { get; set; } = new List<Interview>();
+        public List<Interview> PassedInterviews { get; set; } = new List<Interview>();
+        public List<Interview> RejectedInterviews { get; set; } = new List<Interview>();
+        public List<Interview> CancelledInterviews { get; set; } = new List<Interview>();
 
         // Verification state.
         public bool IsVerified { get; set; }

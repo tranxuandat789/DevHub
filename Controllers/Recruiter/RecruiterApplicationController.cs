@@ -32,13 +32,20 @@ namespace DevHub.Controllers.Recruiter
         [HttpGet]
         public async Task<IActionResult> Index(int? jobId, ApplicantFilter filter)
         {
-            var recruiterId = await GetRecruiterIdAsync();
-            if (recruiterId == null) return NotFound();
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser?.Recruiter?.Company?.IsVerified != true || dbUser?.Recruiter?.Company?.ProfileCompletion < 97)
+            {
+                ViewBag.ProfileIncomplete = true;
+                return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", new ApplicantListViewModel());
+            }
+
+            var recruiterId = dbUser!.Recruiter!.RecruiterId;
 
             if (jobId == null)
                 return RedirectToAction(nameof(All));
 
-            var vm = await _appService.GetJobApplicantsAsync(recruiterId.Value, jobId.Value, filter);
+            var vm = await _appService.GetJobApplicantsAsync(recruiterId, jobId.Value, filter);
             if (vm == null)
             {
                 TempData["Error"] = "Không tìm thấy tin tuyển dụng hoặc tin chưa được duyệt.";
@@ -52,10 +59,17 @@ namespace DevHub.Controllers.Recruiter
         [HttpGet("All")]
         public async Task<IActionResult> All(ApplicantFilter filter)
         {
-            var recruiterId = await GetRecruiterIdAsync();
-            if (recruiterId == null) return NotFound();
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser?.Recruiter?.Company?.IsVerified != true || dbUser?.Recruiter?.Company?.ProfileCompletion < 97)
+            {
+                ViewBag.ProfileIncomplete = true;
+                return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", new ApplicantListViewModel());
+            }
 
-            var vm = await _appService.GetAllApplicantsAsync(recruiterId.Value, filter);
+            var recruiterId = dbUser!.Recruiter!.RecruiterId;
+
+            var vm = await _appService.GetAllApplicantsAsync(recruiterId, filter);
             return View("~/Views/Recruiter/RecruiterApplication/Index.cshtml", vm);
         }
 

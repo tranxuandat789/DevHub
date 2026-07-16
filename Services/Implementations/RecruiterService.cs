@@ -18,6 +18,7 @@ namespace DevHub.Services.Implementations
         //Repository interface instance
         private readonly IRecruiterRepository _recruiterProfileRepository;
         private readonly IUserAccountRepository _userRepository;
+        private readonly ICompanyRepository _companyRepository;
         private readonly IAssignModeratorService _assignModeratorService;
         private readonly INotificationService _notificationService;
 
@@ -25,11 +26,13 @@ namespace DevHub.Services.Implementations
         public RecruiterService(
             IRecruiterRepository recruiterProfileRepository, 
             IUserAccountRepository userRepository, 
+            ICompanyRepository companyRepository,
             IAssignModeratorService assignModeratorService,
             INotificationService notificationService)
         {
             _recruiterProfileRepository = recruiterProfileRepository;
             _userRepository = userRepository;
+            _companyRepository = companyRepository;
             _assignModeratorService = assignModeratorService;
             _notificationService = notificationService;
         }
@@ -46,17 +49,17 @@ namespace DevHub.Services.Implementations
                 recruiter.FullName,
                 recruiter.Position,
                 recruiter.Phone,
-                recruiter.Company.CompanyName,
-                recruiter.Company.CompanyAddress,
-                recruiter.Company.CompanyLogoUrl,
-                recruiter.Company.CompanyDescription,
-                recruiter.Company.Website,
-                recruiter.Company.Industry,
-                recruiter.Company.TaxCode
+                recruiter.Company?.CompanyName,
+                recruiter.Company?.CompanyAddress,
+                recruiter.Company?.CompanyLogoUrl,
+                recruiter.Company?.CompanyDescription,
+                recruiter.Company?.Website,
+                recruiter.Company?.Industry,
+                recruiter.Company?.TaxCode
             };
             //Check if this recruiter has been upload licenses or not
-            bool hasLicense = !string.IsNullOrEmpty(recruiter.Company.BusinessLicenseUrl);
-            bool hasAdditionalDocs = !string.IsNullOrEmpty(recruiter.Company.AdditionalDocumentsUrl);
+            bool hasLicense = !string.IsNullOrEmpty(recruiter.Company?.BusinessLicenseUrl);
+            bool hasAdditionalDocs = !string.IsNullOrEmpty(recruiter.Company?.AdditionalDocumentsUrl);
 
             int companyFields = companyProfile.Count(field => !string.IsNullOrEmpty(field));
 
@@ -68,16 +71,16 @@ namespace DevHub.Services.Implementations
                 FullName = recruiter.FullName,
                 Position = recruiter.Position,
                 Phone = recruiter.Phone,
-                CompanyName = recruiter.Company.CompanyName,
-                CompanyAddress = recruiter.Company.CompanyAddress,
-                CompanyLogoUrl = recruiter.Company.CompanyLogoUrl,
-                CompanyDescription = recruiter.Company.CompanyDescription,
-                Website = recruiter.Company.Website,
-                Industry = recruiter.Company.Industry,
-                TaxCode = recruiter.Company.TaxCode,
-                BusinessLicenseUrl = recruiter.Company.BusinessLicenseUrl,
-                AdditionalDocumentsUrl = recruiter.Company.AdditionalDocumentsUrl,
-                IsVerified = recruiter.Company.IsVerified,
+                CompanyName = recruiter.Company?.CompanyName,
+                CompanyAddress = recruiter.Company?.CompanyAddress,
+                CompanyLogoUrl = recruiter.Company?.CompanyLogoUrl,
+                CompanyDescription = recruiter.Company?.CompanyDescription,
+                Website = recruiter.Company?.Website,
+                Industry = recruiter.Company?.Industry,
+                TaxCode = recruiter.Company?.TaxCode,
+                BusinessLicenseUrl = recruiter.Company?.BusinessLicenseUrl,
+                AdditionalDocumentsUrl = recruiter.Company?.AdditionalDocumentsUrl,
+                IsVerified = recruiter.Company?.IsVerified,
                 ProfileCompleteness = profileCompleteness
             };
         }
@@ -137,6 +140,42 @@ namespace DevHub.Services.Implementations
 
             //save changes to database  
             await _recruiterProfileRepository.UpdateProfileAsync(existingRecruiter);
+        }
+
+        public async Task RegisterCompanyProfileAsync(DevHub.Models.Recruiter existingRecruiter, RecruiterProfileViewModel updateVm)
+        {
+            if (existingRecruiter == null)
+                throw new KeyNotFoundException("Recruiter not found");
+
+            if (existingRecruiter.CompanyId != null)
+                throw new InvalidOperationException("Recruiter already has a company");
+
+            if (!string.IsNullOrEmpty(updateVm.TaxCode))
+            {
+                // Check if tax code exists globally
+                bool isTaken = await _recruiterProfileRepository.CheckTaxCodeExistAsync(updateVm.TaxCode, existingRecruiter.RecruiterId);
+                if (isTaken)
+                    throw new InvalidOperationException("Mã số thuế này đã được đăng ký bởi một doanh nghiệp khác trên hệ thống.");
+            }
+
+            var newCompany = new DevHub.Models.Company
+            {
+                CompanyName = NormalizeSpaces(updateVm.CompanyName),
+                TaxCode = updateVm.TaxCode,
+                CompanyAddress = NormalizeSpaces(updateVm.CompanyAddress),
+                CompanyDescription = NormalizeSpaces(updateVm.CompanyDescription),
+                Website = updateVm.Website,
+                Industry = NormalizeSpaces(updateVm.Industry),
+                CompanyLogoUrl = updateVm.CompanyLogoUrl,
+                IsVerified = false,
+                ProfileCompletion = 0 // Will be recalculated on next GetProfileAsync
+            };
+
+            await _companyRepository.AddCompanyAsync(newCompany);
+
+            existingRecruiter.CompanyId = newCompany.CompanyId;
+            existingRecruiter.IsCompanyAdmin = true;
+            await _recruiterProfileRepository.AssignCompanyAsync(existingRecruiter.RecruiterId, newCompany.CompanyId, true);
         }
 
         // User-triggered verification request. Only allowed when the company profile is more than 96% complete;

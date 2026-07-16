@@ -56,7 +56,10 @@ namespace DevHub.Controllers.Recruiter
 
             // Google-login accounts (no local password) -> hide the "current password" box.
             ViewBag.IsGoogleAccount = string.IsNullOrEmpty(dbUser.PasswordHash) || dbUser.PasswordHash == "GOOGLE_OAUTH";
-            ViewBag.HasPendingRequest = await _recruiterService.HasPendingVerificationRequestAsync(dbUser.Recruiter.RecruiterId);
+            ViewBag.HasCompany = dbUser.Recruiter.CompanyId != null;
+            ViewBag.HasPendingRequest = dbUser.Recruiter.CompanyId != null 
+                ? await _recruiterService.HasPendingVerificationRequestAsync(dbUser.Recruiter.RecruiterId)
+                : false;
 
             if (tab.ToLower() == "members" && dbUser.Recruiter.CompanyId.HasValue)
             {
@@ -114,15 +117,15 @@ namespace DevHub.Controllers.Recruiter
                 Position = model.Position,
                 Phone = model.Phone,
                 // preserve other fields of recruiter entity which are not in the account form.
-                CompanyName = dbUser.Recruiter.Company.CompanyName,
-                CompanyAddress = dbUser.Recruiter.Company.CompanyAddress,
-                CompanyLogoUrl = dbUser.Recruiter.Company.CompanyLogoUrl,
-                CompanyDescription = dbUser.Recruiter.Company.CompanyDescription,
-                Website = dbUser.Recruiter.Company.Website,
-                Industry = dbUser.Recruiter.Company.Industry,
-                TaxCode = dbUser.Recruiter.Company.TaxCode,
-                BusinessLicenseUrl = dbUser.Recruiter.Company.BusinessLicenseUrl,
-                AdditionalDocumentsUrl = dbUser.Recruiter.Company.AdditionalDocumentsUrl
+                CompanyName = dbUser.Recruiter.Company?.CompanyName,
+                CompanyAddress = dbUser.Recruiter.Company?.CompanyAddress,
+                CompanyLogoUrl = dbUser.Recruiter.Company?.CompanyLogoUrl,
+                CompanyDescription = dbUser.Recruiter.Company?.CompanyDescription,
+                Website = dbUser.Recruiter.Company?.Website,
+                Industry = dbUser.Recruiter.Company?.Industry,
+                TaxCode = dbUser.Recruiter.Company?.TaxCode,
+                BusinessLicenseUrl = dbUser.Recruiter.Company?.BusinessLicenseUrl,
+                AdditionalDocumentsUrl = dbUser.Recruiter.Company?.AdditionalDocumentsUrl
             };
 
             await _recruiterService.UpdateProfileAsync(dbUser.Recruiter, vm);
@@ -225,6 +228,81 @@ namespace DevHub.Controllers.Recruiter
             {
                 //Catch invalid tax code format
                 ModelState.AddModelError("TaxCode", ex.Message);
+                return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+            }
+
+            return RedirectToAction("Index", new { tab = "company" });
+        }
+
+        [HttpPost("register-company")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterCompany(RecruiterProfileViewModel model, IFormFile? logoFile)
+        {
+            ViewData["ActiveMenu"] = "Settings";
+            ViewBag.ActiveTab = "company";
+
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
+            var dbUser = await _authService.FindUserByEmailAsync(email);
+            if (dbUser == null || dbUser.Recruiter == null)
+                return NotFound();
+
+            if (dbUser.Recruiter.CompanyId != null)
+            {
+                TempData["Error"] = "Bạn đã thuộc về một công ty, không thể đăng ký công ty mới.";
+                return RedirectToAction("Index", new { tab = "company" });
+            }
+
+            // Drop validation for recruiter personal fields
+            ModelState.Remove(nameof(model.FullName));
+            ModelState.Remove(nameof(model.Phone));
+            ModelState.Remove(nameof(model.Position));
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.HasCompany = false;
+                return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+            }
+
+            if (logoFile != null && logoFile.Length > 0)
+            {
+                var allowed = new[] { "image/png", "image/jpeg" };
+                if (!allowed.Contains(logoFile.ContentType) || logoFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("", "Logo không hợp lệ. Chỉ PNG/JPG dưới 5MB.");
+                    ViewBag.HasCompany = false;
+                    return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+                }
+
+                var uploads = Path.Combine(_env.WebRootPath, "uploads", "companylogo");
+                try
+                {
+                    Directory.CreateDirectory(uploads);
+                    var fileName = $"logo_{dbUser.Recruiter.RecruiterId}_{DateTime.UtcNow.Ticks}{Path.GetExtension(logoFile.FileName)}";
+                    var filePath = Path.Combine(uploads, fileName);
+                    using (var fs = System.IO.File.Create(filePath))
+                    {
+                        await logoFile.CopyToAsync(fs);
+                    }
+                    model.CompanyLogoUrl = $"/uploads/companylogo/{fileName}";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error saving company logo for recruiter {RecruiterId}", dbUser.Recruiter.RecruiterId);
+                    ModelState.AddModelError("", "Đã xảy ra lỗi khi lưu file. Vui lòng thử lại hoặc liên hệ quản trị.");
+                    ViewBag.HasCompany = false;
+                    return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
+                }
+            }
+
+            try
+            {
+                await _recruiterService.RegisterCompanyProfileAsync(dbUser.Recruiter, model);
+                TempData["Success"] = "Đăng ký công ty mới thành công!";
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("TaxCode", ex.Message);
+                ViewBag.HasCompany = false;
                 return View("~/Views/Recruiter/Settings/Index.cshtml", dbUser.Recruiter);
             }
 

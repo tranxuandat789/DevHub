@@ -36,7 +36,15 @@ public class RecruiterPaymentController : Controller
     [HttpGet("Subscription")]
     public async Task<IActionResult> Subscription()
     {
-        var companyId = await GetCompanyIdAsync();
+        var recruiter = await _recruiterRepo.GetProfileAsync(GetRecruiterId());
+        
+        if (recruiter?.Company?.IsVerified != true || recruiter?.Company?.ProfileCompletion < 97)
+        {
+            ViewBag.ProfileIncomplete = true;
+            return View("~/Views/Recruiter/Payment/Subscription.cshtml", new SubscriptionPageVm());
+        }
+
+        var companyId = recruiter.CompanyId;
         if (companyId == null)
         {
             TempData["ErrorMessage"] = "Vui lòng cập nhật thông tin công ty trước khi mua gói dịch vụ.";

@@ -68,6 +68,16 @@ public class RecruiterRepository : IRecruiterRepository
         }
     }
 
+    public async Task AssignCompanyAsync(int recruiterId, int companyId, bool isCompanyAdmin)
+    {
+        await _db.Recruiters
+            .Where(r => r.RecruiterId == recruiterId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(r => r.CompanyId, companyId)
+                .SetProperty(r => r.IsCompanyAdmin, isCompanyAdmin)
+            );
+    }
+
     public async Task<Recruiter> GetProfileForUpdateAsync(int recruiterId)
     {
         return (await _db.Recruiters

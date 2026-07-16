@@ -40,9 +40,12 @@
                 <a href="/Recruiter/Settings?tab=company" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "company" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
                     Thông tin công ty
                 </a>
-                <a href="/Recruiter/Settings?tab=license" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "license" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
-                    Giấy phép kinh doanh
-                </a>
+                @if (ViewBag.HasCompany == true)
+                {
+                    <a href="/Recruiter/Settings?tab=license" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "license" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">
+                        Giấy phép kinh doanh
+                    </a>
+                }
                 @if (Model.IsCompanyAdmin == true)
                 {
                     <a href="/Recruiter/Settings?tab=members" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm @(activeTab == "members" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300")">

@@ -10,6 +10,7 @@ public interface IRecruiterRepository
     Task<Recruiter> GetProfileAsync(int recruiterId);
     Task<Recruiter> GetProfileForUpdateAsync(int recruiterId);
     Task UpdateProfileAsync(Recruiter recruiter);
+    Task AssignCompanyAsync(int recruiterId, int companyId, bool isCompanyAdmin);
     Task CreateVerificationRequestAsync(int recruiterId, string details);
     Task<bool> HasPendingVerificationRequestAsync(int recruiterId);
     Task<bool> CheckTaxCodeExistAsync(string taxCode, int excludeRecruiterId);

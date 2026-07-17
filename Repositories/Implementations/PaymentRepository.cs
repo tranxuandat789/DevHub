@@ -44,10 +44,12 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<PackageTransaction?> GetByTxnRefAsync(string vnpTxnRef)
     {
-        return await _context.PackageTransactions
+        var tx = await _context.PackageTransactions
             .Include(t => t.Service)
             .Include(t => t.Promotion)
             .FirstOrDefaultAsync(t => t.VnpayTxnRef == vnpTxnRef);
+        await CheckExpiredAsync(tx);
+        return tx;
     }
 
     public async Task<string?> GetBuyerTaxCodeAsync(int companyId)
@@ -60,10 +62,12 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<PackageTransaction?> GetByIdForCompanyAsync(int txId, int companyId)
     {
-        return await _context.PackageTransactions
+        var tx = await _context.PackageTransactions
             .Include(t => t.Service)
             .Include(t => t.Promotion)
             .FirstOrDefaultAsync(t => t.TransactionId == txId && t.CompanyId == companyId);
+        await CheckExpiredAsync(tx);
+        return tx;
     }
 
     public async Task<(List<PackageTransaction> Items, int Total)> GetHistoryAsync(
@@ -94,6 +98,8 @@ public class PaymentRepository : IPaymentRepository
             .Take(pageSize)
             .ToListAsync();
 
+        await CheckExpiredListAsync(items);
+
         return (items, total);
     }
 
@@ -120,7 +126,9 @@ public class PaymentRepository : IPaymentRepository
             query = query.Where(t => t.ServiceId == serviceId.Value);
         }
 
-        return await query.OrderByDescending(t => t.TransactionDate).ToListAsync();
+        var items = await query.OrderByDescending(t => t.TransactionDate).ToListAsync();
+        await CheckExpiredListAsync(items);
+        return items;
     }
 
     public async Task<CompanyPackageHistory?> GetActivePackageAsync(int companyId)
@@ -235,6 +243,34 @@ public class PaymentRepository : IPaymentRepository
             tx.VnpayTransactionNo = vnpTransactionNo;
             tx.VnpayBankCode = bankCode;
             tx.CompletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task CheckExpiredAsync(PackageTransaction? tx)
+    {
+        if (tx != null && tx.Status == "PENDING" && tx.TransactionDate.AddMinutes(15) <= DateTime.UtcNow)
+        {
+            tx.Status = "CANCELLED";
+            tx.CompletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task CheckExpiredListAsync(IEnumerable<PackageTransaction> txs)
+    {
+        bool changed = false;
+        foreach (var tx in txs)
+        {
+            if (tx.Status == "PENDING" && tx.TransactionDate.AddMinutes(15) <= DateTime.UtcNow)
+            {
+                tx.Status = "CANCELLED";
+                tx.CompletedAt = DateTime.UtcNow;
+                changed = true;
+            }
+        }
+        if (changed)
+        {
             await _context.SaveChangesAsync();
         }
     }

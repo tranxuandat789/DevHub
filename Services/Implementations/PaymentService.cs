@@ -237,6 +237,7 @@ public class PaymentService : IPaymentService
         vnpay.AddRequestData("vnp_OrderType", "other");
         vnpay.AddRequestData("vnp_ReturnUrl", _configuration["Vnpay:ReturnUrl"]!);
         vnpay.AddRequestData("vnp_TxnRef", txnRef);
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.UtcNow.AddHours(7).AddMinutes(15).ToString("yyyyMMddHHmmss"));
 
         string paymentUrl = vnpay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"]!, _configuration["Vnpay:HashSecret"]!);
 

@@ -5,8 +5,8 @@ namespace DevHub.ViewModels.Recruiter
 {
     public class JobPostCreateViewModel : IValidatableObject
     {
-        // Free-text info fields: allows letters, digits, blanks, and common punctuation (including & / ' " + : ; @ ! ? %)
-        private const string TextPattern = @"^[\p{L}0-9\s,.\-_()&/'"":;+@!%?#]*$";
+        // Free-text info fields: allows all typical text characters, blocks basic HTML tags (<>)
+        private const string TextPattern = @"^[^<>]*$";
 
         [Required(ErrorMessage = "Tiêu đề bài đăng không được để trống.")]
         [StringLength(200, ErrorMessage = "Tiêu đề không được vượt quá 200 ký tự.")]

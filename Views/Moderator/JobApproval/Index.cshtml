@@ -53,6 +53,15 @@ author: Hoang Minh Kien
                 <option value="oldest" selected="@(Model.SortOrder == "oldest")">Ngày tạo (Cũ nhất)</option>
             </select>
         </div>
+        <div class="flex-1 w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Trạng thái</label>
+            <select name="status" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="ALL" selected="@(Model.Status == "ALL")">Tất cả</option>
+                <option value="PENDING" selected="@(string.IsNullOrEmpty(Model.Status) || Model.Status == "PENDING")">Chờ duyệt</option>
+                <option value="APPROVED" selected="@(Model.Status == "APPROVED")">Đã duyệt</option>
+                <option value="REJECTED" selected="@(Model.Status == "REJECTED")">Đã từ chối</option>
+            </select>
+        </div>
         <div>
             <button type="submit" class="bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
         </div>

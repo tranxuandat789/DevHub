@@ -459,68 +459,6 @@
                     Swal.close();
                     if (!data) return;
 
-                    if (data.profileCompletion < 70) {
-                        Swal.fire({
-                            html: `
-                                <div class="flex flex-col items-center pt-4 pb-2">
-                                    <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
-                                        <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <h2 class="text-[22px] font-bold text-gray-800 mb-2 text-center">Hồ sơ chưa hoàn thiện</h2>
-                                    <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Hồ sơ của bạn mới đạt <span class="font-bold text-dark">${data.profileCompletion}%</span>. Bạn cần tối thiểu 70% để ứng tuyển.</p>
-                                </div>
-                            `,
-                            showCancelButton: true,
-                            confirmButtonText: 'Cập nhật hồ sơ',
-                            cancelButtonText: 'Đóng',
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
-                                actions: 'flex gap-3 w-full mt-4',
-                                confirmButton: 'flex-1 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all',
-                                cancelButton: 'flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition-all'
-                            }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.location.href = '/Candidate/Profile'; 
-                            }
-                        });
-                        return;
-                    }
-
-                    if (!data.defaultCvId) {
-                        Swal.fire({
-                            html: `
-                                <div class="flex flex-col items-center pt-4 pb-2">
-                                    <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
-                                        <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    </div>
-                                    <h2 class="text-[22px] font-bold text-gray-800 mb-2 text-center">Chưa có CV</h2>
-                                    <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Bạn chưa tải lên CV nào trong hệ thống. Hãy tải CV lên trước khi ứng tuyển.</p>
-                                </div>
-                            `,
-                            showCancelButton: true,
-                            confirmButtonText: 'Cập nhật CV',
-                            cancelButtonText: 'Đóng',
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
-                                actions: 'flex gap-3 w-full mt-4',
-                                confirmButton: 'flex-1 bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all',
-                                cancelButton: 'flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl transition-all'
-                            }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.location.href = '/Candidate/Profile'; 
-                            }
-                        });
-                        return;
-                    }
-
                     // Mở modal và truyền dữ liệu
                     openApplyModal(jobId, jobTitle, companyName, data);
                 })

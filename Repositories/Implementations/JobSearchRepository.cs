@@ -46,7 +46,7 @@ public class JobSearchRepository : IJobSearchRepository
         // Filter: desired salary
         if (filter.DesiredSalary.HasValue && filter.DesiredSalary.Value > 0)
         {
-            var desiredVnd = filter.DesiredSalary.Value * 1_000_000m;
+            var desiredVnd = filter.DesiredSalary.Value;
             query = query.Where(j =>
                 (j.SalaryMin == null || j.SalaryMin <= desiredVnd) &&
                 (j.SalaryMax == null || j.SalaryMax >= desiredVnd) &&

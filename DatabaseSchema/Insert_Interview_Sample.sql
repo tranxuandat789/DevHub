@@ -29,7 +29,6 @@ END
 ELSE BEGIN
 INSERT INTO dbo.interview (
         application_id,
-        recruiter_id,
         candidate_id,
         scheduled_time,
         meeting_link,
@@ -41,7 +40,6 @@ INSERT INTO dbo.interview (
     )
 VALUES (
         @appId,
-        @recruiterId,
         @candidateId,
         DATEADD(DAY, 3, GETDATE()),
         -- l?ch sau 3 ngay (>= 24h)

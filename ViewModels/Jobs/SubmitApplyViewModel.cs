@@ -9,4 +9,12 @@ public class SubmitApplyViewModel
     public int JobId { get; set; }
 
     public string? CoverLetter { get; set; }
+
+    /// <summary>Nếu user upload CV mới trong modal, truyền CvId vào đây. Null = dùng CV mặc định.</summary>
+    public int? CvId { get; set; }
+
+    public string? FullName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
 }

@@ -1059,6 +1059,9 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
+            entity.Property(e => e.EmailNotificationsEnabled)
+                .HasDefaultValue(true)
+                .HasColumnName("email_notifications_enabled");
             entity.Property(e => e.LastLogin)
                 .HasColumnType("datetime")
                 .HasColumnName("last_login");

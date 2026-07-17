@@ -302,14 +302,14 @@
                 </div>
                 <div class="space-y-2.5 filter-content">
                     <div class="flex items-center gap-2">
-                        <input type="number" 
-                               name="desiredSalary" 
+                        <input type="hidden" name="desiredSalary" id="hidden-desired-salary" value="@Model.Filter.DesiredSalary" />
+                        <input type="text" 
+                               id="display-desired-salary"
                                value="@Model.Filter.DesiredSalary" 
-                               placeholder="VD: 15"
-                               min="1"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] text-dark focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
-                        <span class="text-muted text-[13px] whitespace-nowrap">Triệu</span>
+                               placeholder="VD: 15.000.000"
+                               class="money-input w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] text-dark focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                     </div>
+                    <p class="text-[11px] text-muted mt-1">Nhập số VNĐ, ví dụ: 15000000</p>
                     <button type="submit" class="w-full mt-2 bg-primary/10 text-primary font-bold py-2 rounded-lg hover:bg-primary/20 transition-all text-[13px]">
                         Áp dụng mức lương
                     </button>
@@ -415,15 +415,15 @@
                                 </svg>
                                 @if (job.SalaryMin.HasValue && job.SalaryMax.HasValue)
                                 {
-                                    <span>@job.SalaryMin.Value.ToString("N0") – @job.SalaryMax.Value.ToString("N0") triệu VND</span>
+                                    <span>@job.SalaryMin.Value.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) – @job.SalaryMax.Value.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) vnđ</span>
                                 }
                                 else if (job.SalaryMin.HasValue)
                                 {
-                                    <span>Từ @job.SalaryMin.Value.ToString("N0") triệu VND</span>
+                                    <span>Từ @job.SalaryMin.Value.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) vnđ</span>
                                 }
                                 else
                                 {
-                                    <span>Đến @job.SalaryMax!.Value.ToString("N0") triệu VND</span>
+                                    <span>Đến @job.SalaryMax!.Value.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) vnđ</span>
                                 }
                             </div>
                         }
@@ -571,7 +571,31 @@
                         showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
                     }
                 });
-            });
         });
+
+        // Money format logic
+        function formatThousand(value) {
+            var digits = (value || '').replace(/\D/g, '');
+            if (!digits) return '';
+            return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        const displayInput = document.getElementById('display-desired-salary');
+        const hiddenInput = document.getElementById('hidden-desired-salary');
+        
+        if (displayInput && hiddenInput) {
+            // Initial formatting if there's a value
+            displayInput.value = formatThousand(displayInput.value);
+
+            displayInput.addEventListener('input', function() {
+                this.value = formatThousand(this.value);
+                hiddenInput.value = this.value.replace(/\./g, '');
+            });
+            
+            // Clean before submitting if any direct submit happens on this form
+            document.getElementById('job-search-form').addEventListener('submit', function() {
+                hiddenInput.value = displayInput.value.replace(/\./g, '');
+            });
+        }
     </script>
 }

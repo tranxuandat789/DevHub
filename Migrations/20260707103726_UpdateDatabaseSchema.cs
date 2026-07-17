@@ -55,12 +55,12 @@ namespace DevHub.Migrations
                 nullable: true);
             */
 
-            // migrationBuilder.AddColumn<string>(
-            //     name: "interview_type",
-            //     table: "interview",
-            //     type: "nvarchar(50)",
-            //     maxLength: 50,
-            //     nullable: true);
+            migrationBuilder.AddColumn<string>(
+                name: "interview_type",
+                table: "interview",
+                type: "nvarchar(50)",
+                maxLength: 50,
+                nullable: true);
 
             // migrationBuilder.AddColumn<int>(
             //     name: "company_id",

@@ -53,23 +53,50 @@ public class ApplicationService : IApplicationService
         if (candidate == null)
             return (false, "Không tìm thấy thông tin ứng viên.");
 
-        // Kiểm tra các trường bắt buộc (defence in depth)
-        var missingFields = new List<string>();
-        if (string.IsNullOrWhiteSpace(candidate.FullName))
-            missingFields.Add("Họ và tên");
-        if (string.IsNullOrWhiteSpace(candidate.Phone))
-            missingFields.Add("Số điện thoại");
-        if (missingFields.Any())
-            return (false, $"Vui lòng cập nhật thông tin còn thiếu trước khi ứng tuyển: {string.Join(", ", missingFields)}.");
+        // Nếu người dùng nhập thông tin mới từ modal, cập nhật lại profile
+        if (!string.IsNullOrWhiteSpace(model.FullName))
+            candidate.FullName = model.FullName;
+        if (!string.IsNullOrWhiteSpace(model.Phone))
+            candidate.Phone = model.Phone;
+        if (!string.IsNullOrWhiteSpace(model.Address))
+            candidate.Address = model.Address;
 
-        if ((candidate.ProfileCompletion ?? 0) < 70)
-            return (false, "Hồ sơ của bạn chưa đạt 70%. Vui lòng cập nhật hồ sơ trước khi ứng tuyển.");
+        // Cập nhật Email (nằm ở UserAccount) nếu người dùng đổi email
+        if (!string.IsNullOrWhiteSpace(model.Email))
+        {
+            var userAccount = await _context.UserAccounts.FindAsync(candidateId);
+            if (userAccount != null)
+            {
+                // Kiểm tra xem email mới có bị trùng với account khác không
+                bool isEmailExist = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(
+                    _context.UserAccounts, u => u.Email == model.Email && u.UserId != candidateId);
+                
+                if (!isEmailExist)
+                {
+                    userAccount.Email = model.Email;
+                }
+            }
+        }
+        
+        await _context.SaveChangesAsync();
 
-        var cv = await _context.Cvs
-            .Where(c => c.CandidateId == candidateId)
-            .OrderByDescending(c => c.IsDefault)
-            .ThenByDescending(c => c.CreatedAt)
-            .FirstOrDefaultAsync();
+
+        // Ưu tiên dùng CV được chỉ định từ modal; nếu không có thì lấy CV mặc định
+        Models.Cv? cv;
+        if (model.CvId.HasValue)
+        {
+            cv = await _context.Cvs.FindAsync(model.CvId.Value);
+            if (cv == null || cv.CandidateId != candidateId)
+                return (false, "CV không hợp lệ.");
+        }
+        else
+        {
+            cv = await _context.Cvs
+                .Where(c => c.CandidateId == candidateId)
+                .OrderByDescending(c => c.IsDefault)
+                .ThenByDescending(c => c.CreatedAt)
+                .FirstOrDefaultAsync();
+        }
 
         if (cv == null)
             return (false, "Bạn chưa có CV trong hệ thống. Vui lòng tải lên CV trước.");

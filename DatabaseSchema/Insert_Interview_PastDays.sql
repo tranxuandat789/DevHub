@@ -28,7 +28,6 @@ WITH ApprovedApps AS (
 )
 INSERT INTO dbo.interview (
         application_id,
-        recruiter_id,
         candidate_id,
         scheduled_time,
         meeting_link,
@@ -39,7 +38,6 @@ INSERT INTO dbo.interview (
         updated_at
     )
 SELECT application_id,
-    recruiter_id,
     candidate_id,
     DATEADD(DAY, -(rn * 2) + 2, GETDATE()),
     -- l?ch PV (lui theo t?ng m?c)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -23,33 +23,7 @@ namespace DevHub.Migrations
                 name: "recruiter_id",
                 table: "interview");
 
-            migrationBuilder.AddColumn<string>(
-                name: "buyer_tax_code",
-                table: "package_transaction",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: true);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "total_amount",
-                table: "package_transaction",
-                type: "decimal(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "vat_amount",
-                table: "package_transaction",
-                type: "decimal(18,2)",
-                nullable: false,
-                defaultValue: 0m);
-
-            migrationBuilder.AddColumn<decimal>(
-                name: "vat_rate",
-                table: "package_transaction",
-                type: "decimal(5,2)",
-                nullable: false,
-                defaultValue: 8m);
+            // Duplicate columns removed: buyer_tax_code, total_amount, vat_amount, vat_rate
 
             migrationBuilder.CreateTable(
                 name: "moderator_industry_assignment",

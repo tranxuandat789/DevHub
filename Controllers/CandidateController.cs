@@ -276,6 +276,34 @@ namespace DevHub.Controllers
             return RedirectToAction("Profile");
         }
 
+        // Upload CV từ modal ứng tuyển — trả JSON (không redirect)
+        [HttpPost]
+        [Authorize(Roles = "CANDIDATE,Candidate")]
+        public async Task<IActionResult> UploadCvModal(IFormFile cvFile)
+        {
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int candidateId))
+                    return Json(new { success = false, message = "Không xác định được người dùng." });
+
+                await _cvService.UploadCvFileAsync(candidateId, cvFile, _env.WebRootPath);
+                await _candidateService.CalculateAndSaveCompletionAsync(candidateId);
+
+                // Lấy lại CV vừa upsert để lấy CvId
+                var cv = await _cvService.GetCvByCandidateIdAsync(candidateId);
+                return Json(new { success = true, cvId = cv?.CvId, message = "Tải CV lên thành công!" });
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi tải CV: " + ex.Message });
+            }
+        }
+
         // Add skill
         [HttpPost]
         [Authorize(Roles = "CANDIDATE,Candidate")]

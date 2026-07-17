@@ -46,15 +46,15 @@ namespace DevHub.Migrations
             //     table: "review_company",
             //     newName: "care_rating");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "ot_policy",
-                table: "review_company",
-                type: "nvarchar(20)",
-                maxLength: 20,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
+            // migrationBuilder.AlterColumn<string>(
+            //     name: "ot_policy",
+            //     table: "review_company",
+            //     type: "nvarchar(20)",
+            //     maxLength: 20,
+            //     nullable: true,
+            //     oldClrType: typeof(string),
+            //     oldType: "nvarchar(max)",
+            //     oldNullable: true);
 
             // migrationBuilder.AddColumn<bool>(
             //     name: "is_active",

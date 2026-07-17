@@ -22,26 +22,38 @@
             <div class="px-6 py-4 space-y-4 overflow-y-auto flex-1">
                 <!-- Hidden Job ID -->
                 <input type="hidden" id="apply-job-id" />
-                
+
                 <!-- Thông tin ứng tuyển -->
                 <div>
-                    <h3 class="text-[15px] font-bold text-dark mb-4">Thông tin cá nhân (Cố định theo hồ sơ)</h3>
+                    <h3 class="text-[15px] font-bold text-dark mb-4">Thông tin cá nhân</h3>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-[12px] font-medium text-dark mb-1">Họ và tên</label>
-                            <input type="text" id="apply-fullname" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-500 cursor-not-allowed" />
+                            <label class="block text-[12px] font-medium text-dark mb-1">Họ và tên <span class="text-red-500">*</span></label>
+                            <input type="text" id="apply-fullname" maxlength="100"
+                                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                                   placeholder="Nguyễn Văn A" />
+                            <p id="err-fullname" class="hidden text-[11px] text-red-500 mt-1"></p>
                         </div>
                         <div>
-                            <label class="block text-[12px] font-medium text-dark mb-1">Email</label>
-                            <input type="email" id="apply-email" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-500 cursor-not-allowed" />
+                            <label class="block text-[12px] font-medium text-dark mb-1">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="apply-email" maxlength="100"
+                                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                                   placeholder="nguyenvana@gmail.com" />
+                            <p id="err-email" class="hidden text-[11px] text-red-500 mt-1"></p>
                         </div>
                         <div>
-                            <label class="block text-[12px] font-medium text-dark mb-1">Số điện thoại</label>
-                            <input type="tel" id="apply-phone" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-500 cursor-not-allowed" />
+                            <label class="block text-[12px] font-medium text-dark mb-1">Số điện thoại <span class="text-red-500">*</span></label>
+                            <input type="tel" id="apply-phone" maxlength="10"
+                                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                                   placeholder="0987654321" />
+                            <p id="err-phone" class="hidden text-[11px] text-red-500 mt-1"></p>
                         </div>
                         <div>
-                            <label class="block text-[12px] font-medium text-dark mb-1">Địa điểm thường trú</label>
-                            <input type="text" id="apply-address" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-500 cursor-not-allowed" />
+                            <label class="block text-[12px] font-medium text-dark mb-1">Địa điểm thường trú <span class="text-red-500">*</span></label>
+                            <input type="text" id="apply-address" maxlength="255"
+                                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-dark focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                                   placeholder="Hà Nội, Việt Nam" />
+                            <p id="err-address" class="hidden text-[11px] text-red-500 mt-1"></p>
                         </div>
                     </div>
                 </div>
@@ -54,15 +66,52 @@
                 <div>
                     <h3 class="text-[15px] font-bold text-dark mb-4">📄 CV ứng tuyển</h3>
                     <!-- CV có sẵn -->
-                    <label class="flex items-center gap-3 p-3 border-2 border-primary rounded-xl bg-primary/5 mb-2">
+                    <div id="apply-cv-default-box" class="flex items-center gap-3 p-3 border-2 border-primary rounded-xl bg-primary/5 mb-3">
                         <div class="flex-1 min-w-0">
-                            <p class="text-[12px] text-muted mb-1">Hệ thống sẽ tự động sử dụng CV mặc định của bạn.</p>
+                            <p class="text-[12px] text-muted mb-1">CV mặc định sẽ được sử dụng nếu bạn không upload CV mới.</p>
                             <p class="text-[13px] font-semibold text-primary truncate">File: <span id="apply-cv-title"></span></p>
                         </div>
                         <svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                    </label>
+                    </div>
+                    <!-- Drag & Drop Upload CV mới -->
+                    <div id="cv-drop-zone"
+                         class="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all relative"
+                         ondragover="applyModalDragOver(event)"
+                         ondragleave="applyModalDragLeave(event)"
+                         ondrop="applyModalDrop(event)"
+                         onclick="document.getElementById('apply-cv-file-input').click()">
+                        <input type="file" id="apply-cv-file-input" accept=".pdf,.docx" class="hidden"
+                               onchange="applyModalFileSelected(this.files[0])" />
+                        <!-- Trạng thái chưa chọn file -->
+                        <div id="cv-drop-idle">
+                            <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-[13px] text-dark font-medium">Kéo thả hoặc <span class="text-primary underline">chọn file</span> CV mới</p>
+                            <p class="text-[11px] text-gray-400 mt-1">PDF hoặc DOCX, tối đa 5MB</p>
+                        </div>
+                        <!-- Trạng thái đã chọn file -->
+                        <div id="cv-drop-selected" class="hidden">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span id="cv-drop-filename" class="text-[13px] font-medium text-dark truncate"></span>
+                                </div>
+                                <button type="button" onclick="applyModalClearFile(event)"
+                                        class="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 p-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-green-600 mt-1">CV mới sẽ được dùng khi ứng tuyển</p>
+                        </div>
+                    </div>
+                    <p id="err-cv" class="hidden text-[11px] text-red-500 mt-1"></p>
                 </div>
                 <p class="text-[11px] text-muted leading-relaxed">
                     Bằng việc nhấn nút nộp hồ sơ, tôi đồng ý chia sẻ thông tin cá nhân của mình với nhà tuyển dụng.
@@ -80,63 +129,37 @@
 </div>
 
 <script>
+    // State CV mới được chọn trong modal
+    let _applyNewCvFile = null;
+
     function openApplyModal(jobId, jobTitle, companyName, candidateData) {
-        // Set info text
         const subtitle = document.getElementById('apply-modal-subtitle');
         if (subtitle && jobTitle && companyName) {
             subtitle.textContent = jobTitle + ' — ' + companyName;
         }
-        
-        // Fill form fields
+
         document.getElementById('apply-job-id').value = jobId;
-        document.getElementById('apply-fullname').value = candidateData.fullName;
-        document.getElementById('apply-email').value = candidateData.email;
-        document.getElementById('apply-phone').value = candidateData.phone || 'Chưa cập nhật';
-        document.getElementById('apply-address').value = candidateData.address || 'Chưa cập nhật';
-        document.getElementById('apply-cv-title').textContent = candidateData.defaultCvTitle;
+        document.getElementById('apply-fullname').value = candidateData.fullName || '';
+        document.getElementById('apply-email').value = candidateData.email || '';
+        document.getElementById('apply-phone').value = candidateData.phone || '';
+        document.getElementById('apply-address').value = candidateData.address || '';
+        document.getElementById('apply-cv-title').textContent = candidateData.defaultCvTitle || 'Chưa có CV';
         document.getElementById('apply-coverletter').value = '';
 
-        // Kiểm tra các trường bắt buộc trước khi mở modal
-        const missingFields = [];
-        if (!candidateData.fullName || candidateData.fullName.trim() === '')
-            missingFields.push('Họ và tên');
-        if (!candidateData.phone || candidateData.phone.trim() === '')
-            missingFields.push('Số điện thoại');
-        if (!candidateData.defaultCvId)
-            missingFields.push('CV ứng tuyển');
+        // Reset trạng thái CV upload
+        applyModalClearFile(null, true);
 
-        if (missingFields.length > 0) {
-            const listHtml = missingFields.map(f => `<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>${f}</li>`).join('');
-            Swal.fire({
-                html: `
-                    <div class="flex flex-col items-center pt-4 pb-2">
-                        <div class="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center mb-6">
-                            <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-[20px] font-bold text-gray-800 mb-2">Hồ sơ chưa hoàn chỉnh</h2>
-                        <p class="text-gray-500 text-[13px] mb-4">Vui lòng cập nhật các thông tin sau trước khi ứng tuyển:</p>
-                        <ul class="text-left text-[14px] text-red-500 font-semibold space-y-2 w-full px-6">${listHtml}</ul>
-                    </div>
-                `,
-                showConfirmButton: true,
-                showCancelButton: true,
-                confirmButtonText: 'Cập nhật hồ sơ',
-                cancelButtonText: 'Đóng',
-                buttonsStyling: false,
-                customClass: {
-                    popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
-                    confirmButton: 'w-full bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all mt-4 block',
-                    cancelButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3.5 px-6 rounded-xl transition-all mt-2 block'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '/Candidate/Profile';
-                }
-            });
-            return;
+        // Ẩn/hiện box CV mặc định
+        const cvDefaultBox = document.getElementById('apply-cv-default-box');
+        if (cvDefaultBox) {
+            cvDefaultBox.style.display = candidateData.defaultCvId ? '' : 'none';
         }
+
+        // Xoá lỗi cũ
+        ['err-fullname', 'err-email', 'err-phone', 'err-address', 'err-cv'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = ''; el.classList.add('hidden'); }
+        });
 
         const modal = document.getElementById('apply-modal');
         modal.classList.remove('hidden');
@@ -148,97 +171,170 @@
         document.body.style.overflow = '';
     }
 
-    function submitApply() {
+    // ── Drag & Drop CV ────────────────────────────────────────────────────────
+    function applyModalDragOver(e) {
+        e.preventDefault();
+        document.getElementById('cv-drop-zone').classList.add('border-primary', 'bg-primary/5');
+    }
+
+    function applyModalDragLeave(e) {
+        document.getElementById('cv-drop-zone').classList.remove('border-primary', 'bg-primary/5');
+    }
+
+    function applyModalDrop(e) {
+        e.preventDefault();
+        applyModalDragLeave(e);
+        const file = e.dataTransfer.files[0];
+        if (file) applyModalFileSelected(file);
+    }
+
+    function applyModalFileSelected(file) {
+        if (!file) return;
+        const errEl = document.getElementById('err-cv');
+
+        // Validate định dạng
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'pdf' && ext !== 'docx') {
+            errEl.textContent = 'Chỉ chấp nhận file .pdf hoặc .docx';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        // Validate kích thước (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            errEl.textContent = 'File không được vượt quá 5MB';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        errEl.textContent = '';
+        errEl.classList.add('hidden');
+        _applyNewCvFile = file;
+
+        document.getElementById('cv-drop-idle').classList.add('hidden');
+        document.getElementById('cv-drop-selected').classList.remove('hidden');
+        document.getElementById('cv-drop-filename').textContent = file.name;
+    }
+
+    function applyModalClearFile(e, silent) {
+        if (e) e.stopPropagation();
+        _applyNewCvFile = null;
+        const fileInput = document.getElementById('apply-cv-file-input');
+        if (fileInput) fileInput.value = '';
+        document.getElementById('cv-drop-idle').classList.remove('hidden');
+        document.getElementById('cv-drop-selected').classList.add('hidden');
+        document.getElementById('cv-drop-filename').textContent = '';
+    }
+
+    // ── Validate ──────────────────────────────────────────────────────────────
+    function validateApplyForm() {
+        let isValid = true;
+
+        const showErr = (id, msg) => {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            isValid = false;
+        };
+        const clearErr = (id) => {
+            const el = document.getElementById(id);
+            el.textContent = '';
+            el.classList.add('hidden');
+        };
+
+        const fullname = document.getElementById('apply-fullname').value.trim();
+        const email = document.getElementById('apply-email').value.trim();
+        const phone = document.getElementById('apply-phone').value.trim();
+        const address = document.getElementById('apply-address').value.trim();
+
+        clearErr('err-fullname');
+        clearErr('err-email');
+        clearErr('err-phone');
+        clearErr('err-address');
+
+        if (!fullname) showErr('err-fullname', 'Họ và tên không được để trống');
+        else if (fullname.length < 2) showErr('err-fullname', 'Họ và tên phải có ít nhất 2 ký tự');
+
+        if (!email) showErr('err-email', 'Email không được để trống');
+        else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) showErr('err-email', 'Email không hợp lệ');
+
+        if (!phone) showErr('err-phone', 'Số điện thoại không được để trống');
+        else if (!/^0[0-9]{9}$/.test(phone)) showErr('err-phone', 'Số điện thoại không hợp lệ (VD: 0987654321)');
+
+        if (!address) showErr('err-address', 'Địa điểm không được để trống');
+
+        return isValid;
+    }
+
+    // ── Submit ────────────────────────────────────────────────────────────────
+    async function submitApply() {
+        if (!validateApplyForm()) return;
+
         const btn = document.getElementById('btn-submit-apply');
         const originalHtml = btn.innerHTML;
         btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xử lý...';
         btn.disabled = true;
 
-        const jobId = document.getElementById('apply-job-id').value;
-        const coverLetter = document.getElementById('apply-coverletter').value;
+        try {
+            const jobId = parseInt(document.getElementById('apply-job-id').value);
+            const coverLetter = document.getElementById('apply-coverletter').value;
+            const fullName = document.getElementById('apply-fullname').value.trim();
+            const email = document.getElementById('apply-email').value.trim();
+            const phone = document.getElementById('apply-phone').value.trim();
+            const address = document.getElementById('apply-address').value.trim();
+            let cvId = null;
 
-        fetch('/Jobs/Apply', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ jobId: parseInt(jobId), coverLetter: coverLetter })
-        })
-        .then(res => res.json())
-        .then(data => {
+            // Bước 1: Upload CV mới nếu có
+            if (_applyNewCvFile) {
+                const formData = new FormData();
+                formData.append('cvFile', _applyNewCvFile);
+                const uploadRes = await fetch('/Candidate/UploadCvModal', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (!uploadData.success) {
+                    showApplyError(uploadData.message || 'Tải CV lên thất bại.');
+                    return;
+                }
+                cvId = uploadData.cvId;
+            }
+
+            // Bước 2: Submit đơn ứng tuyển
+            const applyRes = await fetch('/Jobs/Apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jobId, coverLetter, cvId, fullName, email, phone, address })
+            });
+            const data = await applyRes.json();
             closeApplyModal();
-            if(data.success) {
+
+            if (data.success) {
                 Swal.fire({
-                    html: `
-                        <div class="flex flex-col items-center pt-4 pb-2">
-                            <div class="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
-                                <svg class="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <h2 class="text-[22px] font-bold text-gray-800 mb-2">Thành công!</h2>
-                            <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">${data.message}</p>
-                        </div>
-                    `,
+                    html: `<div class="flex flex-col items-center pt-4 pb-2"><div class="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6"><svg class="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></div><h2 class="text-[22px] font-bold text-gray-800 mb-2">Thành công!</h2><p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">${data.message}</p></div>`,
                     showConfirmButton: true,
                     confirmButtonText: 'Hoàn tất',
                     buttonsStyling: false,
-                    customClass: {
-                        popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
-                        confirmButton: 'w-full bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all mt-4'
-                    }
-                }).then(() => {
-                    window.location.reload(); // Reload to update application count/status
-                });
+                    customClass: { popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl', confirmButton: 'w-full bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all mt-4' }
+                }).then(() => window.location.reload());
             } else {
-                Swal.fire({
-                    html: `
-                        <div class="flex flex-col items-center pt-4 pb-2">
-                            <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
-                                <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </div>
-                            <h2 class="text-[22px] font-bold text-gray-800 mb-2">Không thành công</h2>
-                            <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">${data.message}</p>
-                        </div>
-                    `,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Đã hiểu',
-                    buttonsStyling: false,
-                    customClass: {
-                        popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
-                        confirmButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3.5 px-6 rounded-xl transition-all mt-4'
-                    }
-                });
+                showApplyError(data.message);
             }
-        })
-        .catch(err => {
+        } catch (err) {
             closeApplyModal();
-            Swal.fire({
-                html: `
-                    <div class="flex flex-col items-center pt-4 pb-2">
-                        <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
-                            <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-[22px] font-bold text-gray-800 mb-2">Đã có lỗi xảy ra</h2>
-                        <p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">Vui lòng thử lại sau ít phút.</p>
-                    </div>
-                `,
-                showConfirmButton: true,
-                confirmButtonText: 'Đóng',
-                buttonsStyling: false,
-                customClass: {
-                    popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl',
-                    confirmButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3.5 px-6 rounded-xl transition-all mt-4'
-                }
-            });
-        })
-        .finally(() => {
+            showApplyError('Vui lòng thử lại sau ít phút.');
+        } finally {
             btn.innerHTML = originalHtml;
             btn.disabled = false;
+        }
+    }
+
+    function showApplyError(message) {
+        Swal.fire({
+            html: `<div class="flex flex-col items-center pt-4 pb-2"><div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6"><svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></div><h2 class="text-[22px] font-bold text-gray-800 mb-2">Không thành công</h2><p class="text-gray-500 text-[14px] text-center px-4 leading-relaxed">${message}</p></div>`,
+            showConfirmButton: true,
+            confirmButtonText: 'Đã hiểu',
+            buttonsStyling: false,
+            customClass: { popup: 'rounded-[24px] p-6 max-w-sm w-full shadow-2xl', confirmButton: 'w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3.5 px-6 rounded-xl transition-all mt-4' }
         });
     }
 

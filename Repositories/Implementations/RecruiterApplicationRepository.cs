@@ -106,10 +106,11 @@ namespace DevHub.Repositories.Implementations
             // Sort.
             q = filter.Sort switch
             {
+                "applied_desc" => q.OrderByDescending(a => a.AppliedAt),
                 "applied_asc" => q.OrderBy(a => a.AppliedAt),
                 "exp_desc" => q.OrderByDescending(a => a.Candidate.ExperienceYears ?? 0).ThenByDescending(a => a.AppliedAt),
                 "exp_asc" => q.OrderBy(a => a.Candidate.ExperienceYears ?? 0).ThenByDescending(a => a.AppliedAt),
-                _ => q.OrderByDescending(a => a.AppliedAt), // applied_desc default
+                _ => q.OrderByDescending(a => a.Candidate.ProfileCompletion ?? 0).ThenByDescending(a => a.AppliedAt), // profile_desc default
             };
 
             var items = await q

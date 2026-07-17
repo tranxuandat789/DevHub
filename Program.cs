@@ -302,6 +302,23 @@ app.UseSession();           // ← phải trước Authentication
 app.UseAuthentication();
 app.UseAuthorization();
 
+// DEBUG LOGGING - xóa sau khi fix xong
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(">>> REQUEST: {Method} {Path}{Query}",
+        context.Request.Method,
+        context.Request.Path,
+        context.Request.QueryString);
+
+    await next();
+
+    logger.LogWarning(">>> RESPONSE: {Method} {Path} => {StatusCode}",
+        context.Request.Method,
+        context.Request.Path,
+        context.Response.StatusCode);
+});
+
 app.MapHub<DevHub.Hubs.NotificationHub>("/notificationHub");
 
 app.MapControllerRoute(

@@ -13,7 +13,7 @@
 }
 
 <div class="mb-8">
-    <a href="/AdminModerator" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
+    <a href="@Url.Action("Index", "AdminModerator")" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Quay lại danh sách
     </a>
@@ -21,7 +21,7 @@
     <p class="text-muted">Cấp quyền truy cập vào Moderator Panel cho nhân viên mới.</p>
 </div>
 
-<form method="post" action="/AdminModerator/Create" class="max-w-3xl">
+<form method="post" action="@Url.Action("Create", "AdminModerator")" class="max-w-3xl">
     @Html.AntiForgeryToken()
     
     <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 border border-[#D6DDEB]">
@@ -108,7 +108,7 @@
             <button type="submit" class="bg-primary text-white font-bold px-8 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
                 Lưu Tài khoản
             </button>
-            <a href="/AdminModerator" class="bg-white text-dark font-bold px-8 py-3 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 transition-all">
+            <a href="@Url.Action("Index", "AdminModerator")" class="bg-white text-dark font-bold px-8 py-3 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 transition-all">
                 Hủy Bỏ
             </a>
         </div>

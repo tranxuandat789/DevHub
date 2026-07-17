@@ -13,7 +13,7 @@
 }
 
 <div class="mb-8">
-    <a href="/AdminModerator" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
+    <a href="@Url.Action("Index", "AdminModerator")" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Quay lại danh sách
     </a>
@@ -21,7 +21,7 @@
     <p class="text-muted">Cập nhật thông tin tài khoản cho Điều phối viên.</p>
 </div>
 
-<form method="post" action="/AdminModerator/Edit/@Model.AdminId" class="max-w-3xl">
+<form method="post" action="@Url.Action("Edit", "AdminModerator", new { id = Model.AdminId })" class="max-w-3xl">
     @Html.AntiForgeryToken()
     <input type="hidden" name="AdminId" value="@Model.AdminId" />
     
@@ -109,18 +109,14 @@
                 </div>
                 
                 <div id="industryContainer" class="hidden">
-                    <form id="frmIndustrySettings" method="post" action="/AdminModerator/@Model.AdminId/industry-settings">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="taskType" value="@Model.CurrentTaskType" />
-                        <div id="industryList" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 max-h-[300px] overflow-y-auto p-1">
-                            <!-- Injected by JS -->
-                        </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-primary bg-opacity-10 text-primary font-bold px-4 py-2 rounded-lg hover:bg-opacity-20 transition-all text-sm border border-primary border-opacity-20">
-                                Lưu Thay Đổi Ngành
-                            </button>
-                        </div>
-                    </form>
+                    <div id="industryList" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 max-h-[300px] overflow-y-auto p-1">
+                        <!-- Injected by JS -->
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" id="btnSaveIndustries" class="bg-primary bg-opacity-10 text-primary font-bold px-4 py-2 rounded-lg hover:bg-opacity-20 transition-all text-sm border border-primary border-opacity-20">
+                            Lưu Thay Đổi Ngành
+                        </button>
+                    </div>
                 </div>
             </div>
         }
@@ -129,7 +125,7 @@
             <button type="submit" class="bg-primary text-white font-bold px-8 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
                 Lưu Thay đổi
             </button>
-            <a href="/AdminModerator" class="bg-white text-dark font-bold px-8 py-3 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 transition-all">
+            <a href="@Url.Action("Index", "AdminModerator")" class="bg-white text-dark font-bold px-8 py-3 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 transition-all">
                 Hủy Bỏ
             </a>
         </div>
@@ -194,7 +190,7 @@
                     btnLoad.classList.add('hidden');
                     loading.classList.remove('hidden');
                     
-                    fetch('/AdminModerator/@Model.AdminId/industry-settings')
+                    fetch('@Url.Action("IndustrySettings", "AdminModerator", new { id = Model.AdminId })', { credentials: 'same-origin' })
                         .then(res => res.json())
                         .then(data => {
                             loading.classList.add('hidden');
@@ -283,6 +279,41 @@
                     if (pendingCheckbox) pendingCheckbox.checked = false;
                     document.getElementById('emptyModal').classList.add('hidden');
                     pendingCheckbox = null;
+                });
+
+                // Submit industry settings via AJAX (tránh nested form)
+                document.getElementById('btnSaveIndustries').addEventListener('click', function () {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const formData = new FormData();
+                    formData.append('__RequestVerificationToken', token);
+                    formData.append('taskType', '@Model.CurrentTaskType');
+                    document.querySelectorAll('.industry-checkbox:checked').forEach(cb => {
+                        formData.append('selectedIndustries', cb.value);
+                    });
+
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.innerText = 'Đang lưu...';
+
+                    fetch('@Url.Action("UpdateIndustrySettings", "AdminModerator", new { id = Model.AdminId })', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        body: formData
+                    })
+                    .then(res => {
+                        if (res.ok || res.redirected) {
+                            window.location.href = '@Url.Action("Edit", "AdminModerator", new { id = Model.AdminId })';
+                        } else {
+                            alert('Có lỗi xảy ra: ' + res.status);
+                            btn.disabled = false;
+                            btn.innerText = 'Lưu Thay Đổi Ngành';
+                        }
+                    })
+                    .catch(() => {
+                        alert('Lỗi kết nối, vui lòng thử lại.');
+                        btn.disabled = false;
+                        btn.innerText = 'Lưu Thay Đổi Ngành';
+                    });
                 });
             }
         });

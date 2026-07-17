@@ -35,8 +35,8 @@ public class JobPostService : IJobPostService
     }
 
     // Lấy danh sách bài đăng (bao gồm pending, approved, rejected) có bộ lọc + sắp xếp + phân trang.
-    public Task<(List<JobPost> Items, int TotalCount)> GetModeratorJobsAsync(int moderatorId, DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
-        => _jobPostRepository.GetModeratorJobPostsAsync(moderatorId, fromDate, toDate, sortOrder, page, pageSize);
+    public Task<(List<JobPost> Items, int TotalCount)> GetModeratorJobsAsync(int moderatorId, DateTime? fromDate, DateTime? toDate, string? sortOrder, string? status, int page, int pageSize)
+        => _jobPostRepository.GetModeratorJobPostsAsync(moderatorId, fromDate, toDate, sortOrder, status, page, pageSize);
 
     // Tìm kiếm một bài đăng tuyển dụng dựa vào ID bài đăng
     public async Task<JobPost?> GetJobPostByIdAsync(int jobId)

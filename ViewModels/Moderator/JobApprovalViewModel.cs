@@ -17,6 +17,7 @@ namespace DevHub.ViewModels.Moderator
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public string? SortOrder { get; set; }
+        public string? Status { get; set; }
 
         // Pagination
         public int Page { get; set; } = 1;

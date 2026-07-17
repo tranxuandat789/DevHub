@@ -35,7 +35,7 @@ namespace DevHub.Controllers.Moderator
 
         // Action xử lý yêu cầu GET đến địa chỉ "moderator/job-approvals" để hiển thị danh sách bài đăng chờ duyệt
         [HttpGet("")]
-        public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string? sortOrder, int page = 1)
+        public async Task<IActionResult> Index(DateTime? fromDate, DateTime? toDate, string? sortOrder, string? status, int page = 1)
         {
             // Validate để tránh lỗi SqlDateTime overflow (Năm < 1753) và chặn lọc tương lai
             bool hasInvalidDate = false;
@@ -85,7 +85,7 @@ namespace DevHub.Controllers.Moderator
 
             // Fetch pending jobs
             const int pageSize = 10;
-            var (pageItems, totalCount) = await _jobPostService.GetModeratorJobsAsync(moderatorId, fromDate, toDate, sortOrder, page, pageSize);
+            var (pageItems, totalCount) = await _jobPostService.GetModeratorJobsAsync(moderatorId, fromDate, toDate, sortOrder, status, page, pageSize);
 
             // 2. Tính số trang + clamp trang hiện tại cho UI (cùng cách clamp với repository)
             int totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
@@ -98,6 +98,7 @@ namespace DevHub.Controllers.Moderator
                 FromDate = fromDate,
                 ToDate = toDate,
                 SortOrder = sortOrder,
+                Status = status,
                 Page = page,
                 PageSize = pageSize,
                 TotalCount = totalCount,

@@ -92,9 +92,12 @@ public class JobPostService : IJobPostService
                     await _notificationService.SendNotificationAsync(
                         user.UserId,
                         "RECRUITER",
-                        "JOB_APPROVED",
+                        "Bài đăng đã được duyệt!",
                         $"Tin tuyển dụng '{job.Title}' đã được duyệt.",
-                        $"/recruiter/job-posts/{job.JobId}"
+                        "JOB_APPROVED",
+                        "success",
+                        job.JobId,
+                        $"/Recruiter/JobPost/Detail/{job.JobId}"
                     );
 
                     // Email notification
@@ -159,9 +162,12 @@ public class JobPostService : IJobPostService
                     await _notificationService.SendNotificationAsync(
                         user.UserId,
                         "RECRUITER",
-                        "JOB_REJECTED",
+                        "Bài đăng bị từ chối!",
                         $"Tin tuyển dụng '{job.Title}' đã bị từ chối duyệt.",
-                        $"/recruiter/job-posts/{job.JobId}"
+                        "JOB_REJECTED",
+                        "danger",
+                        job.JobId,
+                        $"/Recruiter/JobPost/Detail/{job.JobId}"
                     );
 
                     // Email notification

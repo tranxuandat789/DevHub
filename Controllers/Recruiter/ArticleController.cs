@@ -39,7 +39,10 @@ namespace DevHub.Controllers.Recruiter
             var dbUser = await _authService.FindUserByEmailAsync(email);
             if (dbUser != null && dbUser.Recruiter != null)
             {
-                // Removed company verification check
+                if (dbUser.Recruiter.Company?.IsVerified != true || dbUser.Recruiter.Company?.ProfileCompletion < 97)
+                {
+                    ViewBag.ProfileIncomplete = true;
+                }
             }
 
             var allArticles = await _articleService.GetArticlesForRecruiterAsync(recruiterId);
@@ -81,7 +84,11 @@ namespace DevHub.Controllers.Recruiter
             var dbUser = await _authService.FindUserByEmailAsync(email);
             if (dbUser != null && dbUser.Recruiter != null)
             {
-                // Removed company verification and profile completion check to allow posting immediately
+                if (dbUser.Recruiter.Company?.IsVerified != true || dbUser.Recruiter.Company?.ProfileCompletion < 97)
+                {
+                    TempData["Error"] = "Bạn cần hoàn thiện đủ thông tin công ty và được kiểm duyệt.";
+                    return RedirectToAction("Index");
+                }
             }
 
             ViewBag.AuthorName = dbUser?.Recruiter?.Company?.CompanyName ?? User.FindFirst("FullName")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "Unknown";

@@ -102,11 +102,20 @@ author: Hoang Minh Kien
                                     {
                                         "APPROVED" => "bg-green-100 text-green-800",
                                         "REJECTED" => "bg-red-100 text-red-800",
+                                        "CLOSED" => "bg-gray-100 text-gray-800",
                                         _ => "bg-yellow-100 text-yellow-800"
+                                    };
+                                    string statusText = st switch
+                                    {
+                                        "APPROVED" => "Đã duyệt",
+                                        "REJECTED" => "Đã từ chối",
+                                        "CLOSED" => "Đã đóng",
+                                        "PENDING" => "Chờ duyệt",
+                                        _ => char.ToUpper(st[0]) + st.Substring(1).ToLower()
                                     };
                                 }
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium @badgeClass">
-                                    @(char.ToUpper(st[0]) + st.Substring(1).ToLower())
+                                    @statusText
                                 </span>
                             </td>
                             <td class="py-4 px-6 text-center space-x-2 flex justify-center items-center">

@@ -30,14 +30,15 @@ public class JobPostRepository : IJobPostRepository
 
     // Lấy danh sách bài đăng "pending" (chờ duyệt) kèm bộ lọc/sắp xếp + phân trang ngay ở SQL (Skip/Take).
     // Trả về (danh sách trang hiện tại, tổng số bài khớp bộ lọc).
-    public async Task<(List<JobPost> Items, int TotalCount)> GetPendingJobPostsAsync(int moderatorId, DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
+    public async Task<(List<JobPost> Items, int TotalCount)> GetModeratorJobPostsAsync(int moderatorId, DateTime? fromDate, DateTime? toDate, string? sortOrder, int page, int pageSize)
     {
-        // 1. Truy vấn cơ bản: lọc các bài đăng có trạng thái "pending" và được assign cho moderator này.
+        // 1. Truy vấn cơ bản: lọc các bài đăng được assign cho moderator này, hoặc chưa assign nhưng đang PENDING.
         var query = _context.JobPosts
             .Include(j => j.Company)
             .Include(j => j.Position)
             .Include(j => j.Provinces)
-            .Where(j => j.Status != null && j.Status.ToUpper() == "PENDING" && (j.ModeratorId == moderatorId || j.ModeratorId == null));
+            .Where(j => j.Status != null && 
+                        (j.ModeratorId == moderatorId || (j.ModeratorId == null && j.Status.ToUpper() == "PENDING")));
 
         // 2. Bộ lọc theo ngày bắt đầu.
         if (fromDate.HasValue)
@@ -59,12 +60,12 @@ public class JobPostRepository : IJobPostRepository
         if (page < 1) page = 1;
         if (page > totalPages) page = totalPages;
 
-        // 6. Sắp xếp.
-        query = sortOrder == "oldest"
-            ? query.OrderBy(j => j.CreatedAt)
-            : query.OrderByDescending(j => j.CreatedAt);
-
-        // 7. Phân trang ở SQL và trả về.
+        // 6. Sắp xếp (Sort)
+        query = sortOrder switch
+        {
+            "oldest" => query.OrderBy(j => j.CreatedAt),
+            _ => query.OrderByDescending(j => j.PriorityScore ?? 0).ThenByDescending(j => j.CreatedAt)
+        };  // 7. Phân trang ở SQL và trả về.
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

@@ -87,20 +87,32 @@ author: Hoang Minh Kien
                             <td class="py-4 px-6 text-muted">@(job.Company?.CompanyName ?? "N/A")</td>
                             <td class="py-4 px-6 text-muted">@(job.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</td>
                             <td class="py-4 px-6">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    @(string.IsNullOrEmpty(job.Status) ? "Pending" : char.ToUpper(job.Status[0]) + job.Status.Substring(1))
+                                @{
+                                    var st = (job.Status ?? "Pending").ToUpper();
+                                    string badgeClass = st switch
+                                    {
+                                        "APPROVED" => "bg-green-100 text-green-800",
+                                        "REJECTED" => "bg-red-100 text-red-800",
+                                        _ => "bg-yellow-100 text-yellow-800"
+                                    };
+                                }
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium @badgeClass">
+                                    @(char.ToUpper(st[0]) + st.Substring(1).ToLower())
                                 </span>
                             </td>
                             <td class="py-4 px-6 text-center space-x-2 flex justify-center items-center">
                                 <button onclick="openDetailModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" title="Chi tiết">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </button>
-                                <button onclick="approveJob(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                </button>
-                                <button onclick="openRejectModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
+                                @if (st == "PENDING")
+                                {
+                                    <button onclick="openApproveModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                    <button onclick="openRejectModal(@job.JobId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                }
                             </td>
                         </tr>
                     }
@@ -181,6 +193,28 @@ author: Hoang Minh Kien
         <div class="flex justify-end space-x-3">
             <button onclick="closeRejectModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
             <button onclick="submitReject()" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-sm">Xác nhận Từ chối</button>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div id="approveModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-sm p-6 relative">
+        <button onclick="closeApproveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-dark mb-2">Duyệt bài đăng</h3>
+            <p class="text-muted text-sm">Bạn có chắc chắn muốn duyệt bài đăng <span id="approveJobId" class="font-bold"></span>?</p>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeApproveModal()" class="flex-1 px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
+            <button onclick="submitApprove()" class="flex-1 px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-opacity-90 transition-colors shadow-sm">Xác nhận</button>
         </div>
     </div>
 </div>
@@ -287,20 +321,40 @@ author: Hoang Minh Kien
             document.getElementById('detailModal').classList.add('hidden');
         }
 
-        async function approveJob(id) {
-            if (confirm(`Bạn có chắc chắn muốn duyệt bài đăng #${id}? Hành động này sẽ được ghi log và gửi thông báo.`)) {
-                try {
-                    const response = await fetch(`/moderator/job-approvals/approve/${id}`, { method: 'POST' });
-                    if (response.ok) {
-                        alert(`Đã duyệt bài đăng #${id} thành công!`);
-                        window.location.reload();
-                    } else {
-                        alert("Có lỗi xảy ra khi duyệt bài đăng này.");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    alert("Có lỗi hệ thống.");
+        let currentApproveId = null;
+
+        function openApproveModal(id) {
+            currentApproveId = id;
+            document.getElementById('approveJobId').innerText = `#${id}`;
+            document.getElementById('approveModal').classList.remove('hidden');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.add('hidden');
+            currentApproveId = null;
+        }
+
+        async function submitApprove() {
+            if (!currentApproveId) return;
+            const btn = document.querySelector('#approveModal button.bg-primary');
+            const originalText = btn.innerText;
+            btn.innerText = 'Đang xử lý...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`/moderator/job-approvals/approve/${currentApproveId}`, { method: 'POST' });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    // Mute error or show in UI, no alert
+                    console.error("Lỗi khi duyệt bài đăng.");
+                    btn.innerText = 'Thử lại';
+                    btn.disabled = false;
                 }
+            } catch (e) {
+                console.error(e);
+                btn.innerText = 'Thử lại';
+                btn.disabled = false;
             }
         }
 
@@ -319,9 +373,15 @@ author: Hoang Minh Kien
         async function submitReject() {
             const reason = document.getElementById('rejectReason').value.trim();
             if (!reason) {
-                alert('Vui lòng nhập lý do từ chối.');
+                // Focus thay vì alert
+                document.getElementById('rejectReason').focus();
                 return;
             }
+            
+            const btn = document.querySelector('#rejectModal button.bg-red-600');
+            const originalText = btn.innerText;
+            btn.innerText = 'Đang xử lý...';
+            btn.disabled = true;
             
             try {
                 const formData = new FormData();
@@ -332,15 +392,16 @@ author: Hoang Minh Kien
                 });
                 
                 if (response.ok) {
-                    alert(`Đã từ chối bài đăng #${currentRejectId} thành công.`);
-                    closeRejectModal();
                     window.location.reload();
                 } else {
-                    alert("Có lỗi xảy ra khi từ chối bài đăng này.");
+                    console.error("Lỗi khi từ chối bài đăng.");
+                    btn.innerText = 'Thử lại';
+                    btn.disabled = false;
                 }
             } catch (e) {
                 console.error(e);
-                alert("Có lỗi hệ thống.");
+                btn.innerText = 'Thử lại';
+                btn.disabled = false;
             }
         }
     </script>

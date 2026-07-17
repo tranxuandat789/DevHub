@@ -223,7 +223,8 @@
             <div>
                 <label class="block text-xs font-bold text-muted uppercase tracking-wider mb-1.5">Sắp xếp</label>
                 <select name="Sort" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
-                    <option value="applied_desc" selected="@(f.Sort == null || f.Sort == "applied_desc")">Mới ứng tuyển nhất</option>
+                    <option value="profile_desc" selected="@(f.Sort == null || f.Sort == "profile_desc")">Độ hoàn thiện hồ sơ cao nhất</option>
+                    <option value="applied_desc" selected="@(f.Sort == "applied_desc")">Mới ứng tuyển nhất</option>
                     <option value="applied_asc" selected="@(f.Sort == "applied_asc")">Cũ nhất</option>
                     <option value="exp_desc" selected="@(f.Sort == "exp_desc")">Kinh nghiệm cao → thấp</option>
                     <option value="exp_asc" selected="@(f.Sort == "exp_asc")">Kinh nghiệm thấp → cao</option>

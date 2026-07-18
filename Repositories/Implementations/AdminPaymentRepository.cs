@@ -61,15 +61,48 @@ public class AdminPaymentRepository : IAdminPaymentRepository
         var total = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
+        await CheckExpiredListAsync(items);
+
         return (items, total);
     }
 
     public async Task<PackageTransaction?> GetTransactionDetailAsync(int transactionId)
     {
-        return await _context.PackageTransactions
+        var tx = await _context.PackageTransactions
             .Include(t => t.Company)
             .Include(t => t.Service)
             .Include(t => t.Promotion)
             .FirstOrDefaultAsync(t => t.TransactionId == transactionId);
+            
+        await CheckExpiredAsync(tx);
+        return tx;
+    }
+
+    private async Task CheckExpiredAsync(PackageTransaction? tx)
+    {
+        if (tx != null && tx.Status == "PENDING" && tx.TransactionDate.HasValue && tx.TransactionDate.Value.AddMinutes(15) <= DateTime.UtcNow)
+        {
+            tx.Status = "CANCELLED";
+            tx.CompletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task CheckExpiredListAsync(IEnumerable<PackageTransaction> txs)
+    {
+        bool changed = false;
+        foreach (var tx in txs)
+        {
+            if (tx.Status == "PENDING" && tx.TransactionDate.HasValue && tx.TransactionDate.Value.AddMinutes(15) <= DateTime.UtcNow)
+            {
+                tx.Status = "CANCELLED";
+                tx.CompletedAt = DateTime.UtcNow;
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

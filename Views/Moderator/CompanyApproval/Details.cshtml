@@ -1,6 +1,301 @@
+@*
+5/2/2026 
+file view chi tiet cong ty cho duyet
+*@
+@model DevHub.Models.Company
 @{
-    ViewData["Title"] = "Chi Tiet Yeu Cau Tich Xanh";
+    ViewData["Title"] = "Chi tiết công ty";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+
+    string GetExt(string? url) => !string.IsNullOrEmpty(url) ? System.IO.Path.GetExtension(url).TrimStart('.').ToLowerInvariant() : "";
+    
+    var previewableExts = new[] { "pdf", "png", "jpg", "jpeg", "gif", "webp" };
+    
+    string bizExt = GetExt(Model.BusinessLicenseUrl);
+    bool bizPreviewable = previewableExts.Contains(bizExt);
+
+    string addExt = GetExt(Model.AdditionalDocumentsUrl);
+    bool addPreviewable = previewableExts.Contains(addExt);
 }
 
-<h1>Chi Tiet Yeu Cau Tich Xanh</h1>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-sm text-muted mb-2">
+                <a href="/moderator/company-approvals" class="hover:text-primary transition-colors flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Quay lại danh sách
+                </a>
+                <span>/</span>
+                <span class="text-dark">Chi tiết yêu cầu</span>
+            </div>
+            <h1 class="text-[32px] font-bold text-dark">@Model.CompanyName</h1>
+            <p class="text-muted text-sm mt-1">Mã số thuế: <span class="font-medium text-dark">@(Model.TaxCode ?? "Chưa cập nhật")</span></p>
+        </div>
+        <div class="flex items-center gap-3">
+            @if (Model.Status == "PENDING")
+            {
+                <button onclick="openRejectModal(@Model.CompanyId)" class="px-4 py-2 bg-white border border-gray-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    Từ chối
+                </button>
+                <button onclick="approveCompany(@Model.CompanyId)" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Phê duyệt
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Company Info -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6">
+                <h3 class="text-lg font-bold text-dark mb-4 border-b border-gray-100 pb-2">Thông tin chung</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-xs text-muted mb-1">Tên công ty</p>
+                        <p class="text-sm font-medium text-dark">@Model.CompanyName</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-muted mb-1">Mã số thuế</p>
+                        <p class="text-sm font-medium text-dark">@(Model.TaxCode ?? "Chưa cung cấp")</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-muted mb-1">Website</p>
+                        @if (!string.IsNullOrEmpty(Model.Website))
+                        {
+                            <a href="@Model.Website" target="_blank" class="text-sm font-medium text-primary hover:underline">@Model.Website</a>
+                        }
+                        else
+                        {
+                            <p class="text-sm font-medium text-muted italic">Chưa cung cấp</p>
+                        }
+                    </div>
+                    <div>
+                        <p class="text-xs text-muted mb-1">Địa chỉ</p>
+                        <p class="text-sm font-medium text-dark">@(Model.CompanyAddress ?? "Chưa cung cấp")</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-muted mb-1">Mô tả</p>
+                        <p class="text-sm text-dark line-clamp-4">@(Model.CompanyDescription ?? "Chưa cung cấp")</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6">
+                <h3 class="text-lg font-bold text-dark mb-4 border-b border-gray-100 pb-2">Người đại diện</h3>
+                <div class="space-y-4">
+                    @if (Model.Recruiters != null && Model.Recruiters.Any())
+                    {
+                        foreach (var r in Model.Recruiters)
+                        {
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                    @(r.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-dark">@r.FullName</p>
+                                    <p class="text-xs text-muted">@r.Position</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-sm text-muted">Chưa có người đại diện</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Documents preview -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Business License -->
+            <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6 flex flex-col min-h-[420px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-dark">Giấy phép kinh doanh</h3>
+                    @if (!string.IsNullOrEmpty(Model.BusinessLicenseUrl))
+                    {
+                        <a href="@Model.BusinessLicenseUrl" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Mở / Tải tài liệu
+                        </a>
+                    }
+                </div>
+                <div class="flex-1 w-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden relative">
+                    @if (string.IsNullOrEmpty(Model.BusinessLicenseUrl))
+                    {
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <p class="text-sm font-medium text-dark mb-1">Chưa cập nhật</p>
+                            <p class="text-xs text-muted">Công ty chưa cung cấp Giấy phép kinh doanh.</p>
+                        </div>
+                    }
+                    else if (bizPreviewable)
+                    {
+                        <iframe src="@Model.BusinessLicenseUrl" class="absolute inset-0 w-full h-full" title="Giấy phép kinh doanh"></iframe>
+                    }
+                    else
+                    {
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <p class="text-sm font-medium text-dark mb-1">Giấy phép kinh doanh</p>
+                            <p class="text-xs text-muted mb-1">Định dạng <span class="font-semibold uppercase">@bizExt</span> không thể xem trực tiếp trong trình duyệt.</p>
+                            <p class="text-xs text-muted mb-4">Vui lòng tải xuống để xem nội dung.</p>
+                            <a href="@Model.BusinessLicenseUrl" download class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Tải xuống (@bizExt.ToUpper())
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Additional Documents -->
+            @if (!string.IsNullOrEmpty(Model.AdditionalDocumentsUrl))
+            {
+                <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6 flex flex-col min-h-[420px]">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-dark">Tài liệu bổ sung</h3>
+                        <a href="@Model.AdditionalDocumentsUrl" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Mở / Tải tài liệu
+                        </a>
+                    </div>
+                    <div class="flex-1 w-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden relative">
+                        @if (addPreviewable)
+                        {
+                            <iframe src="@Model.AdditionalDocumentsUrl" class="absolute inset-0 w-full h-full" title="Tài liệu bổ sung"></iframe>
+                        }
+                        else
+                        {
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <p class="text-sm font-medium text-dark mb-1">Tài liệu bổ sung</p>
+                                <p class="text-xs text-muted mb-1">Định dạng <span class="font-semibold uppercase">@addExt</span> không thể xem trực tiếp trong trình duyệt.</p>
+                                <p class="text-xs text-muted mb-4">Vui lòng tải xuống để xem nội dung.</p>
+                                <a href="@Model.AdditionalDocumentsUrl" download class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    Tải xuống (@addExt.ToUpper())
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-lg p-6 relative">
+        <button onclick="closeRejectModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <h3 class="text-2xl font-bold text-dark mb-2">Từ chối yêu cầu xác minh</h3>
+        <p class="text-muted text-sm mb-6">Vui lòng cung cấp lý do từ chối yêu cầu.</p>
+        
+        <div class="mb-6">
+            <label class="block text-dark font-medium mb-2">Lý do từ chối <span class="text-red-500">*</span></label>
+            <textarea id="rejectReason" rows="4" class="w-full border border-[#D6DDEB] rounded-lg p-3 focus:outline-none focus:border-primary text-dark placeholder-gray-400" placeholder="Nhập lý do cụ thể..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeRejectModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Hủy bỏ</button>
+            <button onclick="submitReject()" class="px-5 py-2.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-sm">Xác nhận Từ chối</button>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div id="approveModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeApproveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-dark mb-2">Xác nhận phê duyệt</h3>
+            <p class="text-muted text-sm">Bạn có chắc chắn muốn xác minh công ty này? Hồ sơ của công ty này sẽ được hiển thị công khai trên hệ thống và người đại diện có thể bắt đầu đăng tin tuyển dụng.</p>
+        </div>
+        
+        <div class="flex justify-center space-x-3">
+            <button onclick="closeApproveModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors w-1/2">Hủy bỏ</button>
+            <button onclick="submitApprove()" class="px-5 py-2.5 rounded-lg bg-[#4640DE] text-white font-bold hover:bg-[#342eb3] transition-colors shadow-sm w-1/2">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentActionId = null;
+        let currentApproveId = null;
+
+        function approveCompany(id) {
+            currentApproveId = id;
+            document.getElementById('approveModal').classList.remove('hidden');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.add('hidden');
+            currentApproveId = null;
+        }
+
+        function submitApprove() {
+            if (!currentApproveId) return;
+            
+            fetch(`/moderator/company-approvals/approve/${currentApproveId}`, { method: 'POST' })
+            .then(res => {
+                if (res.ok) window.location.href = '/moderator/company-approvals';
+                else alert("Có lỗi xảy ra khi duyệt công ty.");
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi mạng.");
+            });
+        }
+
+        function openRejectModal(id) {
+            currentActionId = id;
+            document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            currentActionId = null;
+        }
+
+        function submitReject() {
+            if (!currentActionId) return;
+            const reason = document.getElementById('rejectReason').value.trim();
+            if (!reason) {
+                alert("Vui lòng nhập lý do từ chối.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('reason', reason);
+
+            fetch(`/moderator/company-approvals/reject/${currentActionId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (res.ok) window.location.href = '/moderator/company-approvals';
+                else alert("Có lỗi xảy ra khi từ chối công ty.");
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi mạng.");
+            });
+        }
+    </script>
+}

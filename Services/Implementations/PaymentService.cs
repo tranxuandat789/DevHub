@@ -19,17 +19,23 @@ public class PaymentService : IPaymentService
     private readonly IServicePackageRepository _serviceRepo;
     private readonly INotificationRepository _notificationRepo;
     private readonly IConfiguration _configuration;
+    private readonly IRecruiterRepository _recruiterRepo;
+    private readonly EmailHelper _emailHelper;
 
     public PaymentService(
         IPaymentRepository paymentRepo,
         IServicePackageRepository serviceRepo,
         INotificationRepository notificationRepo,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IRecruiterRepository recruiterRepo,
+        EmailHelper emailHelper)
     {
         _paymentRepo = paymentRepo;
         _serviceRepo = serviceRepo;
         _notificationRepo = notificationRepo;
         _configuration = configuration;
+        _recruiterRepo = recruiterRepo;
+        _emailHelper = emailHelper;
     }
 
     public async Task<SubscriptionPageVm> GetSubscriptionPageAsync(int companyId)
@@ -289,6 +295,7 @@ public class PaymentService : IPaymentService
             bool activated = await _paymentRepo.MarkPaidAndActivateAsync(txnRef, vnpTransactionNo, bankCode);
             if (activated)
             {
+                await SendTransactionEmailAsync(txnRef, true);
                 return (true, "00", "Thành công");
             }
             return (false, "99", "Lỗi nội bộ khi kích hoạt");
@@ -296,6 +303,7 @@ public class PaymentService : IPaymentService
         else
         {
             await _paymentRepo.MarkFailedAsync(txnRef, vnpTransactionNo, bankCode);
+            await SendTransactionEmailAsync(txnRef, false);
             return (false, rspCode, "Thanh toán bị hủy hoặc thất bại");
         }
     }
@@ -385,5 +393,89 @@ public class PaymentService : IPaymentService
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
         return stream.ToArray();
+    }
+
+    private async Task SendTransactionEmailAsync(string txnRef, bool success)
+    {
+        try
+        {
+            var tx = await _paymentRepo.GetByTxnRefAsync(txnRef);
+            if (tx == null) return;
+
+            var recruiters = await _recruiterRepo.GetRecruitersByCompanyIdAsync(tx.CompanyId);
+            if (recruiters == null || !recruiters.Any()) return;
+
+            var typeStr = (tx.TransactionType?.ToUpper()) switch {
+                "RENEW" => "gia hạn",
+                "UPGRADE" => "nâng cấp gói",
+                "BUY_PACKAGE" => "mua mới",
+                "PURCHASE" => "mua mới",
+                _ => "mua"
+            };
+            
+            var packageName = tx.Service?.PackageName ?? "Gói dịch vụ";
+            
+            var subject = success ? $"Xác nhận thanh toán thành công {packageName} - DevHub" : $"Giao dịch thất bại {packageName} - DevHub";
+            
+            var headerText = success ? $"Chúc mừng! Bạn đã hoàn thành giao dịch {typeStr} {packageName}" : $"Giao dịch {typeStr} {packageName} của bạn không thành công";
+            var headerColor = success ? "#4640DE" : "#DC2626";
+            var boxStyle = success ? "background: #ECFDF5; border: 1px dashed #16A34A; color: #16A34A;" : "background: #FEF2F2; border: 1px dashed #DC2626; color: #DC2626;";
+            var boxText = success ? "✓ Thanh toán thành công" : "✗ Thanh toán thất bại";
+
+            var discountRow = "";
+            if (tx.DiscountAmount > 0 || tx.FinalAmount < tx.AmountVnd)
+            {
+                var diff = tx.AmountVnd - tx.FinalAmount;
+                discountRow = $@"
+                <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
+                    <span style='color: #515B6F;'>Khấu trừ/Chiết khấu:</span>
+                    <span style='font-weight: bold; color: #DC2626;'>- {diff.ToString("N0")} VNĐ</span>
+                </div>";
+            }
+
+            foreach (var r in recruiters)
+            {
+                var email = r.RecruiterNavigation?.Email;
+                if (string.IsNullOrWhiteSpace(email)) continue;
+                var name = string.IsNullOrWhiteSpace(r.FullName) ? "bạn" : r.FullName;
+                
+                var body = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;
+                            border: 1px solid #D6DDEB; border-radius: 8px;'>
+                    <h2 style='color: {headerColor}; text-align: center;'>{headerText}</h2>
+                    <p>Xin chào {name},</p>
+                    <p>Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của DevHub. Chi tiết giao dịch của bạn như sau:</p>
+                    
+                    <div style='background-color: #F8F9FA; padding: 16px; border-radius: 8px; margin: 20px 0;'>
+                        <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
+                            <span style='color: #515B6F;'>Giá gốc:</span>
+                            <span style='font-weight: bold;'>{tx.AmountVnd.ToString("N0")} VNĐ</span>
+                        </div>
+                        {discountRow}
+                        <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
+                            <span style='color: #515B6F;'>Thuế GTGT ({tx.VatRate.ToString("0.##")}%):</span>
+                            <span style='font-weight: bold;'>{tx.VatAmount.ToString("N0")} VNĐ</span>
+                        </div>
+                        <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 12px 0;' />
+                        <div style='display: flex; justify-content: space-between;'>
+                            <span style='font-weight: bold; color: #25324B; font-size: 16px;'>Tổng chi phí:</span>
+                            <span style='font-weight: bold; color: {headerColor}; font-size: 18px;'>{(tx.TotalAmount > 0 ? tx.TotalAmount : tx.FinalAmount).ToString("N0")} VNĐ</span>
+                        </div>
+                    </div>
+
+                    <div style='text-align: center; margin: 28px 0;'>
+                        <span style='display: inline-block; font-size: 18px; font-weight: bold; padding: 14px 28px; border-radius: 8px; {boxStyle}'>{boxText}</span>
+                    </div>
+                    <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
+                    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+                </div>";
+
+                await _emailHelper.SendEmailAsync(email, subject, body);
+            }
+        }
+        catch
+        {
+            // Optionally log
+        }
     }
 }

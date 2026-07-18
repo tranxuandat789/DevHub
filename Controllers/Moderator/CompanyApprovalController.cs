@@ -81,6 +81,18 @@ namespace DevHub.Controllers.Moderator
             return View("~/Views/Moderator/CompanyApproval/Index.cshtml", pendingRequests);
         }
 
+        [HttpGet("details/{id}")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var company = await _db.Companies
+                .Include(c => c.Recruiters)
+                .FirstOrDefaultAsync(c => c.CompanyId == id);
+            
+            if (company == null) return NotFound();
+
+            return View("~/Views/Moderator/CompanyApproval/Details.cshtml", company);
+        }
+
         [HttpPost("approve/{id}")]
         public async Task<IActionResult> Approve(int id)
         {
@@ -118,7 +130,15 @@ namespace DevHub.Controllers.Moderator
                             <p>Bây giờ bạn có thể bắt đầu đăng tin tuyển dụng.</p>
                             <p>Trân trọng,<br/>Đội ngũ DevHub</p>
                         </div>";
-                        await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                        try
+                        {
+                            await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Ghi log lỗi gửi email nếu cần
+                            Console.WriteLine("Lỗi gửi email: " + ex.Message);
+                        }
                     }
                 }
             }
@@ -184,7 +204,15 @@ namespace DevHub.Controllers.Moderator
                             <p>Vui lòng cập nhật lại giấy tờ và thông tin để được duyệt.</p>
                             <p>Trân trọng,<br/>Đội ngũ DevHub</p>
                         </div>";
-                        await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                        try
+                        {
+                            await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Ghi log lỗi gửi email nếu cần
+                            Console.WriteLine("Lỗi gửi email: " + ex.Message);
+                        }
                     }
                 }
             }

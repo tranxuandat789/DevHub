@@ -249,7 +249,7 @@ public class PaymentRepository : IPaymentRepository
 
     private async Task CheckExpiredAsync(PackageTransaction? tx)
     {
-        if (tx != null && tx.Status == "PENDING" && tx.TransactionDate.AddMinutes(15) <= DateTime.UtcNow)
+        if (tx != null && tx.Status == "PENDING" && tx.TransactionDate.HasValue && tx.TransactionDate.Value.AddMinutes(15) <= DateTime.UtcNow)
         {
             tx.Status = "CANCELLED";
             tx.CompletedAt = DateTime.UtcNow;
@@ -262,7 +262,7 @@ public class PaymentRepository : IPaymentRepository
         bool changed = false;
         foreach (var tx in txs)
         {
-            if (tx.Status == "PENDING" && tx.TransactionDate.AddMinutes(15) <= DateTime.UtcNow)
+            if (tx.Status == "PENDING" && tx.TransactionDate.HasValue && tx.TransactionDate.Value.AddMinutes(15) <= DateTime.UtcNow)
             {
                 tx.Status = "CANCELLED";
                 tx.CompletedAt = DateTime.UtcNow;

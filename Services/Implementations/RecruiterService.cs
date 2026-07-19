@@ -158,6 +158,22 @@ namespace DevHub.Services.Implementations
                     throw new InvalidOperationException("Mã số thuế này đã được đăng ký bởi một doanh nghiệp khác trên hệ thống.");
             }
 
+            var companyProfile = new List<string?>
+            {
+                existingRecruiter.FullName,
+                existingRecruiter.Position,
+                existingRecruiter.Phone,
+                updateVm.CompanyLogoUrl,
+                updateVm.CompanyName,
+                updateVm.CompanyAddress,
+                updateVm.CompanyDescription,
+                updateVm.Website,
+                updateVm.Industry,
+                updateVm.TaxCode
+            };
+            int companyFields = companyProfile.Count(field => !string.IsNullOrEmpty(field));
+            int profileCompleteness = companyFields * 9; // no business license / additional docs at registration
+
             var newCompany = new DevHub.Models.Company
             {
                 CompanyName = NormalizeSpaces(updateVm.CompanyName),
@@ -168,7 +184,7 @@ namespace DevHub.Services.Implementations
                 Industry = NormalizeSpaces(updateVm.Industry),
                 CompanyLogoUrl = updateVm.CompanyLogoUrl,
                 IsVerified = false,
-                ProfileCompletion = 0 // Will be recalculated on next GetProfileAsync
+                ProfileCompletion = profileCompleteness
             };
 
             await _companyRepository.AddCompanyAsync(newCompany);

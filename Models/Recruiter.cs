@@ -20,4 +20,6 @@ public partial class Recruiter
     public virtual UserAccount RecruiterNavigation { get; set; } = null!;
 
     public virtual Company? Company { get; set; }
+
+    public virtual ICollection<PackageTransaction> PackageTransactions { get; set; } = new List<PackageTransaction>();
 }

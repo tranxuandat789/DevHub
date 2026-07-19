@@ -65,6 +65,8 @@ public class PaymentRepository : IPaymentRepository
         var tx = await _context.PackageTransactions
             .Include(t => t.Service)
             .Include(t => t.Promotion)
+            .Include(t => t.Company)
+            .Include(t => t.Recruiter)
             .FirstOrDefaultAsync(t => t.TransactionId == txId && t.CompanyId == companyId);
         await CheckExpiredAsync(tx);
         return tx;

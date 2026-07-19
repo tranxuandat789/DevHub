@@ -11,7 +11,7 @@ public interface IPaymentService
     Task<VoucherCheckResultVm> ValidateVoucherAsync(int companyId, int serviceId, string code);
     
     // Returns (IsSuccess, PaymentUrl, ErrorMessage, IsFreeUpgrade)
-    Task<(bool Success, string? Url, string? Error, bool IsFreeUpgrade)> CreatePaymentUrlAsync(int companyId, CreatePaymentRequestVm req, string clientIp);
+    Task<(bool Success, string? Url, string? Error, bool IsFreeUpgrade)> CreatePaymentUrlAsync(int companyId, int recruiterId, CreatePaymentRequestVm req, string clientIp);
     
     // Confirm VNPay request
     Task<(bool Success, string ResponseCode, string Message)> ConfirmAsync(IDictionary<string, string> vnpParams);

@@ -45,7 +45,11 @@ public partial class PackageTransaction
 
     public DateTime? CompletedAt { get; set; }
 
+    public int? RecruiterId { get; set; }
+
     public virtual Promotion? Promotion { get; set; }
+
+    public virtual Recruiter? Recruiter { get; set; }
 
     public virtual Company Company { get; set; } = null!;
 

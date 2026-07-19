@@ -44,6 +44,11 @@ public class AdminService : IAdminService
             return (false, "Email này đã được sử dụng bởi một tài khoản đang hoạt động.", 0);
         }
 
+        // Check username uniqueness before inserting
+        var isUsernameTaken = await _adminRepo.IsUsernameExistsAsync(username, excludeAdminId: 0);
+        if (isUsernameTaken)
+            return (false, "Username này đã được sử dụng bởi một tài khoản khác.", 0);
+
         // Hash password before saving (same as AuthController line 614)
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 

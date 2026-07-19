@@ -224,29 +224,39 @@
                                         <div class="bg-white border-l border-gray-100" id="jobs-right-panel" style="display:none; min-width:480px; max-width:700px">
 
                                             <!-- Panel kỹ năng -->
-                                            <div id="skill-panel" class="hidden p-5">
-                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3">Kỹ năng phổ biến</p>
-                                                <div id="skill-list" class="flex flex-wrap gap-2">
+                                            <div id="skill-panel" class="hidden p-5 flex flex-col max-h-[440px]">
+                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3 flex-shrink-0">Kỹ năng phổ biến</p>
+                                                <div id="skill-list" class="flex flex-wrap gap-2 overflow-y-auto flex-1">
                                                     <span class="text-muted text-sm">Đang tải...</span>
                                                 </div>
-                                                <a href="/Jobs" class="mt-4 inline-block text-primary text-[13px] font-semibold hover:underline">
+                                                <a href="/Jobs" class="mt-4 inline-block text-primary text-[13px] font-semibold hover:underline flex-shrink-0">
                                                     Xem tất cả việc làm theo kỹ năng →
                                                 </a>
                                             </div>
 
                                             <!-- Panel thành phố -->
-                                            <div id="city-panel" class="hidden p-5">
-                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3">Thành phố phổ biến</p>
-                                                <div id="city-list" class="grid grid-cols-2 gap-1">
+                                            <div id="city-panel" class="hidden p-5 flex flex-col max-h-[440px]">
+                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3 flex-shrink-0">Thành phố phổ biến</p>
+                                                <div id="city-list" class="grid grid-cols-2 gap-1 overflow-y-auto flex-1">
                                                     <span class="text-muted text-sm">Đang tải...</span>
+                                                </div>
+                                                <div class="border-t border-gray-100 mt-3 pt-3 flex-shrink-0">
+                                                    <a href="/Jobs" class="text-primary text-[13px] font-semibold hover:underline">
+                                                        Xem tất cả việc làm theo thành phố →
+                                                    </a>
                                                 </div>
                                             </div>
 
                                             <!-- Panel công ty -->
-                                            <div id="company-panel" class="hidden p-5">
-                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3">Công ty đang tuyển nhiều nhất</p>
-                                                <div id="company-list" class="space-y-1">
+                                            <div id="company-panel" class="hidden p-5 flex flex-col max-h-[440px]">
+                                                <p class="text-[12px] font-bold text-muted uppercase tracking-wider mb-3 flex-shrink-0">Công ty đang tuyển nhiều nhất</p>
+                                                <div id="company-list" class="space-y-1 overflow-y-auto flex-1">
                                                     <span class="text-muted text-sm">Đang tải...</span>
+                                                </div>
+                                                <div class="border-t border-gray-100 mt-3 pt-3 flex-shrink-0">
+                                                    <a href="/Jobs" class="text-primary text-[13px] font-semibold hover:underline">
+                                                        Xem tất cả công ty đang tuyển →
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>

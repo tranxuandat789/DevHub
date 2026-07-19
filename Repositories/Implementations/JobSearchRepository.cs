@@ -135,14 +135,16 @@ public class JobSearchRepository : IJobSearchRepository
     }
 
     /// Top N tỉnh/thành có nhiều APPROVED job nhất (qua bảng province nối nhiều-nhiều).
-    public async Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top)
+    /// Nếu techId có, chỉ đếm job có kỹ năng đó (để cascading filter với bộ lọc kỹ năng đang chọn).
+    public async Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top, int? techId = null)
     {
         return await _context.Provinces
             .AsNoTracking()
             .Select(p => new
             {
                 Location = p.ProvinceName,
-                JobCount = p.JobPosts.Count(j => j.Status == "APPROVED")
+                JobCount = p.JobPosts.Count(j => j.Status == "APPROVED"
+                    && (techId == null || j.Teches.Any(t => t.TechId == techId)))
             })
             .Where(x => x.JobCount > 0)
             .OrderByDescending(x => x.JobCount)
@@ -152,11 +154,20 @@ public class JobSearchRepository : IJobSearchRepository
     }
 
     /// Top N companies có nhiều APPROVED job nhất.
-    public async Task<List<(int CompanyId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top)
+    /// Lọc theo techId và/hoặc filterLocation nếu có (để cascading filter).
+    public async Task<List<(int CompanyId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top, int? techId = null, string? filterLocation = null)
     {
-        return await _context.JobPosts
+        var query = _context.JobPosts
             .AsNoTracking()
-            .Where(j => j.Status == "APPROVED")
+            .Where(j => j.Status == "APPROVED");
+
+        if (techId.HasValue)
+            query = query.Where(j => j.Teches.Any(t => t.TechId == techId.Value));
+
+        if (!string.IsNullOrWhiteSpace(filterLocation))
+            query = query.Where(j => j.Provinces.Any(p => p.ProvinceName == filterLocation));
+
+        return await query
             .GroupBy(j => new { j.CompanyId, j.Company.CompanyName, j.Company.CompanyLogoUrl })
             .Select(g => new
             {

@@ -27,7 +27,7 @@ namespace DevHub.Repositories.Implementations
             int pageSize)
         {
             var query = _context.Companies
-                .Include(r => r.ReviewCompanies)
+                .Include(r => r.ReviewCompanies.Where(rev => rev.Status == "APPROVED"))
                 .Where(r => r.ProfileCompletion >= 70);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -91,7 +91,7 @@ namespace DevHub.Repositories.Implementations
         {
             return await _context.Companies
                 .Include(r => r.Recruiters) // Includes UserAccount for email contact
-                .Include(r => r.ReviewCompanies)
+                .Include(r => r.ReviewCompanies.Where(rev => rev.Status == "APPROVED"))
                     .ThenInclude(rev => rev.Candidate)
                 .FirstOrDefaultAsync(r => r.CompanyId == companyId);
         }

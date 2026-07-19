@@ -21,10 +21,10 @@ public interface IJobSearchRepository
     /// Top techs có nhiều APPROVED job nhất.
     Task<List<(int TechId, string TechName, int JobCount)>> GetTopTechsAsync(int top);
 
-    /// Top locations có nhiều APPROVED job nhất.
-    Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top);
+    /// Top locations có nhiều APPROVED job nhất. Nếu techId có, chỉ đếm job có kỹ năng đó.
+    Task<List<(string Location, int JobCount)>> GetTopLocationsAsync(int top, int? techId = null);
 
-    /// Top companies có nhiều APPROVED job nhất.
-    Task<List<(int CompanyId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top);
+    /// Top companies có nhiều APPROVED job nhất. Lọc theo techId và/hoặc filterLocation nếu có.
+    Task<List<(int CompanyId, string CompanyName, string? LogoUrl, int JobCount)>> GetTopCompaniesAsync(int top, int? techId = null, string? filterLocation = null);
 }
 

@@ -1,108 +1,160 @@
+@model DevHub.Models.Promotion
 @{
-    ViewData["Title"] = "Tao Voucher";
+    ViewData["Title"] = "Tạo mã giảm giá";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
 }
 
 <div class="mb-8">
-    <a href="/ModeratorVoucher" class="inline-flex items-center text-muted hover:text-primary mb-4 transition-colors">
+    <a href="/moderator/vouchers" class="inline-flex items-center text-[#515B6F] hover:text-[#4640DE] mb-4 transition-colors">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         Quay lại danh sách
     </a>
-    <h1 class="text-[32px] font-bold text-dark mb-2">Tạo / Chỉnh sửa Voucher</h1>
-    <p class="text-muted">Tạo mới hoặc cập nhật thông tin khuyến mãi hệ thống.</p>
+    <h1 class="text-[32px] font-bold text-[#25324B]">Tạo mã giảm giá mới</h1>
 </div>
 
-<form onsubmit="event.preventDefault(); submitVoucher();" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    
-    <!-- Cột trái: Thông tin chính -->
-    <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB]">
-            <h3 class="font-bold text-dark text-lg mb-4 border-b pb-2">Thông tin Khuyến mãi</h3>
+<form action="/moderator/vouchers/create" method="post" id="voucherForm" class="max-w-4xl">
+    <div class="bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 border border-[#D6DDEB]">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center shadow-sm mb-6">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div asp-validation-summary="All" class="text-sm"></div>
+            </div>
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            <div class="mb-6">
-                <label class="block text-dark font-bold mb-2">Tiêu đề (Title) <span class="text-red-500">*</span></label>
-                <input type="text" placeholder="Ví dụ: Giảm giá mùa hè, Tri ân khách hàng..." class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-medium" required>
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="Title">Tên chương trình / Voucher <span class="text-red-500">*</span></label>
+                <input type="text" id="Title" name="Title" value="@Model.Title" required
+                       class="w-full py-3 px-4 rounded-lg border border-[#D6DDEB] text-[#25324B] focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] shadow-sm transition-all"
+                       placeholder="VD: Khuyến mãi mùa hè">
             </div>
 
-            <div class="mb-6">
-                <label class="block text-dark font-bold mb-2">Mã Khuyến mãi (Promo Code) <span class="text-red-500">*</span></label>
-                <div class="flex gap-2">
-                    <input type="text" placeholder="Ví dụ: SUMMER20" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-primary font-mono font-bold uppercase tracking-widest" required>
-                    <button type="button" class="bg-gray-100 text-dark font-medium px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 whitespace-nowrap">Tạo ngẫu nhiên</button>
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="PromoCode">Mã code <span class="text-red-500">*</span></label>
+                <div class="flex shadow-sm rounded-lg">
+                    <input type="text" id="PromoCode" name="PromoCode" value="@Model.PromoCode" required minlength="8" maxlength="10"
+                           class="w-full py-3 px-4 rounded-l-lg border border-[#D6DDEB] text-[#25324B] font-mono focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] transition-all"
+                           placeholder="8-10 ký tự">
+                    <button type="button" id="btnGenerate" class="bg-[#F7F5FC] hover:bg-[#E8E6F5] text-[#4640DE] font-bold py-3 px-6 rounded-r-lg border border-l-0 border-[#D6DDEB] transition-colors whitespace-nowrap flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Tạo ngẫu nhiên
+                    </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="block text-dark font-bold mb-2">Mức giảm giá (%) <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <input type="number" min="0" max="100" step="0.01" placeholder="0.00" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-bold" required>
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-muted">%</span>
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="DiscountPercent">Phần trăm giảm (%)</label>
+                <input type="number" id="DiscountPercent" name="DiscountPercent" value="@Model.DiscountPercent" min="0" max="100" step="0.1"
+                       class="w-full py-3 px-4 rounded-lg border border-[#D6DDEB] text-[#25324B] focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] shadow-sm transition-all"
+                       placeholder="0 - 100">
+            </div>
+
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="MaxDiscount">Giảm tối đa (VNĐ)</label>
+                <input type="text" id="MaxDiscount" name="MaxDiscount" value="@Model.MaxDiscount"
+                       class="w-full py-3 px-4 rounded-lg border border-[#D6DDEB] text-[#25324B] focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] shadow-sm transition-all money-input"
+                       placeholder="Số tiền tối đa">
+            </div>
+
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="StartDate">Ngày bắt đầu</label>
+                <input type="date" id="StartDate" name="StartDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))"
+                       class="w-full py-3 px-4 rounded-lg border border-[#D6DDEB] text-[#25324B] focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] shadow-sm transition-all">
+            </div>
+
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="EndDate">Ngày kết thúc</label>
+                <input type="date" id="EndDate" name="EndDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))"
+                       class="w-full py-3 px-4 rounded-lg border border-[#D6DDEB] text-[#25324B] focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] shadow-sm transition-all">
+            </div>
+
+            <div class="col-span-2 md:col-span-1">
+                <label class="block text-[#25324B] text-[16px] font-bold mb-2" for="Quantity">Số lượng (Để trống = Vô hạn)</label>
+                <input type="number" id="Quantity" name="Quantity" value="@Model.Quantity" min="1"
+                       class="w-full py-3 px-4 rounded-lg border border-[#D6DDEB] text-[#25324B] focus:outline-none focus:border-[#4640DE] focus:ring-1 focus:ring-[#4640DE] shadow-sm transition-all"
+                       placeholder="Ví dụ: 100">
+            </div>
+
+            <div class="col-span-2 md:col-span-1">
+                <label class="flex items-center gap-3 cursor-pointer p-4 mt-6 border border-[#D6DDEB] rounded-lg bg-[#F7F5FC] hover:bg-[#E8E6F5] transition-colors">
+                    <input type="checkbox" name="IsActive" value="true" @(Model.IsActive == true ? "checked" : "") class="w-5 h-5 text-[#4640DE] rounded focus:ring-[#4640DE]">
+                    <div>
+                        <span class="font-bold text-[#25324B] block">Kích hoạt ngay</span>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-dark font-bold mb-2">Giảm tối đa (Coin) <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <input type="number" min="0" step="0.01" placeholder="0.00" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark font-bold" required>
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-muted">Coin</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
-                <div>
-                    <label class="block text-dark font-bold mb-2">Số lượng (Quantity)</label>
-                    <input type="number" min="0" placeholder="Để trống nếu không giới hạn" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark">
-                </div>
-            </div>
-        </div>
-        
-    </div>
-
-    <!-- Cột phải: Cài đặt Ngày & Lưu -->
-    <div class="space-y-6">
-        
-        <!-- Setting Thời gian -->
-        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB]">
-            <h3 class="font-bold text-dark text-lg mb-4 border-b pb-2">Thời gian áp dụng</h3>
-            
-            <div class="mb-4">
-                <label class="block text-dark font-bold mb-2">Ngày bắt đầu (Start Date)</label>
-                <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark" required>
+                </label>
             </div>
             
-            <div class="mb-4">
-                <label class="block text-dark font-bold mb-2">Ngày kết thúc (End Date)</label>
-                <input type="date" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-dark" required>
-            </div>
-
-            <label class="flex items-center gap-3 cursor-pointer mt-6 pt-4 border-t border-gray-100">
-                <input type="checkbox" checked class="w-5 h-5 text-primary rounded focus:ring-primary">
-                <span class="font-bold text-dark">Kích hoạt Voucher (Is Active)</span>
-            </label>
         </div>
 
-        <!-- Publish Action -->
-        <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB]">
-            <h3 class="font-bold text-dark text-lg mb-4 border-b pb-2">Lưu dữ liệu</h3>
-            <div class="flex flex-col gap-3">
-                <button type="submit" class="w-full bg-primary text-white font-bold px-4 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
-                    Lưu Voucher
-                </button>
-                <a href="/ModeratorVoucher" class="w-full block text-center bg-gray-100 text-dark font-bold px-4 py-3 rounded-lg hover:bg-gray-200 transition-all border border-gray-200">
-                    Hủy Bỏ
-                </a>
-            </div>
+        <div class="flex gap-4 pt-8 mt-8 border-t border-[#D6DDEB]">
+            <button type="submit" class="bg-[#4640DE] text-white font-bold px-8 py-3 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
+                Lưu mã giảm giá
+            </button>
+            <a href="/moderator/vouchers" class="bg-white text-[#25324B] font-bold px-8 py-3 rounded-lg border border-[#D6DDEB] hover:bg-gray-50 transition-all">
+                Hủy bỏ
+            </a>
         </div>
-
     </div>
 </form>
 
 @section Scripts {
     <script>
-        function submitVoucher() {
-            alert('Lưu Voucher thành công!');
-            window.location.href = '/ModeratorVoucher';
-        }
+        document.getElementById('btnGenerate').addEventListener('click', function() {
+            fetch('/moderator/vouchers/generate-code')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('PromoCode').value = data.code;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('voucherForm').addEventListener('submit', function(e) {
+            var startDate = document.getElementById('StartDate').value;
+            var endDate = document.getElementById('EndDate').value;
+            
+            if (startDate && endDate) {
+                var start = new Date(startDate);
+                var end = new Date(endDate);
+                
+                var minEnd = new Date(start);
+                minEnd.setDate(minEnd.getDate() + 1);
+                
+                if (end < minEnd) {
+                    e.preventDefault();
+                    alert('Ngày kết thúc phải sau ngày bắt đầu ít nhất 1 ngày.');
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Currency type format(ex: 20000000 -> 20.000.000)
+            function formatThousand(value) {
+                var digits = (value || '').toString().replace(/\D/g, '');
+                if (!digits) return '';
+                return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            }
+
+            var discountInputs = document.querySelectorAll('.money-input');
+            discountInputs.forEach(function (el) {
+                // applying format while typing
+                el.addEventListener('input', function () {
+                    this.value = formatThousand(this.value);
+                });
+                // re-format after reloading form after validation error
+                el.value = formatThousand(el.value);
+            });
+
+            // remove '.' before submiting so the model binding can parse to number successfully.
+            var form = document.getElementById('voucherForm');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    discountInputs.forEach(function (el) {
+                        el.value = (el.value || '').replace(/\./g, '');
+                    });
+                });
+            }
+        });
     </script>
 }

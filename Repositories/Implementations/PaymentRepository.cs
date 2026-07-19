@@ -22,7 +22,7 @@ public class PaymentRepository : IPaymentRepository
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return await _context.Promotions
-            .Where(p => p.IsActive == true && p.StartDate <= today && p.EndDate >= today && p.Quantity > 0)
+            .Where(p => p.IsActive == true && p.StartDate <= today && p.EndDate >= today && (p.Quantity == null || p.Quantity > 0))
             .ToListAsync();
     }
 
@@ -32,7 +32,7 @@ public class PaymentRepository : IPaymentRepository
         return await _context.Promotions
             .FirstOrDefaultAsync(p => p.PromoCode == code && p.IsActive == true && 
                                       p.StartDate <= today && p.EndDate >= today && 
-                                      p.Quantity > 0);
+                                      (p.Quantity == null || p.Quantity > 0));
     }
 
     public async Task<int> CreateTransactionAsync(PackageTransaction tx)
@@ -237,7 +237,7 @@ public class PaymentRepository : IPaymentRepository
 
                 if (tx.PromotionId.HasValue && tx.Promotion != null)
                 {
-                    if (tx.Promotion.Quantity > 0)
+                    if (tx.Promotion.Quantity.HasValue && tx.Promotion.Quantity.Value > 0)
                     {
                         tx.Promotion.Quantity -= 1;
                         _context.Promotions.Update(tx.Promotion);

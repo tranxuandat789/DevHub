@@ -57,10 +57,8 @@ public class InterviewService : IInterviewService
             var title = application?.Job?.Title ?? "công việc";
             var isOnline = interviewType.ToUpper() == "ONLINE";
 
-            // In-app message: nếu trực tuyến thì đính kèm link họp
-            var inAppMessage = isOnline && !string.IsNullOrWhiteSpace(meetingLink)
-                ? $"Bạn có lịch phỏng vấn vào {scheduledTime:dd/MM/yyyy HH:mm} cho vị trí {title}. Link họp: {meetingLink}"
-                : $"Bạn có lịch phỏng vấn vào {scheduledTime:dd/MM/yyyy HH:mm} cho vị trí {title}.";
+            // In-app message: (Đã loại bỏ link họp vì đã hiển thị ở phần chi tiết bên dưới)
+            var inAppMessage = $"Bạn có lịch phỏng vấn vào {scheduledTime:dd/MM/yyyy HH:mm} cho vị trí {title}.";
 
             var n = new Notification
             {

@@ -34,16 +34,25 @@
             }
             @if (Model.Status == "scheduled" || Model.Status == "completed_pending")
             {
-                <div class="relative dropdown-container">
-                    <button onclick="toggleDropdown(this)" class="px-4 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm flex items-center gap-2">
-                        Đánh giá kết quả
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                        <button onclick="showPassModal(@Model.InterviewId)" class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors font-bold">Trúng tuyển (Hired)</button>
-                        <button onclick="showRejectModal(@Model.InterviewId)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors font-bold">Trượt (Failed)</button>
+                if (DateTime.Now >= Model.ScheduledTime)
+                {
+                    <div class="relative dropdown-container">
+                        <button onclick="toggleDropdown(this)" class="px-4 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm flex items-center gap-2">
+                            Đánh giá kết quả
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                            <button onclick="showPassModal(@Model.InterviewId)" class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors font-bold">Trúng tuyển</button>
+                            <button onclick="showRejectModal(@Model.InterviewId)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors font-bold">Trượt</button>
+                        </div>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <button disabled class="px-4 py-2.5 bg-gray-100 text-gray-500 font-bold rounded-lg border border-gray-200 shadow-sm text-sm cursor-not-allowed" title="Chỉ có thể đánh giá sau khi cuộc hẹn bắt đầu">
+                        Đánh giá kết quả
+                    </button>
+                }
             }
         </div>
     </div>
@@ -70,9 +79,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="/Job/Details/@Model.Application?.JobId" class="px-4 py-2 text-sm font-bold text-primary bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-                    Xem Công Việc
-                </a>
+
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border border-gray-100">

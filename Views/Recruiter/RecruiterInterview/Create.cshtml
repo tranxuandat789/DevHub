@@ -10,7 +10,7 @@
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Header -->
     <div class="flex items-center gap-4">
-        <a href="@backUrl" class="p-2 bg-gray-50 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
+        <a href="javascript:history.back()" class="p-2 bg-gray-50 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         </a>
         <div>
@@ -104,7 +104,7 @@
 
             <!-- Section 3: Ghi chú -->
             <div class="space-y-4 pt-4">
-                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">3. Ghi chú (Gửi kèm email)</h3>
+                <h3 class="text-lg font-bold text-dark border-b border-gray-100 pb-2">3. Ghi chú</h3>
                 
                 <div>
                     <label class="block text-sm font-bold text-dark mb-2">Nội dung ghi chú cho ứng viên</label>
@@ -278,7 +278,7 @@
                 showFieldError('err-date', dateEl, 'Vui lòng chọn thời gian phỏng vấn.');
                 hasError = true;
             } else if (new Date(interviewDate) <= new Date()) {
-                showFieldError('err-date', dateEl, 'Thời gian phỏng vấn phải lớn hơn thời gian hiện tại.');
+                showFieldError('err-date', dateEl, 'Thời gian phỏng vấn phải sau thời gian hiện tại.');
                 hasError = true;
             } else { clearFieldError('err-date', dateEl); }
 
@@ -310,7 +310,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/Recruiter/RecruiterApplication/Details/' + applicationId;
+                    window.location.href = '/Recruiter/RecruiterInterview?message=success';
                 } else {
                     // Hiển thị lỗi từng field từ server nếu có
                     if (data.fields) {

@@ -20,6 +20,7 @@ namespace DevHub.ViewModels.Recruiter
         public int CountApproved { get; set; }   // APPROVED + FINISHED ("Đã duyệt")
         public int CountHired { get; set; }       // HIRED ("Trúng tuyển")
         public int CountRejected { get; set; }
+        public int CountInterviewing { get; set; } // Đang có lịch phỏng vấn scheduled
 
         // Pagination.
         public int Page { get; set; } = 1;
@@ -46,6 +47,9 @@ namespace DevHub.ViewModels.Recruiter
         public DateTime? AppliedAt { get; set; }
         public string Status { get; set; } = "PENDING";
         public List<string> TopSkills { get; set; } = new();
+        public int JobId { get; set; }
         public string? JobTitle { get; set; }        // shown in cross-job mode
+        public string? JobStatus { get; set; }
+        public bool HasScheduledInterview { get; set; } // true nếu đang có lịch phỏng vấn scheduled
     }
 }

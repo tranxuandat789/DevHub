@@ -30,6 +30,7 @@ namespace DevHub.ViewModels.Recruiter
 
         public string Status { get; set; } = "PENDING";
         public DateTime? AppliedAt { get; set; }
+        public bool HasScheduledInterview { get; set; }
 
         // How many applications this candidate has at the recruiter's company (for the "view full history" link).
         public int TotalApplicationsAtCompany { get; set; }
@@ -43,6 +44,6 @@ namespace DevHub.ViewModels.Recruiter
         public bool CanApprove => (Status ?? "").ToUpper() == "PENDING" && !IsFrozen;
         public bool CanReject => (Status ?? "").ToUpper() == "PENDING" && !IsFrozen;
         public bool CanHire => (Status ?? "").ToUpper() == "APPROVED" && !IsFrozen;
-        public bool CanScheduleInterview => (Status ?? "").ToUpper() == "APPROVED";
+        public bool CanScheduleInterview => (Status ?? "").ToUpper() == "APPROVED" && ((JobStatus ?? "").ToUpper() == "APPROVED" || (JobStatus ?? "").ToUpper() == "ACTIVE");
     }
 }

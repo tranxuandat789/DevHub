@@ -79,13 +79,17 @@ namespace DevHub.Services.Implementations
                         .Select(s => s.Tech.TechName)
                         .Take(5)
                         .ToList(),
-                    JobTitle = isCrossJob ? a.Job.Title : null
+                    JobId = a.JobId,
+                    JobTitle = isCrossJob ? a.Job.Title : null,
+                    JobStatus = a.Job.Status,
+                    HasScheduledInterview = a.Interviews.Any(i => i.Status == "scheduled")
                 }).ToList(),
                 CountAll = counts.All,
                 CountPending = counts.Pending,
                 CountApproved = counts.Approved,
                 CountHired = counts.Hired,
                 CountRejected = counts.Rejected,
+                CountInterviewing = counts.Interviewing,
                 Page = page,
                 PageSize = PageSize,
                 TotalCount = total,
@@ -133,6 +137,7 @@ namespace DevHub.Services.Implementations
                 Status = (a.Status ?? "PENDING").ToUpper(),
                 JobStatus = (a.Job?.Status ?? "").ToUpper(),
                 AppliedAt = a.AppliedAt,
+                HasScheduledInterview = a.Interviews.Any(i => i.Status == "scheduled"),
                 TotalApplicationsAtCompany = await _repo.CountApplicationsAtCompanyAsync(a.CandidateId, recruiterId)
             };
         }

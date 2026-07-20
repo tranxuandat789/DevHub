@@ -17,7 +17,7 @@ namespace DevHub.Repositories.Interfaces
 
         // Status counts for the tabs. jobId == null => cross-job.
         // Applies ALL active filters EXCEPT status, so tab counts match the filtered list.
-        Task<(int All, int Pending, int Approved, int Hired, int Rejected)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter);
+        Task<(int All, int Pending, int Approved, int Hired, int Rejected, int Interviewing)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter);
 
         // Full application detail (candidate + skills + cv), scoped to the recruiter.
         Task<Application?> GetApplicationDetailAsync(int applicationId, int recruiterId);

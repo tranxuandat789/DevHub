@@ -7,6 +7,11 @@
 
     (string Cls, string Label) StatusBadge(string? status)
     {
+        if (Model.HasScheduledInterview)
+        {
+            return ("bg-purple-100 text-purple-700", "Đã lên lịch phỏng vấn");
+        }
+
         switch ((status ?? "").ToUpper())
         {
             case "APPROVED":
@@ -62,9 +67,9 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-2 text-sm text-muted mb-2">
-                <a href="/Recruiter/RecruiterApplication?jobId=@Model.JobId" class="hover:text-primary transition-colors flex items-center gap-1">
+                <a href="/Recruiter/RecruiterApplication/All" class="hover:text-primary transition-colors flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Danh sách ứng viên
+                    Tất cả ứng viên
                 </a>
                 <span>/</span>
                 <span class="text-dark">Chi tiết hồ sơ</span>
@@ -99,6 +104,13 @@
                         Phê duyệt
                     </button>
                 </form>
+            }
+            @if (Model.CanScheduleInterview)
+            {
+                <a href="/Recruiter/RecruiterInterview/Create?jobId=@Model.JobId&applicationId=@Model.ApplicationId" class="inline-flex items-center px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm gap-2 text-[15px]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Tạo lịch phỏng vấn
+                </a>
             }
         </div>
     </div>
@@ -180,7 +192,7 @@
 
         <!-- Right: CV + cover letter -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 shadow-sm flex flex-col min-h-[420px]">
+            <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 shadow-sm flex flex-col min-h-[800px]">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-dark">CV đính kèm</h3>
                     @if (!string.IsNullOrEmpty(Model.CvUrl))

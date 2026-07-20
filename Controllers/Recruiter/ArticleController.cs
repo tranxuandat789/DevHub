@@ -32,6 +32,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpGet("Index")]
         public async Task<IActionResult> Index(string keyword, string dateFrom, string status, string sortBy, int page = 1)
         {
+            ViewData["ActiveMenu"] = "Articles";
             var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 
@@ -80,6 +81,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpGet("Create")]
         public async Task<IActionResult> Create()
         {
+            ViewData["ActiveMenu"] = "Articles";
             var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var dbUser = await _authService.FindUserByEmailAsync(email);
             if (dbUser != null && dbUser.Recruiter != null)
@@ -192,6 +194,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpGet("Edit/{id}")]
         public async Task<IActionResult> Edit(int id)
         {
+            ViewData["ActiveMenu"] = "Articles";
             var article = await _articleService.GetArticleByIdAsync(id);
             if (article == null)
                 return NotFound();
@@ -292,6 +295,7 @@ namespace DevHub.Controllers.Recruiter
         [HttpGet("Detail/{id}")]
         public async Task<IActionResult> Detail(int id)
         {
+            ViewData["ActiveMenu"] = "Articles";
             var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             int recruiterId = int.Parse(recruiterIdClaim);
 

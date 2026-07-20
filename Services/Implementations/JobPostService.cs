@@ -97,21 +97,19 @@ public class JobPostService : IJobPostService
                         "JOB_APPROVED",
                         "success",
                         job.JobId,
-                        $"/Recruiter/JobPost/Detail/{job.JobId}"
+                        "JobPost"
                     );
 
                     // Email notification
                     if (user.EmailNotificationsEnabled)
                     {
                         string emailSubject = "DevHub - Tin tuyển dụng đã được duyệt";
-                        string emailBody = $@"
-                        <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
-                            <h2 style='color: #4CAF50;'>Tin tuyển dụng đã được duyệt!</h2>
-                            <p>Chào {r.FullName},</p>
+                        string content = $@"
+                            <p>Chào <strong>{r.FullName}</strong>,</p>
                             <p>Tin tuyển dụng <strong>{job.Title}</strong> của bạn đã được kiểm duyệt viên phê duyệt.</p>
-                            <p>Tin của bạn hiện đã hiển thị trên DevHub.</p>
-                            <p>Trân trọng,<br/>Đội ngũ DevHub</p>
-                        </div>";
+                            <p>Tin của bạn hiện đã hiển thị trên hệ thống DevHub. Các ứng viên bây giờ đã có thể xem và ứng tuyển vào vị trí này.</p>
+                            <p>Cảm ơn bạn đã đồng hành cùng DevHub!</p>";
+                        string emailBody = DevHub.Helpers.EmailHelper.GetBaseTemplate("Tin tuyển dụng đã được duyệt", content);
                         await _emailHelper.SendEmailAsync(user.Email, emailSubject, emailBody);
                     }
                 }
@@ -167,24 +165,22 @@ public class JobPostService : IJobPostService
                         "JOB_REJECTED",
                         "danger",
                         job.JobId,
-                        $"/Recruiter/JobPost/Detail/{job.JobId}"
+                        "JobPost"
                     );
 
                     // Email notification
                     if (user.EmailNotificationsEnabled)
                     {
                         string emailSubject = "DevHub - Tin tuyển dụng bị từ chối";
-                        string emailBody = $@"
-                        <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
-                            <h2 style='color: #F44336;'>Tin tuyển dụng chưa được duyệt</h2>
-                            <p>Chào {r.FullName},</p>
+                        string content = $@"
+                            <p>Chào <strong>{r.FullName}</strong>,</p>
                             <p>Tin tuyển dụng <strong>{job.Title}</strong> của bạn không được phê duyệt với lý do sau:</p>
-                            <blockquote style='border-left: 4px solid #F44336; padding-left: 10px; color: #555;'>
+                            <blockquote style='border-left: 4px solid #F44336; padding-left: 10px; margin-left: 0; color: #555;'>
                                 {reason}
                             </blockquote>
                             <p>Vui lòng đăng nhập vào DevHub để chỉnh sửa và gửi lại yêu cầu.</p>
-                            <p>Trân trọng,<br/>Đội ngũ DevHub</p>
-                        </div>";
+                            <p>Cảm ơn bạn đã đồng hành cùng DevHub!</p>";
+                        string emailBody = DevHub.Helpers.EmailHelper.GetBaseTemplate("Tin tuyển dụng chưa được duyệt", content);
                         await _emailHelper.SendEmailAsync(user.Email, emailSubject, emailBody);
                     }
                 }

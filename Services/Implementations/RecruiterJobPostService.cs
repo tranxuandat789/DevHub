@@ -52,6 +52,9 @@ public class RecruiterJobPostService : IRecruiterJobPostService
     private readonly IProvinceRepository _provinceRepo;
     private readonly IModAssignmentService _modAssignmentService;
     private readonly IAssignModeratorService _assignModeratorService;
+    private readonly INotificationService _notificationService;
+    private readonly IUserAccountRepository _userRepository;
+    private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
     //Constructor Injection
     public RecruiterJobPostService(
@@ -62,7 +65,10 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         IRecruiterJobPostRepository jobPostRepo,
         IProvinceRepository provinceRepo,
         IModAssignmentService modAssignmentService,
-        IAssignModeratorService assignModeratorService)
+        IAssignModeratorService assignModeratorService,
+        INotificationService notificationService,
+        IUserAccountRepository userRepository,
+        DevHub.Helpers.EmailHelper emailHelper)
     {
         _techRepo = techRepo;
         _positionRepo = positionRepo;
@@ -72,6 +78,9 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         _provinceRepo = provinceRepo;
         _modAssignmentService = modAssignmentService;
         _assignModeratorService = assignModeratorService;
+        _notificationService = notificationService;
+        _userRepository = userRepository;
+        _emailHelper = emailHelper;
     }
 
     // Compute posting eligibility: profile completeness + active package with remaining quota.
@@ -177,12 +186,28 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         {
             if (assignedModId.HasValue)
             {
-                await _jobPostRepo.NotifyModeratorAsync(
-                    assignedModId.Value,
-                    "Bài đăng tuyển dụng mới chờ duyệt",
-                    $"Nhà tuyển dụng {recruiter.Company.CompanyName} đã đăng bài '{job.Title}' và đang chờ kiểm duyệt.",
-                    "JobPost",
-                    createdJob.JobId);
+                await _notificationService.SendNotificationAsync(
+                    userId: assignedModId.Value,
+                    userType: "MODERATOR",
+                    title: "Bài đăng tuyển dụng mới chờ duyệt",
+                    message: $"Nhà tuyển dụng {recruiter.Company.CompanyName} đã đăng bài '{job.Title}' và đang chờ kiểm duyệt.",
+                    type: "JobPostPending",
+                    severity: "info",
+                    referenceId: createdJob.JobId,
+                    referenceType: "JobPost"
+                );
+
+                var modAccount = await _userRepository.GetByIdAsync(assignedModId.Value);
+                if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
+                {
+                    string subject = "Bạn có công việc mới cần xử lý - DevHub";
+                    string content = $@"
+                        <p>Chào <strong>bạn</strong>,</p>
+                        <p>Bạn vừa được gán <strong>1 Tin tuyển dụng</strong> mới cần xét duyệt trên hệ thống DevHub.</p>
+                        <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
+                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
+                    await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
+                }
             }
         }
         catch
@@ -353,12 +378,28 @@ public class RecruiterJobPostService : IRecruiterJobPostService
         {
             try
             {
-                await _jobPostRepo.NotifyModeratorAsync(
-                    existing.ModeratorId.Value,
-                    "Bài đăng tuyển dụng được chỉnh sửa, chờ duyệt lại",
-                    $"Tin '{updatedJP.Title}' vừa được cập nhật và đang chờ kiểm duyệt lại.",
-                    "JobPost",
-                    jobId);
+                await _notificationService.SendNotificationAsync(
+                    userId: existing.ModeratorId.Value,
+                    userType: "MODERATOR",
+                    title: "Bài đăng tuyển dụng được chỉnh sửa, chờ duyệt lại",
+                    message: $"Tin '{updatedJP.Title}' vừa được cập nhật và đang chờ kiểm duyệt lại.",
+                    type: "JobPostPending",
+                    severity: "warning",
+                    referenceId: jobId,
+                    referenceType: "JobPost"
+                );
+
+                var modAccount = await _userRepository.GetByIdAsync(existing.ModeratorId.Value);
+                if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
+                {
+                    string subject = "Bạn có công việc cập nhật cần xử lý - DevHub";
+                    string content = $@"
+                        <p>Chào <strong>bạn</strong>,</p>
+                        <p>Bạn vừa được gán <strong>1 Tin tuyển dụng (cập nhật)</strong> cần xét duyệt lại trên hệ thống DevHub.</p>
+                        <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
+                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
+                    await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
+                }
             }
             catch
             {

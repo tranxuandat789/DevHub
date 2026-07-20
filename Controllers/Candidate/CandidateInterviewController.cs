@@ -23,7 +23,7 @@ namespace DevHub.Controllers.Candidate
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index([FromQuery] int? jobId, [FromQuery] string tab = "scheduled", [FromQuery] int page = 1)
+        public async Task<IActionResult> Index([FromQuery] int? jobId, [FromQuery] string tab = "all", [FromQuery] int page = 1)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int candidateId)) return RedirectToAction("Login", "Auth");
@@ -58,23 +58,20 @@ namespace DevHub.Controllers.Candidate
 
             var now = DateTime.Now;
 
+            // Filter out "completed_pending" equivalent (scheduled but time passed)
+            query = query.Where(i => !(i.Status == "scheduled" && i.ScheduledTime < now));
+
             // Get all raw matches to count tabs
             var allInterviews = await query.ToListAsync();
 
-            viewModel.ScheduledCount = allInterviews.Count(i => i.Status == "scheduled" && i.ScheduledTime >= now);
-            viewModel.CompletedCount = allInterviews.Count(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
+            viewModel.ScheduledCount = allInterviews.Count(i => i.Status == "scheduled");
             viewModel.PassedCount = allInterviews.Count(i => i.Status == "passed");
             viewModel.RejectedCount = allInterviews.Count(i => i.Status == "rejected");
             viewModel.CancelledCount = allInterviews.Count(i => i.Status == "cancelled");
 
-            // Apply Tab Filter
             if (tab == "scheduled")
             {
                 query = query.Where(i => i.Status == "scheduled" && i.ScheduledTime >= now);
-            }
-            else if (tab == "completed_pending")
-            {
-                query = query.Where(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
             }
             else if (tab == "passed")
             {
@@ -88,6 +85,7 @@ namespace DevHub.Controllers.Candidate
             {
                 query = query.Where(i => i.Status == "cancelled");
             }
+            // tab == "all": không filter gì cả
 
             // Pagination
             int pageSize = 6;
@@ -100,16 +98,30 @@ namespace DevHub.Controllers.Candidate
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Map virtual status for UI display
-            foreach (var interview in viewModel.Interviews)
-            {
-                if (interview.Status == "scheduled" && interview.ScheduledTime < now)
-                {
-                    interview.Status = "completed_pending";
-                }
-            }
+            // (Mapping to completed_pending removed)
 
             return View("~/Views/Candidate/CandidateInterview/Index.cshtml", viewModel);
+        }
+
+        [HttpGet("details/{id:int}")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int candidateId)) return RedirectToAction("Login", "Auth");
+
+            var interview = await _context.Interviews
+                .Include(i => i.Application).ThenInclude(a => a.Job).ThenInclude(j => j.Company)
+                .FirstOrDefaultAsync(i => i.InterviewId == id && i.CandidateId == candidateId);
+
+            if (interview == null) return NotFound();
+
+            // Query recruiter info separately
+            var recruiter = await _context.Recruiters
+                .Include(r => r.RecruiterNavigation)
+                .FirstOrDefaultAsync(r => r.RecruiterId == interview.RecruiterId);
+            ViewBag.Recruiter = recruiter;
+
+            return View("~/Views/Candidate/CandidateInterview/Details.cshtml", interview);
         }
     }
 }

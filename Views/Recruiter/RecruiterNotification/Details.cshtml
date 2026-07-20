@@ -128,10 +128,7 @@
                         <div class="w-48 text-gray-500 font-medium text-[15px]">Vị trí ứng tuyển</div>
                         <div class="flex-1 text-gray-900 text-[15px]">@(app.Job?.Title ?? "N/A")</div>
                     </div>
-                    <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">Công ty</div>
-                        <div class="flex-1 text-gray-900 text-[15px]">@(app.Job?.Company?.CompanyName ?? "N/A")</div>
-                    </div>
+
                     <div class="flex items-center">
                         <div class="w-48 text-gray-500 font-medium text-[15px]">Trạng thái đơn</div>
                         <div class="flex-1">
@@ -153,10 +150,7 @@
                         <div class="w-48 text-gray-500 font-medium text-[15px]">Tin tuyển dụng</div>
                         <div class="flex-1 text-gray-900 text-[15px]">@job.Title</div>
                     </div>
-                    <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">Công ty</div>
-                        <div class="flex-1 text-gray-900 text-[15px]">@(job.Company?.CompanyName ?? "N/A")</div>
-                    </div>
+
                     <div class="flex items-center">
                         <div class="w-48 text-gray-500 font-medium text-[15px]">Trạng thái tin</div>
                         <div class="flex-1">
@@ -196,13 +190,13 @@
                     <div class="flex items-center">
                         <div class="w-48 text-gray-500 font-medium text-[15px]">Hình thức</div>
                         <div class="flex-1">
-                            <span class="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-[#4640DE] font-medium text-xs">@interview.InterviewType</span>
+                            <span class="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-[#4640DE] font-medium text-xs">@(interview.InterviewType == "ONLINE" || interview.InterviewType == "Online" ? "Trực tuyến" : "Trực tiếp")</span>
                         </div>
                     </div>
                     <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">@(interview.InterviewType == "Online" ? "Link cuộc họp" : "Địa điểm")</div>
+                        <div class="w-48 text-gray-500 font-medium text-[15px]">@(interview.InterviewType?.ToUpper() == "ONLINE" ? "Link cuộc họp" : "Địa điểm")</div>
                         <div class="flex-1 text-[15px]">
-                            @if (interview.InterviewType == "Online" && !string.IsNullOrEmpty(interview.MeetingLink))
+                            @if (interview.InterviewType?.ToUpper() == "ONLINE" && !string.IsNullOrEmpty(interview.MeetingLink))
                             {
                                 <a href="@interview.MeetingLink" target="_blank" class="text-blue-600 hover:underline break-all">@interview.MeetingLink</a>
                             }

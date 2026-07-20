@@ -411,6 +411,7 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.InterviewId).HasColumnName("interview_id");
             entity.Property(e => e.ApplicationId).HasColumnName("application_id");
             entity.Property(e => e.CandidateId).HasColumnName("candidate_id");
+            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")

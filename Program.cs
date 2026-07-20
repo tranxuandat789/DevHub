@@ -271,6 +271,7 @@ builder.Services.AddScoped<IProvinceService, ProvinceService>();
 // Background worker: auto-close APPROVED job posts whose deadline has passed.
 builder.Services.AddHostedService<JobPostAutoCloseService>();
 builder.Services.AddHostedService<ModeratorSlaNotificationService>();
+builder.Services.AddHostedService<InterviewAutoCancelService>();
 
 var app = builder.Build();
 

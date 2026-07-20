@@ -132,7 +132,7 @@
                                     </div>
                                 </td>
                                 <td class="p-4">
-                                    @if (item.Status == "scheduled")
+                                    @if (item.Status == "scheduled" || item.Status == "confirmed")
                                     {
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 whitespace-nowrap">Đã lên lịch</span>
                                     }
@@ -158,7 +158,7 @@
                                         <a href="/Recruiter/RecruiterInterview/Details/@item.InterviewId" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
                                             Chi tiết
                                         </a>
-                                        @if (item.Status == "scheduled" || item.Status == "completed_pending")
+                                        @if (item.Status == "scheduled" || item.Status == "confirmed" || item.Status == "completed_pending")
                                         {
                                             <a href="/Recruiter/RecruiterInterview/Edit/@item.InterviewId" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
                                                 Chỉnh sửa

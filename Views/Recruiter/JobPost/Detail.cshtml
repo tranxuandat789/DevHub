@@ -124,15 +124,15 @@
     <div class="bg-white rounded-xl border border-[#F6F5FD] p-6 md:p-8 shadow-sm space-y-6">
         <div>
             <h2 class="text-lg font-bold text-dark mb-2">Mô tả công việc</h2>
-            <p class="text-sm text-muted whitespace-pre-line leading-relaxed">@Model.Description</p>
+            <p class="text-sm text-muted leading-relaxed">@Html.Raw(Model.Description?.Replace("\n", "<br/>"))</p>
         </div>
         <div>
             <h2 class="text-lg font-bold text-dark mb-2">Yêu cầu công việc</h2>
-            <p class="text-sm text-muted whitespace-pre-line leading-relaxed">@Model.Requirement</p>
+            <p class="text-sm text-muted leading-relaxed">@Html.Raw(Model.Requirement?.Replace("\n", "<br/>"))</p>
         </div>
         <div>
             <h2 class="text-lg font-bold text-dark mb-2">Chế độ phúc lợi</h2>
-            <p class="text-sm text-muted whitespace-pre-line leading-relaxed">@Model.Benefit</p>
+            <p class="text-sm text-muted leading-relaxed">@Html.Raw(Model.Benefit?.Replace("\n", "<br/>"))</p>
         </div>
     </div>
 </div>

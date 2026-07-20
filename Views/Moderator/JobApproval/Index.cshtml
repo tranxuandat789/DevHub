@@ -299,9 +299,27 @@ author: Hoang Minh Kien
     </div>
 </div>
 
+<!-- Custom Toast Notification -->
+<div id="customToast" class="fixed bottom-4 right-4 z-[300] hidden bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 transition-opacity duration-300 opacity-0">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <span id="customToastMsg" class="font-medium"></span>
+</div>
+
 @section Scripts {
     <script>
         let currentRejectId = null;
+
+        function showToast(message) {
+            const toast = document.getElementById('customToast');
+            document.getElementById('customToastMsg').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('opacity-0'), 10);
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        }
 
         async function openDetailModal(id) {
             try {
@@ -322,17 +340,17 @@ author: Hoang Minh Kien
                     else if (data.salaryMax != null) salary = `Lên đến $${data.salaryMax}`;
                     document.getElementById('detailSalary').innerText = salary;
 
-                    document.getElementById('detailDescription').innerHTML = data.description || "<i>Chưa cập nhật</i>";
-                    document.getElementById('detailRequirement').innerHTML = data.requirement || "<i>Chưa cập nhật</i>";
-                    document.getElementById('detailBenefit').innerHTML = data.benefit || "<i>Chưa cập nhật</i>";
+                    document.getElementById('detailDescription').innerHTML = data.description ? data.description.replace(/\n/g, '<br>') : "<i>Chưa cập nhật</i>";
+                    document.getElementById('detailRequirement').innerHTML = data.requirement ? data.requirement.replace(/\n/g, '<br>') : "<i>Chưa cập nhật</i>";
+                    document.getElementById('detailBenefit').innerHTML = data.benefit ? data.benefit.replace(/\n/g, '<br>') : "<i>Chưa cập nhật</i>";
 
                     document.getElementById('detailModal').classList.remove('hidden');
                 } else {
-                    alert('Không thể lấy thông tin chi tiết bài đăng.');
+                    showToast('Không thể lấy thông tin chi tiết bài đăng.');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Có lỗi xảy ra.');
+                showToast('Có lỗi xảy ra.');
             }
         }
 

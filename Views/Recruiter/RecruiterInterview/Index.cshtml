@@ -58,6 +58,7 @@
             }
             <a href="@(BaseUrl)&tab=all" class="@GetTabClass("all")">Tất cả (@Model.AllCount)</a>
             <a href="@(BaseUrl)&tab=scheduled" class="@GetTabClass("scheduled")">Sắp tới (@Model.ScheduledCount)</a>
+            <a href="@(BaseUrl)&tab=completed_pending" class="@GetTabClass("completed_pending")">Chờ kết quả (@Model.CompletedCount)</a>
             <a href="@(BaseUrl)&tab=passed" class="@GetTabClass("passed")">Trúng tuyển (@Model.PassedCount)</a>
             <a href="@(BaseUrl)&tab=rejected" class="@GetTabClass("rejected")">Không đạt (@Model.RejectedCount)</a>
             <a href="@(BaseUrl)&tab=cancelled" class="@GetTabClass("cancelled")">Đã hủy (@Model.CancelledCount)</a>

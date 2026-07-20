@@ -77,14 +77,12 @@ namespace DevHub.Controllers.Recruiter
 
         
             var now = DateTime.Now;
-            query = query.Where(i => !(i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now)));
-
-            // Get all raw matches to count tabs
+            // Calculate counts for tabs
             var allInterviews = await query.ToListAsync();
 
             viewModel.AllCount = allInterviews.Count;
             viewModel.ScheduledCount = allInterviews.Count(i => i.Status == "scheduled" && i.ScheduledTime >= now);
-            viewModel.CompletedCount = 0; // Đã loại bỏ
+            viewModel.CompletedCount = allInterviews.Count(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
             viewModel.PassedCount = allInterviews.Count(i => i.Status == "passed");
             viewModel.RejectedCount = allInterviews.Count(i => i.Status == "rejected");
             viewModel.CancelledCount = allInterviews.Count(i => i.Status == "cancelled");
@@ -100,7 +98,7 @@ namespace DevHub.Controllers.Recruiter
             }
             else if (tab == "completed_pending")
             {
-                query = query.Where(i => false); // Đã loại bỏ
+                query = query.Where(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
             }
             else if (tab == "passed")
             {

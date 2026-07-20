@@ -101,4 +101,6 @@ public class PaymentHistoryDetailVm
     public decimal VatAmount { get; set; }
     public decimal TotalAmount { get; set; }
     public string? BuyerTaxCode { get; set; }
+    public string? CompanyName { get; set; }
+    public string? BuyerName { get; set; }
 }

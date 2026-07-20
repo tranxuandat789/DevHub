@@ -22,7 +22,7 @@ public class PaymentRepository : IPaymentRepository
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return await _context.Promotions
-            .Where(p => p.IsActive == true && p.StartDate <= today && p.EndDate >= today && p.Quantity > 0)
+            .Where(p => p.IsActive == true && p.StartDate <= today && p.EndDate >= today && (p.Quantity == null || p.Quantity > 0))
             .ToListAsync();
     }
 
@@ -32,7 +32,7 @@ public class PaymentRepository : IPaymentRepository
         return await _context.Promotions
             .FirstOrDefaultAsync(p => p.PromoCode == code && p.IsActive == true && 
                                       p.StartDate <= today && p.EndDate >= today && 
-                                      p.Quantity > 0);
+                                      (p.Quantity == null || p.Quantity > 0));
     }
 
     public async Task<int> CreateTransactionAsync(PackageTransaction tx)
@@ -65,6 +65,8 @@ public class PaymentRepository : IPaymentRepository
         var tx = await _context.PackageTransactions
             .Include(t => t.Service)
             .Include(t => t.Promotion)
+            .Include(t => t.Company)
+            .Include(t => t.Recruiter)
             .FirstOrDefaultAsync(t => t.TransactionId == txId && t.CompanyId == companyId);
         await CheckExpiredAsync(tx);
         return tx;
@@ -133,11 +135,31 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<CompanyPackageHistory?> GetActivePackageAsync(int companyId)
     {
-        return await _context.CompanyPackageHistories
+        var activePackages = await _context.CompanyPackageHistories
             .Include(h => h.Service)
             .Where(h => h.CompanyId == companyId && h.IsActive == true)
-            .OrderByDescending(h => h.StartDate)
-            .FirstOrDefaultAsync();
+            .ToListAsync();
+            
+        var now = DateTime.UtcNow;
+        bool changed = false;
+
+        foreach(var pkg in activePackages)
+        {
+            if (pkg.PostsRemaining <= 0 || (pkg.EndDate.HasValue && pkg.EndDate.Value < now))
+            {
+                pkg.IsActive = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        return activePackages.Where(h => h.IsActive == true)
+                             .OrderByDescending(h => h.StartDate)
+                             .FirstOrDefault();
     }
 
     public async Task<bool> MarkPaidAndActivateAsync(string vnpTxnRef, string vnpTransactionNo, string vnpBankCode)
@@ -215,7 +237,7 @@ public class PaymentRepository : IPaymentRepository
 
                 if (tx.PromotionId.HasValue && tx.Promotion != null)
                 {
-                    if (tx.Promotion.Quantity > 0)
+                    if (tx.Promotion.Quantity.HasValue && tx.Promotion.Quantity.Value > 0)
                     {
                         tx.Promotion.Quantity -= 1;
                         _context.Promotions.Update(tx.Promotion);

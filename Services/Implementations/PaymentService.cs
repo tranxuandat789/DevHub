@@ -166,7 +166,7 @@ public class PaymentService : IPaymentService
         };
     }
 
-    public async Task<(bool Success, string? Url, string? Error, bool IsFreeUpgrade)> CreatePaymentUrlAsync(int companyId, CreatePaymentRequestVm req, string clientIp)
+    public async Task<(bool Success, string? Url, string? Error, bool IsFreeUpgrade)> CreatePaymentUrlAsync(int companyId, int recruiterId, CreatePaymentRequestVm req, string clientIp)
     {
         var service = await _serviceRepo.GetByIdAsync(req.ServiceId);
         if (service == null || service.IsActive != true)
@@ -190,6 +190,7 @@ public class PaymentService : IPaymentService
         var tx = new PackageTransaction
         {
             CompanyId = companyId,
+            RecruiterId = recruiterId,
             ServiceId = req.ServiceId,
             AmountVnd = service.Price,
             DiscountAmount = voucherCheck.DiscountAmount,
@@ -354,7 +355,9 @@ public class PaymentService : IPaymentService
             VatRate = tx.VatRate,
             VatAmount = tx.VatAmount,
             TotalAmount = tx.TotalAmount,
-            BuyerTaxCode = tx.BuyerTaxCode
+            BuyerTaxCode = tx.BuyerTaxCode,
+            CompanyName = tx.Company?.CompanyName,
+            BuyerName = tx.Recruiter?.FullName
         };
     }
 

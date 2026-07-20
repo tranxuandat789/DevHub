@@ -11,7 +11,7 @@ using DevHub.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace DevHub.Controllers
+namespace DevHub.Controllers.Shared
 {
     public class HomeController : Controller
     {

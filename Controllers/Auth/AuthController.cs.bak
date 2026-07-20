@@ -231,7 +231,7 @@ namespace DevHub.Controllers.Auth
                 if (ModelState.TryGetValue("NewPassword", out var newPassEntry) && newPassEntry.Errors.Count > 0)
                     TempData["NewPasswordError"] = newPassEntry.Errors[0].ErrorMessage;
                 if (ModelState.TryGetValue("ConfirmPassword", out var confirmPassEntry) && confirmPassEntry.Errors.Count > 0)
-                    TempData["ConfirmPasswordError"] = confirmPassEntry.Errors[0].ErrorMessage;
+                    TempData["ConfirmPasswordError"] = confirmPassEntry.Errors[0].ErrorMessage;  
 
                 TempData["ResetEmail"] = email;
                 TempData["ResetToken"] = token;

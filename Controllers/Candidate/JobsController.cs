@@ -1,11 +1,11 @@
-// Author: [your-name] - Public job search controller
+// Author: DatTX - Public job search controller
 using System.Security.Claims;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Jobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DevHub.Controllers;
+namespace DevHub.Controllers.Candidate;
 
 public class JobsController : Controller
 {

@@ -10,7 +10,7 @@ using DevHub.ViewModels.Candidate;
 using DevHub.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace DevHub.Controllers
+namespace DevHub.Controllers.Candidate
 {
     public class CandidateController : Controller
     {

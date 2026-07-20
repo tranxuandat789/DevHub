@@ -17,7 +17,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace DevHub.Controllers;
+namespace DevHub.Controllers.Auth;
 
 public class AuthController : Controller
 {

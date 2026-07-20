@@ -28,7 +28,7 @@
                 <a href="/Recruiter/RecruiterInterview/Edit/@Model.InterviewId" class="px-4 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm">
                     Chỉnh sửa lịch
                 </a>
-                <button onclick="updateStatus(@Model.InterviewId, 'cancelled')" class="px-4 py-2.5 bg-white border border-gray-200 text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors shadow-sm text-sm">
+                <button onclick="showCancelModal(@Model.InterviewId)" class="px-4 py-2.5 bg-white border border-gray-200 text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors shadow-sm text-sm">
                     Hủy lịch
                 </button>
             }
@@ -40,8 +40,8 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                        <button onclick="updateStatus(@Model.InterviewId, 'passed')" class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors font-bold">Trúng tuyển (Hired)</button>
-                        <button onclick="updateStatus(@Model.InterviewId, 'rejected')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors font-bold">Trượt (Failed)</button>
+                        <button onclick="showPassModal(@Model.InterviewId)" class="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50 transition-colors font-bold">Trúng tuyển (Hired)</button>
+                        <button onclick="showRejectModal(@Model.InterviewId)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors font-bold">Trượt (Failed)</button>
                     </div>
                 </div>
             }
@@ -102,7 +102,14 @@
 
                     <div class="flex items-start gap-3">
                         <div class="mt-0.5 p-2 bg-green-50 text-green-600 rounded-lg">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            @if (Model.InterviewType == "ONLINE")
+                            {
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            }
+                            else
+                            {
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            }
                         </div>
                         <div>
                             <div class="text-sm font-medium text-muted">Hình thức: @(Model.InterviewType == "ONLINE" ? "Trực tuyến" : "Trực tiếp")</div>
@@ -135,6 +142,100 @@
     </div>
 </div>
 
+<!-- Cancel Modal -->
+<div id="cancelModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-dark">Hủy lịch phỏng vấn</h3>
+                    <p class="text-sm text-muted mt-1 leading-relaxed">Bạn có chắc chắn muốn hủy lịch này không? Vui lòng cung cấp lý do hủy để thông báo cho ứng viên.</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <label for="cancelReason" class="block text-sm font-medium text-dark mb-1">Lý do hủy <span class="text-red-500">*</span></label>
+                <textarea id="cancelReason" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm" placeholder="Nhập lý do hủy..."></textarea>
+                <p id="cancelReasonError" class="text-red-500 text-xs mt-1 hidden">Vui lòng nhập lý do hủy.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 mt-6">
+                <button type="button" onclick="closeCancelModal()" class="px-4 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">Quay lại</button>
+                <button type="button" id="confirmCancelBtn" onclick="confirmCancel()" class="px-4 py-2.5 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-sm text-sm flex items-center justify-center">Xác nhận hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pass Modal -->
+<div id="passModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-dark">Xác nhận Trúng tuyển</h3>
+                    <p class="text-sm text-muted mt-1 leading-relaxed">Bạn có chắc chắn muốn xác nhận ứng viên này trúng tuyển không? Một email và thông báo sẽ được gửi cho ứng viên.</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <label for="passReason" class="block text-sm font-medium text-dark mb-1">Ghi chú (Tùy chọn)</label>
+                <textarea id="passReason" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm" placeholder="Nhập ghi chú cho ứng viên..."></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 mt-6">
+                <button type="button" onclick="closePassModal()" class="px-4 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">Quay lại</button>
+                <button type="button" id="confirmPassBtn" onclick="confirmPass()" class="px-4 py-2.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors shadow-sm text-sm flex items-center justify-center">Xác nhận Trúng tuyển</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-dark">Đánh trượt Ứng viên</h3>
+                    <p class="text-sm text-muted mt-1 leading-relaxed">Bạn có chắc chắn muốn đánh trượt ứng viên này không? Vui lòng cung cấp lý do để thông báo cho ứng viên.</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <label for="rejectReason" class="block text-sm font-medium text-dark mb-1">Lý do đánh trượt <span class="text-red-500">*</span></label>
+                <textarea id="rejectReason" rows="3" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm" placeholder="Nhập lý do đánh trượt..."></textarea>
+                <p id="rejectReasonError" class="text-red-500 text-xs mt-1 hidden">Vui lòng nhập lý do đánh trượt.</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 mt-6">
+                <button type="button" onclick="closeRejectModal()" class="px-4 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">Quay lại</button>
+                <button type="button" id="confirmRejectBtn" onclick="confirmReject()" class="px-4 py-2.5 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-sm text-sm flex items-center justify-center">Xác nhận Đánh trượt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black/30 z-[100] hidden flex flex-col items-center justify-center backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center">
+        <svg class="animate-spin h-10 w-10 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-dark font-medium">Đang xử lý...</p>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function toggleDropdown(button) {
@@ -155,23 +256,133 @@
             }
         });
 
-        function updateStatus(id, status) {
-            if (status === 'cancelled' && !confirm('Bạn có chắc chắn muốn hủy lịch phỏng vấn này không? Ứng viên sẽ nhận được email thông báo.')) {
-                return;
+        let cancelInterviewId = null;
+
+        function showCancelModal(id) {
+            cancelInterviewId = id;
+            document.getElementById('cancelReason').value = '';
+            document.getElementById('cancelReasonError').classList.add('hidden');
+            document.getElementById('confirmCancelBtn').disabled = false;
+            document.getElementById('cancelModal').classList.remove('hidden');
+        }
+
+        function closeCancelModal() {
+            document.getElementById('cancelModal').classList.add('hidden');
+            cancelInterviewId = null;
+        }
+
+        function confirmCancel() {
+            if (cancelInterviewId) {
+                const reason = document.getElementById('cancelReason').value.trim();
+                const errorEl = document.getElementById('cancelReasonError');
+                
+                if (!reason) {
+                    errorEl.classList.remove('hidden');
+                    document.getElementById('cancelReason').focus();
+                    return;
+                }
+                
+                errorEl.classList.add('hidden');
+                document.getElementById('confirmCancelBtn').disabled = true;
+                
+                updateStatus(cancelInterviewId, 'cancelled', reason);
             }
-            fetch(`/Recruiter/RecruiterInterview/UpdateStatus/${id}?status=${status}`, {
+        }
+
+        let evaluateInterviewId = null;
+
+        function showPassModal(id) {
+            evaluateInterviewId = id;
+            document.getElementById('passReason').value = '';
+            document.getElementById('confirmPassBtn').disabled = false;
+            document.getElementById('passModal').classList.remove('hidden');
+        }
+
+        function closePassModal() {
+            document.getElementById('passModal').classList.add('hidden');
+            evaluateInterviewId = null;
+        }
+
+        function confirmPass() {
+            if (evaluateInterviewId) {
+                const reason = document.getElementById('passReason').value.trim();
+                document.getElementById('confirmPassBtn').disabled = true;
+                updateStatus(evaluateInterviewId, 'passed', reason);
+            }
+        }
+
+        function showRejectModal(id) {
+            evaluateInterviewId = id;
+            document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectReasonError').classList.add('hidden');
+            document.getElementById('confirmRejectBtn').disabled = false;
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            evaluateInterviewId = null;
+        }
+
+        function confirmReject() {
+            if (evaluateInterviewId) {
+                const reason = document.getElementById('rejectReason').value.trim();
+                const errorEl = document.getElementById('rejectReasonError');
+                
+                if (!reason) {
+                    errorEl.classList.remove('hidden');
+                    document.getElementById('rejectReason').focus();
+                    return;
+                }
+                
+                errorEl.classList.add('hidden');
+                document.getElementById('confirmRejectBtn').disabled = true;
+                
+                updateStatus(evaluateInterviewId, 'rejected', reason);
+            }
+        }
+
+        function updateStatus(id, status, reason = '') {
+            let url = `/Recruiter/RecruiterInterview/UpdateStatus/${id}?status=${status}`;
+            if (reason) {
+                url += `&reason=${encodeURIComponent(reason)}`;
+            }
+
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
                     window.location.reload();
                 } else {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
                     alert(data.message || 'Có lỗi xảy ra');
+                    if (status === 'cancelled') {
+                        document.getElementById('confirmCancelBtn').disabled = false;
+                    } else if (status === 'passed') {
+                        document.getElementById('confirmPassBtn').disabled = false;
+                    } else if (status === 'rejected') {
+                        document.getElementById('confirmRejectBtn').disabled = false;
+                    }
                 }
             })
-            .catch(err => alert('Có lỗi xảy ra'));
+            .catch(err => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                alert('Có lỗi xảy ra');
+                if (status === 'cancelled') {
+                    document.getElementById('confirmCancelBtn').disabled = false;
+                } else if (status === 'passed') {
+                    document.getElementById('confirmPassBtn').disabled = false;
+                } else if (status === 'rejected') {
+                    document.getElementById('confirmRejectBtn').disabled = false;
+                }
+            });
         }
     </script>
 }

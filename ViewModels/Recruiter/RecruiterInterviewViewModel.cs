@@ -14,10 +14,12 @@ namespace DevHub.ViewModels.Recruiter
         public string SearchTerm { get; set; } = "";
         
         // Tab Counts
+        public int AllCount { get; set; }
         public int ScheduledCount { get; set; }
         public int CompletedCount { get; set; }
         public int PassedCount { get; set; }
         public int RejectedCount { get; set; }
+        public int CancelledCount { get; set; }
 
         // Pagination
         public int CurrentPage { get; set; } = 1;

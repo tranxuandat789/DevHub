@@ -15,19 +15,22 @@ public class ReviewCompanyService : IReviewCompanyService
     private readonly IAssignModeratorService _assignModeratorService;
     private readonly INotificationService _notificationService;
     private readonly EmailHelper _emailHelper;
+    private readonly IUserAccountRepository _userRepository;
 
     public ReviewCompanyService(
         IReviewCompanyRepository reviewCompanyRepository,
         INotificationRepository notificationRepository,
         IAssignModeratorService assignModeratorService,
         INotificationService notificationService,
-        EmailHelper emailHelper)
+        EmailHelper emailHelper,
+        IUserAccountRepository userRepository)
     {
         _reviewCompanyRepository = reviewCompanyRepository;
         _notificationRepository = notificationRepository;
         _assignModeratorService = assignModeratorService;
         _notificationService = notificationService;
         _emailHelper = emailHelper;
+        _userRepository = userRepository;
     }
 
     public async Task<ReviewCompany?> GetByIdAsync(int reviewId)
@@ -83,6 +86,18 @@ public class ReviewCompanyService : IReviewCompanyService
                 referenceId: review.ReviewId,
                 referenceType: "Review"
             );
+
+            var modAccount = await _userRepository.GetByIdAsync(assignedModId.Value);
+            if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
+            {
+                string subject = "Bạn có công việc mới cần xử lý - DevHub";
+                string content = $@"
+                    <p>Chào <strong>bạn</strong>,</p>
+                    <p>Bạn vừa được gán <strong>1 Đánh giá công ty</strong> mới cần xét duyệt trên hệ thống DevHub.</p>
+                    <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
+                string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
+                await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
+            }
         }
 
         return (true, "Gửi đánh giá thành công. Vui lòng chờ kiểm duyệt.");
@@ -112,6 +127,18 @@ public class ReviewCompanyService : IReviewCompanyService
                     referenceId: existing.ReviewId,
                     referenceType: "Review"
                 );
+
+                var modAccount = await _userRepository.GetByIdAsync(existing.ModeratorId.Value);
+                if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
+                {
+                    string subject = "Bạn có công việc cập nhật cần xử lý - DevHub";
+                    string content = $@"
+                        <p>Chào <strong>bạn</strong>,</p>
+                        <p>Bạn vừa được gán <strong>1 Đánh giá công ty (cập nhật)</strong> cần xét duyệt lại trên hệ thống DevHub.</p>
+                        <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
+                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
+                    await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
+                }
             }
             return (true, "Cập nhật đánh giá thành công. Vui lòng chờ kiểm duyệt lại.");
         }

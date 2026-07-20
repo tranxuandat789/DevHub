@@ -18,7 +18,7 @@
             case "HIRED": return ("bg-blue-100 text-blue-700", "Trúng tuyển");
             case "PENDING": return ("bg-amber-100 text-amber-700", "Đang chờ");
             case "REJECTED": return ("bg-red-100 text-red-700", "Từ chối");
-            case "FAILED": return ("bg-red-100 text-red-700", "Không đạt");
+            case "FAILED": return ("bg-red-100 text-red-700", "Từ chối");
             case "CANCELLED": return ("bg-gray-100 text-gray-600", "Đã hủy");
             default: return ("bg-gray-100 text-gray-600", string.IsNullOrEmpty(status) ? "—" : status);
         }
@@ -134,12 +134,13 @@
             <a href="@BuildUrl(1, "")" class="@TabCls("")">Tất cả (@Model.CountAll)</a>
             <a href="@BuildUrl(1, "PENDING")" class="@TabCls("PENDING")">Đang chờ (@Model.CountPending)</a>
             <a href="@BuildUrl(1, "APPROVED")" class="@TabCls("APPROVED")">Đã duyệt (@Model.CountApproved)</a>
+            <a href="@BuildUrl(1, "INTERVIEWING")" class="@TabCls("INTERVIEWING")">Đang phỏng vấn (@Model.CountInterviewing)</a>
             <a href="@BuildUrl(1, "HIRED")" class="@TabCls("HIRED")">Trúng tuyển (@Model.CountHired)</a>
             <a href="@BuildUrl(1, "REJECTED")" class="@TabCls("REJECTED")">Từ chối (@Model.CountRejected)</a>
         </div>
 
         <!-- Filter form (GET). Dropdown values bind from option lists only; typeahead just filters them. -->
-        <form method="get" action="@basePath" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+        <form method="get" action="@basePath" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end" onsubmit="if(this.Keyword) this.Keyword.value = this.Keyword.value.trim();">
             @if (!Model.IsCrossJob && Model.JobId != null)
             {
                 <input type="hidden" name="jobId" value="@Model.JobId" />
@@ -279,7 +280,10 @@
                     <tbody class="divide-y divide-gray-100">
                         @foreach (var a in Model.Items)
                         {
-                            var badge = StatusBadge(a.Status);
+                            // Nếu đang có lịch phỏng vấn scheduled, hiển thị badge đặc biệt
+                            var badge = a.HasScheduledInterview
+                                ? (Cls: "bg-purple-100 text-purple-700", Label: "Đang phỏng vấn")
+                                : StatusBadge(a.Status);
                             <tr class="hover:bg-gray-50/50 transition-colors group">
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
@@ -326,7 +330,13 @@
                                 <td class="p-4">
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold @badge.Cls whitespace-nowrap">@badge.Label</span>
                                 </td>
-                                <td class="p-4 text-right">
+                                <td class="p-4 text-right flex items-center justify-end gap-2">
+                                    @if (a.Status == "APPROVED" && (a.JobStatus == "APPROVED" || a.JobStatus == "ACTIVE" || a.JobStatus == "Active") && !a.HasScheduledInterview)
+                                    {
+                                        <a href="/Recruiter/RecruiterInterview/Create?jobId=@a.JobId&applicationId=@a.ApplicationId" class="inline-flex items-center px-3 py-1.5 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm shadow-sm">
+                                            Tạo lịch phỏng vấn
+                                        </a>
+                                    }
                                     <a href="/Recruiter/RecruiterApplication/Details/@a.ApplicationId" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-200 text-dark font-semibold rounded-lg hover:bg-gray-50 hover:text-primary transition-colors text-sm shadow-sm">
                                         Xem hồ sơ
                                     </a>

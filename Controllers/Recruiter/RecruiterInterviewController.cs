@@ -5,6 +5,7 @@ using DevHub.ViewModels.Recruiter;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace DevHub.Controllers.Recruiter
@@ -32,7 +33,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index([FromQuery] int? jobId, [FromQuery] string tab = "scheduled", [FromQuery] string search = "", [FromQuery] int page = 1)
+        public async Task<IActionResult> Index([FromQuery] int? jobId, [FromQuery] string tab = "all", [FromQuery] string search = "", [FromQuery] int page = 1)
         {
             var recruiterId = await GetRecruiterIdAsync();
             if (recruiterId == null) return RedirectToAction("Login", "Auth");
@@ -74,26 +75,32 @@ namespace DevHub.Controllers.Recruiter
                 query = query.Where(i => i.Candidate.FullName.Contains(search) || i.Candidate.CandidateNavigation.Email.Contains(search));
             }
 
-            // Status Logic: Move scheduled past now to completed_pending virtually for counts/display
+        
             var now = DateTime.Now;
+            query = query.Where(i => !(i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now)));
 
             // Get all raw matches to count tabs
             var allInterviews = await query.ToListAsync();
 
+            viewModel.AllCount = allInterviews.Count;
             viewModel.ScheduledCount = allInterviews.Count(i => i.Status == "scheduled" && i.ScheduledTime >= now);
-            // Include virtually passed or explicitly marked completed_pending
-            viewModel.CompletedCount = allInterviews.Count(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
+            viewModel.CompletedCount = 0; // Đã loại bỏ
             viewModel.PassedCount = allInterviews.Count(i => i.Status == "passed");
             viewModel.RejectedCount = allInterviews.Count(i => i.Status == "rejected");
+            viewModel.CancelledCount = allInterviews.Count(i => i.Status == "cancelled");
 
             // Apply Tab Filter
-            if (tab == "scheduled")
+            if (tab == "all")
+            {
+                // No filter - return all
+            }
+            else if (tab == "scheduled")
             {
                 query = query.Where(i => i.Status == "scheduled" && i.ScheduledTime >= now);
             }
             else if (tab == "completed_pending")
             {
-                query = query.Where(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
+                query = query.Where(i => false); // Đã loại bỏ
             }
             else if (tab == "passed")
             {
@@ -103,9 +110,13 @@ namespace DevHub.Controllers.Recruiter
             {
                 query = query.Where(i => i.Status == "rejected");
             }
+            else if (tab == "cancelled")
+            {
+                query = query.Where(i => i.Status == "cancelled");
+            }
 
             // Pagination
-            int pageSize = 6;
+            int pageSize = 10;
             viewModel.TotalPages = (int)Math.Ceiling(await query.CountAsync() / (double)pageSize);
             if (viewModel.TotalPages == 0) viewModel.TotalPages = 1;
             
@@ -163,8 +174,8 @@ namespace DevHub.Controllers.Recruiter
             var applications = await _context.Applications
                 .Include(a => a.Candidate).ThenInclude(c => c.CandidateNavigation)
                 .Where(a => a.JobId == jobId && a.Status != "REJECTED" && a.Status != "CANCELLED" && a.Status != "HIRED" && a.Status != "FAILED")
-                // exclude candidates that already have any non-cancelled interview
-                .Where(a => !a.Interviews.Any(i => i.Status != "cancelled"))
+                // exclude candidates that already have an active scheduled interview
+                .Where(a => !a.Interviews.Any(i => i.Status == "scheduled"))
                 .Select(a => new {
                     id = a.ApplicationId,
                     name = a.Candidate.FullName + " (" + a.Candidate.CandidateNavigation.Email + ")"
@@ -218,25 +229,51 @@ namespace DevHub.Controllers.Recruiter
 
         public class InterviewDto
         {
+            [Required(ErrorMessage = "Vui lòng chọn ứng viên.")]
+            [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn ứng viên hợp lệ.")]
             public int ApplicationId { get; set; }
+
+            [Required(ErrorMessage = "Vui lòng chọn thời gian phỏng vấn.")]
             public DateTime InterviewDate { get; set; }
+
+            [Range(15, 480, ErrorMessage = "Thời lượng phải từ 15 đến 480 phút.")]
             public int DurationMinutes { get; set; }
+
+            [Required(ErrorMessage = "Vui lòng chọn hình thức phỏng vấn.")]
             public string InterviewType { get; set; } = "";
+
+            [Required(ErrorMessage = "Vui lòng nhập link meeting hoặc địa điểm.")]
             public string LocationOrLink { get; set; } = "";
+
             public string? Notes { get; set; }
+
+            public string? ReasonForChange { get; set; }
         }
 
+
         [HttpPost("Create")]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> CreatePost([FromBody] InterviewDto model)
         {
             var recruiterId = await GetRecruiterIdAsync();
             if (recruiterId == null) return Unauthorized(new { success = false, message = "Bạn không có quyền thực hiện thao tác này." });
 
-            if (model.ApplicationId <= 0 || string.IsNullOrEmpty(model.InterviewType) || string.IsNullOrEmpty(model.LocationOrLink))
-                return BadRequest(new { success = false, message = "Vui lòng nhập đầy đủ thông tin bắt buộc." });
+            if (model == null)
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ.", fields = new Dictionary<string, string>() });
 
-            if (model.InterviewDate <= DateTime.Now)
-                return BadRequest(new { success = false, message = "Thời gian phỏng vấn phải lớn hơn thời gian hiện tại." });
+            // Validate từng trường
+            var fieldErrors = new Dictionary<string, string>();
+            if (model.ApplicationId <= 0)
+                fieldErrors["applicationId"] = "Vui lòng chọn ứng viên.";
+            if (model.InterviewDate == default || model.InterviewDate <= DateTime.Now)
+                fieldErrors["interviewDate"] = "Vui lòng chọn thời gian trong tương lai.";
+            if (string.IsNullOrWhiteSpace(model.InterviewType))
+                fieldErrors["interviewType"] = "Vui lòng chọn hình thức phỏng vấn.";
+            if (string.IsNullOrWhiteSpace(model.LocationOrLink))
+                fieldErrors["locationOrLink"] = "Vui lòng nhập link meeting hoặc địa điểm.";
+
+            if (fieldErrors.Any())
+                return BadRequest(new { success = false, message = "Vui lòng kiểm tra lại các trường bắt buộc.", fields = fieldErrors });
 
             try
             {
@@ -245,17 +282,18 @@ namespace DevHub.Controllers.Recruiter
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new { success = false, message = ex.InnerException != null ? ex.InnerException.Message : ex.Message });
             }
         }
 
         [HttpPost("Edit/{id}")]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> EditPost(int id, [FromBody] InterviewDto model)
         {
             var recruiterId = await GetRecruiterIdAsync();
             if (recruiterId == null) return Unauthorized(new { success = false, message = "Bạn không có quyền thực hiện thao tác này." });
 
-            if (string.IsNullOrEmpty(model.InterviewType) || string.IsNullOrEmpty(model.LocationOrLink))
+            if (model == null || string.IsNullOrEmpty(model.InterviewType) || string.IsNullOrEmpty(model.LocationOrLink))
                 return BadRequest(new { success = false, message = "Vui lòng nhập đầy đủ thông tin bắt buộc." });
 
             if (model.InterviewDate <= DateTime.Now)
@@ -263,7 +301,7 @@ namespace DevHub.Controllers.Recruiter
 
             try
             {
-                await _interviewService.UpdateInterviewAsync(recruiterId.Value, id, model.InterviewDate, model.InterviewType, model.LocationOrLink, model.Notes);
+                await _interviewService.UpdateInterviewAsync(recruiterId.Value, id, model.InterviewDate, model.InterviewType, model.LocationOrLink, model.Notes, model.ReasonForChange);
                 return Ok(new { success = true, message = "Cập nhật lịch phỏng vấn thành công." });
             }
             catch (Exception ex)
@@ -273,7 +311,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpPost("UpdateStatus/{id}")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status)
+        public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status, [FromQuery] string reason = "")
         {
             var recruiterId = await GetRecruiterIdAsync();
             if (recruiterId == null) return Unauthorized(new { success = false, message = "Không có quyền." });
@@ -281,7 +319,7 @@ namespace DevHub.Controllers.Recruiter
             var validStatuses = new[] { "passed", "rejected", "cancelled" };
             if (!validStatuses.Contains(status)) return BadRequest(new { success = false, message = "Trạng thái không hợp lệ." });
 
-            var success = await _interviewService.UpdateStatusAsync(recruiterId.Value, id, status);
+            var success = await _interviewService.UpdateStatusAsync(recruiterId.Value, id, status, reason);
             if (!success) return BadRequest(new { success = false, message = "Cập nhật thất bại." });
 
             return Ok(new { success = true, message = "Cập nhật thành công." });

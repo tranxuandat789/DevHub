@@ -131,6 +131,17 @@ public class ArticleService : IArticleService
                         referenceId: article.ArticleId,
                         referenceType: "Article"
                     );
+
+                    if (mod.AdminNavigation != null && mod.AdminNavigation.EmailNotificationsEnabled && !string.IsNullOrEmpty(mod.AdminNavigation.Email))
+                    {
+                        string subject = "Bạn có công việc cập nhật cần xử lý - DevHub";
+                        string emailContent = $@"
+                            <p>Chào <strong>{mod.FullName ?? "bạn"}</strong>,</p>
+                            <p>Bạn vừa được gán <strong>1 Bài viết (cập nhật)</strong> cần xét duyệt lại trên hệ thống DevHub.</p>
+                            <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
+                        string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", emailContent);
+                        await _emailHelper.SendEmailAsync(mod.AdminNavigation.Email, subject, body);
+                    }
                 }
                 catch
                 {

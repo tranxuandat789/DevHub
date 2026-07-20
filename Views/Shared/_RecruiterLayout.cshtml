@@ -128,7 +128,7 @@
             var dbUser = await AuthService.FindUserByEmailAsync(email);
             if (dbUser != null)
             {
-                displayName = dbUser.Recruiter?.Company?.CompanyName ?? dbUser.Recruiter?.FullName ?? dbUser.Email;
+                displayName = dbUser.Recruiter?.FullName ?? dbUser.Recruiter?.Company?.CompanyName ?? dbUser.Email;
                 avatarUrl = dbUser.Recruiter?.Company?.CompanyLogoUrl ?? "";
             }
         }

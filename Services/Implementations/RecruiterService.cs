@@ -21,6 +21,7 @@ namespace DevHub.Services.Implementations
         private readonly ICompanyRepository _companyRepository;
         private readonly IAssignModeratorService _assignModeratorService;
         private readonly INotificationService _notificationService;
+        private readonly DevHub.Helpers.EmailHelper _emailHelper;
 
         //Constructor Injection
         public RecruiterService(
@@ -28,13 +29,15 @@ namespace DevHub.Services.Implementations
             IUserAccountRepository userRepository, 
             ICompanyRepository companyRepository,
             IAssignModeratorService assignModeratorService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            DevHub.Helpers.EmailHelper emailHelper)
         {
             _recruiterProfileRepository = recruiterProfileRepository;
             _userRepository = userRepository;
             _companyRepository = companyRepository;
             _assignModeratorService = assignModeratorService;
             _notificationService = notificationService;
+            _emailHelper = emailHelper;
         }
 
         public async Task<RecruiterProfileViewModel> GetProfileAsync(int recruiterId)
@@ -239,6 +242,18 @@ namespace DevHub.Services.Implementations
                             referenceId: recruiter.CompanyId.Value,
                             referenceType: "Company"
                         );
+
+                        var modAccount = await _userRepository.GetByIdAsync(assignedModId.Value);
+                        if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
+                        {
+                            string subject = "Bạn có công việc mới cần xử lý - DevHub";
+                            string content = $@"
+                                <p>Chào <strong>bạn</strong>,</p>
+                                <p>Bạn vừa được gán <strong>1 Yêu cầu xác minh công ty</strong> mới cần xét duyệt trên hệ thống DevHub.</p>
+                                <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
+                            string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
+                            await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
+                        }
                     }
                 }
             }

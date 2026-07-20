@@ -3,12 +3,14 @@
     ViewData["Title"] = "Tạo lịch phỏng vấn";
     ViewData["ActiveMenu"] = "Interviews";
     var jobPosts = ViewBag.JobPosts as List<DevHub.Models.JobPost> ?? new List<DevHub.Models.JobPost>();
+    bool hasApplication = Context.Request.Query.ContainsKey("applicationId");
+    string backUrl = hasApplication ? $"/Recruiter/RecruiterApplication/Details/{Context.Request.Query["applicationId"]}" : "/Recruiter/RecruiterInterview";
 }
 
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Header -->
     <div class="flex items-center gap-4">
-        <a href="/Recruiter/RecruiterInterview" class="p-2 bg-gray-50 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
+        <a href="@backUrl" class="p-2 bg-gray-50 text-gray-500 hover:text-dark hover:bg-gray-100 rounded-lg transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
         </a>
         <div>
@@ -29,22 +31,24 @@
                     <!-- Chọn bài tuyển dụng -->
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Bài tuyển dụng <span class="text-red-500">*</span></label>
-                        <select id="jobSelect" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none">
+                        <select id="jobSelect" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none">
                             <option value="">-- Chọn bài tuyển dụng --</option>
                             @foreach(var job in jobPosts)
                             {
                                 <option value="@job.JobId">@job.Title</option>
                             }
                         </select>
+                        <span id="err-job" class="hidden text-xs text-red-500 mt-1 block"></span>
                     </div>
 
                     <!-- Chọn ứng viên -->
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Ứng viên <span class="text-red-500">*</span></label>
-                        <select id="applicationSelect" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none" disabled>
+                        <select id="applicationSelect" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark appearance-none" disabled>
                             <option value="">-- Chọn bài tuyển dụng trước --</option>
                         </select>
-                        <p class="text-xs text-muted mt-1.5">* Chỉ những ứng viên chưa có lịch phỏng vấn mới hiển thị.</p>
+                        <span id="err-application" class="hidden text-xs text-red-500 mt-1 block"></span>
+                        <p class="text-xs text-muted mt-1.5">* Chỉ những ứng viên chưa có lịch phỏng vấn đang chờ mới hiển thị.</p>
                     </div>
                 </div>
             </div>
@@ -57,7 +61,8 @@
                     <!-- Thời gian bắt đầu -->
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Thời gian phỏng vấn <span class="text-red-500">*</span></label>
-                        <input type="datetime-local" id="interviewDate" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                        <input type="text" id="interviewDate" placeholder="Chọn ngày và giờ..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark bg-white cursor-pointer">
+                        <span id="err-date" class="hidden text-xs text-red-500 mt-1 block"></span>
                         <p class="text-xs text-muted mt-1.5">Phải là thời gian trong tương lai.</p>
                     </div>
 
@@ -90,8 +95,9 @@
 
                     <!-- Link / Địa điểm -->
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-dark mb-2">Link Meeting hoặc Địa điểm <span class="text-red-500">*</span></label>
-                        <input type="text" id="locationOrLink" required placeholder="Ví dụ: https://meet.google.com/abc-xyz hoặc Tầng 4, Tòa nhà ABC..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                        <label id="locationLabel" class="block text-sm font-bold text-dark mb-2">Link Meeting <span class="text-red-500">*</span></label>
+                        <input type="text" id="locationOrLink" placeholder="Ví dụ: https://meet.google.com/abc-xyz" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-colors text-sm font-medium text-dark">
+                        <span id="err-location" class="hidden text-xs text-red-500 mt-1 block"></span>
                     </div>
                 </div>
             </div>
@@ -109,7 +115,7 @@
 
             <!-- Action Buttons -->
             <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
-                <a href="/Recruiter/RecruiterInterview" class="px-6 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                <a href="@backUrl" class="px-6 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors text-sm">
                     Hủy bỏ
                 </a>
                 <button type="submit" id="submitBtn" class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm shadow-sm flex items-center gap-2">
@@ -122,11 +128,74 @@
 </div>
 
 @section Scripts {
+    <style>
+        .flatpickr-wrapper {
+            width: 100%;
+            display: block;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
     <script>
         const jobSelect = document.getElementById('jobSelect');
         const applicationSelect = document.getElementById('applicationSelect');
         const form = document.getElementById('createInterviewForm');
         const errorMsg = document.getElementById('errorMsg');
+
+        // Toggle location label/placeholder
+        const radioButtons = document.querySelectorAll('input[name="InterviewType"]');
+        const locationLabel = document.getElementById('locationLabel');
+        const locationInput = document.getElementById('locationOrLink');
+
+        function updateLocationField() {
+            const selectedType = document.querySelector('input[name="InterviewType"]:checked').value;
+            if (selectedType === 'ONLINE') {
+                locationLabel.innerHTML = 'Link Meeting <span class="text-red-500">*</span>';
+                locationInput.placeholder = 'Ví dụ: https://meet.google.com/abc-xyz';
+            } else {
+                locationLabel.innerHTML = 'Địa điểm phỏng vấn <span class="text-red-500">*</span>';
+                locationInput.placeholder = 'Ví dụ: Tầng 4, Tòa nhà ABC, Số 123 Đường XYZ...';
+            }
+        }
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', updateLocationField);
+        });
+
+        // Initialize on load
+        updateLocationField();
+
+        // Initialize Flatpickr
+        flatpickr("#interviewDate", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            time_24hr: true,
+            locale: "vn",
+            static: true
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qJobId = urlParams.get('jobId');
+            const qAppId = urlParams.get('applicationId');
+            
+            if (qJobId) {
+                jobSelect.value = qJobId;
+                jobSelect.dispatchEvent(new Event('change'));
+                
+                if (qAppId) {
+                    const checkInterval = setInterval(() => {
+                        if (!applicationSelect.disabled && applicationSelect.options.length > 1) {
+                            applicationSelect.value = qAppId;
+                            clearInterval(checkInterval);
+                        }
+                    }, 100);
+                    setTimeout(() => clearInterval(checkInterval), 3000);
+                }
+            }
+        });
 
         jobSelect.addEventListener('change', function() {
             const jobId = this.value;
@@ -160,29 +229,67 @@
                 });
         });
 
+        // Helper: hiển thị lỗi 1 field
+        function showFieldError(spanId, inputEl, message) {
+            const span = document.getElementById(spanId);
+            if (span) { span.textContent = message; span.classList.remove('hidden'); }
+            if (inputEl) inputEl.classList.add('border-red-400');
+        }
+
+        // Helper: xóa lỗi 1 field
+        function clearFieldError(spanId, inputEl) {
+            const span = document.getElementById(spanId);
+            if (span) { span.textContent = ''; span.classList.add('hidden'); }
+            if (inputEl) inputEl.classList.remove('border-red-400');
+        }
+
+        // Xóa lỗi khi user tương tác
+        jobSelect.addEventListener('change', () => clearFieldError('err-job', jobSelect));
+        applicationSelect.addEventListener('change', () => clearFieldError('err-application', applicationSelect));
+        document.getElementById('interviewDate').addEventListener('change', () => clearFieldError('err-date', document.getElementById('interviewDate')));
+        document.getElementById('locationOrLink').addEventListener('input', () => clearFieldError('err-location', document.getElementById('locationOrLink')));
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             errorMsg.classList.add('hidden');
-            
+
             const applicationId = applicationSelect.value;
             const interviewDate = document.getElementById('interviewDate').value;
             const durationMinutes = document.getElementById('duration').value;
             const type = document.querySelector('input[name="InterviewType"]:checked').value;
-            const locationOrLink = document.getElementById('locationOrLink').value;
+            const locationOrLink = document.getElementById('locationOrLink').value.trim();
             const notes = document.getElementById('notes').value;
 
-            if (!applicationId) {
-                errorMsg.textContent = "Vui lòng chọn ứng viên.";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
+            // Client-side validate từng trường
+            let hasError = false;
 
-            const selectedDate = new Date(interviewDate);
-            if (selectedDate <= new Date()) {
-                errorMsg.textContent = "Thời gian phỏng vấn phải lớn hơn thời gian hiện tại.";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
+            if (!jobSelect.value) {
+                showFieldError('err-job', jobSelect, 'Vui lòng chọn bài tuyển dụng.');
+                hasError = true;
+            } else { clearFieldError('err-job', jobSelect); }
+
+            if (!applicationId) {
+                showFieldError('err-application', applicationSelect, 'Vui lòng chọn ứng viên.');
+                hasError = true;
+            } else { clearFieldError('err-application', applicationSelect); }
+
+            const dateEl = document.getElementById('interviewDate');
+            if (!interviewDate) {
+                showFieldError('err-date', dateEl, 'Vui lòng chọn thời gian phỏng vấn.');
+                hasError = true;
+            } else if (new Date(interviewDate) <= new Date()) {
+                showFieldError('err-date', dateEl, 'Thời gian phỏng vấn phải lớn hơn thời gian hiện tại.');
+                hasError = true;
+            } else { clearFieldError('err-date', dateEl); }
+
+            const locationEl = document.getElementById('locationOrLink');
+            if (!locationOrLink) {
+                const label = type === 'ONLINE' ? 'link meeting' : 'địa điểm';
+                showFieldError('err-location', locationEl, `Vui lòng nhập ${label}.`);
+                hasError = true;
+            } else { clearFieldError('err-location', locationEl); }
+
+            if (hasError) return;
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
@@ -190,12 +297,10 @@
 
             fetch('/Recruiter/RecruiterInterview/Create', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ApplicationId: parseInt(applicationId),
-                    InterviewDate: interviewDate,
+                    InterviewDate: interviewDate.replace(' ', 'T'),
                     DurationMinutes: parseInt(durationMinutes),
                     InterviewType: type,
                     LocationOrLink: locationOrLink,
@@ -205,16 +310,25 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/Recruiter/RecruiterInterview?message=success';
+                    window.location.href = '/Recruiter/RecruiterApplication/Details/' + applicationId;
                 } else {
-                    errorMsg.textContent = data.message || "Có lỗi xảy ra";
-                    errorMsg.classList.remove('hidden');
+                    // Hiển thị lỗi từng field từ server nếu có
+                    if (data.fields) {
+                        if (data.fields.applicationId) showFieldError('err-application', applicationSelect, data.fields.applicationId);
+                        if (data.fields.interviewDate) showFieldError('err-date', document.getElementById('interviewDate'), data.fields.interviewDate);
+                        if (data.fields.locationOrLink) showFieldError('err-location', document.getElementById('locationOrLink'), data.fields.locationOrLink);
+                    }
+                    // Hiện message chung nếu không có field errors
+                    if (!data.fields || Object.keys(data.fields).length === 0) {
+                        errorMsg.textContent = data.message || 'Có lỗi xảy ra';
+                        errorMsg.classList.remove('hidden');
+                    }
                     btn.disabled = false;
                     btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> <span>Tạo lịch & Gửi Email</span>';
                 }
             })
             .catch(err => {
-                errorMsg.textContent = "Có lỗi hệ thống.";
+                errorMsg.textContent = 'Có lỗi hệ thống.';
                 errorMsg.classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> <span>Tạo lịch & Gửi Email</span>';

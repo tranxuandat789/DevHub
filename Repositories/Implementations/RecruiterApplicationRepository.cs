@@ -44,8 +44,16 @@ namespace DevHub.Repositories.Implementations
             // both displayed as "Đã duyệt"), so a status tab matches every status under that label.
             if (includeStatus && !string.IsNullOrWhiteSpace(filter.Status))
             {
-                var statuses = MapStatusGroup(filter.Status);
-                q = q.Where(a => statuses.Contains((a.Status ?? "PENDING").ToUpper()));
+                if (filter.Status.ToUpper() == "INTERVIEWING")
+                {
+                    // Lọc ứng viên đang có lịch phỏng vấn scheduled
+                    q = q.Where(a => a.Interviews.Any(i => i.Status == "scheduled"));
+                }
+                else
+                {
+                    var statuses = MapStatusGroup(filter.Status);
+                    q = q.Where(a => statuses.Contains((a.Status ?? "PENDING").ToUpper()));
+                }
             }
 
             // Cross-job: filter by job position.
@@ -116,6 +124,7 @@ namespace DevHub.Repositories.Implementations
             var items = await q
                 .Include(a => a.Candidate).ThenInclude(c => c.CandidateSkills).ThenInclude(s => s.Tech)
                 .Include(a => a.Job)
+                .Include(a => a.Interviews)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -123,10 +132,8 @@ namespace DevHub.Repositories.Implementations
             return (items, total);
         }
 
-        public async Task<(int All, int Pending, int Approved, int Hired, int Rejected)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter)
+        public async Task<(int All, int Pending, int Approved, int Hired, int Rejected, int Interviewing)> CountByStatusAsync(int recruiterId, int? jobId, ApplicantFilter filter)
         {
-            // Reuse the same filters as the list (tech/experience/keyword/location/position) but ignore
-            // the status filter, so each tab shows how many results exist per status under the current filters.
             var q = BuildFilteredQuery(recruiterId, jobId, filter, includeStatus: false);
 
             var groups = await q
@@ -136,11 +143,14 @@ namespace DevHub.Repositories.Implementations
 
             int all = groups.Sum(x => x.Count);
             int pending = groups.Where(x => x.Status == "PENDING").Sum(x => x.Count);
-            // "Đã duyệt" tab groups APPROVED + FINISHED.
             int approved = groups.Where(x => x.Status == "APPROVED" || x.Status == "FINISHED").Sum(x => x.Count);
             int hired = groups.Where(x => x.Status == "HIRED").Sum(x => x.Count);
             int rejected = groups.Where(x => x.Status == "REJECTED").Sum(x => x.Count);
-            return (all, pending, approved, hired, rejected);
+
+            // Đếm riêng ứng viên đang có lịch phỏng vấn scheduled
+            int interviewing = await q.CountAsync(a => a.Interviews.Any(i => i.Status == "scheduled"));
+
+            return (all, pending, approved, hired, rejected, interviewing);
         }
 
         public async Task<Application?> GetApplicationDetailAsync(int applicationId, int recruiterId)
@@ -150,6 +160,7 @@ namespace DevHub.Repositories.Implementations
                 .Include(a => a.Candidate).ThenInclude(c => c.CandidateSkills).ThenInclude(s => s.Tech)
                 .Include(a => a.Cv)
                 .Include(a => a.Job)
+                .Include(a => a.Interviews)
                 .FirstOrDefaultAsync(a => a.ApplicationId == applicationId && a.Job.Company.Recruiters.Any(rec => rec.RecruiterId == recruiterId));
 
         public async Task<(Application? App, string? JobStatus)> GetApplicationWithJobStatusAsync(int applicationId, int recruiterId)

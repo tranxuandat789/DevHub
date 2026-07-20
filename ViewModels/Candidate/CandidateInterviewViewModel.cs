@@ -14,7 +14,6 @@ namespace DevHub.ViewModels.Candidate
         
         // Tab Counts
         public int ScheduledCount { get; set; }
-        public int CompletedCount { get; set; }
         public int PassedCount { get; set; }
         public int RejectedCount { get; set; }
         public int CancelledCount { get; set; }

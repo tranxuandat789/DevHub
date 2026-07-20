@@ -76,6 +76,7 @@ public class AdminRepository : IAdminRepository
     // Get all admins with role MODERATOR
     public Task<List<Admin>> GetAllModeratorsAsync()
         => _db.Admins
+              .Include(a => a.AdminNavigation)
               .Where(a => a.Role == "MODERATOR" && a.AdminNavigation.IsActive == true)
               .ToListAsync();
 }

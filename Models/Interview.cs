@@ -11,6 +11,8 @@ public partial class Interview
 
     public int CandidateId { get; set; }
 
+    public int RecruiterId { get; set; }
+
     public DateTime ScheduledTime { get; set; }
 
     public string? MeetingLink { get; set; }

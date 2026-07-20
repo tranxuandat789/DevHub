@@ -58,7 +58,7 @@ namespace DevHub.Helpers
     <h2 style='color: #4640DE; text-align: center;'>{title}</h2>
     {content}
     <hr style='border: none; border-top: 1px solid #E5E5E5; margin: 20px 0;' />
-    <p style='font-size: 12px; color: #888888; text-align: center;'>Hệ thống tuyển dụng DevHub</p>
+    <p style='font-size: 13px; color: #888888; text-align: center;'>Đây là email tự động từ hệ thống DevHub. Vui lòng không trả lời email này.</p>
 </div>";
         }
     }

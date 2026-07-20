@@ -173,40 +173,44 @@
             else if (Model.ReferenceType == "Interview" && ViewBag.InterviewData != null)
             {
                 var interview = (DevHub.Models.Interview)ViewBag.InterviewData;
-                <hr class="border-gray-100 my-6" />
-                <div class="space-y-4">
-                    <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">Vị trí</div>
-                        <div class="flex-1 text-gray-900 text-[15px]">@(interview.Application?.Job?.Title ?? "N/A")</div>
-                    </div>
-                    <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">Ngày phỏng vấn</div>
-                        <div class="flex-1 text-gray-900 text-[15px]">@interview.ScheduledTime.ToString("dd/MM/yyyy")</div>
-                    </div>
-                    <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">Giờ phỏng vấn</div>
-                        <div class="flex-1 text-gray-900 text-[15px]">@interview.ScheduledTime.ToString("HH:mm")</div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">Hình thức</div>
-                        <div class="flex-1">
-                            <span class="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-[#4640DE] font-medium text-xs">@(interview.InterviewType == "ONLINE" || interview.InterviewType == "Online" ? "Trực tuyến" : "Trực tiếp")</span>
+                
+                if (!Model.Title.Contains("không thể tham gia", StringComparison.OrdinalIgnoreCase) && !Model.Title.Contains("hủy", StringComparison.OrdinalIgnoreCase))
+                {
+                    <hr class="border-gray-100 my-6" />
+                    <div class="space-y-4">
+                        <div class="flex">
+                            <div class="w-48 text-gray-500 font-medium text-[15px]">Vị trí</div>
+                            <div class="flex-1 text-gray-900 text-[15px]">@(interview.Application?.Job?.Title ?? "N/A")</div>
+                        </div>
+                        <div class="flex">
+                            <div class="w-48 text-gray-500 font-medium text-[15px]">Ngày phỏng vấn</div>
+                            <div class="flex-1 text-gray-900 text-[15px]">@interview.ScheduledTime.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        <div class="flex">
+                            <div class="w-48 text-gray-500 font-medium text-[15px]">Giờ phỏng vấn</div>
+                            <div class="flex-1 text-gray-900 text-[15px]">@interview.ScheduledTime.ToString("HH:mm")</div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-48 text-gray-500 font-medium text-[15px]">Hình thức</div>
+                            <div class="flex-1">
+                                <span class="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-[#4640DE] font-medium text-xs">@(interview.InterviewType == "ONLINE" || interview.InterviewType == "Online" ? "Trực tuyến" : "Trực tiếp")</span>
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <div class="w-48 text-gray-500 font-medium text-[15px]">@(interview.InterviewType?.ToUpper() == "ONLINE" ? "Link cuộc họp" : "Địa điểm")</div>
+                            <div class="flex-1 text-[15px]">
+                                @if (interview.InterviewType?.ToUpper() == "ONLINE" && !string.IsNullOrEmpty(interview.MeetingLink))
+                                {
+                                    <a href="@interview.MeetingLink" target="_blank" class="text-blue-600 hover:underline break-all">@interview.MeetingLink</a>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-900">@interview.Location</span>
+                                }
+                            </div>
                         </div>
                     </div>
-                    <div class="flex">
-                        <div class="w-48 text-gray-500 font-medium text-[15px]">@(interview.InterviewType?.ToUpper() == "ONLINE" ? "Link cuộc họp" : "Địa điểm")</div>
-                        <div class="flex-1 text-[15px]">
-                            @if (interview.InterviewType?.ToUpper() == "ONLINE" && !string.IsNullOrEmpty(interview.MeetingLink))
-                            {
-                                <a href="@interview.MeetingLink" target="_blank" class="text-blue-600 hover:underline break-all">@interview.MeetingLink</a>
-                            }
-                            else
-                            {
-                                <span class="text-gray-900">@interview.Location</span>
-                            }
-                        </div>
-                    </div>
-                </div>
+                }
             }
             else if (Model.ReferenceType == "Company" && ViewBag.CompanyData != null)
             {

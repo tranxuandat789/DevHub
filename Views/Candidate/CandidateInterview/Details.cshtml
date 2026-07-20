@@ -68,6 +68,44 @@
                     </div>
                 </div>
 
+                @if (Model.Status == "scheduled" || Model.Status == "confirmed")
+                {
+                    <div class="bg-white rounded-[10px] shadow-sm border border-[#D6DDEB] p-6">
+                        <h2 class="text-[15px] font-bold text-dark mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Xác nhận phản hồi
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-3">
+                            @if (Model.Status == "scheduled")
+                            {
+                                <button onclick="confirmAttendance(@Model.InterviewId)" class="px-5 py-2 rounded-lg bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors shadow-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Xác nhận tham gia
+                                </button>
+                                <button onclick="openCancelModal(@Model.InterviewId)" class="px-5 py-2 rounded-lg bg-red-50 text-red-600 border border-red-200 text-sm font-semibold hover:bg-red-100 transition-colors shadow-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Không thể tham gia
+                                </button>
+                            }
+                            else if (Model.Status == "confirmed")
+                            {
+                                <span class="px-5 py-2 rounded-lg bg-green-50 text-green-600 border border-green-200 text-sm font-semibold shadow-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Đã xác nhận tham gia
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <!-- Details Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -181,7 +219,7 @@
                 </div>
 
                 <!-- Meeting Link Card (nếu online) -->
-                @if (Model.InterviewType == "ONLINE" && !string.IsNullOrEmpty(Model.MeetingLink) && Model.Status == "scheduled")
+                @if (Model.InterviewType == "ONLINE" && !string.IsNullOrEmpty(Model.MeetingLink) && (Model.Status == "scheduled" || Model.Status == "confirmed"))
                 {
                     <div class="bg-white rounded-[10px] shadow-sm border border-[#D6DDEB] p-6">
                         <h2 class="text-[15px] font-bold text-dark mb-4 flex items-center gap-2">
@@ -192,13 +230,6 @@
                         </h2>
                         <div class="flex flex-col sm:flex-row items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
                             <div class="flex-1 text-sm text-blue-700 font-medium break-all">@Model.MeetingLink</div>
-                            <a href="@Model.MeetingLink" target="_blank"
-                               class="flex-shrink-0 px-5 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                                Tham gia ngay
-                            </a>
                         </div>
                     </div>
                 }
@@ -230,3 +261,147 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Không thể tham gia -->
+<div id="cancelModal" class="fixed inset-0 z-[100] hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 md:mx-auto overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-900">Không thể tham gia</h3>
+            <button type="button" onclick="closeCancelModal()" class="text-gray-400 hover:text-gray-500 hover:bg-gray-100 p-1.5 rounded-lg transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form id="cancelForm" class="p-6">
+            <input type="hidden" id="cancelInterviewId" name="id" />
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Vui lòng nhập lý do (Bắt buộc)</label>
+                <textarea id="cancelReason" name="reason" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm" placeholder="Ví dụ: Tôi có việc bận đột xuất..." required></textarea>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeCancelModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    Đóng
+                </button>
+                <button type="submit" id="btnSubmitCancel" class="px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
+                    Xác nhận
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        async function confirmAttendance(id) {
+            const result = await Swal.fire({
+                title: 'Xác nhận tham gia?',
+                text: 'Nhà tuyển dụng sẽ nhận được thông báo xác nhận của bạn.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Đóng'
+            });
+
+            if (!result.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Đang xử lý...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const resp = await fetch('/candidate/interviews/confirm/' + id, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    await Swal.fire('Thành công', data.message, 'success');
+                    window.location.reload();
+                } else {
+                    Swal.fire('Lỗi', data.message || 'Có lỗi xảy ra', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Lỗi', 'Không thể kết nối máy chủ', 'error');
+            }
+        }
+
+        const cancelModal = document.getElementById('cancelModal');
+        const modalContent = cancelModal.querySelector('.bg-white');
+
+        function openCancelModal(id) {
+            document.getElementById('cancelInterviewId').value = id;
+            document.getElementById('cancelReason').value = '';
+            cancelModal.classList.remove('hidden');
+            void cancelModal.offsetWidth;
+            cancelModal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        }
+
+        function closeCancelModal() {
+            cancelModal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => { cancelModal.classList.add('hidden'); }, 300);
+        }
+
+        cancelModal.addEventListener('click', function (e) {
+            if (e.target === cancelModal) closeCancelModal();
+        });
+
+        document.getElementById('cancelForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const id = document.getElementById('cancelInterviewId').value;
+            const reason = document.getElementById('cancelReason').value.trim();
+
+            if (!reason) {
+                Swal.fire('Cảnh báo', 'Vui lòng nhập lý do', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitCancel');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
+            Swal.fire({
+                title: 'Đang xử lý...',
+                text: 'Hệ thống đang gửi thông báo đến nhà tuyển dụng',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const formData = new FormData();
+                formData.append('reason', reason);
+
+                const resp = await fetch('/candidate/interviews/cancel/' + id, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    closeCancelModal();
+                    await Swal.fire('Thành công', data.message, 'success');
+                    window.location.reload();
+                } else {
+                    Swal.fire('Lỗi', data.message || 'Có lỗi xảy ra', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác nhận';
+                }
+            } catch (e) {
+                Swal.fire('Lỗi', 'Không thể kết nối máy chủ', 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Xác nhận';
+            }
+        });
+    </script>
+}

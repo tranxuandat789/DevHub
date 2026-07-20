@@ -81,8 +81,8 @@ namespace DevHub.Controllers.Recruiter
             var allInterviews = await query.ToListAsync();
 
             viewModel.AllCount = allInterviews.Count;
-            viewModel.ScheduledCount = allInterviews.Count(i => i.Status == "scheduled" && i.ScheduledTime >= now);
-            viewModel.CompletedCount = allInterviews.Count(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
+            viewModel.ScheduledCount = allInterviews.Count(i => (i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime >= now);
+            viewModel.CompletedCount = allInterviews.Count(i => i.Status == "completed_pending" || ((i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime < now));
             viewModel.PassedCount = allInterviews.Count(i => i.Status == "passed");
             viewModel.RejectedCount = allInterviews.Count(i => i.Status == "rejected");
             viewModel.CancelledCount = allInterviews.Count(i => i.Status == "cancelled");
@@ -94,11 +94,11 @@ namespace DevHub.Controllers.Recruiter
             }
             else if (tab == "scheduled")
             {
-                query = query.Where(i => i.Status == "scheduled" && i.ScheduledTime >= now);
+                query = query.Where(i => (i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime >= now);
             }
             else if (tab == "completed_pending")
             {
-                query = query.Where(i => i.Status == "completed_pending" || (i.Status == "scheduled" && i.ScheduledTime < now));
+                query = query.Where(i => i.Status == "completed_pending" || ((i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime < now));
             }
             else if (tab == "passed")
             {
@@ -127,7 +127,7 @@ namespace DevHub.Controllers.Recruiter
             // Map virtual status for UI display
             foreach (var interview in viewModel.Interviews)
             {
-                if (interview.Status == "scheduled" && interview.ScheduledTime < now)
+                if ((interview.Status == "scheduled" || interview.Status == "confirmed") && interview.ScheduledTime < now)
                 {
                     interview.Status = "completed_pending";
                 }
@@ -173,7 +173,7 @@ namespace DevHub.Controllers.Recruiter
                 .Include(a => a.Candidate).ThenInclude(c => c.CandidateNavigation)
                 .Where(a => a.JobId == jobId && a.Status != "REJECTED" && a.Status != "CANCELLED" && a.Status != "HIRED" && a.Status != "FAILED")
                 // exclude candidates that already have an active scheduled interview
-                .Where(a => !a.Interviews.Any(i => i.Status == "scheduled"))
+                .Where(a => !a.Interviews.Any(i => i.Status == "scheduled" || i.Status == "confirmed"))
                 .Select(a => new {
                     id = a.ApplicationId,
                     name = a.Candidate.FullName + " (" + a.Candidate.CandidateNavigation.Email + ")"

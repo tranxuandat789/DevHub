@@ -14,7 +14,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-dark">Chi tiết lịch hẹn</h1>
                 <p class="text-muted text-sm mt-1">Trạng thái: 
-                    @if (Model.Status == "scheduled") { <span class="text-blue-600 font-bold">Đã lên lịch</span> }
+                    @if (Model.Status == "scheduled" || Model.Status == "confirmed") { <span class="text-blue-600 font-bold">Đã lên lịch@(Model.Status == "confirmed" ? " - Ứng viên đã xác nhận" : "")</span> }
                     else if (Model.Status == "completed_pending") { <span class="text-yellow-600 font-bold">Chờ kết quả</span> }
                     else if (Model.Status == "passed") { <span class="text-green-600 font-bold">Trúng tuyển</span> }
                     else if (Model.Status == "rejected") { <span class="text-red-600 font-bold">Trượt</span> }
@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            @if (Model.Status == "scheduled" || Model.Status == "completed_pending")
+            @if (Model.Status == "scheduled" || Model.Status == "confirmed" || Model.Status == "completed_pending")
             {
                 <a href="/Recruiter/RecruiterInterview/Edit/@Model.InterviewId" class="px-4 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm">
                     Chỉnh sửa lịch
@@ -32,7 +32,7 @@
                     Hủy lịch
                 </button>
             }
-            @if (Model.Status == "scheduled" || Model.Status == "completed_pending")
+            @if (Model.Status == "scheduled" || Model.Status == "confirmed" || Model.Status == "completed_pending")
             {
                 if (DateTime.Now >= Model.ScheduledTime)
                 {

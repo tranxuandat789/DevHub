@@ -187,7 +187,7 @@
                     {
                         var interview = (DevHub.Models.Interview)ViewBag.InterviewData;
                         
-                        if (Model.Title != "Lịch phỏng vấn đã bị hủy")
+                        if (!Model.Title.Contains("hủy", StringComparison.OrdinalIgnoreCase))
                         {
                             <hr class="border-gray-100 my-6" />
                             <div class="space-y-4">

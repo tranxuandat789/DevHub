@@ -15,12 +15,31 @@ public class CompanyPackageHistoryRepository : ICompanyPackageHistoryRepository
     }
     public async Task<CompanyPackageHistory?> GetActivePackageForCompanyAsync(int companyId)
     {
-        var now = DateTime.UtcNow;
-        return await _context.CompanyPackageHistories
+        var activePackages = await _context.CompanyPackageHistories
             .Include(r => r.Service)
-            .Where(r => r.CompanyId == companyId && r.IsActive == true && r.PostsRemaining > 0 && (r.EndDate == null || r.EndDate >= now))
-            .OrderByDescending(r => r.EndDate)
-            .FirstOrDefaultAsync();
+            .Where(r => r.CompanyId == companyId && r.IsActive == true)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        bool changed = false;
+
+        foreach (var pkg in activePackages)
+        {
+            if (pkg.PostsRemaining <= 0 || (pkg.EndDate.HasValue && pkg.EndDate.Value < now))
+            {
+                pkg.IsActive = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        return activePackages.Where(h => h.IsActive == true)
+                             .OrderByDescending(r => r.EndDate)
+                             .FirstOrDefault();
     }
 
     public async Task DecrementPostsRemainingAsync(int packageHistoryId)

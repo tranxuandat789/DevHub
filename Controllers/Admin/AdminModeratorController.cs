@@ -124,7 +124,14 @@ namespace DevHub.Controllers.Admin
             }
             else
             {
-                ModelState.AddModelError("Email", result.Message);
+                if (result.Message.Contains("Username"))
+                {
+                    ModelState.AddModelError("Username", result.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError("Email", result.Message);
+                }
                 return View("~/Views/Admin/AdminModerator/Create.cshtml", model);
             }
         }

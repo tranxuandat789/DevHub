@@ -670,6 +670,7 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.VnpayTransactionNo)
                 .HasMaxLength(100)
                 .HasColumnName("vnpay_transaction_no");
+            entity.Property(e => e.RecruiterId).HasColumnName("recruiter_id");
             entity.Property(e => e.VnpayBankCode)
                 .HasMaxLength(20)
                 .HasColumnName("vnpay_bank_code");
@@ -706,6 +707,10 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.HasOne(d => d.Service).WithMany(p => p.PackageTransactions)
                 .HasForeignKey(d => d.ServiceId)
                 .HasConstraintName("FK__package_transaction__service");
+
+            entity.HasOne(d => d.Recruiter).WithMany(p => p.PackageTransactions)
+                .HasForeignKey(d => d.RecruiterId)
+                .HasConstraintName("FK_package_transaction_recruiter");
         });
 
         modelBuilder.Entity<Promotion>(entity =>

@@ -17,7 +17,7 @@ namespace DevHub.Controllers
         }
 
         [HttpGet("CareerHandbook")]
-        public async Task<IActionResult> Index(int page = 1, string search = null, string tag = null)
+        public async Task<IActionResult> Index(int page = 1, string? search = null, string? tag = null)
         {
             int pageSize = 9; // 9 items per page (3x3 grid)
             var query = _context.BlogPosts

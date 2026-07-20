@@ -131,6 +131,7 @@ namespace DevHub.Controllers.Moderator
             if (!success) return BadRequest("Cannot approve this job.");
 
 
+
             var auditLog = new DevHub.Models.AuditLog
             {
                 UserId = moderatorId,

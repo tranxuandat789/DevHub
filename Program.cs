@@ -356,6 +356,12 @@ using (var scope = app.Services.CreateScope())
                 ALTER TABLE package_transaction ADD vat_rate decimal(5,2) NOT NULL DEFAULT 8;
             END
 
+            IF COL_LENGTH('package_transaction', 'recruiter_id') IS NULL
+            BEGIN
+                ALTER TABLE package_transaction ADD recruiter_id int NULL;
+                ALTER TABLE package_transaction ADD CONSTRAINT FK_package_transaction_recruiter FOREIGN KEY (recruiter_id) REFERENCES recruiter(recruiter_id);
+            END
+
             IF OBJECT_ID('moderator_task_type', 'U') IS NULL
             BEGIN
                 CREATE TABLE moderator_task_type (

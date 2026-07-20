@@ -1,9 +1,0 @@
-//03/06/2026 DatTX
-namespace DevHub.DTOs.Candidate
-{
-    public class SkillDto
-    {
-        public string? SkillName { get; set; }
-        public string? Proficiency { get; set; }
-    }
-}

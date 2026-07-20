@@ -22,9 +22,9 @@ public class JobSearchService : IJobSearchService
         var (items, totalCount) = await _repo.SearchAsync(filter);
         var workingModels       = await _repo.GetDistinctWorkingModelsAsync();
         var expLevels           = await _repo.GetDistinctExperienceLevelsAsync();
-        var topTechs            = await _repo.GetTopTechsAsync(20);
-        var topLocations        = await _repo.GetTopLocationsAsync(20);
-        var topCompanies        = await _repo.GetTopCompaniesAsync(20);
+        var topTechs      = await _repo.GetTopTechsAsync(20);
+        var topLocations   = await _repo.GetTopLocationsAsync(20, filter.TechId);
+        var topCompanies   = await _repo.GetTopCompaniesAsync(20, filter.TechId, filter.FilterLocation);
 
         var jobs = items.Select(j => new JobSearchItemViewModel
         {

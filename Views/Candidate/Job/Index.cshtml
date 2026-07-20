@@ -134,7 +134,7 @@
         <!-- Nút: Việc làm theo Thành phố -->
         <div class="relative quick-filter-wrapper">
             <button type="button"
-                    onclick="togglePanel('city-panel')"
+                    onclick="togglePanel('filter-city-panel')"
                     class="flex items-center gap-2 px-4 py-2.5 rounded-full border font-semibold text-[14px] transition-all
                            @(cityActive ? "bg-primary text-white border-primary" : "bg-white text-dark border-bordercolor hover:border-primary hover:text-primary")">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -144,7 +144,7 @@
             </button>
 
             <!-- Panel thành phố -->
-            <div id="city-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-72 max-h-72 overflow-y-auto">
+            <div id="filter-city-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-72 max-h-72 overflow-y-auto">
                 @if (cityActive)
                 {
                     <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId })"
@@ -170,7 +170,7 @@
         <!-- Nút: Việc làm theo Công ty -->
         <div class="relative quick-filter-wrapper">
             <button type="button"
-                    onclick="togglePanel('company-panel')"
+                    onclick="togglePanel('filter-company-panel')"
                     class="flex items-center gap-2 px-4 py-2.5 rounded-full border font-semibold text-[14px] transition-all
                            @(companyActive ? "bg-primary text-white border-primary" : "bg-white text-dark border-bordercolor hover:border-primary hover:text-primary")">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
@@ -180,7 +180,7 @@
             </button>
 
             <!-- Panel công ty -->
-            <div id="company-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-80 max-h-72 overflow-y-auto">
+            <div id="filter-company-panel" class="hidden absolute left-0 top-full mt-2 bg-white border border-bordercolor rounded-2xl shadow-xl p-4 z-50 w-80 max-h-72 overflow-y-auto">
                 @if (companyActive)
                 {
                     <a href="@Url.Action("Index", "Jobs", new { keyword = Model.Filter.Keyword, workingModel = Model.Filter.WorkingModel, experienceLevel = Model.Filter.ExperienceLevel, desiredSalary = Model.Filter.DesiredSalary, techId = Model.Filter.TechId, filterLocation = Model.Filter.FilterLocation })"
@@ -496,7 +496,7 @@
 
             // ── Quick-filter panel toggle ─────────────────────────────────────
             window.togglePanel = function(id) {
-                const panels = ['tech-panel', 'city-panel', 'company-panel'];
+                const panels = ['tech-panel', 'filter-city-panel', 'filter-company-panel'];
                 panels.forEach(pid => {
                     const el = document.getElementById(pid);
                     if (pid === id) { el.classList.toggle('hidden'); }
@@ -593,9 +593,10 @@
             });
             
             // Clean before submitting if any direct submit happens on this form
-            document.getElementById('job-search-form').addEventListener('submit', function() {
+            document.getElementById('filter-form').addEventListener('submit', function() {
                 hiddenInput.value = displayInput.value.replace(/\./g, '');
             });
         }
+        });
     </script>
 }

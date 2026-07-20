@@ -75,20 +75,16 @@
                         <!-- Timeline / Meta Info -->
                         <div class="flex flex-wrap items-center gap-6 mb-8 text-[15px] text-[#475569] bg-[#F8FAFC] p-4 rounded-xl border border-[#F1F5F9]">
                             <div class="flex items-center gap-2">
-                                <span>📅</span> 
-                                <span class="font-medium">@(Model.CreatedAt?.ToString("dd/MM/yyyy"))</span>
+                                <span class="font-medium">Ngày gửi: @(Model.CreatedAt?.ToString("dd/MM/yyyy"))</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span>🕒</span> 
-                                <span class="font-medium">@(Model.CreatedAt?.ToString("HH:mm"))</span>
+                                <span class="font-medium">Giờ gửi: @(Model.CreatedAt?.ToString("HH:mm"))</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span>👤</span> 
                                 <span class="font-medium">@(Model.IsAnonymous == true ? "Review ẩn danh" : "Review công khai")</span>
                             </div>
                             @if (Model.IsAnonymous != true) {
                                 <div class="flex items-center gap-2 text-[#16A34A]">
-                                    <span>✔</span> 
                                     <span class="font-semibold">Đã xác minh</span>
                                 </div>
                             }
@@ -157,7 +153,7 @@
                             <!-- Pros (Glassdoor style) -->
                             <div class="bg-[#F8FAFC] border-l-4 border-l-[#22C55E] rounded-r-[12px] p-6 shadow-sm">
                                 <h4 class="text-[18px] font-bold text-[#1E293B] mb-2 flex items-center gap-2">
-                                    <span class="text-[20px]">💚</span> Ưu điểm
+                                    Ưu điểm
                                 </h4>
                                 <p class="text-[16px] text-[#475569] leading-relaxed whitespace-pre-line">@Model.Pros</p>
                             </div>
@@ -165,7 +161,7 @@
                             <!-- Cons (Glassdoor style) -->
                             <div class="bg-[#FEF2F2] border-l-4 border-l-[#EF4444] rounded-r-[12px] p-6 shadow-sm">
                                 <h4 class="text-[18px] font-bold text-[#1E293B] mb-2 flex items-center gap-2">
-                                    <span class="text-[20px]">❤️</span> Nhược điểm
+                                    Nhược điểm
                                 </h4>
                                 <p class="text-[16px] text-[#475569] leading-relaxed whitespace-pre-line">@Model.Cons</p>
                             </div>
@@ -174,7 +170,6 @@
                         <!-- Extra details (OT & Recommend) -->
                         <div class="flex flex-wrap gap-8 pt-6 border-t border-[#E2E8F0]">
                             <div class="flex items-center gap-3">
-                                <span class="text-[24px]">🕒</span>
                                 <div>
                                     <div class="text-[14px] text-[#64748B] font-medium">Chế độ OT</div>
                                     <div class="text-[16px] font-bold text-[#1E293B]">
@@ -183,7 +178,6 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-[24px]">🤝</span>
                                 <div>
                                     <div class="text-[14px] text-[#64748B] font-medium">Khuyên làm</div>
                                     <div class="text-[16px] font-bold text-[#1E293B]">
@@ -218,7 +212,7 @@
                 <!-- CTA Action Box (Sticky if possible) -->
                 @if (Model.Status == "PENDING")
                 {
-                    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-[#E2E8F0] p-6 lg:sticky lg:top-6">
+                    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.05)] border border-[#E2E8F0] p-6">
                         <h2 class="text-[18px] font-bold text-[#1E293B] mb-5">Hành động kiểm duyệt</h2>
                         
                         <form asp-action="Approve" asp-route-id="@Model.ReviewId" method="post" class="mb-3">

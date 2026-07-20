@@ -77,7 +77,7 @@ public class RecruiterPaymentController : Controller
         }
         
         string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
-        var result = await _paymentService.CreatePaymentUrlAsync(companyId.Value, req, clientIp);
+        var result = await _paymentService.CreatePaymentUrlAsync(companyId.Value, GetRecruiterId(), req, clientIp);
 
         if (!result.Success)
         {

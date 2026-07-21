@@ -1,4 +1,4 @@
-﻿//12/07/2026 PhongDH
+//12/07/2026 PhongDH
 using System;
 using System.Threading.Tasks;
 using DevHub.Data;
@@ -14,12 +14,14 @@ public class InterviewService : IInterviewService
     private readonly ItrecruitmentDbContext _context;
     private readonly ILogger<InterviewService> _logger;
     private readonly DevHub.Helpers.EmailHelper _emailHelper;
+    private readonly INotificationService _notificationService;
 
-    public InterviewService(ItrecruitmentDbContext context, ILogger<InterviewService> logger, DevHub.Helpers.EmailHelper emailHelper)
+    public InterviewService(ItrecruitmentDbContext context, ILogger<InterviewService> logger, DevHub.Helpers.EmailHelper emailHelper, INotificationService notificationService)
     {
         _context = context;
         _logger = logger;
         _emailHelper = emailHelper;
+        _notificationService = notificationService;
     }
 
     public async Task<Interview> CreateInterviewAsync(int recruiterId, int applicationId, DateTime scheduledTime, string interviewType, string locationOrLink, string? notes)
@@ -61,21 +63,16 @@ public class InterviewService : IInterviewService
             // In-app message: (Đã loại bỏ link họp vì đã hiển thị ở phần chi tiết bên dưới)
             var inAppMessage = $"Bạn có lịch phỏng vấn vào {scheduledTime:dd/MM/yyyy HH:mm} cho vị trí {title}.";
 
-            var n = new Notification
-            {
-                UserId = application.CandidateId,
-                UserType = "CANDIDATE",
-                Type = "INTERVIEW",
-                Title = $"Bạn có lịch phỏng vấn cho {title}",
-                Message = inAppMessage,
-                ReferenceType = "Interview",
-                ReferenceId = interview.InterviewId,
-                SeverityLevel = "info",
-                IsRead = false,
-                CreatedAt = DateTime.Now
-            };
-            _context.Notifications.Add(n);
-            await _context.SaveChangesAsync();
+            await _notificationService.SendNotificationAsync(
+                userId: application.CandidateId,
+                userType: "CANDIDATE",
+                title: $"Bạn có lịch phỏng vấn cho {title}",
+                message: inAppMessage,
+                type: "INTERVIEW",
+                severity: "info",
+                referenceId: interview.InterviewId,
+                referenceType: "Interview"
+            );
 
             var emailEnabled = application?.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? true;
             var candidateEmail = application?.Candidate?.CandidateNavigation?.Email;
@@ -146,21 +143,16 @@ public class InterviewService : IInterviewService
             
             var notifMessage = $"Nhà tuyển dụng đã cập nhật lịch phỏng vấn cho vị trí bạn ứng tuyển. Vui lòng kiểm tra kỹ thông tin bên dưới và đảm bảo có mặt đúng thời gian theo lịch mới. Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ trực tiếp với nhà tuyển dụng để được hỗ trợ. Lý do thay đổi: {reasonText}";
 
-            var n = new Notification
-            {
-                UserId = interview.CandidateId,
-                UserType = "CANDIDATE",
-                Type = "INTERVIEW",
-                Title = $"Thông báo về việc thay đổi lịch phỏng vấn cho công việc {title}",
-                Message = notifMessage,
-                ReferenceType = "Interview",
-                ReferenceId = interview.InterviewId,
-                SeverityLevel = "warning",
-                IsRead = false,
-                CreatedAt = DateTime.Now
-            };
-            _context.Notifications.Add(n);
-            await _context.SaveChangesAsync();
+            await _notificationService.SendNotificationAsync(
+                userId: interview.CandidateId,
+                userType: "CANDIDATE",
+                title: $"Thông báo về việc thay đổi lịch phỏng vấn cho công việc {title}",
+                message: notifMessage,
+                type: "INTERVIEW",
+                severity: "warning",
+                referenceId: interview.InterviewId,
+                referenceType: "Interview"
+            );
 
             var emailEnabled = interview.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? false;
             var candidateEmail = interview.Candidate?.CandidateNavigation?.Email;
@@ -229,21 +221,16 @@ public class InterviewService : IInterviewService
             try
             {
                 var reasonText = string.IsNullOrWhiteSpace(reason) ? "Không có lý do cụ thể." : reason;
-                var n = new Notification
-                {
-                    UserId = interview.CandidateId,
-                    UserType = "CANDIDATE",
-                    Type = "INTERVIEW",
-                    Title = "Lịch phỏng vấn đã bị hủy",
-                    Message = $"Nhà tuyển dụng đã hủy lịch phỏng vấn của bạn đối với vị trí {interview.Application?.Job?.Title}. Vui lòng tham khảo lý do hủy lịch dưới đây. Nếu nhà tuyển dụng sắp xếp lịch phỏng vấn mới, hệ thống sẽ gửi thông báo đến bạn trong thời gian sớm nhất.\n\nLý do hủy: {reasonText}",
-                    ReferenceType = "Interview",
-                    ReferenceId = interview.InterviewId,
-                    SeverityLevel = "error",
-                    IsRead = false,
-                    CreatedAt = DateTime.Now
-                };
-                _context.Notifications.Add(n);
-                await _context.SaveChangesAsync();
+                await _notificationService.SendNotificationAsync(
+                    userId: interview.CandidateId,
+                    userType: "CANDIDATE",
+                    title: "Lịch phỏng vấn đã bị hủy",
+                    message: $"Nhà tuyển dụng đã hủy lịch phỏng vấn của bạn đối với vị trí {interview.Application?.Job?.Title}. Vui lòng tham khảo lý do hủy lịch dưới đây. Nếu nhà tuyển dụng sắp xếp lịch phỏng vấn mới, hệ thống sẽ gửi thông báo đến bạn trong thời gian sớm nhất.\n\nLý do hủy: {reasonText}",
+                    type: "INTERVIEW",
+                    severity: "error",
+                    referenceId: interview.InterviewId,
+                    referenceType: "Interview"
+                );
 
                 var emailEnabled = interview.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? true;
                 var candidateEmail = interview.Candidate?.CandidateNavigation?.Email;
@@ -283,21 +270,16 @@ public class InterviewService : IInterviewService
                     : $"Nhà tuyển dụng đã cập nhật kết quả phỏng vấn của bạn đối với vị trí {title}. Rất tiếc, bạn chưa phù hợp với vị trí này ở thời điểm hiện tại.\n\nLý do: {reasonText}\n\nChúc bạn may mắn trong những cơ hội tiếp theo.";
                 string severityLevel = status == "passed" ? "success" : "error";
 
-                var n = new Notification
-                {
-                    UserId = interview.CandidateId,
-                    UserType = "CANDIDATE",
-                    Type = "INTERVIEW",
-                    Title = notifTitle,
-                    Message = notifMessage,
-                    ReferenceType = "Interview",
-                    ReferenceId = interview.InterviewId,
-                    SeverityLevel = severityLevel,
-                    IsRead = false,
-                    CreatedAt = DateTime.Now
-                };
-                _context.Notifications.Add(n);
-                await _context.SaveChangesAsync();
+                await _notificationService.SendNotificationAsync(
+                    userId: interview.CandidateId,
+                    userType: "CANDIDATE",
+                    title: notifTitle,
+                    message: notifMessage,
+                    type: "INTERVIEW",
+                    severity: severityLevel,
+                    referenceId: interview.InterviewId,
+                    referenceType: "Interview"
+                );
 
                 var emailEnabled = interview.Candidate?.CandidateNavigation?.EmailNotificationsEnabled ?? true;
                 var candidateEmail = interview.Candidate?.CandidateNavigation?.Email;

@@ -101,46 +101,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // SignalR Setup
     if (typeof signalR !== 'undefined') {
+        let hubUrl = "/notificationHub";
+        const urlToLower = window.location.href.toLowerCase();
+        if (urlToLower.includes('/recruiter') || urlToLower.includes('/employer')) {
+            hubUrl += "?role=employer";
+        } else if (urlToLower.includes('/admin') || urlToLower.includes('/moderator')) {
+            hubUrl += "?role=admin";
+        } else {
+            hubUrl += "?role=candidate";
+        }
+
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
+            .withUrl(hubUrl)
             .withAutomaticReconnect()
             .build();
 
         connection.on("ReceiveNotification", function (notification) {
             // Re-fetch HTML partial from server to update the dropdown list
             loadNotifications();
-
-            // Play sound
-            notificationSound.play().catch(e => console.log('Audio play failed', e));
-
-            // Show toast
-            if (typeof toastr !== 'undefined') {
-                toastr.options = {
-                    "closeButton": true,
-                    "progressBar": true,
-                    "positionClass": "toast-bottom-right",
-                    "timeOut": "5000",
-                    "onclick": function() {
-                        const targetUrl = getNotificationUrl(notification);
-                        if (targetUrl && targetUrl !== '#') {
-                            window.location.href = targetUrl;
-                        }
-                    }
-                };
-                
-                const title = notification.title || "Thông báo mới";
-                const message = notification.message || "";
-                
-                if (notification.severityLevel === 'success') {
-                    toastr.success(message, title);
-                } else if (notification.severityLevel === 'warning') {
-                    toastr.warning(message, title);
-                } else if (notification.severityLevel === 'danger') {
-                    toastr.error(message, title);
-                } else {
-                    toastr.info(message, title);
-                }
-            }
         });
 
         connection.start().catch(function (err) {

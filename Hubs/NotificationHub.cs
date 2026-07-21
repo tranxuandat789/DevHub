@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
@@ -6,6 +7,7 @@ using System.Linq;
 
 namespace DevHub.Hubs
 {
+    [Authorize]
     public class NotificationHub : Hub
     {
         // Simple mapping from UserId to ConnectionIds (a user can have multiple connections, e.g. multiple tabs)

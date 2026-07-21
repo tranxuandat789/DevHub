@@ -78,6 +78,13 @@ builder.Services.AddAuthentication(options =>
         if (path.StartsWith("/Notification",     StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith("/notificationHub",  StringComparison.OrdinalIgnoreCase))
         {
+            // First try to resolve from query string (used by SignalR because WebSockets often miss Referer)
+            var role = ctx.Request.Query["role"].ToString().ToLower();
+            if (role == "employer") return "EmployerCookies";
+            if (role == "admin") return "AdminCookies";
+            if (role == "candidate") return CookieAuthenticationDefaults.AuthenticationScheme;
+
+            // Fallback to Referer header (used by regular AJAX requests)
             var referer = ctx.Request.Headers["Referer"].ToString().ToLower();
             // Nếu AJAX xuất phát từ trang Recruiter → dùng EmployerCookies
             if (referer.Contains("/recruiter") || referer.Contains("/employer"))

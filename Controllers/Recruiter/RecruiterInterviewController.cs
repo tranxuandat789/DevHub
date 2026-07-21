@@ -172,8 +172,8 @@ namespace DevHub.Controllers.Recruiter
             var applications = await _context.Applications
                 .Include(a => a.Candidate).ThenInclude(c => c.CandidateNavigation)
                 .Where(a => a.JobId == jobId && a.Status != "REJECTED" && a.Status != "CANCELLED" && a.Status != "HIRED" && a.Status != "FAILED")
-                // exclude candidates that already have an active scheduled interview
-                .Where(a => !a.Interviews.Any(i => i.Status == "scheduled" || i.Status == "confirmed"))
+                // exclude candidates that already have an active scheduled interview in the future
+                .Where(a => !a.Interviews.Any(i => (i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime >= DateTime.Now))
                 .Select(a => new {
                     id = a.ApplicationId,
                     name = a.Candidate.FullName + " (" + a.Candidate.CandidateNavigation.Email + ")"

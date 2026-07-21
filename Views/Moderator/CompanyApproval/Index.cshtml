@@ -181,6 +181,27 @@
     </div>
 </div>
 
+<!-- Result Modal -->
+<div id="resultModal" class="fixed inset-0 z-[300] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeResultModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div id="resultIconContainer" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <!-- Icon will be injected here -->
+            </div>
+            <h3 id="resultTitle" class="text-2xl font-bold text-dark mb-2">Thông báo</h3>
+            <p id="resultMessage" class="text-muted text-sm"></p>
+        </div>
+        
+        <div class="flex justify-center">
+            <button onclick="closeResultModalAndReload()" class="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-sm w-full">Đóng</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Pagination logic
@@ -270,6 +291,38 @@
         // Modal Action Logic
         let currentRejectId = null;
         let currentApproveId = null;
+        let shouldReloadAfterResult = false;
+
+        function showResultModal(type, title, message, reload = false) {
+            shouldReloadAfterResult = reload;
+            document.getElementById('resultTitle').innerText = title;
+            document.getElementById('resultMessage').innerText = message;
+            
+            const iconContainer = document.getElementById('resultIconContainer');
+            if (type === 'success') {
+                iconContainer.className = "w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4";
+                iconContainer.innerHTML = `<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            } else if (type === 'error') {
+                iconContainer.className = "w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4";
+                iconContainer.innerHTML = `<svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            } else {
+                iconContainer.className = "w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4";
+                iconContainer.innerHTML = `<svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            }
+            
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+        }
+        
+        function closeResultModalAndReload() {
+            closeResultModal();
+            if (shouldReloadAfterResult) {
+                window.location.reload();
+            }
+        }
 
         function approveCompany(id) {
             currentApproveId = id;
@@ -284,16 +337,32 @@
 
         async function submitApprove() {
             if (!currentApproveId) return;
+            const btn = document.querySelector('#approveModal button:last-child');
+            btn.disabled = true;
+            btn.innerText = 'Đang xử lý...';
+            
             try {
                 const response = await fetch(`/moderator/company-approvals/approve/${currentApproveId}`, { method: 'POST' });
+                closeApproveModal();
                 if (response.ok) {
-                    window.location.reload();
+                    const data = await response.json();
+                    let msg = "Yêu cầu đã được phê duyệt thành công.";
+                    if (data.emailSent) {
+                        msg += " Đã gửi email thông báo cho nhà tuyển dụng.";
+                    } else if (data.emailError) {
+                        msg += " Tuy nhiên, không thể gửi email thông báo (Lỗi hệ thống mail).";
+                    }
+                    showResultModal('success', 'Phê duyệt thành công', msg, true);
                 } else {
-                    alert("Có lỗi xảy ra khi duyệt yêu cầu này.");
+                    showResultModal('error', 'Lỗi phê duyệt', 'Có lỗi xảy ra khi duyệt yêu cầu này.', false);
                 }
             } catch (e) {
                 console.error(e);
-                alert("Có lỗi hệ thống.");
+                closeApproveModal();
+                showResultModal('error', 'Lỗi hệ thống', 'Không thể kết nối đến máy chủ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Xác nhận';
             }
         }
 
@@ -301,6 +370,7 @@
             currentRejectId = id;
             document.getElementById('rejectLogId').innerText = `#${id}`;
             document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectReason').classList.remove('border-red-500');
             document.getElementById('rejectModal').classList.remove('hidden');
         }
 
@@ -310,11 +380,16 @@
         }
 
         async function submitReject() {
-            const reason = document.getElementById('rejectReason').value.trim();
+            const reasonInput = document.getElementById('rejectReason');
+            const reason = reasonInput.value.trim();
             if (!reason) {
-                alert('Vui lòng nhập lý do từ chối.');
+                reasonInput.classList.add('border-red-500');
                 return;
             }
+            
+            const btn = document.querySelector('#rejectModal button:last-child');
+            btn.disabled = true;
+            btn.innerText = 'Đang xử lý...';
             
             try {
                 const formData = new FormData();
@@ -324,16 +399,26 @@
                     body: formData
                 });
                 
+                closeRejectModal();
                 if (response.ok) {
-                    alert(`Đã từ chối yêu cầu #${currentRejectId} thành công.`);
-                    closeRejectModal();
-                    window.location.reload();
+                    const data = await response.json();
+                    let msg = `Đã từ chối yêu cầu #${currentRejectId} thành công.`;
+                    if (data.emailSent) {
+                        msg += " Đã gửi email thông báo cho nhà tuyển dụng.";
+                    } else if (data.emailError) {
+                        msg += " Tuy nhiên, không thể gửi email thông báo (Lỗi hệ thống mail).";
+                    }
+                    showResultModal('success', 'Từ chối thành công', msg, true);
                 } else {
-                    alert("Có lỗi xảy ra khi từ chối yêu cầu này.");
+                    showResultModal('error', 'Lỗi từ chối', 'Có lỗi xảy ra khi từ chối yêu cầu này.', false);
                 }
             } catch (e) {
                 console.error(e);
-                alert("Có lỗi hệ thống.");
+                closeRejectModal();
+                showResultModal('error', 'Lỗi hệ thống', 'Không thể kết nối đến máy chủ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Xác nhận Từ chối';
             }
         }
     </script>

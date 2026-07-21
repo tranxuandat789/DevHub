@@ -1,3 +1,5 @@
+//KienHM-22/6/2026
+
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Services.Interfaces;
@@ -34,6 +36,7 @@ namespace DevHub.Controllers.Admin
             
             // Note: If you don't have a specific table for Moderators, or if they are in UserAccounts
             // Assuming Moderators are UserAccounts with UserType == "Moderator"
+            // BR-MOD-02: Admin có quyền quản lý, theo dõi số lượng tài khoản mang role MODERATOR.
             viewModel.TotalModerators = await _context.UserAccounts.CountAsync(u => u.UserType == "Moderator");
 
             viewModel.ActiveJobPosts = await _context.JobPosts.CountAsync(j => j.Status == "Active");
@@ -49,6 +52,7 @@ namespace DevHub.Controllers.Admin
                     TotalSpent = r.TotalSpent ?? 0
                 }).ToListAsync();
 
+            // BR-PAY-01: Lọc và thống kê các giao dịch thanh toán mua gói dịch vụ (System package) thành công.
             var packageDistribution = await _context.PackageTransactions
                 .Where(t => t.Status == "Completed" || t.Status == "Success")
                 .Include(t => t.Service)

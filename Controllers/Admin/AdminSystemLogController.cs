@@ -1,3 +1,5 @@
+//KienHM-2/7/2026
+
 using DevHub.Data;
 using DevHub.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +24,7 @@ namespace DevHub.Controllers.Admin
         [HttpGet("")]
         public async Task<IActionResult> Index(string? userType = null, DateTime? startDate = null, DateTime? endDate = null, string? entityType = null, int page = 1)
         {
+            // BR-ASM-06: Traceability & Audit Logging. Giao diện này hỗ trợ Admin truy xuất dữ liệu log immutable, bao gồm các hoạt động gán việc (assignment) cho Moderator và các thay đổi hệ thống khác.
             var allLogs = await _auditLogService.GetLogsAsync();
             var logs = allLogs;
 

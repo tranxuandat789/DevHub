@@ -1,9 +1,7 @@
-@model List<DevHub.ViewModels.Moderator.CompanyVerificationRequestViewModel>
+@model IEnumerable<DevHub.ViewModels.Moderator.CompanyApprovalViewModel>
 @{
-    ViewData["Title"] = "Duyệt Công Ty";
+    ViewData["Title"] = "Duyet Tich Xanh";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
-    
-    var sortOrder = ViewBag.SortOrder as string ?? "desc";
 }
 
 <div class="flex justify-between items-center mb-6">
@@ -14,25 +12,30 @@
 </div>
 
 <!-- Form Filter/Search (Không dùng JavaScript) -->
-<form method="get" action="/moderator/company-approvals" class="mb-6 bg-white p-4 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.05)] border border-[#D6DDEB]">
+<form method="get" action="/moderator/company-approvals" onsubmit="sessionStorage.removeItem('companyApprovalPage');" class="mb-6 bg-white p-4 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.05)] border border-[#D6DDEB]">
     <div class="flex flex-col md:flex-row gap-4 mb-4">
         <!-- Lọc theo tên công ty -->
         <div class="flex flex-1 gap-2 items-center">
             <input type="text" name="companyName" value="@ViewBag.CompanyName" placeholder="Tìm kiếm theo tên công ty..." class="flex-1 px-4 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-            <button type="submit" name="sortOrder" value="@sortOrder" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                Tìm kiếm
-            </button>
         </div>
         
-        <!-- Lọc theo ngày -->
-        <div class="flex items-center gap-2">
+        <!-- Lọc theo ngày và trạng thái -->
+        <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm text-muted whitespace-nowrap">Từ ngày:</span>
             <input type="date" name="dateFrom" value="@ViewBag.DateFrom" class="px-3 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
             
             <span class="text-sm text-muted whitespace-nowrap">Đến ngày:</span>
             <input type="date" name="dateTo" value="@ViewBag.DateTo" class="px-3 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
             
-            <button type="submit" name="sortOrder" value="@sortOrder" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">
+            <span class="text-sm text-muted whitespace-nowrap">Trạng thái:</span>
+            <select name="status" class="px-3 py-2 border border-[#D6DDEB] rounded-lg focus:outline-none focus:border-blue-500 text-sm">
+                <option value="ALL" selected="@(ViewBag.Status == "ALL")">Tất cả</option>
+                <option value="PENDING" selected="@(string.IsNullOrEmpty(ViewBag.Status) || ViewBag.Status == "PENDING")">Chờ duyệt</option>
+                <option value="APPROVED" selected="@(ViewBag.Status == "APPROVED")">Đã duyệt</option>
+                <option value="REJECTED" selected="@(ViewBag.Status == "REJECTED")">Đã từ chối</option>
+            </select>
+
+            <button type="submit" name="sortOrder" value="@ViewBag.SortOrder" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                 Lọc
             </button>
         </div>
@@ -41,10 +44,10 @@
     <!-- Sort theo ngày -->
     <div class="flex items-center gap-3 border-t border-[#D6DDEB] pt-4 mt-2">
         <span class="text-sm text-muted">Sắp xếp theo ngày:</span>
-        <button type="submit" name="sortOrder" value="desc" class="px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors @(sortOrder != "asc" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-50")">
+        <button type="submit" name="sortOrder" value="desc" class="px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors @(ViewBag.SortOrder != "asc" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-50")">
             Mới nhất
         </button>
-        <button type="submit" name="sortOrder" value="asc" class="px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors @(sortOrder == "asc" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-50")">
+        <button type="submit" name="sortOrder" value="asc" class="px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors @(ViewBag.SortOrder == "asc" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-50")">
             Cũ nhất
         </button>
     </div>
@@ -74,20 +77,39 @@
                             <td class="py-4 px-6 text-muted">@req.TaxCode</td>
                             <td class="py-4 px-6 text-muted">@(req.RequestedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
                             <td class="py-4 px-6">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Pending
+                                @{
+                                    var st = (req.Status ?? "PENDING").ToUpper();
+                                    string badgeClass = st switch
+                                    {
+                                        "APPROVED" => "bg-green-100 text-green-800",
+                                        "REJECTED" => "bg-red-100 text-red-800",
+                                        _ => "bg-yellow-100 text-yellow-800"
+                                    };
+                                    string statusText = st switch
+                                    {
+                                        "APPROVED" => "Đã duyệt",
+                                        "REJECTED" => "Đã từ chối",
+                                        "PENDING" => "Chờ duyệt",
+                                        _ => char.ToUpper(st[0]) + st.Substring(1).ToLower()
+                                    };
+                                }
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium @badgeClass">
+                                    @statusText
                                 </span>
                             </td>
                             <td class="py-4 px-6 text-center space-x-2 flex justify-center items-center">
                                 <a href="/moderator/company-approvals/details/@req.LogId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors" title="Chi tiết công ty">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </a>
-                                <button onclick="approveCompany(@req.LogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                </button>
-                                <button onclick="openRejectModal(@req.LogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
+                                @if (st == "PENDING")
+                                {
+                                    <button onclick="approveCompany(@req.LogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors" title="Duyệt">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                    <button onclick="openRejectModal(@req.LogId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Từ chối">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                }
                             </td>
                         </tr>
                     }
@@ -159,20 +181,45 @@
     </div>
 </div>
 
+<!-- Result Modal -->
+<div id="resultModal" class="fixed inset-0 z-[300] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="closeResultModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div id="resultIconContainer" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <!-- Icon will be injected here -->
+            </div>
+            <h3 id="resultTitle" class="text-2xl font-bold text-dark mb-2">Thông báo</h3>
+            <p id="resultMessage" class="text-muted text-sm"></p>
+        </div>
+        
+        <div class="flex justify-center">
+            <button onclick="closeResultModalAndReload()" class="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-sm w-full">Đóng</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Pagination logic
         document.addEventListener('DOMContentLoaded', () => {
+            sessionStorage.setItem('companyApprovalListUrl', window.location.href);
+            
             const rows = document.querySelectorAll('.request-row');
             const totalItems = rows.length;
             const itemsPerPage = 10;
             const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-            let currentPage = 1;
+            let currentPage = parseInt(sessionStorage.getItem('companyApprovalPage')) || 1;
 
             function renderPage(page) {
                 currentPage = page;
                 if (currentPage < 1) currentPage = 1;
                 if (currentPage > totalPages) currentPage = totalPages;
+                
+                sessionStorage.setItem('companyApprovalPage', currentPage);
 
                 const start = (currentPage - 1) * itemsPerPage;
                 const end = Math.min(start + itemsPerPage, totalItems);
@@ -244,6 +291,38 @@
         // Modal Action Logic
         let currentRejectId = null;
         let currentApproveId = null;
+        let shouldReloadAfterResult = false;
+
+        function showResultModal(type, title, message, reload = false) {
+            shouldReloadAfterResult = reload;
+            document.getElementById('resultTitle').innerText = title;
+            document.getElementById('resultMessage').innerText = message;
+            
+            const iconContainer = document.getElementById('resultIconContainer');
+            if (type === 'success') {
+                iconContainer.className = "w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4";
+                iconContainer.innerHTML = `<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            } else if (type === 'error') {
+                iconContainer.className = "w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4";
+                iconContainer.innerHTML = `<svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            } else {
+                iconContainer.className = "w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4";
+                iconContainer.innerHTML = `<svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            }
+            
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+        }
+        
+        function closeResultModalAndReload() {
+            closeResultModal();
+            if (shouldReloadAfterResult) {
+                window.location.reload();
+            }
+        }
 
         function approveCompany(id) {
             currentApproveId = id;
@@ -258,16 +337,32 @@
 
         async function submitApprove() {
             if (!currentApproveId) return;
+            const btn = document.querySelector('#approveModal button:last-child');
+            btn.disabled = true;
+            btn.innerText = 'Đang xử lý...';
+            
             try {
                 const response = await fetch(`/moderator/company-approvals/approve/${currentApproveId}`, { method: 'POST' });
+                closeApproveModal();
                 if (response.ok) {
-                    window.location.reload();
+                    const data = await response.json();
+                    let msg = "Yêu cầu đã được phê duyệt thành công.";
+                    if (data.emailSent) {
+                        msg += " Đã gửi email thông báo cho nhà tuyển dụng.";
+                    } else if (data.emailError) {
+                        msg += " Tuy nhiên, không thể gửi email thông báo (Lỗi hệ thống mail).";
+                    }
+                    showResultModal('success', 'Phê duyệt thành công', msg, true);
                 } else {
-                    alert("Có lỗi xảy ra khi duyệt yêu cầu này.");
+                    showResultModal('error', 'Lỗi phê duyệt', 'Có lỗi xảy ra khi duyệt yêu cầu này.', false);
                 }
             } catch (e) {
                 console.error(e);
-                alert("Có lỗi hệ thống.");
+                closeApproveModal();
+                showResultModal('error', 'Lỗi hệ thống', 'Không thể kết nối đến máy chủ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Xác nhận';
             }
         }
 
@@ -275,6 +370,7 @@
             currentRejectId = id;
             document.getElementById('rejectLogId').innerText = `#${id}`;
             document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectReason').classList.remove('border-red-500');
             document.getElementById('rejectModal').classList.remove('hidden');
         }
 
@@ -284,11 +380,16 @@
         }
 
         async function submitReject() {
-            const reason = document.getElementById('rejectReason').value.trim();
+            const reasonInput = document.getElementById('rejectReason');
+            const reason = reasonInput.value.trim();
             if (!reason) {
-                alert('Vui lòng nhập lý do từ chối.');
+                reasonInput.classList.add('border-red-500');
                 return;
             }
+            
+            const btn = document.querySelector('#rejectModal button:last-child');
+            btn.disabled = true;
+            btn.innerText = 'Đang xử lý...';
             
             try {
                 const formData = new FormData();
@@ -298,16 +399,26 @@
                     body: formData
                 });
                 
+                closeRejectModal();
                 if (response.ok) {
-                    alert(`Đã từ chối yêu cầu #${currentRejectId} thành công.`);
-                    closeRejectModal();
-                    window.location.reload();
+                    const data = await response.json();
+                    let msg = `Đã từ chối yêu cầu #${currentRejectId} thành công.`;
+                    if (data.emailSent) {
+                        msg += " Đã gửi email thông báo cho nhà tuyển dụng.";
+                    } else if (data.emailError) {
+                        msg += " Tuy nhiên, không thể gửi email thông báo (Lỗi hệ thống mail).";
+                    }
+                    showResultModal('success', 'Từ chối thành công', msg, true);
                 } else {
-                    alert("Có lỗi xảy ra khi từ chối yêu cầu này.");
+                    showResultModal('error', 'Lỗi từ chối', 'Có lỗi xảy ra khi từ chối yêu cầu này.', false);
                 }
             } catch (e) {
                 console.error(e);
-                alert("Có lỗi hệ thống.");
+                closeRejectModal();
+                showResultModal('error', 'Lỗi hệ thống', 'Không thể kết nối đến máy chủ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Xác nhận Từ chối';
             }
         }
     </script>

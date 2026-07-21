@@ -27,14 +27,14 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> Index(string companyName, DateTime? dateFrom, DateTime? dateTo, string sortOrder = "desc")
+        public async Task<IActionResult> Index(string companyName, DateTime? dateFrom, DateTime? dateTo, string status = "PENDING", string sortOrder = "desc")
         {
             var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(modIdClaim, out int modId);
 
             var query = _db.Companies
-                .Where(c => c.Status == "PENDING" && c.ModeratorId == modId)
-                .Select(c => new CompanyVerificationRequestViewModel
+                .Where(c => c.ModeratorId == modId)
+                .Select(c => new CompanyApprovalViewModel
                 {
                     LogId = c.CompanyId, // Dùng LogId lưu tạm CompanyId để View không đổi
                     RecruiterId = c.Recruiters.FirstOrDefault() != null ? c.Recruiters.FirstOrDefault().RecruiterId : 0,
@@ -42,8 +42,14 @@ namespace DevHub.Controllers.Moderator
                     TaxCode = c.TaxCode ?? string.Empty,
                     BusinessLicenseUrl = c.BusinessLicenseUrl ?? string.Empty,
                     AdditionalDocumentsUrl = c.AdditionalDocumentsUrl ?? string.Empty,
+                    Status = c.Status,
                     RequestedAt = _db.AuditLogs.Where(a => a.Action == "VerificationRequest" && a.EntityId == (c.Recruiters.FirstOrDefault() != null ? c.Recruiters.FirstOrDefault().RecruiterId : 0)).Select(a => (DateTime?)a.CreatedAt).FirstOrDefault() ?? DateTime.UtcNow
                 });
+
+            if (status != "ALL")
+            {
+                query = query.Where(q => q.Status == status);
+            }
 
             if (!string.IsNullOrEmpty(companyName))
             {
@@ -76,6 +82,7 @@ namespace DevHub.Controllers.Moderator
             ViewBag.CompanyName = companyName;
             ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd");
             ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd");
+            ViewBag.Status = status;
             ViewBag.SortOrder = sortOrder;
 
             return View("~/Views/Moderator/CompanyApproval/Index.cshtml", pendingRequests);
@@ -101,6 +108,9 @@ namespace DevHub.Controllers.Moderator
 
             company.IsVerified = true;
             company.Status = "APPROVED";
+
+            bool emailSent = false;
+            string emailError = null;
 
             // Gửi thông báo cho tất cả Recruiter của công ty
             var recruiters = company.Recruiters.ToList();
@@ -133,11 +143,13 @@ namespace DevHub.Controllers.Moderator
                         try
                         {
                             await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                            emailSent = true;
                         }
                         catch (Exception ex)
                         {
                             // Ghi log lỗi gửi email nếu cần
                             Console.WriteLine("Lỗi gửi email: " + ex.Message);
+                            emailError = ex.Message;
                         }
                     }
                 }
@@ -160,7 +172,7 @@ namespace DevHub.Controllers.Moderator
             _db.AuditLogs.Add(auditLog);
 
             await _db.SaveChangesAsync();
-            return Ok(new { success = true });
+            return Ok(new { success = true, emailSent = emailSent, emailError = emailError });
         }
 
         [HttpPost("reject/{id}")]
@@ -170,6 +182,9 @@ namespace DevHub.Controllers.Moderator
             if (company == null || company.Status != "PENDING") return BadRequest("Invalid request.");
 
             company.Status = "REJECTED";
+            bool emailSent = false;
+            string emailError = null;
+
             // Lẽ ra cần có trường lưu lý do từ chối (như RejectedReason) trong Company, nếu chưa có tạm thời bỏ qua
             // company.RejectedReason = reason;
 
@@ -207,11 +222,13 @@ namespace DevHub.Controllers.Moderator
                         try
                         {
                             await _emailHelper.SendEmailAsync(userAccount.Email, subject, body);
+                            emailSent = true;
                         }
                         catch (Exception ex)
                         {
                             // Ghi log lỗi gửi email nếu cần
                             Console.WriteLine("Lỗi gửi email: " + ex.Message);
+                            emailError = ex.Message;
                         }
                     }
                 }
@@ -234,7 +251,7 @@ namespace DevHub.Controllers.Moderator
             _db.AuditLogs.Add(auditLog);
 
             await _db.SaveChangesAsync();
-            return Ok(new { success = true });
+            return Ok(new { success = true, emailSent = emailSent, emailError = emailError });
         }
     }
 }

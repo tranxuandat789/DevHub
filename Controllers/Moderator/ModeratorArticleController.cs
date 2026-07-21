@@ -237,6 +237,7 @@ namespace DevHub.Controllers.Moderator
                     {
                         try
                         {
+                            // BR-NTF-01 & BR-NTF-03: Gửi thông báo (In-App) real-time khi Moderator xóa/từ chối bài viết của Recruiter.
                             await _notificationService.SendNotificationAsync(
                                 userId: recruiter.RecruiterId,
                                 userType: "RECRUITER",
@@ -250,6 +251,7 @@ namespace DevHub.Controllers.Moderator
 
                             if (recruiter.RecruiterNavigation != null && !string.IsNullOrEmpty(recruiter.RecruiterNavigation.Email) && recruiter.RecruiterNavigation.EmailNotificationsEnabled)
                             {
+                                // BR-NTF-03: Kênh thông báo bổ sung qua Email Delivery.
                                 var emailSubject = $"[DevHub] Bài viết bị xóa: {article.Title}";
                                 var emailContent = DevHub.Helpers.EmailHelper.GetBaseTemplate(
                                     "Bài viết bị xóa",

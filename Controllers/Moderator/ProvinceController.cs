@@ -1,3 +1,5 @@
+//KienHM-25/7/2026
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DevHub.Services.Interfaces;
@@ -79,6 +81,7 @@ namespace DevHub.Controllers.Moderator
                 return View("~/Views/Moderator/Province/Create.cshtml");
             }
 
+            // Logic tương quan với nguyên tắc của BR-PRF-02 (và tính nhất quán DB): Ngăn chặn tạo trùng lặp tên Tỉnh/Thành phố trong hệ thống (để bảo vệ tính toàn vẹn dữ liệu).
             var allProvinces = await _provinceService.GetAllProvincesAsync();
             if (allProvinces.Any(p => p.ProvinceName.Equals(provinceName.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
@@ -109,6 +112,7 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("toggle-status/{id}")]
         public async Task<IActionResult> ToggleStatus(int id)
         {
+            // Logic tương quan với BR-MOD-03: Sử dụng cơ chế soft-delete (đổi trạng thái thay vì xóa cứng) để vô hiệu hóa tỉnh/thành phố nhằm bảo toàn dữ liệu của các Job Post đã chọn địa điểm này.
             var success = await _provinceService.ToggleStatusAsync(id);
             if (!success) return NotFound();
 

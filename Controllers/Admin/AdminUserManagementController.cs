@@ -1,3 +1,5 @@
+//KienHM-5/7/2026
+
 using DevHub.Data;
 using DevHub.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -43,6 +45,7 @@ namespace DevHub.Controllers.Admin
             var query = _context.UserAccounts
                 .Include(u => u.Candidate)
                 .Include(u => u.Recruiter)
+                // Logic phân tách: Giao diện này dành riêng cho User thường (Candidate/Recruiter). Việc quản lý tài khoản Moderator được cấp giao diện riêng biệt để tuân thủ tính chuyên biệt theo BR-MOD-02.
                 .Where(u => u.UserType != "Admin" && u.UserType != "Moderator")
                 .AsQueryable();
 
@@ -169,6 +172,7 @@ namespace DevHub.Controllers.Admin
             {
                 try 
                 {
+                    // BR-NTF-03 (Email Delivery): Gửi thông báo tự động qua email khi tài khoản người dùng bị Admin khóa.
                     var emailHelper = new DevHub.Helpers.EmailHelper(_config);
                     string subject = "Thông báo: Tài khoản của bạn đã bị khóa";
                     string content = $@"

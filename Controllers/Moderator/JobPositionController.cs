@@ -65,6 +65,7 @@ namespace DevHub.Controllers.Moderator
                 return View("~/Views/Moderator/JobPosition/Create.cshtml");
             }
 
+            // Logic tương quan với nguyên tắc của BR-PRF-02 (và tính nhất quán DB): Ngăn chặn tạo trùng lặp tên vị trí công việc để đảm bảo dữ liệu chuẩn khi Recruiter tạo Job Post.
             var allPositions = await _positionService.GetAllPositionsAsync();
             if (allPositions.Any(p => p.PositionName.Equals(positionName.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
@@ -112,6 +113,7 @@ namespace DevHub.Controllers.Moderator
                 return View("~/Views/Moderator/JobPosition/Edit.cshtml", pos);
             }
 
+            // Logic tương quan với nguyên tắc của BR-PRF-02: Ngăn chặn sửa tên vị trí bị trùng với một vị trí khác đang tồn tại.
             var allPositions = await _positionService.GetAllPositionsAsync();
             if (allPositions.Any(p => p.PositionId != id && p.PositionName.Equals(positionName.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
@@ -138,6 +140,7 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("toggle-status/{id}")]
         public async Task<IActionResult> ToggleStatus(int id)
         {
+            // Logic tương quan với BR-MOD-03: Sử dụng cơ chế soft-delete (cờ IsActive) để vô hiệu hóa vị trí thay vì hard-delete, tránh làm hỏng các Job Post đã liên kết.
             var success = await _positionService.ToggleStatusAsync(id);
             if (!success) return NotFound();
 

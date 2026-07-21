@@ -27,14 +27,14 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> Index(string companyName, DateTime? dateFrom, DateTime? dateTo, string sortOrder = "desc")
+        public async Task<IActionResult> Index(string companyName, DateTime? dateFrom, DateTime? dateTo, string status = "PENDING", string sortOrder = "desc")
         {
             var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(modIdClaim, out int modId);
 
             var query = _db.Companies
-                .Where(c => c.Status == "PENDING" && c.ModeratorId == modId)
-                .Select(c => new CompanyVerificationRequestViewModel
+                .Where(c => c.ModeratorId == modId)
+                .Select(c => new CompanyApprovalViewModel
                 {
                     LogId = c.CompanyId, // Dùng LogId lưu tạm CompanyId để View không đổi
                     RecruiterId = c.Recruiters.FirstOrDefault() != null ? c.Recruiters.FirstOrDefault().RecruiterId : 0,
@@ -42,8 +42,14 @@ namespace DevHub.Controllers.Moderator
                     TaxCode = c.TaxCode ?? string.Empty,
                     BusinessLicenseUrl = c.BusinessLicenseUrl ?? string.Empty,
                     AdditionalDocumentsUrl = c.AdditionalDocumentsUrl ?? string.Empty,
+                    Status = c.Status,
                     RequestedAt = _db.AuditLogs.Where(a => a.Action == "VerificationRequest" && a.EntityId == (c.Recruiters.FirstOrDefault() != null ? c.Recruiters.FirstOrDefault().RecruiterId : 0)).Select(a => (DateTime?)a.CreatedAt).FirstOrDefault() ?? DateTime.UtcNow
                 });
+
+            if (status != "ALL")
+            {
+                query = query.Where(q => q.Status == status);
+            }
 
             if (!string.IsNullOrEmpty(companyName))
             {
@@ -76,6 +82,7 @@ namespace DevHub.Controllers.Moderator
             ViewBag.CompanyName = companyName;
             ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd");
             ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd");
+            ViewBag.Status = status;
             ViewBag.SortOrder = sortOrder;
 
             return View("~/Views/Moderator/CompanyApproval/Index.cshtml", pendingRequests);

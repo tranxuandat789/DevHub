@@ -1,21 +1,12 @@
-@*
-5/2/2026 
-file view chi tiet cong ty cho duyet
-*@
-@model DevHub.Models.Company
 @{
-    ViewData["Title"] = "Chi tiết công ty";
+    ViewData["Title"] = "Chi Tiet Yeu Cau Tich Xanh";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
 
-    string GetExt(string? url) => !string.IsNullOrEmpty(url) ? System.IO.Path.GetExtension(url).TrimStart('.').ToLowerInvariant() : "";
-    
-    var previewableExts = new[] { "pdf", "png", "jpg", "jpeg", "gif", "webp" };
-    
-    string bizExt = GetExt(Model.BusinessLicenseUrl);
-    bool bizPreviewable = previewableExts.Contains(bizExt);
+    var bizExt = !string.IsNullOrEmpty(Model.BusinessLicenseUrl) ? System.IO.Path.GetExtension(Model.BusinessLicenseUrl).ToLower().Trim('.') : "";
+    var bizPreviewable = bizExt == "pdf" || bizExt == "jpg" || bizExt == "jpeg" || bizExt == "png";
 
-    string addExt = GetExt(Model.AdditionalDocumentsUrl);
-    bool addPreviewable = previewableExts.Contains(addExt);
+    var addExt = !string.IsNullOrEmpty(Model.AdditionalDocumentsUrl) ? System.IO.Path.GetExtension(Model.AdditionalDocumentsUrl).ToLower().Trim('.') : "";
+    var addPreviewable = addExt == "pdf" || addExt == "jpg" || addExt == "jpeg" || addExt == "png";
 }
 
 <div class="space-y-6">
@@ -23,7 +14,7 @@ file view chi tiet cong ty cho duyet
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-2 text-sm text-muted mb-2">
-                <a href="/moderator/company-approvals" class="hover:text-primary transition-colors flex items-center gap-1">
+                <a href="javascript:void(0)" onclick="window.location.href = sessionStorage.getItem('companyApprovalListUrl') || '/moderator/company-approvals';" class="hover:text-primary transition-colors flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Quay lại danh sách
                 </a>
@@ -253,7 +244,7 @@ file view chi tiet cong ty cho duyet
             
             fetch(`/moderator/company-approvals/approve/${currentApproveId}`, { method: 'POST' })
             .then(res => {
-                if (res.ok) window.location.href = '/moderator/company-approvals';
+                if (res.ok) window.location.href = sessionStorage.getItem('companyApprovalListUrl') || '/moderator/company-approvals';
                 else alert("Có lỗi xảy ra khi duyệt công ty.");
             })
             .catch(err => {
@@ -289,7 +280,7 @@ file view chi tiet cong ty cho duyet
                 body: formData
             })
             .then(res => {
-                if (res.ok) window.location.href = '/moderator/company-approvals';
+                if (res.ok) window.location.href = sessionStorage.getItem('companyApprovalListUrl') || '/moderator/company-approvals';
                 else alert("Có lỗi xảy ra khi từ chối công ty.");
             })
             .catch(err => {

@@ -305,6 +305,18 @@ author: Hoang Minh Kien
     <span id="customToastMsg" class="font-medium"></span>
 </div>
 
+<!-- Success Modal -->
+<div id="successModal" class="fixed inset-0 z-[300] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div id="successModalContent" class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] w-full max-w-sm p-8 text-center relative transform transition-all duration-300 scale-95 opacity-0">
+        <div class="w-20 h-20 rounded-full bg-green-50 border-4 border-green-100 flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <h3 class="text-[24px] font-bold text-dark mb-2" id="successModalTitle">Thành công!</h3>
+        <p class="text-muted text-[16px] mb-8" id="successModalMsg">Thao tác đã được thực hiện.</p>
+        <button onclick="closeSuccessModal()" class="w-full px-6 py-3.5 rounded-full bg-primary text-white font-bold hover:bg-opacity-90 transition-all shadow-sm">Tiếp tục</button>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let currentRejectId = null;
@@ -319,6 +331,29 @@ author: Hoang Minh Kien
                 toast.classList.add('opacity-0');
                 setTimeout(() => toast.classList.add('hidden'), 300);
             }, 3000);
+        }
+
+        function showSuccessModal(title, message) {
+            const modal = document.getElementById('successModal');
+            const content = document.getElementById('successModalContent');
+            document.getElementById('successModalTitle').innerText = title;
+            document.getElementById('successModalMsg').innerText = message;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeSuccessModal() {
+            const content = document.getElementById('successModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('successModal').classList.add('hidden');
+                window.location.reload();
+            }, 300);
         }
 
         async function openDetailModal(id) {
@@ -381,16 +416,19 @@ author: Hoang Minh Kien
             try {
                 const response = await fetch(`/moderator/job-approvals/approve/${currentApproveId}`, { method: 'POST' });
                 if (response.ok) {
-                    window.location.reload();
+                    closeApproveModal();
+                    showSuccessModal('Thành công!', 'Duyệt bài đăng thành công.');
                 } else {
                     // Mute error or show in UI, no alert
                     console.error("Lỗi khi duyệt bài đăng.");
-                    btn.innerText = 'Thử lại';
+                    showToast('Có lỗi xảy ra khi duyệt bài đăng.');
+                    btn.innerText = originalText;
                     btn.disabled = false;
                 }
             } catch (e) {
                 console.error(e);
-                btn.innerText = 'Thử lại';
+                showToast('Có lỗi kết nối.');
+                btn.innerText = originalText;
                 btn.disabled = false;
             }
         }
@@ -429,15 +467,18 @@ author: Hoang Minh Kien
                 });
                 
                 if (response.ok) {
-                    window.location.reload();
+                    closeRejectModal();
+                    showSuccessModal('Thành công!', 'Đã từ chối bài đăng tuyển dụng.');
                 } else {
                     console.error("Lỗi khi từ chối bài đăng.");
-                    btn.innerText = 'Thử lại';
+                    showToast('Có lỗi xảy ra khi từ chối bài đăng.');
+                    btn.innerText = originalText;
                     btn.disabled = false;
                 }
             } catch (e) {
                 console.error(e);
-                btn.innerText = 'Thử lại';
+                showToast('Có lỗi kết nối.');
+                btn.innerText = originalText;
                 btn.disabled = false;
             }
         }

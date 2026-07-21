@@ -33,6 +33,7 @@ public class RecruiterPaymentController : Controller
         return recruiter?.CompanyId;
     }
 
+    // Renders the subscription page allowing recruiters to view and choose service packages.
     [HttpGet("Subscription")]
     public async Task<IActionResult> Subscription()
     {
@@ -55,6 +56,7 @@ public class RecruiterPaymentController : Controller
         return View("~/Views/Recruiter/Payment/Subscription.cshtml", vm);
     }
 
+    // API endpoint to validate a discount voucher code for a specific service package.
     [HttpGet("CheckVoucher")]
     public async Task<IActionResult> CheckVoucher(int serviceId, string code)
     {
@@ -65,6 +67,7 @@ public class RecruiterPaymentController : Controller
         return Json(result);
     }
 
+    // Processes a new payment request and redirects the user to the VNPay payment gateway.
     [HttpPost("Create")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreatePaymentRequestVm req)
@@ -94,6 +97,7 @@ public class RecruiterPaymentController : Controller
         return Redirect(result.Url!);
     }
 
+    // Handles the return callback from VNPay after the user completes the payment process.
     [HttpGet("VnpayReturn")]
     [AllowAnonymous]
     public async Task<IActionResult> VnpayReturn()
@@ -115,6 +119,7 @@ public class RecruiterPaymentController : Controller
         return View("~/Views/Recruiter/Payment/VnpayReturn.cshtml");
     }
 
+    // Handles the IPN (Instant Payment Notification) callback from VNPay for server-to-server confirmation.
     [HttpGet("/api/recruiter/payment/vnpay-ipn")]
     [AllowAnonymous]
     public async Task<IActionResult> VnpayIpn()
@@ -123,6 +128,7 @@ public class RecruiterPaymentController : Controller
         return Json(new { RspCode = result.ResponseCode, Message = result.Message });
     }
 
+    // Renders the payment transaction history view with optional filters and pagination.
     [HttpGet("History")]
     public async Task<IActionResult> History(DateTime? from, DateTime? to, int? serviceId, int page = 1)
     {
@@ -140,6 +146,7 @@ public class RecruiterPaymentController : Controller
         return View("~/Views/Recruiter/Payment/History.cshtml", vm);
     }
 
+    // Renders the detailed view of a specific payment transaction.
     [HttpGet("HistoryDetails/{id}")]
     public async Task<IActionResult> HistoryDetails(int id)
     {
@@ -152,6 +159,7 @@ public class RecruiterPaymentController : Controller
         return View("~/Views/Recruiter/Payment/HistoryDetails.cshtml", vm);
     }
 
+    // Exports the filtered payment transaction history to an Excel file and downloads it.
     [HttpGet("HistoryExport")]
     public async Task<IActionResult> HistoryExport(DateTime? from, DateTime? to, int? serviceId)
     {

@@ -28,6 +28,7 @@ namespace DevHub.Controllers.Recruiter
             _logger = logger;
         }
 
+        // Renders the recruiter dashboard page, including statistics and paginated job lists.
         public async Task<IActionResult> Index(
             string? jobStatus, 
             string? jobQ, 

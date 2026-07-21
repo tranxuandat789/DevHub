@@ -318,7 +318,7 @@ public class InterviewService : IInterviewService
     public async Task SyncInterviewStatusesAsync()
     {
         var pastScheduledInterviews = await _context.Interviews
-            .Where(i => i.Status == "scheduled" && i.ScheduledTime < DateTime.Now)
+            .Where(i => (i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime < DateTime.Now)
             .ToListAsync();
 
         if (pastScheduledInterviews.Any())

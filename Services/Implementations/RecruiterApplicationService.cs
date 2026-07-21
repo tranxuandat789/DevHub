@@ -26,6 +26,7 @@ namespace DevHub.Services.Implementations
             _env = env;
         }
 
+        // Parses and retrieves the candidate's CV data in JSON format.
         public async Task<string> GetCvJsonDataAsync(int recruiterId, int applicationId)
         {
             var a = await _repo.GetApplicationDetailAsync(applicationId, recruiterId);
@@ -37,6 +38,7 @@ namespace DevHub.Services.Implementations
             return await _cvParserHelper.ParseCvToJsonAsync(physicalPath);
         }
 
+        // Retrieves a paginated list of applicants for a specific job owned by the recruiter.
         public async Task<ApplicantListViewModel?> GetJobApplicantsAsync(int recruiterId, int jobId, ApplicantFilter filter)
         {
             //Recruiter only can access jobs they possesed and status has to be APPROVED or CLOSED.
@@ -50,9 +52,11 @@ namespace DevHub.Services.Implementations
             return vm;
         }
 
+        // Retrieves a paginated list of all applicants across all jobs owned by the recruiter.
         public async Task<ApplicantListViewModel> GetAllApplicantsAsync(int recruiterId, ApplicantFilter filter)
             => await BuildListAsync(recruiterId, jobId: null, filter, isCrossJob: true);
 
+        // Helper method to build the paginated applicant list view model.
         private async Task<ApplicantListViewModel> BuildListAsync(int recruiterId, int? jobId, ApplicantFilter filter, bool isCrossJob)
         {
             int page = filter.Page < 1 ? 1 : filter.Page;
@@ -105,6 +109,7 @@ namespace DevHub.Services.Implementations
             return vm;
         }
 
+        // Retrieves the detailed profile of a specific candidate who applied to the recruiter's job.
         public async Task<CandidateProfileViewModel?> GetCandidateProfileAsync(int recruiterId, int applicationId)
         {
             var a = await _repo.GetApplicationDetailAsync(applicationId, recruiterId);
@@ -142,12 +147,15 @@ namespace DevHub.Services.Implementations
             };
         }
 
+        // Retrieves the history of a candidate's applications and interactions with the recruiter's company.
         public async Task<CandidateProfileHistoryViewModel?> GetCandidateProfileHistoryAsync(int recruiterId, int candidateId)
             => await _repo.GetCandidateProfileHistoryAsync(recruiterId, candidateId);
 
+        // Approves a candidate's application and notifies them, unlocking the interview stage.
         public async Task<(bool Success, string Message)> ApproveAsync(int recruiterId, int applicationId)
         {
             // Freeze gate: block approve/reject while the job is pending re-review (recruiter just edited it).
+            // Business Rule: Prevent approving/rejecting candidates if the corresponding job post is locked and waiting for moderator review.
             var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
             if (appCheck == null)
                 return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");
@@ -181,9 +189,11 @@ namespace DevHub.Services.Implementations
             return (true, "Đã duyệt ứng viên. Bạn có thể lên lịch phỏng vấn.");
         }
 
+        // Rejects a candidate's application and sends them a notification.
         public async Task<(bool Success, string Message)> RejectAsync(int recruiterId, int applicationId)
         {
-            // Freeze gate (see ApproveAsync).
+            // Freeze gate: block approve/reject while the job is pending re-review (recruiter just edited it).
+            // Business Rule: Prevent rejecting candidates if the corresponding job post is locked and waiting for moderator review.
             var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
             if (appCheck == null)
                 return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");
@@ -215,8 +225,10 @@ namespace DevHub.Services.Implementations
             return (true, "Đã từ chối ứng viên.");
         }
 
+        // Marks an approved candidate as hired and notifies them.
         public async Task<(bool Success, string Message)> HireAsync(int recruiterId, int applicationId)
         {
+            // Business Rule: Similarly, prevent hiring candidates if the corresponding job post is locked and waiting for moderator review.
             var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
             if (appCheck == null)
                 return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");

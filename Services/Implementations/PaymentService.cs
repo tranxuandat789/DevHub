@@ -39,6 +39,7 @@ public class PaymentService : IPaymentService
         _emailHelper = emailHelper;
     }
 
+    // Retrieves subscription data including active packages, promotions, and the user's current package.
     public async Task<SubscriptionPageVm> GetSubscriptionPageAsync(int companyId)
     {
         var activePackages = await _serviceRepo.GetActiveAsync();
@@ -91,6 +92,7 @@ public class PaymentService : IPaymentService
         return vm;
     }
 
+    // Validates a promotional voucher and calculates the discount, deductions, and total amount.
     public async Task<VoucherCheckResultVm> ValidateVoucherAsync(int companyId, int serviceId, string code)
     {
         var service = await _serviceRepo.GetByIdAsync(serviceId);
@@ -108,7 +110,10 @@ public class PaymentService : IPaymentService
                 return new VoucherCheckResultVm { IsValid = false, Message = "Mã giảm giá không hợp lệ, đã hết hạn hoặc hết số lượng." };
             }
 
+            // Calculate the discount amount based on the promotion's percentage
             discountAmount = Math.Round(originalPrice * (promotion.DiscountPercent ?? 0) / 100);
+            
+            // Cap the discount amount if it exceeds the maximum allowed discount (MaxDiscount)
             if (promotion.MaxDiscount.HasValue && discountAmount > promotion.MaxDiscount.Value)
             {
                 discountAmount = promotion.MaxDiscount.Value;
@@ -127,31 +132,42 @@ public class PaymentService : IPaymentService
             }
             else if (service.Price > activePackage.Service.Price)
             {
-                // Upgrade prorating
+                // Upgrade prorating: Calculate the deduction amount when upgrading to a more expensive package
+                
+                // 1. Calculate remaining posts ratio = Remaining Posts / Total Granted Posts
                 double postRatio = activePackage.PostsRemaining / (double)activePackage.PostsGranted;
                 double timeRatio = 0;
                 
                 var totalDays = activePackage.Service.DurationDays ?? 0;
                 var endDateValue = activePackage.EndDate ?? DateTime.UtcNow;
                 var remainingDays = (endDateValue - DateTime.UtcNow).TotalDays;
+                
+                // 2. Calculate remaining time ratio = Remaining Days / Total Package Days
                 if (totalDays > 0 && remainingDays > 0)
                 {
                     timeRatio = remainingDays / (double)totalDays;
                 }
 
-                // Protect against ratios > 1 just in case
+                // Safeguard: Ensure both ratios stay within the 0 to 1 boundary (0% to 100%)
                 postRatio = Math.Min(1.0, Math.Max(0.0, postRatio));
                 timeRatio = Math.Min(1.0, Math.Max(0.0, timeRatio));
 
+                // Deduction formula:
+                // Apply a 90% weight to the remaining posts and a 10% weight to the remaining time
                 deductionAmount = Math.Round((decimal)(0.9 * postRatio + 0.1 * timeRatio) * activePackage.PriceAtPurchase);
             }
         }
 
+        // Final price after applying discounts and upgrade deductions
         decimal finalAmount = originalPrice - discountAmount - deductionAmount;
         if (finalAmount < 0) finalAmount = 0;
 
+        // VAT calculation. Default to 8% if missing from configuration
         decimal vatRate = _configuration.GetValue<decimal>("Tax:VatRatePercent", 8m);
+        // Round the VAT amount using the Half-Up rule (MidpointRounding.AwayFromZero)
         decimal vatAmount = Math.Round(finalAmount * vatRate / 100m, 0, MidpointRounding.AwayFromZero);
+        
+        // Total payment is the final base price plus VAT
         decimal totalAmount = finalAmount + vatAmount;
 
         return new VoucherCheckResultVm
@@ -167,6 +183,7 @@ public class PaymentService : IPaymentService
         };
     }
 
+    // Creates a new transaction and generates a VNPay payment URL for purchasing or upgrading a package.
     public async Task<(bool Success, string? Url, string? Error, bool IsFreeUpgrade)> CreatePaymentUrlAsync(int companyId, int recruiterId, CreatePaymentRequestVm req, string clientIp)
     {
         var service = await _serviceRepo.GetByIdAsync(req.ServiceId);
@@ -252,6 +269,7 @@ public class PaymentService : IPaymentService
         return (true, paymentUrl, null, false);
     }
 
+    // Processes the VNPay callback to confirm payment status and activate the purchased package if successful.
     public async Task<(bool Success, string ResponseCode, string Message)> ConfirmAsync(IDictionary<string, string> vnpParams)
     {
         var vnpay = new VnpayLibrary();
@@ -310,6 +328,7 @@ public class PaymentService : IPaymentService
         }
     }
 
+    // Retrieves a paginated history of payment transactions for a specific company.
     public async Task<PaymentHistoryListVm> GetHistoryAsync(int companyId, DateTime? from, DateTime? to, int? serviceId, int page)
     {
         int pageSize = 5;
@@ -334,6 +353,7 @@ public class PaymentService : IPaymentService
         };
     }
 
+    // Retrieves detailed information for a specific payment transaction belonging to a company.
     public async Task<PaymentHistoryDetailVm?> GetHistoryDetailAsync(int companyId, int transactionId)
     {
         var tx = await _paymentRepo.GetByIdForCompanyAsync(transactionId, companyId);
@@ -362,6 +382,7 @@ public class PaymentService : IPaymentService
         };
     }
 
+    // Exports the company's payment transaction history to an Excel file.
     public async Task<byte[]> ExportHistoryAsync(int companyId, DateTime? from, DateTime? to, int? serviceId)
     {
         var data = await _paymentRepo.GetHistoryForExportAsync(companyId, from, to, serviceId);

@@ -15,6 +15,7 @@ public class PackageTransactionService : IPackageTransactionService
         _repository = repository;
     }
 
+    // Retrieves revenue and transaction data for the admin dashboard based on the specified month and year.
     public async Task<AdminDashboardViewModel> GetAdminDashboardDataAsync(int month, int year)
     {
         var query = _repository.GetAll()
@@ -22,8 +23,10 @@ public class PackageTransactionService : IPackageTransactionService
             .Include(x => x.Service)
             .Where(x => x.Status == "Success" || x.Status == "Completed"); // Assuming successful statuses
 
-        // Calculate Quarter based on the given month
+        // Calculate Quarter based on the given month (e.g. Q1 is Jan-Mar, Q2 is Apr-Jun)
         int quarter = (month - 1) / 3 + 1;
+        
+        // Determine the start and end months of the calculated quarter
         int quarterStartMonth = (quarter - 1) * 3 + 1;
         int quarterEndMonth = quarterStartMonth + 2;
 
@@ -52,6 +55,7 @@ public class PackageTransactionService : IPackageTransactionService
         };
 
         // Six month revenue calculation
+        // Calculate the total revenue for each of the first 6 months of the selected year
         var sixMonthRevenues = new List<decimal>();
         for (int i = 1; i <= 6; i++)
         {

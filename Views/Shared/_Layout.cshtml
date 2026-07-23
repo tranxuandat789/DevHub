@@ -647,7 +647,7 @@
                 const logo = c.logoUrl
                     ? `<img src="${c.logoUrl}" class="w-6 h-6 rounded object-contain flex-shrink-0" />`
                     : `<span class="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px] flex-shrink-0">${c.companyName[0]}</span>`;
-                return `<a href="/Jobs?recruiterId=${c.recruiterId}"
+                return `<a href="/Jobs?recruiterId=${c.companyId}"
                            class="flex justify-between items-center px-3 py-1.5 rounded-lg text-[14px] text-dark hover:bg-primary/5 hover:text-primary transition-colors">
                             <div class="flex items-center gap-2 min-w-0">
                                 ${logo}

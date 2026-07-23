@@ -22,6 +22,7 @@ public class AdminPaymentService : IAdminPaymentService
         _serviceRepo = serviceRepo;
     }
 
+    // Retrieves a paginated list of transactions with optional filters for the admin view.
     public async Task<AdminTransactionListVm> GetTransactionsAsync(DateTime? from, DateTime? to, int? serviceId, string? keyword, string? sortBy, int page)
     {
         int pageSize = 5;
@@ -53,11 +54,12 @@ public class AdminPaymentService : IAdminPaymentService
         {
             Items = list,
             CurrentPage = page,
-            TotalPages = (int)Math.Ceiling(total / (double)pageSize),
+            TotalPages = (int)Math.Ceiling(total / (double)pageSize), // Calculate total pages (rounding up)
             AvailablePackages = availablePackages
         };
     }
 
+    // Retrieves detailed information of a specific transaction by its ID.
     public async Task<AdminTransactionDetailVm?> GetTransactionDetailAsync(int id)
     {
         var tx = await _adminPaymentRepo.GetTransactionDetailAsync(id);

@@ -29,6 +29,7 @@ namespace DevHub.Services.Implementations
             _emailHelper = emailHelper;
         }
 
+        // Accepts a pending company invitation for a recruiter and updates their company profile.
         public async Task<bool> AcceptInvitationAsync(string token, int newRecruiterId)
         {
             var invitation = await _invitationRepo.GetByTokenAsync(token);
@@ -52,6 +53,7 @@ namespace DevHub.Services.Implementations
             return true;
         }
 
+        // Cancels an existing pending invitation by marking it as EXPIRED.
         public async Task<bool> CancelInvitationAsync(int invitationId, int companyId)
         {
             var invitation = await _invitationRepo.GetByIdAsync(invitationId);
@@ -65,11 +67,13 @@ namespace DevHub.Services.Implementations
             return true;
         }
 
+        // Retrieves all pending invitations for a specific company.
         public async Task<IEnumerable<CompanyInvitation>> GetPendingInvitationsAsync(int companyId)
         {
             return await _invitationRepo.GetPendingByCompanyIdAsync(companyId);
         }
 
+        // Creates a new invitation token and sends an invitation email to a prospective member.
         public async Task<CompanyInvitation> InviteMemberAsync(int companyId, string email, int invitedByRecruiterId)
         {
             var company = await _companyRepo.GetCompanyDetailsAsync(companyId);
@@ -119,6 +123,7 @@ namespace DevHub.Services.Implementations
             return invitation;
         }
 
+        // Validates an invitation token and returns the invitation details if it is still pending and not expired.
         public async Task<CompanyInvitation?> ValidateTokenAsync(string token)
         {
             var invitation = await _invitationRepo.GetByTokenAsync(token);

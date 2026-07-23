@@ -426,6 +426,8 @@
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            sessionStorage.setItem('recruiterApplicationListUrl', window.location.href);
+            var els = document.querySelectorAll('.status-select-js');
             if (!window.Choices) return;
 
             // Multi-select tech: typeahead filters suggestions; values come only from the option list.

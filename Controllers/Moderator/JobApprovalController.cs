@@ -17,6 +17,7 @@ namespace DevHub.Controllers.Moderator
 {
     [Route("moderator/job-approvals")]
     [Authorize(Roles = "Moderator")]
+    // BR-ASM-01: Đảm bảo Moderator có quyền đối với Task Type 'JOB_POST' và tài khoản đang Active mới được xử lý.
     [TypeFilter(typeof(DevHub.Filters.ModeratorTaskTypeAttribute), Arguments = new object[] { "JOB_POST" })]
     public class JobApprovalController : Controller
     {
@@ -126,6 +127,7 @@ namespace DevHub.Controllers.Moderator
             }
 
             // 2. Gọi Service thực hiện nghiệp vụ phê duyệt bài đăng
+            // BR-JOB-02: Job posts follow predefined status transitions bao gồm Pending, Approved, Rejected, và Closed (Chuyển trạng thái sang Approved).
             var success = await _jobPostService.ApproveJobAsync(id, moderatorId);
 
             if (!success) return BadRequest("Cannot approve this job.");
@@ -164,6 +166,7 @@ namespace DevHub.Controllers.Moderator
             }
 
             // 2. Gọi Service thực hiện nghiệp vụ từ chối bài đăng kèm lý do cụ thể
+            // BR-JOB-02: Job posts follow predefined status transitions bao gồm Pending, Approved, Rejected, và Closed (Chuyển trạng thái sang Rejected).
             var success = await _jobPostService.RejectJobAsync(id, moderatorId, reason);
             if (!success) return BadRequest("Cannot reject this job.");
 

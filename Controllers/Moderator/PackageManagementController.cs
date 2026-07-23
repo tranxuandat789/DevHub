@@ -1,3 +1,5 @@
+//KienHM-20/6/2026
+
 using DevHub.Models;
 using DevHub.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -126,6 +128,7 @@ namespace DevHub.Controllers.Moderator
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id, [FromForm] bool activate)
         {
+            // Logic tương quan với BR-MOD-03: Sử dụng cơ chế soft-delete (ẩn/hiện) gói dịch vụ thay vì xóa cứng (hard-delete) để bảo toàn lịch sử giao dịch (PackageTransaction) và các gói Recruiter đang dùng (CompanyPackageHistory).
             var success = await _packageService.ToggleStatusAsync(id, activate);
             if (success)
             {

@@ -1,3 +1,4 @@
+//KienHM-03/06/2026
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,6 +72,7 @@ namespace DevHub.Controllers.Moderator
                 return View("~/Views/Moderator/TechStack/Create.cshtml");
             }
 
+            // Logic tương quan với BR-PRF-02: Ngăn chặn tạo trùng lặp tên công nghệ trong hệ thống DB master (để đảm bảo tính nhất quán khi Candidate/Recruiter thêm tech).
             var allTechs = await _techService.GetAllTechsAsync();
             if (allTechs.Any(t => t.TechName.Equals(techName.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
@@ -122,6 +124,7 @@ namespace DevHub.Controllers.Moderator
                 return View("~/Views/Moderator/TechStack/Edit.cshtml", tech);
             }
 
+            // Logic tương quan với BR-PRF-02: Ngăn chặn sửa tên công nghệ bị trùng với một công nghệ khác đang tồn tại.
             var allTechs = await _techService.GetAllTechsAsync();
             if (allTechs.Any(t => t.TechId != id && t.TechName.Equals(techName.Trim(), StringComparison.OrdinalIgnoreCase)))
             {
@@ -149,6 +152,7 @@ namespace DevHub.Controllers.Moderator
         [HttpPost("toggle-status/{id}")]
         public async Task<IActionResult> ToggleStatus(int id)
         {
+            // Logic tương quan với BR-MOD-03: Sử dụng cờ IsActive để vô hiệu hóa/kích hoạt (soft-delete) công nghệ thay vì hard-delete để không làm hỏng dữ liệu liên kết.
             var success = await _techService.ToggleStatusAsync(id);
             if (!success) return NotFound();
 

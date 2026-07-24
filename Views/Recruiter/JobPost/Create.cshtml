@@ -105,7 +105,7 @@
                     
                     <div>
                         <label class="block text-sm font-bold text-dark mb-2">Hạn nhận hồ sơ (Deadline) <span class="text-red-500">*</span></label>
-                        <input type="date" name="Deadline" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" required>
+                        <input type="text" id="deadline-input" name="Deadline" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white cursor-pointer" placeholder="dd/mm/yyyy" required>
                     </div>
 
                     <div>
@@ -433,4 +433,21 @@ document.addEventListener('DOMContentLoaded', function () {
         salaryTypeEl.addEventListener('change', updateSalaryFieldsVisibility);
     }
 });
+</script>
+
+<!-- Flatpickr for Date inputs -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr("#deadline-input", {
+            altInput: true,
+            altFormat: "d/m/Y",
+            dateFormat: "Y-m-d",
+            locale: "vn",
+            minDate: "today",
+            allowInput: false // Disable manual keyboard input
+        });
+    });
 </script>

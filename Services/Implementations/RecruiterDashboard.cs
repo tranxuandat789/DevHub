@@ -38,7 +38,7 @@ namespace DevHub.Services.Implementations
             var interviews = await _dashboardRepo.GetInterviewsAsync(companyId);
 
             var scheduled = interviews
-                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED"; })
+                .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "SCHEDULED" || s == "CONFIRMED"; })
                 .ToList();
             var completed = interviews
                 .Where(i => { var s = (i.Status ?? "").ToUpper(); return s == "COMPLETED_PENDING"; })

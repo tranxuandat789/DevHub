@@ -28,7 +28,7 @@ namespace DevHub.Repositories.Implementations
         {
             var query = _context.Companies
                 .Include(r => r.ReviewCompanies.Where(rev => rev.Status == "APPROVED"))
-                .Where(r => r.ProfileCompletion >= 70);
+                .Where(r => r.ProfileCompletion >= 97 && r.IsVerified == true);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {

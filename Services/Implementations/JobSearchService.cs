@@ -81,6 +81,7 @@ public class JobSearchService : IJobSearchService
             Requirement    = job.Requirement,
             Benefit        = job.Benefit,
             TechNames      = job.Teches.Select(t => t.TechName).ToList(),
+            CompanyId      = job.CompanyId,
             CompanyName    = job.Company.CompanyName,
             CompanyLogoUrl = job.Company.CompanyLogoUrl,
             CompanyAddress = job.Company.CompanyAddress,

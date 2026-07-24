@@ -105,7 +105,7 @@
         <!-- Right: Documents preview -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Business License -->
-            <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6 flex flex-col min-h-[420px]">
+            <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6 flex flex-col min-h-[500px]">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-dark">Giấy phép kinh doanh</h3>
                     @if (!string.IsNullOrEmpty(Model.BusinessLicenseUrl))
@@ -148,31 +148,31 @@
             <!-- Additional Documents -->
             @if (!string.IsNullOrEmpty(Model.AdditionalDocumentsUrl))
             {
-                <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6 flex flex-col min-h-[420px]">
+                <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] p-6 flex flex-col">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-bold text-dark">Tài liệu bổ sung</h3>
-                        <a href="@Model.AdditionalDocumentsUrl" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Mở / Tải tài liệu
-                        </a>
                     </div>
-                    <div class="flex-1 w-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden relative">
-                        @if (addPreviewable)
+                    <div class="w-full bg-gray-50 rounded-lg border border-gray-200 p-6 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <div>
+                                <p class="text-sm font-medium text-dark">Tài liệu bổ sung đính kèm</p>
+                                <p class="text-xs text-muted">Định dạng: @addExt.ToUpper()</p>
+                            </div>
+                        </div>
+                        @if (addExt == "pdf")
                         {
-                            <iframe src="@Model.AdditionalDocumentsUrl" class="absolute inset-0 w-full h-full" title="Tài liệu bổ sung"></iframe>
+                            <a href="@Model.AdditionalDocumentsUrl" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                Mở trong tab mới
+                            </a>
                         }
                         else
                         {
-                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <p class="text-sm font-medium text-dark mb-1">Tài liệu bổ sung</p>
-                                <p class="text-xs text-muted mb-1">Định dạng <span class="font-semibold uppercase">@addExt</span> không thể xem trực tiếp trong trình duyệt.</p>
-                                <p class="text-xs text-muted mb-4">Vui lòng tải xuống để xem nội dung.</p>
-                                <a href="@Model.AdditionalDocumentsUrl" download class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                    Tải xuống (@addExt.ToUpper())
-                                </a>
-                            </div>
+                            <a href="@Model.AdditionalDocumentsUrl" download class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Tải xuống (@addExt.ToUpper())
+                            </a>
                         }
                     </div>
                 </div>

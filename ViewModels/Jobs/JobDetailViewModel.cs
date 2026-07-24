@@ -22,6 +22,7 @@ public class JobDetailViewModel
     public string? Requirement { get; set; }
     public string? Benefit { get; set; }
     public List<string> TechNames { get; set; } = new();
+    public int CompanyId { get; set; }
     public string CompanyName { get; set; } = string.Empty;
     public string? CompanyLogoUrl { get; set; }
     public string? CompanyAddress { get; set; }

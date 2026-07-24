@@ -86,7 +86,7 @@ namespace DevHub.Services.Implementations
                     JobId = a.JobId,
                     JobTitle = isCrossJob ? a.Job.Title : null,
                     JobStatus = a.Job.Status,
-                    HasScheduledInterview = a.Interviews.Any(i => i.Status == "scheduled")
+                    HasScheduledInterview = a.Interviews.Any(i => i.Status != "cancelled")
                 }).ToList(),
                 CountAll = counts.All,
                 CountPending = counts.Pending,
@@ -142,7 +142,7 @@ namespace DevHub.Services.Implementations
                 Status = (a.Status ?? "PENDING").ToUpper(),
                 JobStatus = (a.Job?.Status ?? "").ToUpper(),
                 AppliedAt = a.AppliedAt,
-                HasScheduledInterview = a.Interviews.Any(i => i.Status == "scheduled"),
+                HasScheduledInterview = a.Interviews.Any(i => i.Status != "cancelled"),
                 TotalApplicationsAtCompany = await _repo.CountApplicationsAtCompanyAsync(a.CandidateId, recruiterId)
             };
         }

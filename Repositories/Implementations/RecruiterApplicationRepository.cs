@@ -46,8 +46,8 @@ namespace DevHub.Repositories.Implementations
             {
                 if (filter.Status.ToUpper() == "INTERVIEWING")
                 {
-                    // Lọc ứng viên đang có lịch phỏng vấn scheduled
-                    q = q.Where(a => a.Interviews.Any(i => i.Status == "scheduled"));
+                    // Lọc ứng viên đang có lịch phỏng vấn không bị hủy
+                    q = q.Where(a => a.Interviews.Any(i => i.Status != "cancelled"));
                 }
                 else
                 {
@@ -147,8 +147,8 @@ namespace DevHub.Repositories.Implementations
             int hired = groups.Where(x => x.Status == "HIRED").Sum(x => x.Count);
             int rejected = groups.Where(x => x.Status == "REJECTED").Sum(x => x.Count);
 
-            // Đếm riêng ứng viên đang có lịch phỏng vấn scheduled
-            int interviewing = await q.CountAsync(a => a.Interviews.Any(i => i.Status == "scheduled"));
+            // Đếm riêng ứng viên đang có lịch phỏng vấn không bị hủy
+            int interviewing = await q.CountAsync(a => a.Interviews.Any(i => i.Status != "cancelled"));
 
             return (all, pending, approved, hired, rejected, interviewing);
         }

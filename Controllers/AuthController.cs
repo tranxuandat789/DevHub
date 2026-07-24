@@ -47,6 +47,7 @@ public class AuthController : Controller
     /// <returns>View trang đăng nhập hoặc chuyển hướng đến Dashboard nếu đã đăng nhập.</returns>
     [HttpGet("Auth/Login")]
     [HttpGet("Account/Login")]
+    // Hiển thị giao diện đăng nhập cho ứng viên.
     public IActionResult Login()
     {
         if (User.Identity?.IsAuthenticated == true)
@@ -105,6 +106,7 @@ public class AuthController : Controller
     [HttpPost("Auth/Login")]
     [HttpPost("Account/Login")]
     [ValidateAntiForgeryToken]
+    // Xử lý logic xác thực người dùng, kiểm tra mật khẩu, định tuyến lại theo quyền hạn, tạo phiên đăng nhập (Cookie).
     public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
     {
         var email = vm.Email?.Trim() ?? "";
@@ -650,12 +652,14 @@ public class AuthController : Controller
     }
 
     [HttpGet("Auth/ForgotPassword")]
+    // Hiển thị giao diện quên mật khẩu.
     public IActionResult ForgotPassword()
     {
         return View();
     }
 
     [HttpPost("Auth/ForgotPassword")]
+    // Xử lý khởi tạo mã OTP, lưu vào phiên và gửi email yêu cầu khôi phục mật khẩu.
     public async Task<IActionResult> ForgotPassword(string email)
     {
         if (string.IsNullOrEmpty(email))
@@ -748,6 +752,7 @@ public class AuthController : Controller
     }
 
     [HttpGet("Auth/ResetPassword")]
+    // Hiển thị giao diện đặt lại mật khẩu mới.
     public IActionResult ResetPassword()
     {
         var email = HttpContext.Session.GetString("ForgotPasswordEmail");
@@ -762,6 +767,7 @@ public class AuthController : Controller
     }
 
     [HttpPost("Auth/ResetPassword")]
+    // Cập nhật mật khẩu mới của người dùng vào cơ sở dữ liệu.
     public async Task<IActionResult> ResetPassword(string newPassword, string confirmPassword)
     {
         var email = HttpContext.Session.GetString("ForgotPasswordEmail");

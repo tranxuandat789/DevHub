@@ -1,3 +1,4 @@
+// Author: PhongDH
 using DevHub.Data;
 using DevHub.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +24,7 @@ namespace DevHub.Controllers.Moderator
 
         [HttpGet("")]
         [HttpGet("/ModeratorUser")]
+        // Truy vấn, tìm kiếm, lọc và phân trang danh sách người dùng trong hệ thống (ngoại trừ quản trị viên).
         public async Task<IActionResult> Index([FromQuery] DevHub.ViewModels.Moderator.UserManagementViewModel model)
         {
             if (!ModelState.IsValid)
@@ -90,6 +92,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("details/{id}")]
+        // Lấy thông tin chi tiết của người dùng và lịch sử các hành động quản trị (Audit Log) liên quan.
         public async Task<IActionResult> Details(int id)
         {
             var user = await _context.UserAccounts

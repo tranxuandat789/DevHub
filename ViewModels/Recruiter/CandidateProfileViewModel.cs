@@ -38,7 +38,14 @@ namespace DevHub.ViewModels.Recruiter
         // Status of the parent job. When the recruiter has just edited an APPROVED job it returns to
         // PENDING for moderator re-review; while it is PENDING the application is "frozen" (read-only).
         public string JobStatus { get; set; } = "";
-        public bool IsFrozen => (JobStatus ?? "").ToUpper() == "PENDING";
+        public bool IsFrozen
+        {
+            get
+            {
+                var js = (JobStatus ?? "").ToUpper();
+                return js == "PENDING" || js == "CLOSED" || js == "REJECTED";
+            }
+        }
 
         // Approve/Reject are blocked while the job is frozen (pending re-review).
         public bool CanApprove => (Status ?? "").ToUpper() == "PENDING" && !IsFrozen;

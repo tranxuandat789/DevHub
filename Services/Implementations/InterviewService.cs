@@ -30,6 +30,12 @@ public class InterviewService : IInterviewService
             
         if (application == null) throw new Exception("Không tìm thấy đơn ứng tuyển");
 
+        var jobStatus = (application?.Job?.Status ?? "").ToUpper();
+        if (jobStatus == "PENDING" || jobStatus == "CLOSED" || jobStatus == "REJECTED")
+        {
+            throw new Exception("Không thể tạo lịch phỏng vấn vì tin tuyển dụng đang ở trạng thái Chờ duyệt, Bị từ chối hoặc Đã đóng.");
+        }
+
         var meetingLink = interviewType.ToUpper() == "ONLINE" ? locationOrLink : null;
         var location = interviewType.ToUpper() == "OFFLINE" ? locationOrLink : null;
 

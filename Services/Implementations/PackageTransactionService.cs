@@ -55,9 +55,10 @@ public class PackageTransactionService : IPackageTransactionService
         };
 
         // Six month revenue calculation
-        // Calculate the total revenue for each of the first 6 months of the selected year
+        // Calculate the total revenue for the appropriate half of the year
         var sixMonthRevenues = new List<decimal>();
-        for (int i = 1; i <= 6; i++)
+        int startMonth = month <= 6 ? 1 : 7;
+        for (int i = startMonth; i <= startMonth + 5; i++)
         {
             var rev = allSuccess.Where(x => x.TransactionDate?.Month == i && x.TransactionDate?.Year == year).Sum(x => x.FinalAmount);
             sixMonthRevenues.Add(rev);
@@ -67,4 +68,3 @@ public class PackageTransactionService : IPackageTransactionService
         return viewModel;
     }
 }
-

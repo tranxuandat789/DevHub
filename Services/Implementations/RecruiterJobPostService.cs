@@ -196,18 +196,6 @@ public class RecruiterJobPostService : IRecruiterJobPostService
                     referenceId: createdJob.JobId,
                     referenceType: "JobPost"
                 );
-
-                var modAccount = await _userRepository.GetByIdAsync(assignedModId.Value);
-                if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
-                {
-                    string subject = "Bạn có công việc mới cần xử lý - DevHub";
-                    string content = $@"
-                        <p>Chào <strong>bạn</strong>,</p>
-                        <p>Bạn vừa được gán <strong>1 Tin tuyển dụng</strong> mới cần xét duyệt trên hệ thống DevHub.</p>
-                        <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
-                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
-                    await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
-                }
             }
         }
         catch
@@ -388,18 +376,6 @@ public class RecruiterJobPostService : IRecruiterJobPostService
                     referenceId: jobId,
                     referenceType: "JobPost"
                 );
-
-                var modAccount = await _userRepository.GetByIdAsync(existing.ModeratorId.Value);
-                if (modAccount != null && modAccount.EmailNotificationsEnabled && !string.IsNullOrEmpty(modAccount.Email))
-                {
-                    string subject = "Bạn có công việc cập nhật cần xử lý - DevHub";
-                    string content = $@"
-                        <p>Chào <strong>bạn</strong>,</p>
-                        <p>Bạn vừa được gán <strong>1 Tin tuyển dụng (cập nhật)</strong> cần xét duyệt lại trên hệ thống DevHub.</p>
-                        <p>Vui lòng đăng nhập vào hệ thống quản trị để kiểm tra và xử lý kịp thời.</p>";
-                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Công Việc Mới Trên DevHub", content);
-                    await _emailHelper.SendEmailAsync(modAccount.Email, subject, body);
-                }
             }
             catch
             {

@@ -161,7 +161,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
     <!-- Line Chart Placeholder -->
     <div class="lg:col-span-2 bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-6 border border-[#D6DDEB]">
-        <h3 class="font-bold text-dark text-lg mb-6">Biểu đồ Doanh thu Nửa đầu năm @Model.SelectedYear</h3>
+        <h3 class="font-bold text-dark text-lg mb-6">Biểu đồ Doanh thu Nửa @(Model.SelectedMonth <= 6 ? "đầu" : "cuối") năm @Model.SelectedYear</h3>
         <div class="h-64 flex items-end justify-between gap-2 border-b border-l border-gray-200 p-4 pb-0 pl-0 relative">
             <!-- Dynamic Bar Chart -->
             <div class="w-full h-full flex items-end justify-around pb-1">
@@ -169,7 +169,8 @@
                     decimal maxRev = Model.SixMonthRevenue.Any() ? Model.SixMonthRevenue.Max() : 0;
                     if (maxRev == 0) maxRev = 1; // Prevent division by zero
                     
-                    int currentMonth = 1;
+                    int startMonth = Model.SelectedMonth <= 6 ? 1 : 7;
+                    int currentMonth = startMonth;
                     foreach (var rev in Model.SixMonthRevenue)
                     {
                         var heightPercent = (rev / maxRev) * 100;
@@ -187,16 +188,18 @@
             </div>
         </div>
         <div class="flex justify-around text-xs text-muted mt-2 font-medium">
+            @{ int displayMonth = Model.SelectedMonth <= 6 ? 1 : 7; }
             @for (int i = 1; i <= 6; i++)
             {
-                if (i == Model.SelectedMonth)
+                if (displayMonth == Model.SelectedMonth)
                 {
-                    <span class="text-primary font-bold">Tháng @i</span>
+                    <span class="text-primary font-bold">Tháng @displayMonth</span>
                 }
                 else
                 {
-                    <span>Tháng @i</span>
+                    <span>Tháng @displayMonth</span>
                 }
+                displayMonth++;
             }
         </div>
     </div>

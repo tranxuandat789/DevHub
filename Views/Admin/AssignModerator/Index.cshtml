@@ -171,10 +171,35 @@
     </div>
 </div>
 
+<!-- Result Modal -->
+<div id="resultModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-[#D6DDEB] w-full max-w-md p-6 relative text-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-bold text-dark mb-2">Thành công!</h3>
+        <p id="resultModalMessage" class="text-muted text-sm mb-6"></p>
+        <button type="button" onclick="closeResultModal()" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all shadow-sm">
+            Đồng Ý
+        </button>
+    </div>
+</div>
+
 @section Scripts {
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <script>
+        function showResultModal(message) {
+            document.getElementById('resultModalMessage').innerText = message;
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+        }
+
         async function autoDistribute(taskType) {
             try {
                 // Fetch the suggested distribution from the API
@@ -198,10 +223,9 @@
                     }
                 }
 
-                alert(`Đã tự động phân chia ${updatedCount} ngành nghề. Vui lòng xem lại và bấm "Lưu Cấu Hình" để áp dụng.`);
+                showResultModal(`Đã tự động phân chia ${updatedCount} ngành nghề. Vui lòng xem lại và bấm "Lưu Cấu Hình" để áp dụng.`);
             } catch (err) {
                 console.error(err);
-                alert("Có lỗi xảy ra khi tự động phân chia.");
             }
         }
     </script>

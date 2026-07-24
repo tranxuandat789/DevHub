@@ -52,13 +52,31 @@
 
     @if (Model.IsFrozen)
     {
+        string freezeTitle = "";
+        string freezeMsg = "";
+        switch ((Model.JobStatus ?? "").ToUpper())
+        {
+            case "CLOSED":
+                freezeTitle = "Tin tuyển dụng đã đóng";
+                freezeMsg = "Tin tuyển dụng này đã đóng. Chức năng xử lý đơn ứng tuyển (phê duyệt, từ chối, trúng tuyển) đã bị vô hiệu hóa.";
+                break;
+            case "REJECTED":
+                freezeTitle = "Tin tuyển dụng bị từ chối";
+                freezeMsg = "Tin tuyển dụng này đã bị từ chối kiểm duyệt. Chức năng xử lý đơn ứng tuyển tạm thời bị vô hiệu hóa.";
+                break;
+            default: // PENDING
+                freezeTitle = "Tin tuyển dụng đang chờ kiểm duyệt";
+                freezeMsg = "Tin tuyển dụng đang ở trạng thái chờ duyệt. Chức năng xử lý ứng viên sẽ được mở lại sau khi tin được phê duyệt.";
+                break;
+        }
+
         <div class="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
             <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
             </svg>
             <div>
-                <p class="font-medium">Tin tuyển dụng đang chờ kiểm duyệt lại</p>
-                <p class="mt-0.5 text-yellow-700">Bạn vừa cập nhật tin này. Chức năng duyệt / từ chối ứng viên sẽ được mở lại sau khi kiểm duyệt viên phê duyệt tin. Đơn ứng tuyển vẫn được giữ nguyên.</p>
+                <p class="font-medium">@freezeTitle</p>
+                <p class="mt-0.5 text-yellow-700">@freezeMsg</p>
             </div>
         </div>
     }

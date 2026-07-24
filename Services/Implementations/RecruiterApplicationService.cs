@@ -159,8 +159,9 @@ namespace DevHub.Services.Implementations
             var (appCheck, jobStatus) = await _repo.GetApplicationWithJobStatusAsync(applicationId, recruiterId);
             if (appCheck == null)
                 return (false, "Đơn ứng tuyển không tồn tại hoặc bạn không có quyền truy cập.");
-            if ((jobStatus ?? "").ToUpper() == "PENDING")
-                return (false, "Tin tuyển dụng đang chờ kiểm duyệt lại. Vui lòng chờ sau khi tin được duyệt.");
+            var js = (jobStatus ?? "").ToUpper();
+            if (js == "PENDING" || js == "CLOSED" || js == "REJECTED")
+                return (false, "Không thể xử lý đơn ứng tuyển khi tin tuyển dụng đang ở trạng thái Chờ duyệt, Bị từ chối hoặc Đã đóng.");
 
             var app = await _repo.UpdateStatusIfPendingAsync(applicationId, recruiterId, "APPROVED");
             if (app == null)

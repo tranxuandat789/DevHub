@@ -39,27 +39,34 @@ namespace DevHub.Controllers.Admin
             // BR-MOD-02: Admin có quyền quản lý, theo dõi số lượng tài khoản mang role MODERATOR.
             viewModel.TotalModerators = await _context.UserAccounts.CountAsync(u => u.UserType == "Moderator");
 
-            viewModel.ActiveJobPosts = await _context.JobPosts.CountAsync(j => j.Status == "Active");
+            viewModel.ActiveJobPosts = await _context.JobPosts.CountAsync(j => j.Status == "APPROVED");
             viewModel.TotalAppliedCVs = await _context.Applications.CountAsync();
 
-            viewModel.TopRecruiters = await _context.Companies
+            // 2. Package Distribution
+            var packageTxns = await _context.PackageTransactions
+                .Where(t => t.Status.ToUpper() == "COMPLETED" || t.Status.ToUpper() == "SUCCESS")
+                .Include(t => t.Service)
+                .Include(t => t.Company)
+                .ToListAsync();
+
+            // 1. Top Recruiters
+            // Safest way: Calculate dynamically from actual successful transactions
+            viewModel.TopRecruiters = packageTxns
+                .Where(t => t.Company != null)
+                .GroupBy(t => new { t.CompanyId, t.Company.CompanyName })
+                .Select(g => new TopRecruiterDto
+                {
+                    RecruiterId = g.Key.CompanyId,
+                    CompanyName = g.Key.CompanyName ?? "Unknown",
+                    TotalSpent = g.Sum(x => x.FinalAmount)
+                })
                 .OrderByDescending(r => r.TotalSpent)
                 .Take(5)
-                .Select(r => new TopRecruiterDto
-                {
-                    RecruiterId = r.CompanyId,
-                    CompanyName = r.CompanyName,
-                    TotalSpent = r.TotalSpent ?? 0
-                }).ToListAsync();
+                .ToList();
 
-            // BR-PAY-01: Lọc và thống kê các giao dịch thanh toán mua gói dịch vụ (System package) thành công.
-            var packageDistribution = await _context.PackageTransactions
-                .Where(t => t.Status == "Completed" || t.Status == "Success")
-                .Include(t => t.Service)
-                .GroupBy(t => t.Service.PackageName)
-                .Select(g => new { PackageName = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.PackageName ?? "Unknown", x => x.Count);
-            viewModel.PackageDistribution = packageDistribution;
+            viewModel.PackageDistribution = packageTxns
+                .GroupBy(t => t.Service?.PackageName ?? "Unknown")
+                .ToDictionary(g => g.Key, g => g.Count());
 
             return View(viewModel);
         }

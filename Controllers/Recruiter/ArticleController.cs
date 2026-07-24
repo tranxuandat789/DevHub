@@ -1,3 +1,7 @@
+// =========================================================================
+// Chức năng quản lý bài viết cá nhân của Nhà tuyển dụng
+// Author: PhongDH
+// =========================================================================
 using DevHub.Models;
 using DevHub.Services.Interfaces;
 using DevHub.ViewModels.Recruiter;
@@ -30,6 +34,7 @@ namespace DevHub.Controllers.Recruiter
 
         [HttpGet("")]
         [HttpGet("Index")]
+        // Hiển thị danh sách bài viết, phân trang và tìm kiếm theo trạng thái, ngày tháng
         public async Task<IActionResult> Index(string keyword, string dateFrom, string status, string sortBy, int page = 1)
         {
             ViewData["ActiveMenu"] = "Articles";
@@ -98,6 +103,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpPost("CreatePost")]
+        // Tạo mới bài viết (nháp hoặc chờ duyệt)
         public async Task<IActionResult> CreatePost([FromForm] ArticleCreateViewModel model)
         {
             var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
@@ -208,6 +214,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpPost("EditPost/{id}")]
+        // Cập nhật nội dung bài viết
         public async Task<IActionResult> EditPost(int id, [FromForm] ArticleEditViewModel model)
         {
             var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
@@ -235,6 +242,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpPost("SubmitReview/{id}")]
+        // Gửi bài viết để Moderator duyệt
         public async Task<IActionResult> SubmitReview(int id)
         {
             var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
@@ -252,6 +260,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpPost("ToggleVisibility/{id}")]
+        // Bật/tắt hiển thị của bài viết đã được duyệt
         public async Task<IActionResult> ToggleVisibility(int id)
         {
             var recruiterIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";

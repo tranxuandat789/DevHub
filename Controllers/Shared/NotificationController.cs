@@ -1,3 +1,7 @@
+// =========================================================================
+// Chức năng xem và quản lý thông báo của hệ thống
+// Author: PhongDH
+// =========================================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -24,6 +28,7 @@ namespace DevHub.Controllers
         }
 
         [HttpGet("Recent")]
+        // Lấy danh sách thông báo mới nhất và đếm số thông báo chưa đọc
         public async Task<IActionResult> GetRecentNotifications([FromQuery] int limit = 10)
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -58,6 +63,7 @@ namespace DevHub.Controllers
         }
 
         [HttpPost("MarkAsRead/{id}")]
+        // Đánh dấu một thông báo là đã đọc
         public async Task<IActionResult> MarkAsRead(int id)
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out _))
@@ -68,6 +74,7 @@ namespace DevHub.Controllers
         }
 
         [HttpPost("MarkAllAsRead")]
+        // Đánh dấu toàn bộ thông báo của user hiện tại là đã đọc
         public async Task<IActionResult> MarkAllAsRead()
         {
             if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))

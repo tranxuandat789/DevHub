@@ -29,6 +29,7 @@ namespace DevHub.Controllers
         /// <summary>
         /// Hiển thị trang chủ với các dữ liệu nổi bật (việc làm, công ty, bài viết).
         /// </summary>
+        // Tải và xử lý dữ liệu các việc làm nổi bật, công ty tiêu biểu và bài blog để hiển thị ở trang chủ.
         public async Task<IActionResult> Index()
         {
             // Lấy danh sách 6 việc làm đã được duyệt (Approved)

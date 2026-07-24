@@ -1,3 +1,7 @@
+// =========================================================================
+// Chức năng quản lý và lên lịch phỏng vấn cho Nhà tuyển dụng
+// Author: PhongDH
+// =========================================================================
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Services.Interfaces;
@@ -33,6 +37,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpGet]
+        // Lấy danh sách lịch phỏng vấn, phân trang và đếm số lượng theo từng tab trạng thái
         public async Task<IActionResult> Index([FromQuery] int? jobId, [FromQuery] string tab = "all", [FromQuery] string search = "", [FromQuery] int page = 1)
         {
             var recruiterId = await GetRecruiterIdAsync();
@@ -251,6 +256,7 @@ namespace DevHub.Controllers.Recruiter
 
         [HttpPost("Create")]
         [IgnoreAntiforgeryToken]
+        // Tạo lịch phỏng vấn mới và gửi thông báo cho ứng viên
         public async Task<IActionResult> CreatePost([FromBody] InterviewDto model)
         {
             var recruiterId = await GetRecruiterIdAsync();
@@ -286,6 +292,7 @@ namespace DevHub.Controllers.Recruiter
 
         [HttpPost("Edit/{id}")]
         [IgnoreAntiforgeryToken]
+        // Cập nhật thông tin lịch phỏng vấn hiện tại
         public async Task<IActionResult> EditPost(int id, [FromBody] InterviewDto model)
         {
             var recruiterId = await GetRecruiterIdAsync();
@@ -309,6 +316,7 @@ namespace DevHub.Controllers.Recruiter
         }
 
         [HttpPost("UpdateStatus/{id}")]
+        // Cập nhật trạng thái phỏng vấn (Passed, Rejected, Cancelled)
         public async Task<IActionResult> UpdateStatus(int id, [FromQuery] string status, [FromQuery] string reason = "")
         {
             var recruiterId = await GetRecruiterIdAsync();

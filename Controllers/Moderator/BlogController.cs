@@ -1,3 +1,4 @@
+// Author: PhongDH
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.Services.Interfaces;
@@ -30,6 +31,7 @@ namespace DevHub.Controllers.Moderator
 
         [HttpGet("")]
         [HttpGet("Index")]
+        // Lấy danh sách bài viết blog đã được lọc dựa trên phân trang, từ khóa và trạng thái (dành cho Moderator).
         public async Task<IActionResult> Index(string keyword, string dateFrom, string status, string sortBy, int page = 1)
         {
             int pageSize = 10;
@@ -251,6 +253,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpPost("ToggleVisibility/{id}")]
+        // Chuyển đổi trạng thái hiển thị/ẩn của blog và ghi nhận lịch sử thay đổi (Audit Log).
         public async Task<IActionResult> ToggleVisibility(int id)
         {
             var blog = await _blogPostService.GetPostByIdAsync(id);

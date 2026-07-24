@@ -1,3 +1,7 @@
+// =========================================================================
+// Chức năng xem và phản hồi lịch phỏng vấn cho Ứng viên
+// Author: PhongDH
+// =========================================================================
 using DevHub.Data;
 using DevHub.Models;
 using DevHub.ViewModels.Candidate;
@@ -26,6 +30,7 @@ namespace DevHub.Controllers.Candidate
         }
 
         [HttpGet]
+        // Xem danh sách lịch phỏng vấn của ứng viên, lọc theo công việc và trạng thái
         public async Task<IActionResult> Index([FromQuery] int? jobId, [FromQuery] string tab = "all", [FromQuery] int page = 1)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -129,6 +134,7 @@ namespace DevHub.Controllers.Candidate
 
         [HttpPost("confirm/{id:int}")]
         [IgnoreAntiforgeryToken]
+        // Xác nhận tham gia phỏng vấn và gửi thông báo, email cho nhà tuyển dụng
         public async Task<IActionResult> ConfirmAttendance(int id)
         {
             try
@@ -208,6 +214,7 @@ namespace DevHub.Controllers.Candidate
 
         [HttpPost("cancel/{id:int}")]
         [IgnoreAntiforgeryToken]
+        // Từ chối/hủy tham gia phỏng vấn kèm lý do, gửi thông báo cho nhà tuyển dụng
         public async Task<IActionResult> CancelAttendance(int id, [FromForm] string reason)
         {
             try

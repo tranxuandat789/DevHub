@@ -1,3 +1,7 @@
+// =========================================================================
+// Chức năng kiểm duyệt bài viết cho Moderator
+// Author: PhongDH
+// =========================================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -28,6 +32,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
+        // Lấy danh sách bài viết để kiểm duyệt, hỗ trợ phân trang và lọc theo trạng thái, từ khóa
         public async Task<IActionResult> Index(string? keyword, string? dateFrom, string? status, string? companyName, int page = 1)
         {
             const int pageSize = 10;
@@ -54,6 +59,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpPost("hide/{id}")]
+        // Ẩn bài viết, ghi log và gửi thông báo kèm email cho nhà tuyển dụng
         public async Task<IActionResult> Hide(int id, [FromForm] string reason)
         {
             var moderatorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -138,6 +144,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpPost("approve/{id}")]
+        // Duyệt bài viết và thông báo cho nhà tuyển dụng
         public async Task<IActionResult> Approve(int id)
         {
             var moderatorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -383,6 +390,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpPost("reject-pending/{id}")]
+        // Từ chối bài viết đang chờ duyệt và thông báo lý do
         public async Task<IActionResult> RejectPending(int id, [FromForm] string reason)
         {
             var moderatorIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

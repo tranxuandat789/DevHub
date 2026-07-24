@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            @if (Model.Status == "scheduled" || Model.Status == "confirmed" || Model.Status == "completed_pending")
+            @if (Model.Status == "scheduled" || Model.Status == "confirmed")
             {
                 <a href="/Recruiter/RecruiterInterview/Edit/@Model.InterviewId" class="px-4 py-2.5 bg-white border border-gray-200 text-dark font-bold rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm">
                     Chỉnh sửa lịch

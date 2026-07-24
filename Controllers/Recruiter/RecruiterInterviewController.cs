@@ -81,7 +81,8 @@ namespace DevHub.Controllers.Recruiter
             }
 
         
-            var now = DateTime.Now;
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
             // Calculate counts for tabs
             var allInterviews = await query.ToListAsync();
 
@@ -206,6 +207,19 @@ namespace DevHub.Controllers.Recruiter
 
             if (interview == null) return NotFound();
 
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
+            if ((interview.Status == "scheduled" || interview.Status == "confirmed") && interview.ScheduledTime < now)
+            {
+                interview.Status = "completed_pending";
+            }
+
+            if (interview.Status == "completed_pending") 
+            {
+                // Can't edit completed pending
+                return RedirectToAction("Details", new { id = id });
+            }
+
             return View("~/Views/Recruiter/RecruiterInterview/Edit.cshtml", interview);
         }
         
@@ -226,6 +240,13 @@ namespace DevHub.Controllers.Recruiter
                 .FirstOrDefaultAsync(i => i.InterviewId == id && i.Application.Job.CompanyId == companyId);
 
             if (interview == null) return NotFound();
+
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
+            if ((interview.Status == "scheduled" || interview.Status == "confirmed") && interview.ScheduledTime < now)
+            {
+                interview.Status = "completed_pending";
+            }
 
             return View("~/Views/Recruiter/RecruiterInterview/Details.cshtml", interview);
         }
@@ -269,7 +290,9 @@ namespace DevHub.Controllers.Recruiter
             var fieldErrors = new Dictionary<string, string>();
             if (model.ApplicationId <= 0)
                 fieldErrors["applicationId"] = "Vui lòng chọn ứng viên.";
-            if (model.InterviewDate == default || model.InterviewDate <= DateTime.Now)
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
+            if (model.InterviewDate == default || model.InterviewDate <= now)
                 fieldErrors["interviewDate"] = "Vui lòng chọn thời gian trong tương lai.";
             if (string.IsNullOrWhiteSpace(model.InterviewType))
                 fieldErrors["interviewType"] = "Vui lòng chọn hình thức phỏng vấn.";
@@ -301,8 +324,16 @@ namespace DevHub.Controllers.Recruiter
             if (model == null || string.IsNullOrEmpty(model.InterviewType) || string.IsNullOrEmpty(model.LocationOrLink))
                 return BadRequest(new { success = false, message = "Vui lòng nhập đầy đủ thông tin bắt buộc." });
 
-            if (model.InterviewDate <= DateTime.Now)
+            var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
+            if (model.InterviewDate <= now)
                 return BadRequest(new { success = false, message = "Thời gian phỏng vấn phải lớn hơn thời gian hiện tại." });
+
+            var currentInterview = await _context.Interviews.FirstOrDefaultAsync(i => i.InterviewId == id);
+            if (currentInterview != null && (currentInterview.Status == "scheduled" || currentInterview.Status == "confirmed") && currentInterview.ScheduledTime <= now)
+            {
+                return BadRequest(new { success = false, message = "Không thể chỉnh sửa lịch phỏng vấn đã qua thời gian dự kiến." });
+            }
 
             try
             {

@@ -1,24 +1,24 @@
 //12/07/2026 PhongDH
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using DevHub.Data;
 using DevHub.Models;
+using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace DevHub.Services.Implementations;
 
 public class InterviewService : IInterviewService
 {
-    private readonly ItrecruitmentDbContext _context;
+    private readonly IInterviewRepository _interviewRepository;
     private readonly ILogger<InterviewService> _logger;
     private readonly DevHub.Helpers.EmailHelper _emailHelper;
     private readonly INotificationService _notificationService;
 
-    public InterviewService(ItrecruitmentDbContext context, ILogger<InterviewService> logger, DevHub.Helpers.EmailHelper emailHelper, INotificationService notificationService)
+    public InterviewService(IInterviewRepository interviewRepository, ILogger<InterviewService> logger, DevHub.Helpers.EmailHelper emailHelper, INotificationService notificationService)
     {
-        _context = context;
+        _interviewRepository = interviewRepository;
         _logger = logger;
         _emailHelper = emailHelper;
         _notificationService = notificationService;
@@ -26,10 +26,7 @@ public class InterviewService : IInterviewService
 
     public async Task<Interview> CreateInterviewAsync(int recruiterId, int applicationId, DateTime scheduledTime, string interviewType, string locationOrLink, string? notes)
     {
-        var application = await _context.Applications
-            .Include(a => a.Job)
-            .Include(a => a.Candidate).ThenInclude(c => c.CandidateNavigation)
-            .FirstOrDefaultAsync(a => a.ApplicationId == applicationId);
+        var application = await _interviewRepository.GetApplicationForInterviewAsync(applicationId);
             
         if (application == null) throw new Exception("Không tìm thấy đơn ứng tuyển");
 
@@ -50,8 +47,7 @@ public class InterviewService : IInterviewService
             CreatedAt = DateTime.Now
         };
 
-        _context.Interviews.Add(interview);
-        await _context.SaveChangesAsync();
+        await _interviewRepository.AddInterviewAsync(interview);
 
         // Create notification for candidate
         try
@@ -113,10 +109,7 @@ public class InterviewService : IInterviewService
 
     public async Task<Interview> UpdateInterviewAsync(int recruiterId, int interviewId, DateTime scheduledTime, string interviewType, string locationOrLink, string? notes, string? reasonForChange = null)
     {
-        var interview = await _context.Interviews
-            .Include(i => i.Application).ThenInclude(a => a.Job)
-            .Include(i => i.Candidate).ThenInclude(c => c.CandidateNavigation)
-            .FirstOrDefaultAsync(i => i.InterviewId == interviewId && i.Application.Job.CompanyId == _context.Recruiters.Where(r => r.RecruiterId == recruiterId).Select(r => r.CompanyId).FirstOrDefault());
+        var interview = await _interviewRepository.GetInterviewForRecruiterAsync(interviewId, recruiterId);
         if (interview == null)
             throw new Exception("Interview not found");
 
@@ -130,9 +123,15 @@ public class InterviewService : IInterviewService
         interview.MeetingLink = meetingLink;
         interview.Location = location;
         interview.Notes = notes;
+        
+        if (interview.Status == "cancelled")
+        {
+            interview.Status = "scheduled";
+        }
+        
         interview.UpdatedAt = DateTime.Now;
 
-        await _context.SaveChangesAsync();
+        await _interviewRepository.UpdateAsync(interview);
 
         // Luôn gửi thông báo/email khi có bất kỳ thay đổi nào
         try
@@ -141,7 +140,7 @@ public class InterviewService : IInterviewService
             var title = interview.Application?.Job?.Title ?? "công việc";
             var reasonText = string.IsNullOrWhiteSpace(reasonForChange) ? "Không có lý do cụ thể." : reasonForChange;
             
-            var notifMessage = $"Nhà tuyển dụng đã cập nhật lịch phỏng vấn cho vị trí bạn ứng tuyển. Vui lòng kiểm tra kỹ thông tin bên dưới và đảm bảo có mặt đúng thời gian theo lịch mới. Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ trực tiếp với nhà tuyển dụng để được hỗ trợ. Lý do thay đổi: {reasonText}";
+            var notifMessage = $"Nhà tuyển dụng đã cập nhật lịch phỏng vấn cho vị trí bạn ứng tuyển. Vui lòng kiểm tra kỹ thông tin bên dưới và đảm bảo có mặt đúng thời gian theo lịch mới. Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ trực tiếp với nhà tuyển dụng để được hỗ trợ.\n\nLý do thay đổi: {reasonText}";
 
             await _notificationService.SendNotificationAsync(
                 userId: interview.CandidateId,
@@ -191,10 +190,7 @@ public class InterviewService : IInterviewService
 
     public async Task<bool> UpdateStatusAsync(int recruiterId, int interviewId, string status, string? reason = null)
     {
-        var interview = await _context.Interviews
-            .Include(i => i.Application).ThenInclude(a => a.Job)
-            .Include(i => i.Candidate).ThenInclude(c => c.CandidateNavigation)
-            .FirstOrDefaultAsync(i => i.InterviewId == interviewId && i.Application.Job.CompanyId == _context.Recruiters.Where(r => r.RecruiterId == recruiterId).Select(r => r.CompanyId).FirstOrDefault());
+        var interview = await _interviewRepository.GetInterviewForRecruiterAsync(interviewId, recruiterId);
             
         if (interview == null)
             return false;
@@ -214,7 +210,7 @@ public class InterviewService : IInterviewService
         }
 
         interview.UpdatedAt = DateTime.Now;
-        await _context.SaveChangesAsync();
+        await _interviewRepository.UpdateAsync(interview);
 
         if (status == "cancelled")
         {
@@ -317,9 +313,7 @@ public class InterviewService : IInterviewService
 
     public async Task SyncInterviewStatusesAsync()
     {
-        var pastScheduledInterviews = await _context.Interviews
-            .Where(i => (i.Status == "scheduled" || i.Status == "confirmed") && i.ScheduledTime < DateTime.Now)
-            .ToListAsync();
+        var pastScheduledInterviews = await _interviewRepository.GetPastScheduledInterviewsAsync();
 
         if (pastScheduledInterviews.Any())
         {
@@ -328,7 +322,7 @@ public class InterviewService : IInterviewService
                 interview.Status = "completed_pending";
                 interview.UpdatedAt = DateTime.Now;
             }
-            await _context.SaveChangesAsync();
+            await _interviewRepository.UpdateRangeAsync(pastScheduledInterviews);
         }
     }
 }

@@ -1,6 +1,7 @@
 //KienHM-03/06/2026
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevHub.Controllers.Moderator
 {
@@ -20,21 +21,39 @@ namespace DevHub.Controllers.Moderator
 
         // 2. Action Index hiển thị danh sách (có hỗ trợ tìm kiếm và lọc)
         [HttpGet("")]
-        public async Task<IActionResult> Index(string keyword = "", string status = "", int page = 1)
+        public async Task<IActionResult> Index(string keyword = "", string status = "", string category = "", string sortOrder = "asc", int page = 1)
         {
             var techs = await _techService.GetAllTechsAsync();
 
-            // Tìm kiếm theo tên
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 techs = techs.Where(t => t.TechName.Contains(keyword, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
-            // Lọc theo trạng thái
             if (!string.IsNullOrWhiteSpace(status))
             {
                 bool isActive = status == "1";
-                techs = techs.Where(t => (t.IsActive ?? true) == isActive).ToList();
+                techs = techs.Where(t => t.IsActive == isActive).ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                techs = techs.Where(t => t.Category == category).ToList();
+            }
+
+            if (sortOrder == "desc")
+            {
+                techs = techs
+                    .OrderByDescending(t => t.DisplayOrder)
+                    .ThenBy(t => t.TechName)
+                    .ToList();
+            }
+            else
+            {
+                techs = techs
+                    .OrderBy(t => t.DisplayOrder)
+                    .ThenBy(t => t.TechName)
+                    .ToList();
             }
 
             int pageSize = 10;
@@ -45,9 +64,17 @@ namespace DevHub.Controllers.Moderator
             if (page > totalPages && totalPages > 0) page = totalPages;
 
             var pagedTechs = techs.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            
+            // Get job counts
+            var jobCounts = await _db.CommonTechnologies
+                .Select(t => new { t.TechId, Count = t.Jobs.Count })
+                .ToDictionaryAsync(x => x.TechId, x => x.Count);
+            ViewBag.JobCounts = jobCounts;
 
             ViewData["Keyword"] = keyword;
             ViewData["Status"] = status;
+            ViewData["Category"] = category;
+            ViewData["SortOrder"] = sortOrder;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
@@ -64,7 +91,7 @@ namespace DevHub.Controllers.Moderator
 
         // 4. Action xử lý POST khi lưu form Create
         [HttpPost("Create")]
-        public async Task<IActionResult> Create([FromForm] string techName, [FromForm] string category, [FromForm] bool isActive = false)
+        public async Task<IActionResult> Create([FromForm] string techName, [FromForm] string category, [FromForm] bool isActive = true, [FromForm] int displayOrder = 1)
         {
             if (string.IsNullOrWhiteSpace(techName))
             {
@@ -113,7 +140,7 @@ namespace DevHub.Controllers.Moderator
 
         // 4. Action xử lý POST khi lưu form Edit
         [HttpPost("edit/{id}")]
-        public async Task<IActionResult> Edit(int id, [FromForm] string techName, [FromForm] bool isActive = false)
+        public async Task<IActionResult> Edit(int id, [FromForm] string techName, [FromForm] bool isActive = false, [FromForm] int displayOrder = 1)
         {
             var tech = await _techService.GetTechByIdAsync(id);
             if (tech == null) return NotFound();
@@ -134,6 +161,7 @@ namespace DevHub.Controllers.Moderator
 
             tech.TechName = techName.Trim();
             tech.IsActive = isActive;
+            tech.DisplayOrder = displayOrder;
             await _techService.UpdateTechAsync(tech); // Gọi Service xử lý lưu vào DB thông qua Repository
 
             var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -164,6 +192,30 @@ namespace DevHub.Controllers.Moderator
             await _db.SaveChangesAsync();
 
             return Json(new { success = true, message = $"Cập nhật trạng thái thành công công nghệ #{id}!" });
+        }
+
+        [HttpPost("update-order/{id}")]
+        public async Task<IActionResult> UpdateOrder(int id, [FromForm] int displayOrder)
+        {
+            try {
+                var tech = await _techService.GetTechByIdAsync(id);
+                if (tech == null) return NotFound();
+
+                int oldOrder = tech.DisplayOrder;
+                tech.DisplayOrder = displayOrder;
+                await _techService.UpdateTechAsync(tech);
+
+                var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(modIdClaim, out int modId);
+                _db.AuditLogs.Add(new DevHub.Models.AuditLog {
+                    UserId = modId, UserType = "Moderator", Action = "Cập nhật thứ tự công nghệ", EntityType = "CommonTechnology", EntityId = id, OldValue = oldOrder.ToString(), NewValue = displayOrder.ToString(), CreatedAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+
+                return Json(new { success = true, message = $"Cập nhật thứ tự thành công công nghệ #{id}!" });
+            } catch (Exception ex) {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

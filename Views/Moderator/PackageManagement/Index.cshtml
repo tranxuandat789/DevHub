@@ -41,9 +41,12 @@
             <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp theo</label>
             <select name="sortOrder" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
                 <option value="newest" selected="@(sortOrder == "newest")">Mới nhất</option>
+               
                 <option value="price_asc" selected="@(sortOrder == "price_asc")">Giá (Thấp đến cao)</option>
                 <option value="price_desc" selected="@(sortOrder == "price_desc")">Giá (Cao đến thấp)</option>
                 <option value="duration_desc" selected="@(sortOrder == "duration_desc")">Thời hạn (Dài nhất)</option>
+                <option value="users_desc" selected="@(sortOrder == "users_desc")">Người dùng (Nhiều nhất)</option>
+                <option value="users_asc" selected="@(sortOrder == "users_asc")">Người dùng (Ít nhất)</option>
             </select>
         </div>
         <div>
@@ -63,6 +66,7 @@
                     <th class="py-4 px-6 text-dark font-bold text-sm text-right">Giá(VNĐ)</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center">Giới hạn bài</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center">Thời hạn</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm text-center">Người dùng</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Trạng thái</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
                 </tr>
@@ -81,6 +85,9 @@
                             <td class="py-4 px-6 text-right font-bold text-primary">@item.Price.ToString("N0")</td>
                             <td class="py-4 px-6 text-center text-muted">@(item.MaxPosts > 0 ? $"{item.MaxPosts} bài" : "Không giới hạn")</td>
                             <td class="py-4 px-6 text-center text-muted">@(item.DurationDays > 0 ? $"{item.DurationDays} ngày" : "Vĩnh viễn")</td>
+                            <td class="py-4 px-6 text-center font-bold text-primary">
+                                @(item.CompanyPackageHistories?.Count(h => h.IsActive == true) ?? 0)
+                            </td>
                             <td class="py-4 px-6">
                                 @if (item.IsActive == true)
                                 {
@@ -95,7 +102,11 @@
                                     </span>
                                 }
                             </td>
-                            <td class="py-4 px-6 text-center space-x-1">
+                            <td class="py-4 px-6">
+                                <div class="flex items-center justify-center space-x-1 w-max mx-auto">
+                                <button onclick="openDetailModal(@item.ServiceId)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors" title="Chi tiết">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </button>
                                 <a href="/ModeratorPackage/Edit/@item.ServiceId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </a>
@@ -119,6 +130,7 @@
                                         </button>
                                     </form>
                                 }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -126,7 +138,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" class="py-4 px-6 text-center text-muted">Không tìm thấy dữ liệu.</td>
+                        <td colspan="8" class="py-4 px-6 text-center text-muted">Không tìm thấy dữ liệu.</td>
                     </tr>
                 }
             </tbody>
@@ -134,8 +146,8 @@
     </div>
 
     <!-- Pagination -->
-    @if (totalPages > 1)
-    {
+    
+    
         <div class="flex items-center justify-between px-6 py-4 border-t border-[#D6DDEB]">
             <div class="text-sm text-muted">
                 Hiển thị trang @currentPage / @totalPages (@totalCount gói dịch vụ)
@@ -143,7 +155,19 @@
             <div class="flex space-x-1">
                 <a href="/ModeratorPackage?page=@(currentPage - 1)&searchTerm=@searchTerm&statusFilter=@statusFilter&sortOrder=@sortOrder" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 @(currentPage <= 1 ? "pointer-events-none opacity-50" : "")">Trang trước</a>
                 
-                @for (int i = 1; i <= totalPages; i++)
+                @{
+                    int maxPages = 4;
+                    int startPage = Math.Max(1, currentPage - (maxPages / 2));
+                    int endPage = startPage + maxPages - 1;
+                    
+                    if (endPage > totalPages)
+                    {
+                        endPage = totalPages;
+                        startPage = Math.Max(1, endPage - maxPages + 1);
+                    }
+                }
+                
+                @for (int i = startPage; i <= endPage; i++)
                 {
                     <a href="/ModeratorPackage?page=@i&searchTerm=@searchTerm&statusFilter=@statusFilter&sortOrder=@sortOrder" class="px-3 py-1 border border-[#D6DDEB] rounded @(i == currentPage ? "bg-primary text-white" : "text-muted hover:bg-gray-50")">@i</a>
                 }
@@ -151,7 +175,64 @@
                 <a href="/ModeratorPackage?page=@(currentPage + 1)&searchTerm=@searchTerm&statusFilter=@statusFilter&sortOrder=@sortOrder" class="px-3 py-1 border border-[#D6DDEB] rounded text-muted hover:bg-gray-50 @(currentPage >= totalPages ? "pointer-events-none opacity-50" : "")">Trang sau</a>
             </div>
         </div>
-    }
+    
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 z-[200] hidden bg-black bg-opacity-50 flex items-center justify-center px-4 py-8">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+        <button onclick="closeDetailModal()" class="absolute top-4 right-4 text-gray-400 hover:text-dark">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <h3 class="text-2xl font-bold text-dark mb-6" id="detailModalTitle">Chi tiết gói dịch vụ</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Tên gói</p>
+                <p class="text-dark font-semibold" id="detailPackageName">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Tiêu đề (Hiển thị UI)</p>
+                <p class="text-dark font-semibold" id="detailTitle">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Giá bán (VNĐ)</p>
+                <p class="text-primary font-bold" id="detailPrice">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Credit</p>
+                <p class="text-dark font-semibold" id="detailCredit">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Giới hạn số bài đăng</p>
+                <p class="text-dark font-semibold" id="detailMaxPosts">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Thời hạn sử dụng</p>
+                <p class="text-dark font-semibold" id="detailDuration">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Ưu tiên đẩy bài (Priority Push)</p>
+                <p class="text-dark font-semibold" id="detailPriorityPush">-</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Trợ lý AI (AI Chatbot)</p>
+                <p class="text-dark font-semibold" id="detailHasAiChatbot">-</p>
+            </div>
+        </div>
+
+        <div class="space-y-6 border-t border-gray-200 pt-6">
+            <div>
+                <h4 class="text-lg font-bold text-dark mb-2">Mô tả</h4>
+                <div class="text-muted text-sm whitespace-pre-wrap" id="detailDescription"></div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3 mt-8 border-t border-gray-200 pt-6">
+            <button onclick="closeDetailModal()" class="px-5 py-2.5 rounded-lg border border-[#D6DDEB] text-dark font-medium hover:bg-gray-50 transition-colors">Đóng</button>
+        </div>
+    </div>
 </div>
 
 <!-- Custom Confirm Modal -->
@@ -173,6 +254,35 @@
 
 @section Scripts {
     <script>
+        async function openDetailModal(id) {
+            try {
+                const res = await fetch(`/moderator/packages/detail/${id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('detailModalTitle').innerText = `Chi tiết gói #${data.serviceId}`;
+                    document.getElementById('detailPackageName').innerText = data.packageName || "-";
+                    document.getElementById('detailTitle').innerText = data.title || "-";
+                    document.getElementById('detailPrice').innerText = new Intl.NumberFormat('vi-VN').format(data.price);
+                    document.getElementById('detailCredit').innerText = data.credit || "0";
+                    document.getElementById('detailMaxPosts').innerText = data.maxPosts > 0 ? `${data.maxPosts} bài` : "Không giới hạn";
+                    document.getElementById('detailDuration').innerText = data.durationDays > 0 ? `${data.durationDays} ngày` : "Vĩnh viễn";
+                    document.getElementById('detailPriorityPush').innerText = data.priorityPush || "0";
+                    document.getElementById('detailHasAiChatbot').innerText = data.hasAiChatbot ? "Có" : "Không";
+                    document.getElementById('detailDescription').innerHTML = data.description ? data.description.replace(/\n/g, '<br>') : "<i>Chưa cập nhật mô tả</i>";
+
+                    document.getElementById('detailModal').classList.remove('hidden');
+                } else {
+                    console.error('Không thể lấy thông tin gói.');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
         let currentForm = null;
         function showConfirmModal(btn, message) {
             currentForm = btn.closest('form');

@@ -21,7 +21,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> Index(string keyword = "", string status = "", string region = "", int page = 1)
+        public async Task<IActionResult> Index(string keyword = "", string status = "", string region = "", string sortOrder = "asc", int page = 1)
         {
             var provinces = await _provinceService.GetAllProvincesAsync();
 
@@ -38,13 +38,24 @@ namespace DevHub.Controllers.Moderator
 
             if (!string.IsNullOrWhiteSpace(region))
             {
-                var northProvinces = new[] { "Hà Nội", "Vĩnh Phúc", "Bắc Ninh", "Hà Nam", "Hải Dương", "Hưng Yên", "Hải Phòng", "Nam Định", "Ninh Bình", "Thái Bình", "Hà Giang", "Cao Bằng", "Bắc Kạn", "Lạng Sơn", "Tuyên Quang", "Thái Nguyên", "Phú Thọ", "Bắc Giang", "Quảng Ninh", "Lào Cai", "Yên Bái", "Điện Biên", "Hòa Bình", "Hoà Bình", "Lai Châu", "Sơn La" };
-                var centralProvinces = new[] { "Thanh Hóa", "Thanh Hoá", "Nghệ An", "Hà Tĩnh", "Quảng Bình", "Quảng Trị", "Thừa Thiên", "Huế", "Đà Nẵng", "Quảng Nam", "Quảng Ngãi", "Bình Định", "Phú Yên", "Khánh Hòa", "Khánh Hoà", "Ninh Thuận", "Bình Thuận", "Kon Tum", "Gia Lai", "Đắk Lắk", "Đăk Lăk", "Đắk Nông", "Đăk Nông", "Lâm Đồng" };
-                var southProvinces = new[] { "Bình Phước", "Bình Dương", "Đồng Nai", "Tây Ninh", "Bà Rịa", "Vũng Tàu", "Hồ Chí Minh", "HCM", "Long An", "Đồng Tháp", "Tiền Giang", "An Giang", "Bến Tre", "Vĩnh Long", "Trà Vinh", "Hậu Giang", "Kiên Giang", "Sóc Trăng", "Bạc Liêu", "Cà Mau", "Cần Thơ" };
+                if (region == "North") provinces = provinces.Where(p => p.Region == "North").ToList();
+                else if (region == "Central") provinces = provinces.Where(p => p.Region == "Central").ToList();
+                else if (region == "South") provinces = provinces.Where(p => p.Region == "South").ToList();
+            }
 
-                if (region == "North") provinces = provinces.Where(p => northProvinces.Any(n => p.ProvinceName.Contains(n, StringComparison.OrdinalIgnoreCase))).ToList();
-                else if (region == "Central") provinces = provinces.Where(p => centralProvinces.Any(c => p.ProvinceName.Contains(c, StringComparison.OrdinalIgnoreCase))).ToList();
-                else if (region == "South") provinces = provinces.Where(p => southProvinces.Any(s => p.ProvinceName.Contains(s, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (sortOrder == "desc")
+            {
+                provinces = provinces
+                    .OrderByDescending(p => p.DisplayOrder)
+                    .ThenBy(p => p.ProvinceName)
+                    .ToList();
+            }
+            else
+            {
+                provinces = provinces
+                    .OrderBy(p => p.DisplayOrder)
+                    .ThenBy(p => p.ProvinceName)
+                    .ToList();
             }
 
             int pageSize = 10;
@@ -59,6 +70,7 @@ namespace DevHub.Controllers.Moderator
             ViewData["Keyword"] = keyword;
             ViewData["Status"] = status;
             ViewData["Region"] = region;
+            ViewData["SortOrder"] = sortOrder;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
@@ -73,7 +85,7 @@ namespace DevHub.Controllers.Moderator
         }
 
         [HttpPost("Create")]
-        public async Task<IActionResult> Create([FromForm] string provinceName)
+        public async Task<IActionResult> Create([FromForm] string provinceName, [FromForm] string region, [FromForm] int? displayOrder)
         {
             if (string.IsNullOrWhiteSpace(provinceName))
             {
@@ -92,7 +104,9 @@ namespace DevHub.Controllers.Moderator
             var newProvince = new Province
             {
                 ProvinceName = provinceName.Trim(),
-                IsActive = true
+                Region = string.IsNullOrWhiteSpace(region) ? null : region,
+                IsActive = true,
+                DisplayOrder = displayOrder ?? 999
             };
             
             await _provinceService.AddProvinceAsync(newProvince);
@@ -124,6 +138,36 @@ namespace DevHub.Controllers.Moderator
             await _db.SaveChangesAsync();
 
             return Json(new { success = true, message = $"Cập nhật trạng thái thành công tỉnh/thành phố #{id}!" });
+        }
+        [HttpPost("update-order/{id}")]
+        public async Task<IActionResult> UpdateOrder(int id, [FromForm] int displayOrder)
+        {
+            try {
+                System.IO.File.AppendAllText("devhub_debug.log", $"UpdateOrder called for id={id}, displayOrder={displayOrder}\n");
+                var province = await _provinceService.GetProvinceByIdAsync(id);
+                if (province == null) {
+                    System.IO.File.AppendAllText("devhub_debug.log", $"Province {id} not found\n");
+                    return NotFound();
+                }
+
+                int oldOrder = province.DisplayOrder;
+                province.DisplayOrder = displayOrder;
+                await _provinceService.UpdateProvinceAsync(province);
+                System.IO.File.AppendAllText("devhub_debug.log", $"Province updated\n");
+
+                var modIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(modIdClaim, out int modId);
+                _db.AuditLogs.Add(new AuditLog {
+                    UserId = modId, UserType = "Moderator", Action = "Cập nhật thứ tự tỉnh/thành phố", EntityType = "Province", EntityId = id, OldValue = oldOrder.ToString(), NewValue = displayOrder.ToString(), CreatedAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+                System.IO.File.AppendAllText("devhub_debug.log", $"Audit log saved\n");
+
+                return Json(new { success = true, message = $"Cập nhật thứ tự thành công tỉnh/thành phố #{id}!" });
+            } catch (Exception ex) {
+                System.IO.File.AppendAllText("devhub_debug.log", $"ERROR: {ex}\n");
+                throw;
+            }
         }
     }
 }

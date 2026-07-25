@@ -364,6 +364,9 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.TechName)
                 .HasMaxLength(100)
                 .HasColumnName("tech_name");
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(1)
+                .HasColumnName("display_order");
         });
 
         modelBuilder.Entity<Cv>(entity =>
@@ -587,6 +590,12 @@ public partial class ItrecruitmentDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
+            entity.Property(e => e.DisplayOrder)
+                .HasDefaultValue(999)
+                .HasColumnName("display_order");
+            entity.Property(e => e.Region)
+                .HasMaxLength(50)
+                .HasColumnName("region");
         });
 
         modelBuilder.Entity<Notification>(entity =>

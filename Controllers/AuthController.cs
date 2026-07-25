@@ -171,7 +171,6 @@ public class AuthController : Controller
 
         await SignInAsync(user, vm.RememberMe);
         await _auth.UpdateLastLoginAsync(user.UserId);
-        TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
 
         if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
         return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
@@ -260,7 +259,6 @@ public class AuthController : Controller
 
         await SignInAsync(user, vm.RememberMe);
         await _auth.UpdateLastLoginAsync(user.UserId);
-        TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
 
         if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
         return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
@@ -452,7 +450,6 @@ public class AuthController : Controller
 
             await SignInAsync(user, false, avatar);
             await _auth.UpdateLastLoginAsync(user.UserId);
-            TempData["SuccessMsg"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
             return RedirectToDashboard(user.UserType, user.Admin?.ModeratorTaskType?.TaskType);
         }
 

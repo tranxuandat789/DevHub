@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const deadlineInput = document.getElementById('deadline-input');
                 if (!deadlineInput.value) {
                     e.preventDefault();
-                    alert('Vui lòng chọn hạn chót nộp hồ sơ (Deadline).');
+                    toastr.warning('Vui lòng chọn hạn chót nộp hồ sơ (Deadline).', 'Lỗi nhập liệu');
                 }
             });
         }

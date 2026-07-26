@@ -111,7 +111,8 @@ namespace DevHub.Controllers.Moderator
             {
                 TechName = techName.Trim(),
                 Category = string.IsNullOrWhiteSpace(category) ? "Chưa phân loại" : category.Trim(),
-                IsActive = isActive
+                IsActive = isActive,
+                DisplayOrder = displayOrder
             };
             
             await _techService.AddTechAsync(newTech);

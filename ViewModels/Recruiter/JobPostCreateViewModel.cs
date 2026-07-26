@@ -5,12 +5,8 @@ namespace DevHub.ViewModels.Recruiter
 {
     public class JobPostCreateViewModel : IValidatableObject
     {
-        // Free-text info fields: allows all typical text characters, blocks basic HTML tags (<>)
-        private const string TextPattern = @"^[^<>]*$";
-
         [Required(ErrorMessage = "Tiêu đề bài đăng không được để trống.")]
         [StringLength(200, ErrorMessage = "Tiêu đề không được vượt quá 200 ký tự.")]
-        [RegularExpression(TextPattern, ErrorMessage = "Tiêu đề chứa ký tự không hợp lệ.")]
         public string Title { get; set; } = null!;
 
         // Chỉ cho phép chọn duy nhất 1 Vị trí công việc (Bắt buộc chọn)
@@ -23,15 +19,12 @@ namespace DevHub.ViewModels.Recruiter
         public List<int> TechnologyIds { get; set; } = new List<int>();
 
         [Required(ErrorMessage = "Mô tả công việc không được để trống.")]
-        [RegularExpression(TextPattern, ErrorMessage = "Mô tả công việc chứa ký tự không hợp lệ.")]
         public string Description { get; set; } = null!;
 
         [Required(ErrorMessage = "Yêu cầu công việc không được để trống.")]
-        [RegularExpression(TextPattern, ErrorMessage = "Yêu cầu công việc chứa ký tự không hợp lệ.")]
         public string Requirement { get; set; } = null!;
 
         [Required(ErrorMessage = "Quyền lợi ứng viên không được để trống.")]
-        [RegularExpression(TextPattern, ErrorMessage = "Quyền lợi ứng viên chứa ký tự không hợp lệ.")]
         public string Benefit { get; set; } = null!;
 
         [Required(ErrorMessage = "Yêu cầu cấp bậc/Kinh nghiệm không được để trống.")]
@@ -63,7 +56,6 @@ namespace DevHub.ViewModels.Recruiter
         [Required(ErrorMessage = "Hạn chót nộp hồ sơ không được để trống.")]
         public DateOnly Deadline { get; set; }
 
-        [RegularExpression(TextPattern, ErrorMessage = "Kỹ năng chứa ký tự không hợp lệ.")]
         public string? Skill { get; set; }
 
         // Kiểm tra lương phụ thuộc loại lương đã chọn.

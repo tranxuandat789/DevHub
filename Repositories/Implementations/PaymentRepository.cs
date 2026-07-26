@@ -202,12 +202,11 @@ public class PaymentRepository : IPaymentRepository
                     activePackage.IsActive = false;
                     _context.CompanyPackageHistories.Update(activePackage);
 
-                    // Stacking (Same Tier)
+                    // Stacking - renew (Same Tier)
                     if (tx.Service!.Price == activePackage.Service.Price)
                     {
                         newHistory.PostsGranted = tx.Service.MaxPosts;
                         newHistory.PostsRemaining = tx.Service.MaxPosts + activePackage.PostsRemaining;
-                        newHistory.PromotionsRemaining = (tx.Service.PriorityPush ?? 0) + (activePackage.PromotionsRemaining);
                         
                         // Extend duration
                         var daysToAdd = tx.Service.DurationDays ?? 0;
@@ -220,7 +219,6 @@ public class PaymentRepository : IPaymentRepository
                     {
                         newHistory.PostsGranted = tx.Service.MaxPosts;
                         newHistory.PostsRemaining = tx.Service.MaxPosts;
-                        newHistory.PromotionsRemaining = tx.Service.PriorityPush ?? 0;
                         newHistory.EndDate = DateTime.UtcNow.AddDays(tx.Service.DurationDays ?? 0);
                     }
                 }
@@ -229,7 +227,6 @@ public class PaymentRepository : IPaymentRepository
                     // No active package
                     newHistory.PostsGranted = tx.Service.MaxPosts;
                     newHistory.PostsRemaining = tx.Service.MaxPosts;
-                    newHistory.PromotionsRemaining = tx.Service.PriorityPush ?? 0;
                     newHistory.EndDate = DateTime.UtcNow.AddDays(tx.Service.DurationDays ?? 0);
                 }
 

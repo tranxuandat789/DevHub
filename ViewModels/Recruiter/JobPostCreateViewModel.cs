@@ -54,7 +54,7 @@ namespace DevHub.ViewModels.Recruiter
         public int HiringQuota { get; set; }
 
         [Required(ErrorMessage = "Hạn chót nộp hồ sơ không được để trống.")]
-        public DateOnly Deadline { get; set; }
+        public DateOnly? Deadline { get; set; }
 
         public string? Skill { get; set; }
 

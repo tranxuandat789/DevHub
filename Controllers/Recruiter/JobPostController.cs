@@ -248,6 +248,7 @@ namespace DevHub.Controllers.Recruiter
             {
                 ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
                 ViewBag.Techs = await _techRepo.GetAllActiveAsync();
+                ViewBag.Provinces = await _provinceRepo.GetAllAsync();
                 ViewBag.JobId = id;
                 ViewBag.SelectedTechIds = vm.TechnologyIds ?? new List<int>();
                 ViewBag.SelectedProvinceIds = vm.ProvinceIds ?? new List<int>();
@@ -275,6 +276,7 @@ namespace DevHub.Controllers.Recruiter
                 ViewBag.Q = q; ViewBag.Status = status; ViewBag.Page = page;
                 ViewBag.Positions = await _positionRepo.GetAllActiveAsync();
                 ViewBag.Techs = await _techRepo.GetAllActiveAsync();
+                ViewBag.Provinces = await _provinceRepo.GetAllAsync();
                 ViewBag.JobId = id;
                 ViewBag.SelectedTechIds = vm.TechnologyIds ?? new List<int>();
                 ViewBag.SelectedProvinceIds = vm.ProvinceIds ?? new List<int>();

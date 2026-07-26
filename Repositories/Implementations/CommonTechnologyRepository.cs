@@ -20,7 +20,7 @@ public class CommonTechnologyRepository : ICommonTechnologyRepository
     }
     public async Task<List<CommonTechnology>> GetAllActiveAsync()
     {
-        return await _context.CommonTechnologies.Where(t => t.IsActive == true || t.IsActive == null).ToListAsync();
+        return await _context.CommonTechnologies.Where(t => t.IsActive == true || t.IsActive == null).OrderBy(t => t.DisplayOrder).ToListAsync();
     }
 
     public async Task<CommonTechnology?> GetByIdAsync(int techId)
@@ -30,7 +30,7 @@ public class CommonTechnologyRepository : ICommonTechnologyRepository
 
     public async Task<List<CommonTechnology>> GetAllAsync()
     {
-        return await _context.CommonTechnologies.ToListAsync();
+        return await _context.CommonTechnologies.OrderBy(t => t.DisplayOrder).ToListAsync();
     }
 
     public async Task UpdateAsync(CommonTechnology tech)

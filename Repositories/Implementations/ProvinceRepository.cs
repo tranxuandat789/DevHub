@@ -17,7 +17,7 @@ public class ProvinceRepository : IProvinceRepository
     public async Task<List<Province>> GetAllAsync()
         => await _context.Provinces
             .AsNoTracking()
-            .OrderBy(p => p.ProvinceName)
+            .OrderBy(p => p.DisplayOrder)
             .ToListAsync();
 
     public async Task<List<Province>> GetByIdsAsync(IEnumerable<int> ids)

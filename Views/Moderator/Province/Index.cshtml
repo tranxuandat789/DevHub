@@ -44,6 +44,14 @@
                 <option value="South" selected="@(region == "South" ? "selected" : null)">Miền Nam</option>
             </select>
         </div>
+        
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp thứ tự</label>
+            <select name="sortOrder" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="asc" selected="@(ViewData["SortOrder"] as string == "asc" ? "selected" : null)">Từ trên xuống (Mặc định)</option>
+                <option value="desc" selected="@(ViewData["SortOrder"] as string == "desc" ? "selected" : null)">Ngược từ dưới lên</option>
+            </select>
+        </div>
 
         <div>
             <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
@@ -57,9 +65,10 @@
         <table class="w-full text-left border-collapse min-w-[700px]">
             <thead>
                 <tr class="bg-gray-50 border-b border-[#D6DDEB]">
-                    <th class="py-4 px-6 text-dark font-bold text-sm w-20">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Tên Tỉnh/Thành phố</th>
-                    <th class="py-4 px-6 text-dark font-bold text-sm w-40">Trạng thái</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-40 text-center">Trạng thái</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-32 text-center">Thứ tự</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-32 text-center">Thao tác</th>
                 </tr>
             </thead>
             <tbody class="text-sm">
@@ -69,11 +78,10 @@
                     {
                         var isActive = p.IsActive;
                         <tr class="border-b border-[#D6DDEB] hover:bg-gray-50 transition-colors">
-                            <td class="py-4 px-6 text-muted font-medium">#@p.ProvinceId</td>
                             <td class="py-4 px-6">
                                 <div class="font-bold text-dark text-base">@p.ProvinceName</div>
                             </td>
-                            <td class="py-4 px-6">
+                            <td class="py-4 px-6 text-center">
                                 @if (isActive)
                                 {
                                     <span id="status-badge-@p.ProvinceId" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -86,6 +94,16 @@
                                         Tạm ngưng
                                     </span>
                                 }
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="font-bold text-dark" id="display-order-@p.ProvinceId">@p.DisplayOrder</span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button type="button" onclick="editOrder(@p.ProvinceId, @p.DisplayOrder)" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa thứ tự">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -111,17 +129,31 @@
             <div class="flex gap-2">
                 @if (ViewBag.CurrentPage > 1)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&sortOrder=@ViewData["SortOrder"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
                 }
                 
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                @{
+                    int currentPage = ViewBag.CurrentPage;
+                    int totalPages = ViewBag.TotalPages;
+                    int maxPages = 4;
+                    int startPage = Math.Max(1, currentPage - (maxPages / 2));
+                    int endPage = startPage + maxPages - 1;
+                    
+                    if (endPage > totalPages)
+                    {
+                        endPage = totalPages;
+                        startPage = Math.Max(1, endPage - maxPages + 1);
+                    }
+                }
+                
+                @for (int i = startPage; i <= endPage; i++)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&sortOrder=@ViewData["SortOrder"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
                 }
 
                 @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&region=@ViewData["Region"]&sortOrder=@ViewData["SortOrder"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
                 }
             </div>
         </div>
@@ -130,21 +162,24 @@
 
 <!-- Toast Notification -->
 <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
-
-<!-- Confirmation Modal -->
-<div id="confirmModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-0">
-    <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" onclick="closeConfirmModal()"></div>
+<!-- Edit Order Modal -->
+<div id="editOrderModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-0">
+    <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" onclick="closeEditOrderModal()"></div>
     <div class="bg-white rounded-xl shadow-xl transform transition-all sm:max-w-md w-full relative z-10 overflow-hidden">
-        <div class="p-6 text-center">
-            <svg class="mx-auto mb-4 text-yellow-400 w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            <h3 class="mb-5 text-lg font-medium text-dark">Xác nhận thay đổi trạng thái?</h3>
-            <p class="text-sm text-muted mb-6">Bạn có chắc chắn muốn đổi trạng thái của tỉnh/thành phố này không? Thao tác này sẽ ảnh hưởng trực tiếp đến hệ thống.</p>
+        <div class="p-6">
+            <h3 class="mb-4 text-lg font-bold text-dark text-center">Cập nhật Thứ tự Hiển thị</h3>
+            <p class="text-sm text-muted mb-6 text-center">Nhập thứ tự hiển thị ưu tiên (số càng nhỏ càng xuất hiện trên cùng).</p>
+            
+            <div class="mb-6">
+                <input type="number" id="editOrderInput" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-3 focus:outline-none focus:border-primary text-center text-lg font-bold text-dark" placeholder="Nhập số thứ tự..." min="0">
+            </div>
+
             <div class="flex justify-center gap-3">
-                <button type="button" onclick="closeConfirmModal()" class="text-muted bg-white hover:bg-gray-100 border border-[#D6DDEB] focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg text-sm font-medium px-5 py-2.5 transition-colors">
+                <button type="button" onclick="closeEditOrderModal()" class="flex-1 text-muted bg-white hover:bg-gray-100 border border-[#D6DDEB] focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg text-sm font-medium px-5 py-2.5 transition-colors">
                     Hủy bỏ
                 </button>
-                <button type="button" onclick="executeToggle()" class="text-white bg-primary hover:bg-opacity-90 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center transition-colors">
-                    Đồng ý
+                <button type="button" onclick="submitEditOrder()" class="flex-1 text-white bg-primary hover:bg-opacity-90 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors">
+                    Cập nhật
                 </button>
             </div>
         </div>
@@ -153,8 +188,6 @@
 
 @section Scripts {
     <script>
-        let currentToggleId = null;
-
         function showToast(message, isSuccess = true) {
             const toast = document.createElement('div');
             toast.className = `flex items-center p-4 rounded-lg shadow-lg text-white transform transition-all duration-300 translate-y-10 opacity-0 ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
@@ -180,34 +213,23 @@
             }, 3000);
         }
 
-        function toggleStatus(id, btnElement) {
-            currentToggleId = id;
-            document.getElementById('confirmModal').classList.remove('hidden');
-            document.getElementById('confirmModal').classList.add('flex');
-        }
-
-        function closeConfirmModal() {
-            currentToggleId = null;
-            document.getElementById('confirmModal').classList.add('hidden');
-            document.getElementById('confirmModal').classList.remove('flex');
-        }
-
-        async function executeToggle() {
-            if (!currentToggleId) return;
-            
-            const id = currentToggleId;
-            closeConfirmModal();
+        async function updateProvinceOrder(id, newOrder) {
+            if (!newOrder || isNaN(newOrder)) return;
             
             try {
-                const response = await fetch(`/ModeratorProvince/toggle-status/${id}`, {
-                    method: 'POST'
+                const response = await fetch(`/ModeratorProvince/update-order/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ displayOrder: newOrder })
                 });
                 
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success) {
                         showToast(result.message);
-                        setTimeout(() => window.location.reload(), 1000);
+                        setTimeout(() => window.location.reload(), 800);
                     } else {
                         showToast("Có lỗi xảy ra", false);
                     }
@@ -216,6 +238,41 @@
                 }
             } catch (error) {
                 showToast("Lỗi kết nối server", false);
+            }
+        }
+
+        let currentEditOrderId = null;
+
+        function editOrder(id, currentOrder) {
+            currentEditOrderId = id;
+            const input = document.getElementById('editOrderInput');
+            input.value = currentOrder;
+            
+            document.getElementById('editOrderModal').classList.remove('hidden');
+            document.getElementById('editOrderModal').classList.add('flex');
+            
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 100);
+        }
+
+        function closeEditOrderModal() {
+            currentEditOrderId = null;
+            document.getElementById('editOrderModal').classList.add('hidden');
+            document.getElementById('editOrderModal').classList.remove('flex');
+        }
+
+        function submitEditOrder() {
+            if (!currentEditOrderId) return;
+            const newOrder = document.getElementById('editOrderInput').value;
+            const parsed = parseInt(newOrder);
+            if (!isNaN(parsed) && parsed >= 0) {
+                const idToUpdate = currentEditOrderId;
+                closeEditOrderModal();
+                updateProvinceOrder(idToUpdate, parsed);
+            } else {
+                showToast("Vui lòng nhập số hợp lệ", false);
             }
         }
     </script>

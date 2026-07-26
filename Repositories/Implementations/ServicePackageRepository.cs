@@ -25,7 +25,9 @@ public class ServicePackageRepository : IServicePackageRepository
 
     public async Task<(List<ServicePackage> Items, int TotalCount)> GetAllPackagesAsync(string searchTerm, string statusFilter, string sortOrder, int page, int pageSize)
     {
-        var query = _context.ServicePackages.AsQueryable();
+        var query = _context.ServicePackages
+            .Include(s => s.CompanyPackageHistories)
+            .AsQueryable();
 
         // Search
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -47,15 +49,26 @@ public class ServicePackageRepository : IServicePackageRepository
             case "price_asc":
                 query = query.OrderBy(s => s.Price);
                 break;
+
             case "price_desc":
                 query = query.OrderByDescending(s => s.Price);
                 break;
             case "duration_desc":
                 query = query.OrderByDescending(s => s.DurationDays ?? 0);
                 break;
-            default:
-                query = query.OrderByDescending(s => s.CreatedAt);
+            case "users_desc":
+                query = query.OrderByDescending(s => s.CompanyPackageHistories.Count(h => h.IsActive == true));
                 break;
+            case "users_asc":
+                query = query.OrderBy(s => s.CompanyPackageHistories.Count(h => h.IsActive == true));
+                break;
+
+                break;
+            default:
+                query = query.OrderByDescending(s => s.CreatedAt).ThenByDescending(s => s.ServiceId);
+                break;
+
+
         }
 
         int totalCount = await query.CountAsync();

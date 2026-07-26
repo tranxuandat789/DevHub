@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DevHub.Models;
@@ -12,6 +12,8 @@ public partial class CommonTechnology
     public string? Category { get; set; }
 
     public bool? IsActive { get; set; }
+
+    public int DisplayOrder { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

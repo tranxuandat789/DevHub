@@ -10,6 +10,10 @@ public partial class Province
     public int ProvinceId { get; set; }
 
     public string ProvinceName { get; set; } = null!;
+    
+    public string? Region { get; set; }
+
+    public int DisplayOrder { get; set; } = 999;
 
     public bool IsActive { get; set; } = true;
 

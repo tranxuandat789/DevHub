@@ -42,6 +42,13 @@
                 <option value="0" selected="@(status == "0" ? "selected" : null)">Tạm ẩn</option>
             </select>
         </div>
+        <div class="w-full">
+            <label class="block text-dark font-medium mb-2 text-sm">Sắp xếp thứ tự</label>
+            <select name="sortOrder" class="w-full border border-[#D6DDEB] rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary text-muted">
+                <option value="asc" selected="@(ViewData["SortOrder"] as string == "asc" ? "selected" : null)">Từ trên xuống (Mặc định)</option>
+                <option value="desc" selected="@(ViewData["SortOrder"] as string == "desc" ? "selected" : null)">Ngược từ dưới lên</option>
+            </select>
+        </div>
         <div>
             <button type="submit" class="w-full bg-primary text-white font-bold px-6 py-2.5 rounded-lg hover:bg-opacity-90 transition-all">Lọc dữ liệu</button>
         </div>
@@ -57,6 +64,8 @@
                     <th class="py-4 px-6 text-dark font-bold text-sm w-20">ID</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm">Tên Công nghệ (Tech Name)</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm w-40">Trạng thái</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-40 text-center">Số Job Post</th>
+                    <th class="py-4 px-6 text-dark font-bold text-sm w-32 text-center">Thứ tự</th>
                     <th class="py-4 px-6 text-dark font-bold text-sm text-center w-32">Thao tác</th>
                 </tr>
             </thead>
@@ -85,8 +94,14 @@
                                     </span>
                                 }
                             </td>
-                            <td class="py-4 px-6 text-center space-x-1">
-                                <a href="/ModeratorTechStack/edit/@tech.TechId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa">
+                            <td class="py-4 px-6 text-center text-muted font-medium">
+                                @(ViewBag.JobCounts != null && ViewBag.JobCounts.ContainsKey(tech.TechId) ? ViewBag.JobCounts[tech.TechId] : 0)
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="font-bold text-dark" id="display-order-@tech.TechId">@tech.DisplayOrder</span>
+                            </td>
+                            <td class="py-4 px-6 text-center space-x-1 flex items-center justify-center">
+                                <a href="/ModeratorTechStack/edit/@tech.TechId" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Chỉnh sửa chi tiết">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                 </a>
                                 <button onclick="toggleStatus(@tech.TechId, this)" class="inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors @(isActive ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-green-50 text-green-600 hover:bg-green-100")" title="@(isActive ? "Vô hiệu hóa" : "Hiển thị lại")">
@@ -124,17 +139,31 @@
             <div class="flex gap-2">
                 @if (ViewBag.CurrentPage > 1)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&category=@ViewData["Category"]&sortOrder=@ViewData["SortOrder"]&page=@(ViewBag.CurrentPage - 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang trước</a>
                 }
                 
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                @{
+                    int currentPage = ViewBag.CurrentPage;
+                    int totalPages = ViewBag.TotalPages;
+                    int maxPages = 4;
+                    int startPage = Math.Max(1, currentPage - (maxPages / 2));
+                    int endPage = startPage + maxPages - 1;
+                    
+                    if (endPage > totalPages)
+                    {
+                        endPage = totalPages;
+                        startPage = Math.Max(1, endPage - maxPages + 1);
+                    }
+                }
+                
+                @for (int i = startPage; i <= endPage; i++)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&category=@ViewData["Category"]&sortOrder=@ViewData["SortOrder"]&page=@i" class="px-3 py-1 border rounded text-sm font-medium transition-colors @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "bg-white border-[#D6DDEB] text-dark hover:bg-gray-100")">@i</a>
                 }
 
                 @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                 {
-                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
+                    <a href="?keyword=@ViewData["Keyword"]&status=@ViewData["Status"]&category=@ViewData["Category"]&sortOrder=@ViewData["SortOrder"]&page=@(ViewBag.CurrentPage + 1)" class="px-3 py-1 bg-white border border-[#D6DDEB] rounded hover:bg-gray-100 text-sm font-medium text-dark transition-colors">Trang sau</a>
                 }
             </div>
         </div>

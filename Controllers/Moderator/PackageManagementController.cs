@@ -156,5 +156,26 @@ namespace DevHub.Controllers.Moderator
             }
             return RedirectToAction(nameof(Index));
         }
+        [HttpGet("detail/{id}")]
+        public async Task<IActionResult> Detail(int id)
+        {
+            var package = await _packageService.GetByIdAsync(id);
+            if (package == null) return NotFound();
+
+            return Json(new
+            {
+                serviceId = package.ServiceId,
+                packageName = package.PackageName,
+                title = package.Title,
+                price = package.Price,
+                credit = package.Credit,
+                maxPosts = package.MaxPosts,
+                durationDays = package.DurationDays,
+                priorityPush = package.PriorityPush,
+                hasAiChatbot = package.HasAiChatbot,
+                description = package.Description,
+                isActive = package.IsActive
+            });
+        }
     }
 }

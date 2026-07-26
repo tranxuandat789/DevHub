@@ -10,28 +10,20 @@ namespace DevHub.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "EmailNotificationsEnabled",
+            migrationBuilder.AddColumn<bool>(
+                name: "email_notifications_enabled",
                 table: "user_account",
-                newName: "email_notifications_enabled");
+                type: "bit",
+                nullable: false,
+                defaultValue: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            migrationBuilder.DropColumn(
                 name: "email_notifications_enabled",
-                table: "user_account",
-                newName: "EmailNotificationsEnabled");
-
-            migrationBuilder.AlterColumn<bool>(
-                name: "EmailNotificationsEnabled",
-                table: "user_account",
-                type: "bit",
-                nullable: false,
-                oldClrType: typeof(bool),
-                oldType: "bit",
-                oldDefaultValue: true);
+                table: "user_account");
         }
     }
 }

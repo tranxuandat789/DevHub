@@ -7,7 +7,8 @@ using DevHub.Models;
 using DevHub.Repositories.Interfaces;
 using DevHub.Services.Interfaces;
 using DevHub.Helpers;
-
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 namespace DevHub.Services.Implementations;
 
 public class ArticleService : IArticleService
@@ -17,19 +18,22 @@ public class ArticleService : IArticleService
     private readonly EmailHelper _emailHelper;
     private readonly IAdminRepository _adminRepo;
     private readonly INotificationService _notificationService;
+    private readonly DevHub.Data.ItrecruitmentDbContext _context;
 
     public ArticleService(
         IArticleRepository articleRepo,
         IRecruiterRepository recruiterRepo,
         EmailHelper emailHelper,
         IAdminRepository adminRepo,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        DevHub.Data.ItrecruitmentDbContext context)
     {
         _articleRepo = articleRepo;
         _recruiterRepo = recruiterRepo;
         _emailHelper = emailHelper;
         _adminRepo = adminRepo;
         _notificationService = notificationService;
+        _context = context;
     }
 
     private string GenerateSlug(string title)
@@ -66,9 +70,14 @@ public class ArticleService : IArticleService
             UpdatedAt = DateTime.Now
         };
 
-        // Not auto-assigning moderator because any moderator can handle articles
+        var createdArticle = await _articleRepo.CreateAsync(article);
 
-        return await _articleRepo.CreateAsync(article);
+        if (createdArticle.Status == "PUBLISHED")
+        {
+            await NotifyFollowersAboutArticle(createdArticle);
+        }
+
+        return createdArticle;
     }
 
     public async Task UpdateArticleAsync(int recruiterId, int articleId, string title, string content, string thumbnailUrl, string actionType = "publish")
@@ -86,6 +95,8 @@ public class ArticleService : IArticleService
 
         bool notifyMods = false;
         
+        bool isNewlyPublished = false;
+        
         if (string.Equals(actionType, "draft", StringComparison.OrdinalIgnoreCase))
         {
             article.Status = "DRAFT";
@@ -102,6 +113,10 @@ public class ArticleService : IArticleService
             }
             else
             {
+                if (article.Status != "PUBLISHED")
+                {
+                    isNewlyPublished = true;
+                }
                 // Trạng thái bình thường thì tự động PUBLISHED
                 article.Status = "PUBLISHED";
             }
@@ -149,6 +164,11 @@ public class ArticleService : IArticleService
                     // Best effort
                 }
             }
+        }
+
+        if (isNewlyPublished)
+        {
+            await NotifyFollowersAboutArticle(article);
         }
     }
 
@@ -318,6 +338,8 @@ public class ArticleService : IArticleService
                     }
                 }
             }
+
+            await NotifyFollowersAboutArticle(article);
         }
         catch
         {
@@ -332,5 +354,37 @@ public class ArticleService : IArticleService
             throw new InvalidOperationException("Article not found.");
 
         await _articleRepo.DeleteAsync(articleId);
+    }
+
+    private async Task NotifyFollowersAboutArticle(Article article)
+    {
+        try
+        {
+            var followers = await _context.CompanyFollowers
+                .Include(f => f.Candidate)
+                .ThenInclude(c => c.CandidateNavigation)
+                .Where(f => f.CompanyId == article.CompanyId)
+                .Select(f => f.Candidate)
+                .ToListAsync();
+
+            var companyName = article.Company?.CompanyName ?? await _context.Companies.Where(c => c.CompanyId == article.CompanyId).Select(c => c.CompanyName).FirstOrDefaultAsync() ?? "công ty";
+            foreach (var follower in followers)
+            {
+                if (follower.CandidateNavigation != null && follower.CandidateNavigation.EmailNotificationsEnabled)
+                {
+                    string subj = $"DevHub - {companyName} vừa xuất bản một bài viết mới!";
+                    string cont = $@"
+                        <p>Chào <strong>{follower.FullName}</strong>,</p>
+                        <p>Công ty <strong>{companyName}</strong> mà bạn đang theo dõi vừa xuất bản một bài viết mới: <strong>{article.Title}</strong>.</p>
+                        <p>Hãy truy cập DevHub để đọc ngay nhé!</p>";
+                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Bài viết mới từ công ty bạn theo dõi", cont);
+                    await _emailHelper.SendEmailAsync(follower.CandidateNavigation.Email, subj, body);
+                }
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi để không ảnh hưởng luồng chính
+        }
     }
 }

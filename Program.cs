@@ -249,6 +249,7 @@ builder.Services.AddScoped<ICommonJobPositionService, CommonJobPositionService>(
 builder.Services.AddScoped<ICommonTechnologyService, CommonTechnologyService>();
 builder.Services.AddScoped<ICvService, CvService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
+builder.Services.AddScoped<ICompanyFollowerService, CompanyFollowerService>();
 builder.Services.AddScoped<IJobPostService, JobPostService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPackageTransactionService, PackageTransactionService>();

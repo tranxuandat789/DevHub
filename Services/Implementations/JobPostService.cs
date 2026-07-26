@@ -100,7 +100,7 @@ public class JobPostService : IJobPostService
                         "JobPost"
                     );
 
-                    // Email notification
+                    // Email notification to recruiter
                     if (user.EmailNotificationsEnabled)
                     {
                         string emailSubject = "DevHub - Tin tuyển dụng đã được duyệt";
@@ -112,6 +112,29 @@ public class JobPostService : IJobPostService
                         string emailBody = DevHub.Helpers.EmailHelper.GetBaseTemplate("Tin tuyển dụng đã được duyệt", content);
                         await _emailHelper.SendEmailAsync(user.Email, emailSubject, emailBody);
                     }
+                }
+            }
+
+            // Gửi email cho toàn bộ Candidate đang theo dõi công ty
+            var followers = await _context.CompanyFollowers
+                .Include(f => f.Candidate)
+                .ThenInclude(c => c.CandidateNavigation)
+                .Where(f => f.CompanyId == job.CompanyId)
+                .Select(f => f.Candidate)
+                .ToListAsync();
+
+            var companyName = job.Company?.CompanyName ?? await _context.Companies.Where(c => c.CompanyId == job.CompanyId).Select(c => c.CompanyName).FirstOrDefaultAsync() ?? "công ty";
+            foreach (var follower in followers)
+            {
+                if (follower.CandidateNavigation != null && follower.CandidateNavigation.EmailNotificationsEnabled)
+                {
+                    string subj = $"DevHub - {companyName} vừa đăng một công việc mới!";
+                    string cont = $@"
+                        <p>Chào <strong>{follower.FullName}</strong>,</p>
+                        <p>Công ty <strong>{companyName}</strong> mà bạn đang theo dõi vừa có một tin tuyển dụng mới: <strong>{job.Title}</strong>.</p>
+                        <p>Hãy truy cập DevHub để xem chi tiết và ứng tuyển ngay nhé!</p>";
+                    string body = DevHub.Helpers.EmailHelper.GetBaseTemplate("Tin tuyển dụng mới từ công ty bạn theo dõi", cont);
+                    await _emailHelper.SendEmailAsync(follower.CandidateNavigation.Email, subj, body);
                 }
             }
         }

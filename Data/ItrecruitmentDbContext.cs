@@ -58,6 +58,8 @@ public partial class ItrecruitmentDbContext : DbContext
 
     public virtual DbSet<ReviewCompany> ReviewCompanies { get; set; }
 
+    public virtual DbSet<CompanyFollower> CompanyFollowers { get; set; }
+
     public virtual DbSet<ServicePackage> ServicePackages { get; set; }
 
     public virtual DbSet<UserAccount> UserAccounts { get; set; }

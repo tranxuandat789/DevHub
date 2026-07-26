@@ -40,7 +40,7 @@
                 
                 <h2 class="text-2xl font-bold text-gray-900 mb-2">Hồ Sơ Cá Nhân</h2>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
                     <!-- Applied Jobs -->
                     <a href="/candidate/applications" class="bg-white rounded-[10px] p-4 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-1.5 transition-transform hover:-translate-y-1 hover:shadow-md">
                         <div class="w-11 h-11 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-1">
@@ -93,6 +93,15 @@
                         </div>
                         <p class="text-[28px] font-bold text-gray-900 leading-none counter-number" data-target="@Model.FailedJobsCount">@Model.FailedJobsCount</p>
                         <h4 class="text-gray-500 font-medium text-[12px] text-center leading-tight">Bị loại</h4>
+                    </a>
+
+                    <!-- Followed Companies -->
+                    <a href="/Candidate/FollowedCompanies" class="bg-white rounded-[10px] p-4 shadow-sm border border-gray-100 flex flex-col justify-center items-center gap-1.5 transition-transform hover:-translate-y-1 hover:shadow-md">
+                        <div class="w-11 h-11 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mb-1">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <p class="text-[28px] font-bold text-gray-900 leading-none counter-number" data-target="@(ViewBag.FollowedCompaniesCount ?? 0)">@(ViewBag.FollowedCompaniesCount ?? 0)</p>
+                        <h4 class="text-gray-500 font-medium text-[12px] text-center leading-tight">Đang theo dõi</h4>
                     </a>
                 </div>
 

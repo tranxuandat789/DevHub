@@ -59,6 +59,8 @@ namespace DevHub.Controllers
             var rejectedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && a.Status == "REJECTED");
             var hiredJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && a.Status == "HIRED");
             var failedJobsCount = await _context.Applications.CountAsync(a => a.CandidateId == candidateId && a.Status == "FAILED");
+            var followedCompaniesCount = await _context.CompanyFollowers.CountAsync(a => a.CandidateId == candidateId);
+            ViewBag.FollowedCompaniesCount = followedCompaniesCount;
 
             // Graph Data - 6 Months
             var sixMonthsAgo = DateTime.Now.AddMonths(-5);
@@ -439,6 +441,34 @@ namespace DevHub.Controllers
                 ? "Đã bật thông báo qua email."
                 : "Đã tắt thông báo qua email.";
             return RedirectToAction("NotificationSettings");
+        }
+        [HttpPost]
+        [Authorize(Roles = "CANDIDATE,Candidate")]
+        public async Task<IActionResult> ToggleFollowCompany(int companyId, [FromServices] ICompanyFollowerService followerService)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int candidateId)) return Unauthorized();
+
+            var isFollowed = await followerService.ToggleFollowAsync(candidateId, companyId);
+            return Json(new { success = true, isFollowed = isFollowed });
+        }
+
+        [Authorize(Roles = "CANDIDATE,Candidate")]
+        public async Task<IActionResult> FollowedCompanies(string keyword, int page = 1, [FromServices] ICompanyFollowerService followerService = null)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int candidateId)) return RedirectToAction("Login", "Auth");
+
+            int pageSize = 3; // Requirement: 3 companies per page
+            var (items, totalCount) = await followerService.GetFollowedCompaniesAsync(candidateId, keyword, page, pageSize);
+
+            ViewBag.Keyword = keyword;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.TotalCount = totalCount;
+            ViewData["ActiveMenu"] = "FollowedCompanies";
+
+            return View("~/Views/Candidate/CandidateDashboard/FollowedCompanies.cshtml", items);
         }
     }
 }

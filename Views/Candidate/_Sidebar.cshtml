@@ -78,6 +78,14 @@
                 Đánh giá công ty
             </a>
 
+            <a href="/Candidate/FollowedCompanies" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
+                      @(ViewData["ActiveMenu"]?.ToString() == "FollowedCompanies" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
+                <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "FollowedCompanies" ? "text-primary" : "text-gray-400")" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Công ty đang theo dõi
+            </a>
+
             <a href="/Candidate/Interviews" class="flex items-center gap-3 px-4 py-3 rounded-md text-[15px] font-medium transition-colors
                       @(ViewData["ActiveMenu"]?.ToString() == "Interviews" ? "bg-primary/5 text-primary" : "text-muted hover:bg-gray-50 hover:text-dark")">
                 <svg class="w-5 h-5 @(ViewData["ActiveMenu"]?.ToString() == "Interviews" ? "text-primary" : "text-gray-400")" fill="none" stroke="currentColor" viewBox="0 0 24 24">

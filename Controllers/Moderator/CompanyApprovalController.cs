@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DevHub.Data;
 using DevHub.Models;
@@ -123,7 +123,7 @@ namespace DevHub.Controllers.Moderator
                     await _notificationService.SendNotificationAsync(
                         userAccount.UserId,
                         "RECRUITER",
-                        "COMPANY_APPROVED",
+                        "Hồ sơ công ty đã được xác minh",
                         $"Chúc mừng! Hồ sơ công ty {company.CompanyName} đã được xác minh.",
                         "/recruiter/profile"
                     );

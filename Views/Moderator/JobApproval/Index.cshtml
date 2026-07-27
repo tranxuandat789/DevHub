@@ -356,7 +356,7 @@ author: Hoang Minh Kien
                     document.getElementById('detailDeadline').innerText = data.deadline || "Không thời hạn";
                     
                     let salary = "Thỏa thuận";
-                    if (data.salaryMin != null && data.salaryMax != null) salary = `$${data.salaryMin} - $${data.salaryMax}`;
+                    if (data.salaryMin != null && data.salaryMax != null) salary = `đ${data.salaryMin} - đ${data.salaryMax}`;
                     else if (data.salaryMin != null) salary = `Từ $${data.salaryMin}`;
                     else if (data.salaryMax != null) salary = `Lên đến $${data.salaryMax}`;
                     document.getElementById('detailSalary').innerText = salary;

@@ -159,7 +159,7 @@
                                 </a>
                                 @if (mod.IsActive)
                                 {
-                                    <form method="post" action="@Url.Action("ToggleStatus", "AdminModerator", new { id = mod.AdminId })" class="inline-block" onsubmit="return confirm('ADMIN: Bạn có chắc chắn muốn VÔ HIỆU HÓA tài khoản Moderator #@mod.AdminId?');">
+                                    <form method="post" action="@Url.Action("ToggleStatus", "AdminModerator", new { id = mod.AdminId })" class="inline-block toggle-status-form" data-action="deactivate" data-mod-id="@mod.AdminId">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="activate" value="false" />
                                         <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Vô hiệu hóa">
@@ -169,7 +169,7 @@
                                 }
                                 else
                                 {
-                                    <form method="post" action="@Url.Action("ToggleStatus", "AdminModerator", new { id = mod.AdminId })" class="inline-block" onsubmit="return confirm('ADMIN: Bạn có chắc chắn muốn TÁI KÍCH HOẠT tài khoản Moderator #@mod.AdminId?');">
+                                    <form method="post" action="@Url.Action("ToggleStatus", "AdminModerator", new { id = mod.AdminId })" class="inline-block toggle-status-form" data-action="activate" data-mod-id="@mod.AdminId">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="activate" value="true" />
                                         <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Kích hoạt lại">
@@ -242,3 +242,37 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('.toggle-status-form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const action = this.getAttribute('data-action');
+                    const modId = this.getAttribute('data-mod-id');
+                    const isDeactivate = action === 'deactivate';
+                    
+                    Swal.fire({
+                        title: 'Xác nhận',
+                        text: isDeactivate 
+                            ? `ADMIN: Bạn có chắc chắn muốn VÔ HIỆU HÓA tài khoản Moderator #${modId}?` 
+                            : `ADMIN: Bạn có chắc chắn muốn TÁI KÍCH HOẠT tài khoản Moderator #${modId}?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4640DE',
+                        cancelButtonColor: '#515B6F',
+                        confirmButtonText: 'Đồng Ý',
+                        cancelButtonText: 'Hủy bỏ'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

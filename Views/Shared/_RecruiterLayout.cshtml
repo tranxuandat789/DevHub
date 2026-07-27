@@ -482,12 +482,44 @@
     {
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
         <script>
             window.DevHub = window.DevHub || {};
             window.DevHub.isEmployer = true;
         </script>
         <script src="~/js/notifications.js"></script>
+        
+        <script>
+            $(document).ready(function() {
+                toastr.options = {
+                    "closeButton": true,
+                    "progressBar": true,
+                    "positionClass": "toast-top-right",
+                    "timeOut": "5000"
+                };
+                
+                @if (TempData["SuccessMessage"] != null || TempData["Success"] != null)
+                {
+                    var msg = TempData["SuccessMessage"] ?? TempData["Success"];
+                    <text>toastr.success('@Html.Raw(msg?.ToString()?.Replace("'", "\\'"))');</text>
+                }
+                
+                @if (TempData["ErrorMessage"] != null || TempData["Error"] != null)
+                {
+                    var errMsg = TempData["ErrorMessage"] ?? TempData["Error"];
+                    <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Thông báo',
+                        text: '@Html.Raw(errMsg?.ToString()?.Replace("'", "\\'"))',
+                        confirmButtonText: 'Đồng Ý',
+                        confirmButtonColor: '#4640DE'
+                    });
+                    </text>
+                }
+            });
+        </script>
     }
 </body>
 </html>

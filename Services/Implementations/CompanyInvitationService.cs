@@ -16,17 +16,20 @@ namespace DevHub.Services.Implementations
         private readonly IRecruiterRepository _recruiterRepo;
         private readonly ICompanyRepository _companyRepo;
         private readonly EmailHelper _emailHelper;
+        private readonly IUserAccountRepository _userAccountRepo;
 
         public CompanyInvitationService(
             ICompanyInvitationRepository invitationRepo,
             IRecruiterRepository recruiterRepo,
             ICompanyRepository companyRepo,
-            EmailHelper emailHelper)
+            EmailHelper emailHelper,
+            IUserAccountRepository userAccountRepo)
         {
             _invitationRepo = invitationRepo;
             _recruiterRepo = recruiterRepo;
             _companyRepo = companyRepo;
             _emailHelper = emailHelper;
+            _userAccountRepo = userAccountRepo;
         }
 
         // Accepts a pending company invitation for a recruiter and updates their company profile.
@@ -84,6 +87,20 @@ namespace DevHub.Services.Implementations
             if (pendingInvs.Any(i => i.Email.Equals(email, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new Exception("Email này đã được gửi lời mời và đang chờ xác nhận.");
+            }
+
+            var user = await _userAccountRepo.GetByEmailAsync(email);
+            if (user != null)
+            {
+                if (user.UserType.ToLower() == "candidate")
+                {
+                    throw new Exception("Nhân sự này không thể gia nhập workspace của công ty bạn!");
+                }
+                
+                if (user.UserType.ToLower() == "recruiter" && user.Recruiter != null && user.Recruiter.CompanyId != null)
+                {
+                    throw new Exception("Nhân sự này không thể gia nhập workspace của công ty bạn!");
+                }
             }
 
             var token = Guid.NewGuid().ToString("N");

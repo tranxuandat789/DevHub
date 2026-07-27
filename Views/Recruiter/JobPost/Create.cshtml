@@ -453,11 +453,38 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add JS validation to ensure deadline is selected before form submission
         const form = document.querySelector('form');
         if (form) {
+            let isInvalidToastShown = false;
+
+            // Catch any empty required field to show Swal instead of default browser tooltip
+            form.addEventListener('invalid', function(e) {
+                e.preventDefault(); // Suppress the native browser tooltip
+                
+                if (!isInvalidToastShown) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thiếu thông tin',
+                        text: 'Vui lòng điền đầy đủ các trường thông tin bắt buộc.',
+                        confirmButtonText: 'Đồng Ý',
+                        confirmButtonColor: '#4640DE'
+                    });
+                    isInvalidToastShown = true;
+                    setTimeout(() => isInvalidToastShown = false, 1000); // Reset after 1 second
+                }
+            }, true); // Use capture phase
+
             form.addEventListener('submit', function(e) {
                 const deadlineInput = document.getElementById('deadline-input');
                 if (!deadlineInput.value) {
                     e.preventDefault();
-                    toastr.warning('Vui lòng chọn hạn chót nộp hồ sơ (Deadline).', 'Lỗi nhập liệu');
+                    if (!isInvalidToastShown) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Lỗi nhập liệu',
+                            text: 'Vui lòng chọn hạn chót nộp hồ sơ (Deadline).',
+                            confirmButtonText: 'Đồng Ý',
+                            confirmButtonColor: '#4640DE'
+                        });
+                    }
                 }
             });
         }

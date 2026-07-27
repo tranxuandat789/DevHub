@@ -579,20 +579,20 @@ namespace DevHub.Controllers.Recruiter
 
                 if (dbUser?.Recruiter == null || dbUser.Recruiter.CompanyId == null || dbUser.Recruiter.IsCompanyAdmin != true)
                 {
-                    TempData["Error"] = "Bạn không có quyền thực hiện thao tác này.";
+                    TempData["ErrorMessage"] = "Bạn không có quyền thực hiện thao tác này.";
                     return RedirectToAction("Index", new { tab = "members" });
                 }
 
                 if (string.IsNullOrWhiteSpace(email))
                 {
-                    TempData["Error"] = "Vui lòng nhập Email.";
+                    TempData["ErrorMessage"] = "Vui lòng nhập Email.";
                     return RedirectToAction("Index", new { tab = "members" });
                 }
 
                 var targetUser = await _authService.FindUserByEmailAsync(email);
                 if (targetUser?.Recruiter != null && targetUser.Recruiter.CompanyId == dbUser.Recruiter.CompanyId)
                 {
-                    TempData["Error"] = "Thành viên này đã nằm trong công ty của bạn.";
+                    TempData["ErrorMessage"] = "Thành viên này đã nằm trong công ty của bạn.";
                     return RedirectToAction("Index", new { tab = "members" });
                 }
 
@@ -601,7 +601,7 @@ namespace DevHub.Controllers.Recruiter
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             return RedirectToAction("Index", new { tab = "members" });

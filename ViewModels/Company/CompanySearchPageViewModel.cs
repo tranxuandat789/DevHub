@@ -17,6 +17,7 @@ namespace DevHub.ViewModels.Company
         // New search criteria
         public string? SearchTerm { get; set; }
         public string? SortOrder { get; set; }
+        public int? TopN { get; set; }
         
         // Sidebar data
         public List<CommonTechnology> AvailableTechs { get; set; } = new();

@@ -24,6 +24,21 @@ namespace DevHub.Controllers
         public async Task<IActionResult> Index([FromQuery] CompanySearchInputViewModel input)
         {
             var model = await _companyService.SearchCompaniesAsync(input);
+
+            List<int> followedCompanyIds = new();
+            if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Candidate") || User.IsInRole("CANDIDATE")))
+            {
+                var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (idClaim != null && int.TryParse(idClaim.Value, out int candidateId))
+                {
+                    followedCompanyIds = await _db.CompanyFollowers
+                        .Where(f => f.CandidateId == candidateId)
+                        .Select(f => f.CompanyId)
+                        .ToListAsync();
+                }
+            }
+            ViewBag.FollowedCompanyIds = followedCompanyIds;
+
             return View("~/Views/Candidate/Company/Index.cshtml", model);
         }
 
@@ -32,12 +47,14 @@ namespace DevHub.Controllers
         public async Task<IActionResult> Details(int id)
         {
             int? candidateId = null;
+            bool isFollowed = false;
             if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Candidate") || User.IsInRole("CANDIDATE")))
             {
                 var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
                 if (idClaim != null && int.TryParse(idClaim.Value, out int cid))
                 {
                     candidateId = cid;
+                    isFollowed = await _db.CompanyFollowers.AnyAsync(f => f.CandidateId == cid && f.CompanyId == id);
                 }
             }
 
@@ -46,6 +63,8 @@ namespace DevHub.Controllers
             {
                 return NotFound();
             }
+            
+            ViewBag.IsFollowed = isFollowed;
             return View("~/Views/Candidate/Company/Details.cshtml", model);
         }
 

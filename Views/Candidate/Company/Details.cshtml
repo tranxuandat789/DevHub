@@ -61,6 +61,28 @@
                                 <span>Viết đánh giá</span>
                             </a>
                         }
+                        }
+                        
+                        <!-- Follow Button -->
+                        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Candidate") || User.IsInRole("CANDIDATE")))
+                        {
+                            var isFollowed = ViewBag.IsFollowed as bool? ?? false;
+                            <button type="button" onclick="toggleFollow(@Model.Company.CompanyId, this)" class="inline-flex items-center gap-2 border @(isFollowed ? "bg-[#EEF2FF] text-[#4F46E5] border-[#4F46E5]" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50") px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="@(isFollowed ? "currentColor" : "none")" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                <span class="follow-text">@(isFollowed ? "Đang theo dõi" : "Theo dõi công ty")</span>
+                            </button>
+                        }
+                        else if (User.Identity?.IsAuthenticated == false || (User.Identity?.IsAuthenticated == true && !User.IsInRole("RECRUITER") && !User.IsInRole("MODERATOR") && !User.IsInRole("ADMIN")))
+                        {
+                            <a href="/Auth/Login" class="inline-flex items-center gap-2 border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                <span>Theo dõi công ty</span>
+                            </a>
+                        }
                     }
                 </div>
                 <!-- Rating Summary -->
@@ -612,3 +634,57 @@
         });
     </script>
 }
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<script>
+    function toggleFollow(companyId, btnElement) {
+        fetch('/Candidate/ToggleFollowCompany', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `companyId=${companyId}`
+        })
+        .then(res => {
+            if (res.status === 401) {
+                window.location.href = '/Auth/Login';
+                throw new Error('Unauthorized');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if(data && data.success) {
+                const textSpan = btnElement.querySelector('.follow-text');
+                const icon = btnElement.querySelector('svg');
+                
+                if(data.isFollowed) {
+                    btnElement.className = "inline-flex items-center gap-2 border bg-[#EEF2FF] text-[#4F46E5] border-[#4F46E5] px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm";
+                    icon.setAttribute('fill', 'currentColor');
+                    textSpan.textContent = "Đang theo dõi";
+                    
+                    Toastify({
+                        text: "Đang theo dõi công ty",
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: { background: "#4F46E5" }
+                    }).showToast();
+                } else {
+                    btnElement.className = "inline-flex items-center gap-2 border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm";
+                    icon.setAttribute('fill', 'none');
+                    textSpan.textContent = "Theo dõi công ty";
+                    
+                    Toastify({
+                        text: "Đã bỏ theo dõi công ty",
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: { background: "#64748b" }
+                    }).showToast();
+                }
+            }
+        })
+        .catch(err => console.error(err));
+    }
+</script>

@@ -25,17 +25,15 @@ namespace DevHub.Services.Implementations
             int page = input.Page < 1 ? 1 : input.Page;
             int pageSize = 5; // Updated to 5 companies per page as requested
 
-            // Step 1: Compute global rank dictionary for all visible companies in the system
-            // Visible companies are those with ProfileCompletion >= 70%
+            // Step 1: Compute global rank dictionary for all visible companies in the system that have AT LEAST 1 review
             var (allRecruiters, _) = await _companyRepo.GetVisibleCompaniesAsync(null, null, null, null, 1, 1000000);
             
             var rankedList = allRecruiters
+                .Where(r => r.ReviewCompanies.Any()) // ONLY companies with reviews get a rank
                 .Select(r => new {
                     CompanyId = r.CompanyId,
                     Rating = r.AverageRating ?? 0m,
-                    LatestReviewDate = r.ReviewCompanies.Any() 
-                        ? r.ReviewCompanies.Max(rev => rev.CreatedAt ?? DateTime.MinValue) 
-                        : DateTime.MinValue,
+                    LatestReviewDate = r.ReviewCompanies.Max(rev => rev.CreatedAt ?? DateTime.MinValue),
                     CompanyName = r.CompanyName
                 })
                 .OrderByDescending(x => x.Rating)
@@ -48,13 +46,41 @@ namespace DevHub.Services.Implementations
                 .ToDictionary(x => x.CompanyId, x => x.Rank);
 
             // Step 2: Fetch filtered & sorted recruiters for the current search/filter criteria
-            var (items, totalCount) = await _companyRepo.GetVisibleCompaniesAsync(
-                input.SearchTerm, 
-                input.SelectedTechs, 
-                input.SelectedPositions, 
-                input.SortOrder,
-                page, 
-                pageSize);
+            List<DevHub.Models.Company> items;
+            int totalCount;
+
+            if (input.TopN.HasValue)
+            {
+                // If Top N is selected, we must apply search criteria to ALL recruiters, 
+                // then filter only those that have a rank, sort them by rank, and take N.
+                var (filteredRecruiters, _) = await _companyRepo.GetVisibleCompaniesAsync(
+                    input.SearchTerm, 
+                    input.SelectedTechs, 
+                    input.SelectedPositions, 
+                    input.SortOrder,
+                    1, 1000000);
+
+                var rankedFiltered = filteredRecruiters
+                    .Where(r => ranksDict.ContainsKey(r.CompanyId))
+                    .OrderBy(r => ranksDict[r.CompanyId])
+                    .Take(input.TopN.Value)
+                    .ToList();
+
+                totalCount = rankedFiltered.Count;
+                items = rankedFiltered.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            }
+            else
+            {
+                var result = await _companyRepo.GetVisibleCompaniesAsync(
+                    input.SearchTerm, 
+                    input.SelectedTechs, 
+                    input.SelectedPositions, 
+                    input.SortOrder,
+                    page, 
+                    pageSize);
+                items = result.Items;
+                totalCount = result.TotalCount;
+            }
 
             var list = items.Select(r =>
             {
@@ -66,7 +92,7 @@ namespace DevHub.Services.Implementations
                 }
 
                 // Resolve system rank from the pre-computed global rankings dictionary
-                int systemRank = ranksDict.TryGetValue(r.CompanyId, out int rk) ? rk : 9999;
+                int? systemRank = ranksDict.TryGetValue(r.CompanyId, out int rk) ? rk : null;
 
                 return new CompanySearchItemViewModel
                 {
@@ -112,6 +138,7 @@ namespace DevHub.Services.Implementations
                 Address = null,
                 SearchTerm = input.SearchTerm,
                 SortOrder = input.SortOrder,
+                TopN = input.TopN,
                 AvailableTechs = availableTechs,
                 AvailablePositions = availablePositions,
                 SelectedTechs = input.SelectedTechs ?? new(),

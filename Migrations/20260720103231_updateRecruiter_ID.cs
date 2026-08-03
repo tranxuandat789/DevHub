@@ -10,11 +10,11 @@ namespace DevHub.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-// migrationBuilder.AddColumn<int>(
-//     name: "recruiter_id",
-//     table: "package_transaction",
-//     type: "int",
-//     nullable: true);
+            migrationBuilder.AddColumn<int>(
+                name: "recruiter_id",
+                table: "package_transaction",
+                type: "int",
+                nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "recruiter_id",
@@ -28,12 +28,12 @@ namespace DevHub.Migrations
                 table: "package_transaction",
                 column: "recruiter_id");
 
-// migrationBuilder.AddForeignKey(
-//     name: "FK_package_transaction_recruiter",
-//     table: "package_transaction",
-//     column: "recruiter_id",
-//     principalTable: "recruiter",
-//     principalColumn: "recruiter_id");
+            migrationBuilder.AddForeignKey(
+                name: "FK_package_transaction_recruiter",
+                table: "package_transaction",
+                column: "recruiter_id",
+                principalTable: "recruiter",
+                principalColumn: "recruiter_id");
         }
 
         /// <inheritdoc />
